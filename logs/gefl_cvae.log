@@ -1,0 +1,64 @@
+2026-08-22 20:48:03 | INFO    | ======================================================================
+2026-08-22 20:48:03 | INFO    | EXPERIMENT: gefl_cvae
+2026-08-22 20:48:03 | INFO    | ======================================================================
+2026-08-22 20:48:03 | DEBUG   | Full config: {"num_users": 4, "frac": 1.0, "num_models": 2, "dataset": "synthetic", "data_root": "./data", "img_size": 20, "num_workers": 2, "noniid": true, "dir_param": 0.4, "imbalance_factor": 0.05, "max_per_class": null, "partition_seed": 0, "bs": 128, "local_bs": 64, "lr": 0.01, "momentum": 0.9, "weight_decay": 0.0, "optimizer": "sgd", "seed": 0, "num_experiment": 1, "device": "cuda", "gen_wu_epochs": 1, "epochs": 3, "local_ep": 1, "gen_local_ep": 1, "aid_by_gen": 1, "freeze_gen": 0, "synth_batch": 16, "gen_model": "vae", "latent_size": 8, "gen_lr": 0.001, "gen_channels": 8, "b1": 0.5, "b2": 0.999, "n_feat": 8, "n_T": 5, "guide_w": 0.3, "target_models": "cnn_small,mobilenet_lite", "mechanism_a": 1, "mech_a_beta": 0.999, "mechanism_b": 1, "mech_b_ema_decay": 0.6, "mech_b_init_fidelity": 0.15, "creff_feat_dim": 128, "creff_rounds": 15, "creff_synth_per_class": 100, "creff_head_retrain_steps": 300, "sample_test": 1, "eval_centralized_upper_bound": 1, "centralized_epochs": 1, "name": "gefl_cvae", "out_dir": "./logs", "ckpt_dir": "./checkpoint", "save_ckpt": 0, "wandb": 0, "wandb_proj_name": "gefl-classbalanced", "verbose": 1, "tensorboard": 0, "log_per_class": 1, "log_per_client": 0, "plot_every": 0, "save_synthetic_samples": 1, "target_models_list": ["cnn_small", "mobilenet_lite"]}
+2026-08-22 20:48:04 | INFO    | dataset=synthetic classes=10 clients=4 imbalance_factor=0.050 dir_param=0.400 gen_model=vae mechanism_a=1 mechanism_b=1
+2026-08-22 20:48:07 | INFO    | Saved data distribution plot
+2026-08-22 20:48:07 | INFO    | warm-up: training shared vae generator for 1 rounds
+2026-08-22 20:48:11 | DEBUG   | warm-up round 1/1 gen_loss=0.4429
+2026-08-22 20:48:11 | DEBUG   | Round 1 started
+2026-08-22 20:48:13 | INFO    | step=1  round=1  train_loss=2.1520  gen_loss=0.3954  acc_overall=0.1000  acc_head=0.3333  acc_medium=0.0000  acc_tail=0.0000  macro_f1=0.0182  class_balanced_accuracy=0.1000  mean_fidelity=0.1299  gen_time=0.7400  target_time=1.4140  eval_time=0.4920  wall_time=9.8000
+2026-08-22 20:48:13 | DEBUG   | Round 2 started
+2026-08-22 20:48:15 | INFO    | step=2  round=2  train_loss=2.0876  gen_loss=0.3876  acc_overall=0.1000  acc_head=0.3333  acc_medium=0.0000  acc_tail=0.0000  macro_f1=0.0182  class_balanced_accuracy=0.1000  mean_fidelity=0.1177  gen_time=0.6970  target_time=0.7020  eval_time=0.3720  wall_time=11.6000
+2026-08-22 20:48:15 | DEBUG   | Round 3 started
+2026-08-22 20:48:17 | INFO    | step=3  round=3  train_loss=2.0336  gen_loss=0.3823  acc_overall=0.1000  acc_head=0.3333  acc_medium=0.0000  acc_tail=0.0000  macro_f1=0.0182  class_balanced_accuracy=0.1000  mean_fidelity=0.1116  gen_time=0.7160  target_time=0.9050  eval_time=0.4020  wall_time=13.6000
+2026-08-22 20:48:18 | INFO    | centralized upper bound: {'head': 0.6566666666666666, 'medium': 0.8233333333333333, 'tail': 0.3425, 'overall': 0.581}
+2026-08-22 20:48:18 | INFO    | centralized-vs-federated gap: {'head': 0.3233, 'medium': 0.8233, 'tail': 0.3425, 'overall': 0.481}
+2026-08-22 20:48:18 | INFO    | MND privacy ratio: 0.9944 (near 1 = no detectable memorization signal)
+2026-08-22 20:48:26 | INFO    | ======================================================================
+2026-08-22 20:48:26 | INFO    | EXPERIMENT SUMMARY
+2026-08-22 20:48:26 | INFO    | ======================================================================
+2026-08-22 20:48:26 | INFO    |   acc_overall                     0.1000
+2026-08-22 20:48:26 | INFO    |   acc_head                        0.3333
+2026-08-22 20:48:26 | INFO    |   acc_medium                      0.0000
+2026-08-22 20:48:26 | INFO    |   acc_tail                        0.0000
+2026-08-22 20:48:26 | INFO    |   macro_f1                        0.0182
+2026-08-22 20:48:26 | INFO    |   class_balanced_accuracy         0.1000
+2026-08-22 20:48:26 | INFO    |   train_loss                      2.0336
+2026-08-22 20:48:26 | INFO    |   mnd_ratio                       0.9944
+2026-08-22 20:48:26 | INFO    |   centralized_gap                 {'head': '0.3233', 'medium': '0.8233', 'tail': '0.3425', 'overall': '0.4810'}
+2026-08-22 20:48:26 | INFO    |   total_time_s                    15.4000
+2026-08-22 20:48:26 | INFO    | ======================================================================
+2026-08-22 20:48:26 | INFO    | Logs saved: CSV=./logs\gefl_cvae_1787411883.csv  JSONL=./logs\gefl_cvae_metrics.jsonl
+2026-08-22 20:53:38 | INFO    | ======================================================================
+2026-08-22 20:53:38 | INFO    | EXPERIMENT: gefl_cvae
+2026-08-22 20:53:38 | INFO    | ======================================================================
+2026-08-22 20:53:38 | DEBUG   | Full config: {"num_users": 4, "frac": 1.0, "num_models": 2, "dataset": "synthetic", "data_root": "./data", "img_size": 20, "num_workers": 2, "noniid": true, "dir_param": 0.4, "imbalance_factor": 0.05, "max_per_class": null, "partition_seed": 0, "bs": 128, "local_bs": 64, "lr": 0.01, "momentum": 0.9, "weight_decay": 0.0, "optimizer": "sgd", "seed": 0, "num_experiment": 1, "device": "cuda", "gen_wu_epochs": 1, "epochs": 3, "local_ep": 1, "gen_local_ep": 1, "aid_by_gen": 1, "freeze_gen": 0, "synth_batch": 16, "gen_model": "vae", "latent_size": 8, "gen_lr": 0.001, "gen_channels": 8, "b1": 0.5, "b2": 0.999, "n_feat": 8, "n_T": 5, "guide_w": 0.3, "target_models": "cnn_small,mobilenet_lite", "mechanism_a": 1, "mech_a_beta": 0.999, "mechanism_b": 1, "mech_b_ema_decay": 0.6, "mech_b_init_fidelity": 0.15, "creff_feat_dim": 128, "creff_rounds": 15, "creff_synth_per_class": 100, "creff_head_retrain_steps": 300, "sample_test": 1, "eval_centralized_upper_bound": 1, "centralized_epochs": 1, "name": "gefl_cvae", "out_dir": "./logs", "ckpt_dir": "./checkpoint", "save_ckpt": 0, "wandb": 0, "wandb_proj_name": "gefl-classbalanced", "verbose": 1, "tensorboard": 0, "log_per_class": 1, "log_per_client": 0, "plot_every": 0, "save_synthetic_samples": 1, "show_plots": 0, "target_models_list": ["cnn_small", "mobilenet_lite"]}
+2026-08-22 20:53:39 | INFO    | dataset=synthetic classes=10 clients=4 imbalance_factor=0.050 dir_param=0.400 gen_model=vae mechanism_a=1 mechanism_b=1
+2026-08-22 20:53:48 | INFO    | Saved data distribution plot
+2026-08-22 20:53:48 | INFO    | warm-up: training shared vae generator for 1 rounds
+2026-08-22 20:53:52 | DEBUG   | warm-up round 1/1 gen_loss=0.4429
+2026-08-22 20:53:52 | DEBUG   | Round 1 started
+2026-08-22 20:53:55 | INFO    | step=1  round=1  train_loss=2.1520  gen_loss=0.3954  acc_overall=0.1000  acc_head=0.3333  acc_medium=0.0000  acc_tail=0.0000  macro_f1=0.0182  class_balanced_accuracy=0.1000  mean_fidelity=0.1299  gen_time=0.7840  target_time=1.3380  eval_time=0.4460  wall_time=16.2000
+2026-08-22 20:53:55 | DEBUG   | Round 2 started
+2026-08-22 20:53:57 | INFO    | step=2  round=2  train_loss=2.0876  gen_loss=0.3876  acc_overall=0.1000  acc_head=0.3333  acc_medium=0.0000  acc_tail=0.0000  macro_f1=0.0182  class_balanced_accuracy=0.1000  mean_fidelity=0.1177  gen_time=0.8010  target_time=0.7820  eval_time=0.4110  wall_time=18.2000
+2026-08-22 20:53:57 | DEBUG   | Round 3 started
+2026-08-22 20:53:58 | INFO    | step=3  round=3  train_loss=2.0336  gen_loss=0.3823  acc_overall=0.1000  acc_head=0.3333  acc_medium=0.0000  acc_tail=0.0000  macro_f1=0.0182  class_balanced_accuracy=0.1000  mean_fidelity=0.1117  gen_time=0.7170  target_time=0.7720  eval_time=0.3770  wall_time=20.0000
+2026-08-22 20:53:59 | INFO    | centralized upper bound: {'head': 0.6566666666666666, 'medium': 0.8233333333333333, 'tail': 0.3425, 'overall': 0.581}
+2026-08-22 20:53:59 | INFO    | centralized-vs-federated gap: {'head': 0.3233, 'medium': 0.8233, 'tail': 0.3425, 'overall': 0.481}
+2026-08-22 20:53:59 | INFO    | MND privacy ratio: 0.9944 (near 1 = no detectable memorization signal)
+2026-08-22 20:54:05 | INFO    | ======================================================================
+2026-08-22 20:54:05 | INFO    | EXPERIMENT SUMMARY
+2026-08-22 20:54:05 | INFO    | ======================================================================
+2026-08-22 20:54:05 | INFO    |   acc_overall                     0.1000
+2026-08-22 20:54:05 | INFO    |   acc_head                        0.3333
+2026-08-22 20:54:05 | INFO    |   acc_medium                      0.0000
+2026-08-22 20:54:05 | INFO    |   acc_tail                        0.0000
+2026-08-22 20:54:05 | INFO    |   macro_f1                        0.0182
+2026-08-22 20:54:05 | INFO    |   class_balanced_accuracy         0.1000
+2026-08-22 20:54:05 | INFO    |   train_loss                      2.0336
+2026-08-22 20:54:05 | INFO    |   mnd_ratio                       0.9944
+2026-08-22 20:54:05 | INFO    |   centralized_gap                 {'head': '0.3233', 'medium': '0.8233', 'tail': '0.3425', 'overall': '0.4810'}
+2026-08-22 20:54:05 | INFO    |   total_time_s                    13.3000
+2026-08-22 20:54:05 | INFO    | ======================================================================
+2026-08-22 20:54:05 | INFO    | Logs saved: CSV=./logs\gefl_cvae_1787412218.csv  JSONL=./logs\gefl_cvae_metrics.jsonl

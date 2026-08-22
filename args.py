@@ -149,6 +149,18 @@ def _add_all_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentPars
     parser.add_argument('--wandb', type=int, default=0, help='1: also log to Weights & Biases if installed')
     parser.add_argument('--wandb_proj_name', type=str, default='gefl-classbalanced')
     parser.add_argument('--verbose', type=int, default=1)
+    parser.add_argument('--tensorboard', type=int, default=0,
+                         help='1: log scalars and images to TensorBoard')
+    parser.add_argument('--log_per_class', type=int, default=1,
+                         help='1: log per-class accuracy each eval step (not just buckets)')
+    parser.add_argument('--log_per_client', type=int, default=0,
+                         help='1: evaluate and log each client model individually')
+    parser.add_argument('--plot_every', type=int, default=0,
+                         help='generate intermediate plots every N rounds; 0 = final only')
+    parser.add_argument('--save_synthetic_samples', type=int, default=1,
+                         help='1: save a grid of generator output at the end of training')
+    parser.add_argument('--show_plots', type=int, default=0,
+                         help='1: auto-display plots at end of training (blocks on headless servers)')
 
     return parser
 

@@ -1,0 +1,22 @@
+2026-08-22 21:54:02 | INFO    | ======================================================================
+2026-08-22 21:54:02 | INFO    | EXPERIMENT: sweep_imb0.01_dir0.3_seed0_baseline
+2026-08-22 21:54:02 | INFO    | ======================================================================
+2026-08-22 21:54:02 | DEBUG   | Full config: {"num_users": 10, "frac": 1.0, "num_models": 3, "dataset": "cifar10", "data_root": "./data", "img_size": null, "num_workers": 2, "noniid": true, "dir_param": 0.3, "imbalance_factor": 0.01, "max_per_class": null, "partition_seed": 0, "bs": 128, "local_bs": 64, "lr": 0.01, "momentum": 0.9, "weight_decay": 0.0, "optimizer": "sgd", "seed": 0, "num_experiment": 1, "device": "cuda", "gen_wu_epochs": 10, "epochs": 100, "local_ep": 2, "gen_local_ep": 2, "aid_by_gen": 1, "freeze_gen": 0, "synth_batch": 64, "gen_model": "vae", "latent_size": 64, "gen_lr": 0.001, "gen_channels": 64, "b1": 0.5, "b2": 0.999, "n_feat": 64, "n_T": 200, "guide_w": 0.3, "target_models": "cnn_small,cnn_deep,mobilenet_lite", "mechanism_a": 0, "mech_a_beta": 0.999, "mechanism_b": 0, "mech_b_ema_decay": 0.6, "mech_b_init_fidelity": 0.15, "creff_feat_dim": 128, "creff_rounds": 15, "creff_synth_per_class": 100, "creff_head_retrain_steps": 300, "sample_test": 5, "eval_centralized_upper_bound": 1, "centralized_epochs": 20, "name": "sweep_imb0.01_dir0.3_seed0_baseline", "out_dir": "./logs", "ckpt_dir": "./checkpoint", "save_ckpt": 1, "wandb": 0, "wandb_proj_name": "gefl-classbalanced", "verbose": 1, "tensorboard": 0, "log_per_class": 1, "log_per_client": 0, "plot_every": 0, "save_synthetic_samples": 1, "show_plots": 0, "target_models_list": ["cnn_small", "cnn_deep", "mobilenet_lite"]}
+2026-08-22 21:54:04 | INFO    | dataset=cifar10 classes=10 clients=10 imbalance_factor=0.010 dir_param=0.300 gen_model=vae mechanism_a=0 mechanism_b=0
+2026-08-22 21:54:10 | INFO    | Saved data distribution plot
+2026-08-22 21:54:10 | INFO    | warm-up: training shared vae generator for 10 rounds
+2026-08-22 21:54:30 | DEBUG   | warm-up round 1/10 gen_loss=0.6570
+2026-08-22 21:54:47 | DEBUG   | warm-up round 2/10 gen_loss=0.5267
+2026-08-22 21:55:05 | DEBUG   | warm-up round 3/10 gen_loss=0.4673
+2026-08-22 21:55:23 | DEBUG   | warm-up round 4/10 gen_loss=0.4409
+2026-08-22 21:55:41 | DEBUG   | warm-up round 5/10 gen_loss=0.4316
+2026-08-22 21:55:59 | DEBUG   | warm-up round 6/10 gen_loss=0.4219
+2026-08-22 21:56:19 | DEBUG   | warm-up round 7/10 gen_loss=0.4087
+2026-08-22 21:56:41 | DEBUG   | warm-up round 8/10 gen_loss=0.4054
+2026-08-22 21:57:02 | DEBUG   | warm-up round 9/10 gen_loss=0.3975
+2026-08-22 21:57:23 | DEBUG   | warm-up round 10/10 gen_loss=0.3915
+2026-08-22 21:57:23 | DEBUG   | Round 1 started
+2026-08-22 21:58:07 | DEBUG   | Round 2 started
+2026-08-22 21:58:53 | DEBUG   | Round 3 started
+2026-08-22 21:59:38 | DEBUG   | Round 4 started
+2026-08-22 22:00:24 | DEBUG   | Round 5 started
