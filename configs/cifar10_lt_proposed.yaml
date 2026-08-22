@@ -1,0 +1,43 @@
+# configs/cifar10_lt_proposed.yaml
+# Identical to cifar10_lt.yaml except both mechanisms are switched on --
+# diff this file against cifar10_lt.yaml to see exactly what the proposed
+# method changes.
+
+dataset: cifar10
+data_root: ./data
+num_users: 10
+num_models: 3
+target_models: cnn_small,cnn_deep,mobilenet_lite
+frac: 1.0
+
+noniid: true
+dir_param: 0.3
+imbalance_factor: 0.01
+
+lr: 0.01
+local_bs: 64
+optimizer: sgd
+
+gen_wu_epochs: 10
+epochs: 100
+local_ep: 2
+gen_local_ep: 2
+synth_batch: 64
+gen_model: vae
+latent_size: 64
+gen_channels: 64
+gen_lr: 0.001
+
+mechanism_a: 1
+mech_a_beta: 0.999
+mechanism_b: 1
+mech_b_ema_decay: 0.6
+mech_b_init_fidelity: 0.3
+
+eval_centralized_upper_bound: 1
+centralized_epochs: 20
+sample_test: 5
+
+seed: 0
+num_experiment: 1
+name: gefl_cifar10lt_proposed

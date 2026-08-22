@@ -1,0 +1,38 @@
+# configs/cifar100_lt.yaml
+# Same controls as cifar10_lt.yaml, scaled to 100 classes.
+
+dataset: cifar100
+data_root: ./data
+num_users: 20
+num_models: 3
+target_models: cnn_small,cnn_deep,mobilenet_lite
+frac: 0.5
+
+noniid: true
+dir_param: 0.3
+imbalance_factor: 0.01
+
+lr: 0.01
+local_bs: 64
+optimizer: sgd
+
+gen_wu_epochs: 10
+epochs: 150
+local_ep: 2
+gen_local_ep: 2
+synth_batch: 100
+gen_model: vae
+latent_size: 96
+gen_channels: 96
+gen_lr: 0.001
+
+mechanism_a: 0
+mechanism_b: 0
+
+eval_centralized_upper_bound: 1
+centralized_epochs: 25
+sample_test: 5
+
+seed: 0
+num_experiment: 1
+name: gefl_cifar100lt_baseline

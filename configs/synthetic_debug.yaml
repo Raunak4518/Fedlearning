@@ -1,0 +1,32 @@
+# configs/synthetic_debug.yaml
+# Fast, fully-offline sanity-check config -- runs in seconds, exercises
+# every code path (partition, generator, both mechanisms, evaluation).
+# Not a real benchmark; use configs/cifar10_lt.yaml for that.
+
+dataset: synthetic
+img_size: 20
+num_users: 4
+num_models: 2
+target_models: cnn_small,mobilenet_lite
+frac: 1.0
+
+noniid: true
+dir_param: 0.4
+imbalance_factor: 0.05
+
+gen_wu_epochs: 1
+epochs: 3
+local_ep: 1
+gen_local_ep: 1
+synth_batch: 16
+gen_channels: 8
+latent_size: 8
+n_feat: 8
+n_T: 5
+
+mechanism_a: 1
+mechanism_b: 1
+
+centralized_epochs: 1
+sample_test: 1
+save_ckpt: 0

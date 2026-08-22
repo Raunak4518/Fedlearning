@@ -1,0 +1,40 @@
+# configs/cifar10_lt.yaml
+# Matches the proposal's Section 5 methodology: CIFAR-10-LT partitioned
+# with an imbalance factor and Dirichlet alpha, GeFL's own pool of
+# heterogeneous target networks, FedCVAE as the primary generator variant.
+
+dataset: cifar10
+data_root: ./data
+num_users: 10
+num_models: 3
+target_models: cnn_small,cnn_deep,mobilenet_lite
+frac: 1.0
+
+noniid: true
+dir_param: 0.3
+imbalance_factor: 0.01     # CIFAR-10-LT convention (IF=100 <-> 0.01 here)
+
+lr: 0.01
+local_bs: 64
+optimizer: sgd
+
+gen_wu_epochs: 10
+epochs: 100
+local_ep: 2
+gen_local_ep: 2
+synth_batch: 64
+gen_model: vae
+latent_size: 64
+gen_channels: 64
+gen_lr: 0.001
+
+mechanism_a: 0
+mechanism_b: 0
+
+eval_centralized_upper_bound: 1
+centralized_epochs: 20
+sample_test: 5
+
+seed: 0
+num_experiment: 1
+name: gefl_cifar10lt_baseline
