@@ -1,0 +1,5 @@
+imbalance_factor,dir_param,mechanism,n_seeds,acc_overall_mean,acc_overall_std,acc_head_mean,acc_head_std,acc_medium_mean,acc_medium_std,acc_tail_mean,acc_tail_std
+0.01,0.3,a_only,1,0.307,0.0,0.6052,0.0,0.2684,0.0,0.1124,0.0
+0.01,0.3,b_only,1,0.2983,0.0,0.6017,0.0,0.2366,0.0,0.1169,0.0
+0.01,0.3,baseline,1,0.3132,0.0,0.6008,0.0,0.2873,0.0,0.1169,0.0
+0.01,0.3,proposed,1,0.2993,0.0,0.6022,0.0,0.2264,0.0,0.1268,0.0

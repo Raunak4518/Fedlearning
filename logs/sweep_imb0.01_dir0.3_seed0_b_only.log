@@ -1,0 +1,155 @@
+2026-08-23 01:33:47 | INFO    | ======================================================================
+2026-08-23 01:33:47 | INFO    | EXPERIMENT: sweep_imb0.01_dir0.3_seed0_b_only
+2026-08-23 01:33:47 | INFO    | ======================================================================
+2026-08-23 01:33:47 | DEBUG   | Full config: {"num_users": 10, "frac": 1.0, "num_models": 3, "dataset": "cifar10", "data_root": "./data", "img_size": null, "num_workers": 2, "noniid": true, "dir_param": 0.3, "imbalance_factor": 0.01, "max_per_class": null, "partition_seed": 0, "bs": 128, "local_bs": 64, "lr": 0.01, "momentum": 0.9, "weight_decay": 0.0, "optimizer": "sgd", "seed": 0, "num_experiment": 1, "device": "cuda", "gen_wu_epochs": 10, "epochs": 100, "local_ep": 2, "gen_local_ep": 2, "aid_by_gen": 1, "freeze_gen": 0, "synth_batch": 64, "gen_model": "vae", "latent_size": 64, "gen_lr": 0.001, "gen_channels": 64, "b1": 0.5, "b2": 0.999, "n_feat": 64, "n_T": 200, "guide_w": 0.3, "target_models": "cnn_small,cnn_deep,mobilenet_lite", "mechanism_a": 0, "mech_a_beta": 0.999, "mechanism_b": 1, "mech_b_ema_decay": 0.6, "mech_b_init_fidelity": 0.15, "creff_feat_dim": 128, "creff_rounds": 15, "creff_synth_per_class": 100, "creff_head_retrain_steps": 300, "sample_test": 5, "eval_centralized_upper_bound": 1, "centralized_epochs": 20, "name": "sweep_imb0.01_dir0.3_seed0_b_only", "out_dir": "./logs", "ckpt_dir": "./checkpoint", "save_ckpt": 1, "wandb": 0, "wandb_proj_name": "gefl-classbalanced", "verbose": 1, "tensorboard": 0, "log_per_class": 1, "log_per_client": 0, "plot_every": 0, "save_synthetic_samples": 1, "show_plots": 0, "target_models_list": ["cnn_small", "cnn_deep", "mobilenet_lite"]}
+2026-08-23 01:33:49 | INFO    | dataset=cifar10 classes=10 clients=10 imbalance_factor=0.010 dir_param=0.300 gen_model=vae mechanism_a=0 mechanism_b=1
+2026-08-23 01:33:50 | INFO    | Saved data distribution plot
+2026-08-23 01:33:50 | INFO    | warm-up: training shared vae generator for 10 rounds
+2026-08-23 01:34:12 | DEBUG   | warm-up round 1/10 gen_loss=0.6570
+2026-08-23 01:34:34 | DEBUG   | warm-up round 2/10 gen_loss=0.5267
+2026-08-23 01:34:57 | DEBUG   | warm-up round 3/10 gen_loss=0.4674
+2026-08-23 01:35:19 | DEBUG   | warm-up round 4/10 gen_loss=0.4409
+2026-08-23 01:35:42 | DEBUG   | warm-up round 5/10 gen_loss=0.4316
+2026-08-23 01:36:04 | DEBUG   | warm-up round 6/10 gen_loss=0.4212
+2026-08-23 01:36:26 | DEBUG   | warm-up round 7/10 gen_loss=0.4084
+2026-08-23 01:36:48 | DEBUG   | warm-up round 8/10 gen_loss=0.4052
+2026-08-23 01:37:11 | DEBUG   | warm-up round 9/10 gen_loss=0.3976
+2026-08-23 01:37:34 | DEBUG   | warm-up round 10/10 gen_loss=0.3916
+2026-08-23 01:37:35 | DEBUG   | Round 1 started
+2026-08-23 01:38:25 | DEBUG   | Round 2 started
+2026-08-23 01:39:14 | DEBUG   | Round 3 started
+2026-08-23 01:40:03 | DEBUG   | Round 4 started
+2026-08-23 01:40:53 | DEBUG   | Round 5 started
+2026-08-23 01:43:05 | INFO    | step=5  round=5  train_loss=1.4155  gen_loss=0.3785  acc_overall=0.1833  acc_head=0.5369  acc_medium=0.0741  acc_tail=0.0000  macro_f1=0.0918  class_balanced_accuracy=0.1948  mean_fidelity=0.1321  gen_time=23.4830  target_time=25.4820  eval_time=83.3030  wall_time=558.7000
+2026-08-23 01:43:06 | DEBUG   | Round 6 started
+2026-08-23 01:43:54 | DEBUG   | Round 7 started
+2026-08-23 01:44:45 | DEBUG   | Round 8 started
+2026-08-23 01:45:35 | DEBUG   | Round 9 started
+2026-08-23 01:46:23 | DEBUG   | Round 10 started
+2026-08-23 01:48:31 | INFO    | step=10  round=10  train_loss=1.3149  gen_loss=0.3706  acc_overall=0.2092  acc_head=0.5592  acc_medium=0.1302  acc_tail=0.0058  macro_f1=0.1408  class_balanced_accuracy=0.2394  mean_fidelity=0.1490  gen_time=23.9380  target_time=25.4750  eval_time=78.5090  wall_time=884.7000
+2026-08-23 01:48:32 | DEBUG   | Round 11 started
+2026-08-23 01:49:29 | DEBUG   | Round 12 started
+2026-08-23 01:50:20 | DEBUG   | Round 13 started
+2026-08-23 01:51:09 | DEBUG   | Round 14 started
+2026-08-23 01:51:59 | DEBUG   | Round 15 started
+2026-08-23 01:54:13 | INFO    | step=15  round=15  train_loss=1.2607  gen_loss=0.3668  acc_overall=0.2243  acc_head=0.5564  acc_medium=0.1577  acc_tail=0.0253  macro_f1=0.1760  class_balanced_accuracy=0.2704  mean_fidelity=0.1623  gen_time=24.6550  target_time=25.5740  eval_time=83.3400  wall_time=1226.2000
+2026-08-23 01:54:13 | DEBUG   | Round 16 started
+2026-08-23 01:55:05 | DEBUG   | Round 17 started
+2026-08-23 01:55:54 | DEBUG   | Round 18 started
+2026-08-23 01:56:45 | DEBUG   | Round 19 started
+2026-08-23 01:57:36 | DEBUG   | Round 20 started
+2026-08-23 01:59:50 | INFO    | step=20  round=20  train_loss=1.2151  gen_loss=0.3595  acc_overall=0.2284  acc_head=0.5678  acc_medium=0.1731  acc_tail=0.0153  macro_f1=0.1907  class_balanced_accuracy=0.2806  mean_fidelity=0.1738  gen_time=24.6570  target_time=25.9810  eval_time=83.3460  wall_time=1563.1000
+2026-08-23 01:59:50 | DEBUG   | Round 21 started
+2026-08-23 02:00:40 | DEBUG   | Round 22 started
+2026-08-23 02:01:32 | DEBUG   | Round 23 started
+2026-08-23 02:02:22 | DEBUG   | Round 24 started
+2026-08-23 02:03:13 | DEBUG   | Round 25 started
+2026-08-23 02:05:27 | INFO    | step=25  round=25  train_loss=1.1817  gen_loss=0.3545  acc_overall=0.2370  acc_head=0.5731  acc_medium=0.1645  acc_tail=0.0394  macro_f1=0.2137  class_balanced_accuracy=0.3029  mean_fidelity=0.1831  gen_time=24.4430  target_time=25.0850  eval_time=84.5510  wall_time=1900.7000
+2026-08-23 02:05:28 | DEBUG   | Round 26 started
+2026-08-23 02:06:18 | DEBUG   | Round 27 started
+2026-08-23 02:07:26 | DEBUG   | Round 28 started
+2026-08-23 02:08:18 | DEBUG   | Round 29 started
+2026-08-23 02:09:12 | DEBUG   | Round 30 started
+2026-08-23 02:11:35 | INFO    | step=30  round=30  train_loss=1.1459  gen_loss=0.3538  acc_overall=0.2392  acc_head=0.5873  acc_medium=0.1470  acc_tail=0.0474  macro_f1=0.2165  class_balanced_accuracy=0.2995  mean_fidelity=0.1921  gen_time=25.8390  target_time=27.3730  eval_time=89.1100  wall_time=2267.9000
+2026-08-23 02:11:35 | DEBUG   | Round 31 started
+2026-08-23 02:12:28 | DEBUG   | Round 32 started
+2026-08-23 02:13:19 | DEBUG   | Round 33 started
+2026-08-23 02:14:08 | DEBUG   | Round 34 started
+2026-08-23 02:14:55 | DEBUG   | Round 35 started
+2026-08-23 02:16:39 | INFO    | step=35  round=35  train_loss=1.1277  gen_loss=0.3505  acc_overall=0.2492  acc_head=0.5857  acc_medium=0.1942  acc_tail=0.0382  macro_f1=0.2241  class_balanced_accuracy=0.3067  mean_fidelity=0.2005  gen_time=19.3130  target_time=19.5580  eval_time=64.6580  wall_time=2572.3000
+2026-08-23 02:16:39 | DEBUG   | Round 36 started
+2026-08-23 02:17:17 | DEBUG   | Round 37 started
+2026-08-23 02:17:55 | DEBUG   | Round 38 started
+2026-08-23 02:18:33 | DEBUG   | Round 39 started
+2026-08-23 02:19:11 | DEBUG   | Round 40 started
+2026-08-23 02:20:54 | INFO    | step=40  round=40  train_loss=1.0947  gen_loss=0.3492  acc_overall=0.2532  acc_head=0.5805  acc_medium=0.2088  acc_tail=0.0411  macro_f1=0.2313  class_balanced_accuracy=0.3118  mean_fidelity=0.2084  gen_time=18.2390  target_time=19.8320  eval_time=64.0750  wall_time=2826.9000
+2026-08-23 02:20:54 | DEBUG   | Round 41 started
+2026-08-23 02:21:32 | DEBUG   | Round 42 started
+2026-08-23 02:22:09 | DEBUG   | Round 43 started
+2026-08-23 02:22:47 | DEBUG   | Round 44 started
+2026-08-23 02:23:25 | DEBUG   | Round 45 started
+2026-08-23 02:25:07 | INFO    | step=45  round=45  train_loss=1.0642  gen_loss=0.3499  acc_overall=0.2560  acc_head=0.6035  acc_medium=0.1801  acc_tail=0.0523  macro_f1=0.2342  class_balanced_accuracy=0.3184  mean_fidelity=0.2184  gen_time=18.6640  target_time=19.1630  eval_time=64.4140  wall_time=3080.7000
+2026-08-23 02:25:08 | DEBUG   | Round 46 started
+2026-08-23 02:25:46 | DEBUG   | Round 47 started
+2026-08-23 02:26:25 | DEBUG   | Round 48 started
+2026-08-23 02:27:03 | DEBUG   | Round 49 started
+2026-08-23 02:27:42 | DEBUG   | Round 50 started
+2026-08-23 02:29:26 | INFO    | step=50  round=50  train_loss=1.0528  gen_loss=0.3469  acc_overall=0.2628  acc_head=0.5933  acc_medium=0.1997  acc_tail=0.0623  macro_f1=0.2563  class_balanced_accuracy=0.3335  mean_fidelity=0.2251  gen_time=18.3760  target_time=19.8350  eval_time=66.3320  wall_time=3339.4000
+2026-08-23 02:29:27 | DEBUG   | Round 51 started
+2026-08-23 02:30:06 | DEBUG   | Round 52 started
+2026-08-23 02:30:45 | DEBUG   | Round 53 started
+2026-08-23 02:31:24 | DEBUG   | Round 54 started
+2026-08-23 02:32:02 | DEBUG   | Round 55 started
+2026-08-23 02:33:46 | INFO    | step=55  round=55  train_loss=1.0365  gen_loss=0.3435  acc_overall=0.2643  acc_head=0.5973  acc_medium=0.2056  acc_tail=0.0587  macro_f1=0.2467  class_balanced_accuracy=0.3314  mean_fidelity=0.2321  gen_time=18.4770  target_time=19.8570  eval_time=65.5380  wall_time=3599.6000
+2026-08-23 02:33:47 | DEBUG   | Round 56 started
+2026-08-23 02:34:25 | DEBUG   | Round 57 started
+2026-08-23 02:35:04 | DEBUG   | Round 58 started
+2026-08-23 02:35:42 | DEBUG   | Round 59 started
+2026-08-23 02:36:20 | DEBUG   | Round 60 started
+2026-08-23 02:38:03 | INFO    | step=60  round=60  train_loss=1.0014  gen_loss=0.3428  acc_overall=0.2776  acc_head=0.6043  acc_medium=0.2174  acc_tail=0.0778  macro_f1=0.2612  class_balanced_accuracy=0.3395  mean_fidelity=0.2406  gen_time=18.4490  target_time=19.6190  eval_time=65.2100  wall_time=3856.6000
+2026-08-23 02:38:04 | DEBUG   | Round 61 started
+2026-08-23 02:38:42 | DEBUG   | Round 62 started
+2026-08-23 02:39:21 | DEBUG   | Round 63 started
+2026-08-23 02:39:59 | DEBUG   | Round 64 started
+2026-08-23 02:40:37 | DEBUG   | Round 65 started
+2026-08-23 02:42:22 | INFO    | step=65  round=65  train_loss=1.0042  gen_loss=0.3417  acc_overall=0.2816  acc_head=0.6020  acc_medium=0.2282  acc_tail=0.0812  macro_f1=0.2593  class_balanced_accuracy=0.3417  mean_fidelity=0.2475  gen_time=17.9460  target_time=19.3880  eval_time=67.2130  wall_time=4115.0000
+2026-08-23 02:42:22 | DEBUG   | Round 66 started
+2026-08-23 02:43:00 | DEBUG   | Round 67 started
+2026-08-23 02:43:38 | DEBUG   | Round 68 started
+2026-08-23 02:44:16 | DEBUG   | Round 69 started
+2026-08-23 02:44:54 | DEBUG   | Round 70 started
+2026-08-23 02:46:39 | INFO    | step=70  round=70  train_loss=0.9803  gen_loss=0.3428  acc_overall=0.2721  acc_head=0.6084  acc_medium=0.2096  acc_tail=0.0667  macro_f1=0.2515  class_balanced_accuracy=0.3267  mean_fidelity=0.2565  gen_time=18.2180  target_time=19.6480  eval_time=67.2010  wall_time=4372.5000
+2026-08-23 02:46:40 | DEBUG   | Round 71 started
+2026-08-23 02:47:19 | DEBUG   | Round 72 started
+2026-08-23 02:47:57 | DEBUG   | Round 73 started
+2026-08-23 02:48:36 | DEBUG   | Round 74 started
+2026-08-23 02:49:14 | DEBUG   | Round 75 started
+2026-08-23 02:50:59 | INFO    | step=75  round=75  train_loss=0.9620  gen_loss=0.3378  acc_overall=0.2756  acc_head=0.6021  acc_medium=0.2212  acc_tail=0.0715  macro_f1=0.2590  class_balanced_accuracy=0.3326  mean_fidelity=0.2665  gen_time=18.1050  target_time=19.3400  eval_time=67.7460  wall_time=4632.4000
+2026-08-23 02:50:59 | DEBUG   | Round 76 started
+2026-08-23 02:51:37 | DEBUG   | Round 77 started
+2026-08-23 02:52:15 | DEBUG   | Round 78 started
+2026-08-23 02:52:54 | DEBUG   | Round 79 started
+2026-08-23 02:53:32 | DEBUG   | Round 80 started
+2026-08-23 02:55:17 | INFO    | step=80  round=80  train_loss=0.9387  gen_loss=0.3406  acc_overall=0.2838  acc_head=0.6018  acc_medium=0.2444  acc_tail=0.0749  macro_f1=0.2747  class_balanced_accuracy=0.3419  mean_fidelity=0.2776  gen_time=18.1370  target_time=19.3020  eval_time=67.1750  wall_time=4890.4000
+2026-08-23 02:55:18 | DEBUG   | Round 81 started
+2026-08-23 02:55:56 | DEBUG   | Round 82 started
+2026-08-23 02:56:34 | DEBUG   | Round 83 started
+2026-08-23 02:57:12 | DEBUG   | Round 84 started
+2026-08-23 02:57:50 | DEBUG   | Round 85 started
+2026-08-23 02:59:36 | INFO    | step=85  round=85  train_loss=0.9314  gen_loss=0.3393  acc_overall=0.2849  acc_head=0.6039  acc_medium=0.2374  acc_tail=0.0813  macro_f1=0.2725  class_balanced_accuracy=0.3493  mean_fidelity=0.2846  gen_time=18.1650  target_time=19.9850  eval_time=67.2920  wall_time=5149.1000
+2026-08-23 02:59:36 | DEBUG   | Round 86 started
+2026-08-23 03:00:15 | DEBUG   | Round 87 started
+2026-08-23 03:00:53 | DEBUG   | Round 88 started
+2026-08-23 03:01:31 | DEBUG   | Round 89 started
+2026-08-23 03:02:10 | DEBUG   | Round 90 started
+2026-08-23 03:03:54 | INFO    | step=90  round=90  train_loss=0.9081  gen_loss=0.3369  acc_overall=0.2907  acc_head=0.6174  acc_medium=0.2205  acc_tail=0.0984  macro_f1=0.2735  class_balanced_accuracy=0.3477  mean_fidelity=0.2920  gen_time=18.2710  target_time=19.7620  eval_time=66.5660  wall_time=5407.5000
+2026-08-23 03:03:55 | DEBUG   | Round 91 started
+2026-08-23 03:04:33 | DEBUG   | Round 92 started
+2026-08-23 03:05:11 | DEBUG   | Round 93 started
+2026-08-23 03:05:49 | DEBUG   | Round 94 started
+2026-08-23 03:06:27 | DEBUG   | Round 95 started
+2026-08-23 03:08:13 | INFO    | step=95  round=95  train_loss=0.9016  gen_loss=0.3360  acc_overall=0.2873  acc_head=0.6169  acc_medium=0.2105  acc_tail=0.0977  macro_f1=0.2563  class_balanced_accuracy=0.3263  mean_fidelity=0.2986  gen_time=18.5210  target_time=19.7090  eval_time=66.8630  wall_time=5665.9000
+2026-08-23 03:08:13 | DEBUG   | Round 96 started
+2026-08-23 03:08:51 | DEBUG   | Round 97 started
+2026-08-23 03:09:29 | DEBUG   | Round 98 started
+2026-08-23 03:10:07 | DEBUG   | Round 99 started
+2026-08-23 03:10:45 | DEBUG   | Round 100 started
+2026-08-23 03:12:30 | INFO    | step=100  round=100  train_loss=0.9023  gen_loss=0.3351  acc_overall=0.2983  acc_head=0.6017  acc_medium=0.2366  acc_tail=0.1169  macro_f1=0.2717  class_balanced_accuracy=0.3440  mean_fidelity=0.3049  gen_time=18.1560  target_time=19.4750  eval_time=67.5000  wall_time=5923.4000
+2026-08-23 03:20:31 | INFO    | centralized upper bound: {'head': 0.681, 'medium': 0.6589999999999999, 'tail': 0.773, 'overall': 0.7112}
+2026-08-23 03:20:31 | INFO    | centralized-vs-federated gap: {'head': 0.0793, 'medium': 0.4224, 'tail': 0.6561, 'overall': 0.413}
+2026-08-23 03:20:32 | INFO    | MND privacy ratio: 0.9962 (near 1 = no detectable memorization signal)
+2026-08-23 03:20:44 | INFO    | ======================================================================
+2026-08-23 03:20:44 | INFO    | EXPERIMENT SUMMARY
+2026-08-23 03:20:44 | INFO    | ======================================================================
+2026-08-23 03:20:44 | INFO    |   acc_overall                     0.2983
+2026-08-23 03:20:44 | INFO    |   acc_head                        0.6017
+2026-08-23 03:20:44 | INFO    |   acc_medium                      0.2366
+2026-08-23 03:20:44 | INFO    |   acc_tail                        0.1169
+2026-08-23 03:20:44 | INFO    |   macro_f1                        0.2717
+2026-08-23 03:20:44 | INFO    |   class_balanced_accuracy         0.3440
+2026-08-23 03:20:44 | INFO    |   train_loss                      0.9023
+2026-08-23 03:20:44 | INFO    |   mnd_ratio                       0.9962
+2026-08-23 03:20:44 | INFO    |   centralized_gap                 {'head': '0.0793', 'medium': '0.4224', 'tail': '0.6561', 'overall': '0.4130'}
+2026-08-23 03:20:44 | INFO    |   total_time_s                    6189.1000
+2026-08-23 03:20:44 | INFO    | ======================================================================
+2026-08-23 03:20:44 | INFO    | Logs saved: CSV=./logs\sweep_imb0.01_dir0.3_seed0_b_only_1787429027.csv  JSONL=./logs\sweep_imb0.01_dir0.3_seed0_b_only_metrics.jsonl
