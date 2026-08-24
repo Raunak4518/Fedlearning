@@ -36,14 +36,13 @@ from targetNetModels.nets import NET_REGISTRY
 from utils.avg import aggregate_generator, model_wise_FedAvg
 from utils.checkpoint import ckpt_path, save_checkpoint, save_results
 from utils.evaluate import (average_client_bucketed_accuracy, bucketed_accuracy, gap_report,
-                             make_held_out_val_split, mnd_ratio, train_centralized_upper_bound)
+                             make_held_out_val_split, mnd_ratio, train_centralized_upper_bound,
+                             ConvergenceTracker, classification_report_from_cm,
+                             compute_confusion_matrix, per_class_accuracy, per_client_accuracy)
 from utils.label_sampler import build_label_sampler
 from utils.localUpdateGen import get_local_gen_update
 from utils.localUpdateTarget import LocalUpdate
 from utils.logger import ExperimentLogger
-from utils.metrics import (ConvergenceTracker, classification_report_from_cm,
-                            compute_confusion_matrix, generator_quality_metrics,
-                            per_class_accuracy, per_client_accuracy)
 from utils.seed import set_seed
 from utils.setup import build_generator, build_target_net, setup_experiment
 from utils.user_sampling import ClientSampler
@@ -203,13 +202,14 @@ def run_gefl(args) -> dict:
             logger.round_timer.start("eval")
 
             client_models = _build_all_client_models(exp, args)
-            scores = average_client_bucketed_accuracy(client_models, exp.dataset_test, exp.buckets, args.device)
+            from utils.evaluate import average_client_metrics
+            scores = average_client_metrics(client_models, exp.dataset_test, exp.meta.num_classes, exp.buckets, args.device)
 
             # Core row
             row = {
                 "round": rnd + 1,
                 "train_loss": avg_loss,
-                **{f"acc_{k}": v for k, v in scores.items()},
+                **{f"acc_{k}": v for k, v in scores.items() if k in ["overall", "head", "medium", "tail"]},
                 "elapsed_s": round(time.time() - t_start, 1),
             }
 
@@ -219,7 +219,7 @@ def run_gefl(args) -> dict:
 
             # Per-class accuracy and classification report
             if getattr(args, "log_per_class", 1):
-                # Use the first client model for per-class metrics (representative)
+                # Use the first client model for per-class metrics history
                 first_model = list(client_models.values())[0]
                 cm = compute_confusion_matrix(
                     first_model, exp.dataset_test, exp.meta.num_classes, args.device
@@ -227,13 +227,12 @@ def run_gefl(args) -> dict:
                 pca = per_class_accuracy(cm)
                 per_class_history.append(pca)
 
-                # Classification report
-                cls_report = classification_report_from_cm(cm)
-                row["macro_f1"] = cls_report["macro_avg"]["f1"]
-                row["weighted_f1"] = cls_report["weighted_avg"]["f1"]
-                row["class_balanced_accuracy"] = cls_report["class_balanced_accuracy"]
-                row["macro_precision"] = cls_report["macro_avg"]["precision"]
-                row["macro_recall"] = cls_report["macro_avg"]["recall"]
+                # Classification report values populated from scores object (averaged across clients)
+                row["macro_f1"] = scores["macro_f1"]
+                row["weighted_f1"] = scores["weighted_f1"]
+                row["class_balanced_accuracy"] = scores["class_balanced_accuracy"]
+                row["macro_precision"] = scores["macro_precision"]
+                row["macro_recall"] = scores["macro_recall"]
 
             # Per-client accuracy
             if getattr(args, "log_per_client", 0):
@@ -340,12 +339,15 @@ def run_gefl(args) -> dict:
         gen_for_eval.eval()
         val_ds, remaining_train_idx = make_held_out_val_split(exp.dataset_train, val_fraction=0.1, seed=args.seed)
         with torch.no_grad():
-            labels = torch.randint(0, exp.meta.num_classes, (200,), device=args.device)
+            # Generate enough synthetic samples for MND reference set (paper: |S|=600)
+            labels = torch.randint(0, exp.meta.num_classes, (600,), device=args.device)
             synth = gen_for_eval.sample(labels)
             train_sample = torch.stack([exp.dataset_train[i][0] for i in remaining_train_idx[:2000]]).to(args.device)
-            val_sample = torch.stack([val_ds[i][0] for i in range(min(len(val_ds), 2000))]).to(args.device)
-        results["mnd_ratio"] = mnd_ratio(synth, train_sample, val_sample)
-        logger.console.info("MND privacy ratio: %.4f (near 1 = no detectable memorization signal)",
+            val_sample = torch.stack([val_ds[i][0] for i in range(min(len(val_ds), 600))]).to(args.device)
+        results["mnd_ratio"] = mnd_ratio(train_sample, synth, val_sample,
+                                          n_query=1000, n_ref=600, device=args.device,
+                                          dataset_mean=exp.meta.mean, dataset_std=exp.meta.std)
+        logger.console.info("MND privacy ratio: %.4f (< 1 = good generalization, > 1 = potential memorization)",
                              results["mnd_ratio"])
 
     # ---- Generate final plots ---------------------------------------------
@@ -451,16 +453,18 @@ def _generate_final_plots(history, per_class_history, fidelity_history,
     try:
         if history:
             client_models = _build_all_client_models(exp, args)
-            first_model = list(client_models.values())[0]
-            from utils.metrics import compute_confusion_matrix as _cm
-            cm = _cm(first_model, exp.dataset_test, exp.meta.num_classes, args.device)
+            from utils.evaluate import compute_confusion_matrix as _cm
+            import numpy as np
+            cm = np.zeros((exp.meta.num_classes, exp.meta.num_classes), dtype=np.int64)
+            for m in client_models.values():
+                cm += _cm(m, exp.dataset_test, exp.meta.num_classes, args.device)
             viz.plot_confusion_matrix(
                 cm, os.path.join(plots_dir, "confusion_matrix.png"),
                 title=f"{logger_name} — Final Confusion Matrix"
             )
 
             # Classification report bar chart
-            from utils.metrics import classification_report_from_cm
+            from utils.evaluate import classification_report_from_cm
             report = classification_report_from_cm(cm)
             viz.plot_classification_report(
                 report, os.path.join(plots_dir, "classification_report.png"),
@@ -506,7 +510,7 @@ def _generate_final_plots(history, per_class_history, fidelity_history,
     try:
         if getattr(args, "log_per_client", 0) and history:
             client_models = _build_all_client_models(exp, args)
-            from utils.metrics import per_client_accuracy
+            from utils.evaluate import per_client_accuracy
             client_accs = per_client_accuracy(client_models, exp.dataset_test, args.device)
             viz.plot_per_client_accuracy(
                 client_accs,

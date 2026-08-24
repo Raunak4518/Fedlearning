@@ -79,3 +79,40 @@ def test_fidelity_state_is_reported_for_logging():
     state = sampler.state()
     assert "mean_fidelity" in state
     assert len(state["fidelity_per_class"]) == 4
+
+class DummyArgs:
+    mech_b_inv_freq_power = 1.0
+
+def test_fidelity_gated_sampler_power_1_0_is_pure_inverse_frequency():
+    counts = np.array([500, 250, 10])
+    # power=1.0 should reproduce the original behavior exactly
+    args = DummyArgs()
+    args.mech_b_inv_freq_power = 1.0
+    sampler = FidelityGatedSampler(3, counts, args=args)
+    
+    inv_dist = sampler._inverse_freq_dist()
+    pure_inv = (1 / (counts / counts.sum())) * sampler.fidelity
+    
+    np.testing.assert_allclose(inv_dist, pure_inv)
+
+def test_fidelity_gated_sampler_lower_power_reduces_tail_oversampling():
+    counts = np.array([500, 250, 10])
+    
+    args_full = DummyArgs()
+    args_full.mech_b_inv_freq_power = 1.0
+    sampler_full = FidelityGatedSampler(3, counts, args=args_full)
+    
+    args_reduced = DummyArgs()
+    args_reduced.mech_b_inv_freq_power = 0.5
+    sampler_reduced = FidelityGatedSampler(3, counts, args=args_reduced)
+    
+    # We expect the proportion allocated to class 2 (tail) to be smaller for reduced power
+    # and proportion allocated to class 1 (medium) to be larger
+    dist_full = sampler_full._inverse_freq_dist()
+    dist_full /= dist_full.sum()
+    
+    dist_reduced = sampler_reduced._inverse_freq_dist()
+    dist_reduced /= dist_reduced.sum()
+    
+    assert dist_reduced[2] < dist_full[2]
+    assert dist_reduced[1] > dist_full[1]

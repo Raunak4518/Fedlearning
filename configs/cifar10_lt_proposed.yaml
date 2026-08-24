@@ -1,5 +1,6 @@
 # configs/cifar10_lt_proposed.yaml
-# Identical to cifar10_lt.yaml except both mechanisms are switched on --
+# Paper-matched GeFL with Mechanism A + B for CIFAR-10-LT.
+# Identical to cifar10_lt.yaml except both mechanisms are switched on —
 # diff this file against cifar10_lt.yaml to see exactly what the proposed
 # method changes.
 
@@ -13,18 +14,20 @@ frac: 1.0
 noniid: true
 dir_param: 0.3
 imbalance_factor: 0.01
+data_fraction: 0.5
 
-lr: 0.01
-local_bs: 64
+lr: 0.1
+local_bs: 128
 optimizer: sgd
 
-gen_wu_epochs: 10
+gen_wu_epochs: 100
 epochs: 100
-local_ep: 2
-gen_local_ep: 2
-synth_batch: 64
+target_ts: 1
+target_tr: 5
+gen_local_ep: 5
+
 gen_model: vae
-latent_size: 64
+latent_size: 50
 gen_channels: 64
 gen_lr: 0.001
 

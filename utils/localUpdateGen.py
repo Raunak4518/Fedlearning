@@ -57,8 +57,9 @@ def local_update_vae(net, dataloader, args, opt_state=None):
 def local_update_gan(net, dataloader, args, opt_state=None):
     net.train()
     opt_state = opt_state or {}
-    opt_g = _make_optimizer(net.G, args.gen_lr, opt_state.get("G"), betas=(args.b1, args.b2))
-    opt_d = _make_optimizer(net.D, args.gen_lr, opt_state.get("D"), betas=(args.b1, args.b2))
+    lr = getattr(args, 'gen_lr_gan', args.gen_lr)  # paper Table XV: 2e-4
+    opt_g = _make_optimizer(net.G, lr, opt_state.get("G"), betas=(args.b1, args.b2))
+    opt_d = _make_optimizer(net.D, lr, opt_state.get("D"), betas=(args.b1, args.b2))
 
     total_g, total_d, n_batches = 0.0, 0.0, 0
     for _ in range(args.gen_local_ep):
@@ -98,7 +99,11 @@ def local_update_gan(net, dataloader, args, opt_state=None):
 @LOCAL_GEN_UPDATE_REGISTRY.register("ddpm")
 def local_update_ddpm(net, dataloader, args, opt_state=None):
     net.train()
-    opt = _make_optimizer(net, args.gen_lr, opt_state)
+    lr = getattr(args, 'gen_lr_ddpm', args.gen_lr)  # paper Table XV: 1e-4
+    wd = getattr(args, 'weight_decay_ddpm', 0.0)    # paper Table XV: 1e-3
+    opt = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=wd)
+    if opt_state is not None:
+        opt.load_state_dict(opt_state)
     total_loss, n_batches = 0.0, 0
     for _ in range(args.gen_local_ep):
         for x, y in dataloader:

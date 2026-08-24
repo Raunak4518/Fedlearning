@@ -1,0 +1,33 @@
+2026-08-24 02:52:51 | INFO    | ======================================================================
+2026-08-24 02:52:51 | INFO    | EXPERIMENT: gefl_f_ddpm
+2026-08-24 02:52:51 | INFO    | ======================================================================
+2026-08-24 02:52:51 | DEBUG   | Full config: {"num_users": 4, "frac": 1.0, "num_models": 2, "dataset": "synthetic", "data_root": "./data", "img_size": 20, "num_workers": 2, "noniid": true, "dir_param": 0.4, "imbalance_factor": 0.05, "max_per_class": null, "data_fraction": 1.0, "partition_seed": 0, "bs": 128, "local_bs": 64, "lr": 0.1, "momentum": 0.9, "weight_decay": 0.0, "optimizer": "sgd", "seed": 0, "num_experiment": 1, "device": "cuda", "gen_wu_epochs": 1, "epochs": 3, "local_ep": 1, "gen_local_ep": 1, "aid_by_gen": 1, "freeze_gen": 0, "synth_batch": 16, "target_ts": 1, "target_tr": 5, "gen_model": "ddpm", "latent_size": 8, "gen_lr": 0.001, "gen_lr_gan": 0.0002, "gen_lr_ddpm": 0.0001, "weight_decay_ddpm": 0.001, "gen_channels": 8, "dcgan_g_channels": 128, "dcgan_d_channels": 128, "b1": 0.5, "b2": 0.999, "n_feat": 8, "n_T": 5, "guide_w": 0.3, "target_models": "cnn_small,mobilenet_lite", "gefl_f": 1, "fe_channels": 32, "fe_rounds": 50, "header_models": "header_small,header_deep,header_wide", "mechanism_a": 1, "mech_a_beta": 0.999, "mechanism_b": 1, "mech_b_ema_decay": 0.6, "mech_b_init_fidelity": 0.15, "mech_b_inv_freq_power": 1.0, "creff_feat_dim": 128, "creff_rounds": 15, "creff_synth_per_class": 100, "creff_head_retrain_steps": 300, "sample_test": 1, "eval_centralized_upper_bound": 1, "centralized_epochs": 1, "name": "gefl_f_ddpm", "out_dir": "./logs", "ckpt_dir": "./checkpoint", "save_ckpt": 0, "wandb": 0, "wandb_proj_name": "gefl-classbalanced", "verbose": 1, "tensorboard": 0, "log_per_class": 1, "log_per_client": 0, "plot_every": 0, "save_synthetic_samples": 1, "show_plots": 0, "target_models_list": ["cnn_small", "mobilenet_lite"]}
+2026-08-24 02:52:52 | INFO    | GeFL-F: dataset=synthetic classes=10 clients=4 fe_channels=32 fe_spatial=10 gen_model=ddpm_f T_FE=50 T_KA=1 T_TN=3
+2026-08-24 02:52:52 | INFO    | === Stage (i): FE warm-up for 50 rounds ===
+2026-08-24 02:52:54 | DEBUG   | FE warm-up round 5/50 loss=1.8477
+2026-08-24 02:52:56 | DEBUG   | FE warm-up round 10/50 loss=1.4415
+2026-08-24 02:52:58 | DEBUG   | FE warm-up round 15/50 loss=1.1848
+2026-08-24 02:53:00 | DEBUG   | FE warm-up round 20/50 loss=1.0726
+2026-08-24 02:53:02 | DEBUG   | FE warm-up round 25/50 loss=0.9880
+2026-08-24 02:53:05 | DEBUG   | FE warm-up round 30/50 loss=0.9290
+2026-08-24 02:53:07 | DEBUG   | FE warm-up round 35/50 loss=0.8264
+2026-08-24 02:53:09 | DEBUG   | FE warm-up round 40/50 loss=0.8804
+2026-08-24 02:53:11 | DEBUG   | FE warm-up round 45/50 loss=0.8326
+2026-08-24 02:53:13 | DEBUG   | FE warm-up round 50/50 loss=0.8523
+2026-08-24 02:53:13 | INFO    | === Stage (ii): Feature-generator training for 1 rounds ===
+2026-08-24 02:53:47 | INFO    | ======================================================================
+2026-08-24 02:53:47 | INFO    | EXPERIMENT: gefl_f_ddpm
+2026-08-24 02:53:47 | INFO    | ======================================================================
+2026-08-24 02:53:47 | DEBUG   | Full config: {"num_users": 4, "frac": 1.0, "num_models": 2, "dataset": "synthetic", "data_root": "./data", "img_size": 20, "num_workers": 2, "noniid": true, "dir_param": 0.4, "imbalance_factor": 0.05, "max_per_class": null, "data_fraction": 1.0, "partition_seed": 0, "bs": 128, "local_bs": 64, "lr": 0.1, "momentum": 0.9, "weight_decay": 0.0, "optimizer": "sgd", "seed": 0, "num_experiment": 1, "device": "cuda", "gen_wu_epochs": 1, "epochs": 3, "local_ep": 1, "gen_local_ep": 1, "aid_by_gen": 1, "freeze_gen": 0, "synth_batch": 16, "target_ts": 1, "target_tr": 5, "gen_model": "ddpm", "latent_size": 8, "gen_lr": 0.001, "gen_lr_gan": 0.0002, "gen_lr_ddpm": 0.0001, "weight_decay_ddpm": 0.001, "gen_channels": 8, "dcgan_g_channels": 128, "dcgan_d_channels": 128, "b1": 0.5, "b2": 0.999, "n_feat": 8, "n_T": 5, "guide_w": 0.3, "target_models": "cnn_small,mobilenet_lite", "gefl_f": 1, "fe_channels": 32, "fe_rounds": 1, "header_models": "header_small,header_deep,header_wide", "mechanism_a": 1, "mech_a_beta": 0.999, "mechanism_b": 1, "mech_b_ema_decay": 0.6, "mech_b_init_fidelity": 0.15, "mech_b_inv_freq_power": 1.0, "creff_feat_dim": 128, "creff_rounds": 15, "creff_synth_per_class": 100, "creff_head_retrain_steps": 300, "sample_test": 1, "eval_centralized_upper_bound": 1, "centralized_epochs": 1, "name": "gefl_f_ddpm", "out_dir": "./logs", "ckpt_dir": "./checkpoint", "save_ckpt": 0, "wandb": 0, "wandb_proj_name": "gefl-classbalanced", "verbose": 1, "tensorboard": 0, "log_per_class": 1, "log_per_client": 0, "plot_every": 0, "save_synthetic_samples": 1, "show_plots": 0, "target_models_list": ["cnn_small", "mobilenet_lite"]}
+2026-08-24 02:53:48 | INFO    | GeFL-F: dataset=synthetic classes=10 clients=4 fe_channels=32 fe_spatial=10 gen_model=ddpm_f T_FE=1 T_KA=1 T_TN=3
+2026-08-24 02:53:48 | INFO    | === Stage (i): FE warm-up for 1 rounds ===
+2026-08-24 02:53:49 | DEBUG   | FE warm-up round 1/1 loss=2.7458
+2026-08-24 02:53:49 | INFO    | === Stage (ii): Feature-generator training for 1 rounds ===
+2026-08-24 02:53:54 | DEBUG   | Gen training round 1/1 gen_loss=1.1364
+2026-08-24 02:53:54 | INFO    | === Stage (iii): Header training for 3 rounds ===
+2026-08-24 02:54:01 | INFO    | step=1  round=1  train_loss=1.8331  acc_overall=0.1000  acc_head=0.3333  acc_medium=0.0000  acc_tail=0.0000  wall_time=14.0000
+2026-08-24 02:54:09 | INFO    | step=2  round=2  train_loss=1.7419  acc_overall=0.2000  acc_head=0.5000  acc_medium=0.1667  acc_tail=0.0000  wall_time=21.7000
+2026-08-24 02:54:16 | INFO    | step=3  round=3  train_loss=1.4991  acc_overall=0.2125  acc_head=0.5000  acc_medium=0.2083  acc_tail=0.0000  wall_time=28.8000
+2026-08-24 02:54:16 | INFO    | GeFL-F training complete. Total time: 27.6s
+2026-08-24 02:54:16 | INFO    | Final scores: {'acc_overall': 0.21250000000000002, 'acc_head': 0.5, 'acc_tail': 0.0, 'acc_medium': 0.20833333333333334}
+2026-08-24 02:54:16 | INFO    | Logs saved: CSV=./logs\gefl_f_ddpm_1787520227.csv  JSONL=./logs\gefl_f_ddpm_metrics.jsonl

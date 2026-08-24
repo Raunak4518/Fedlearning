@@ -12,6 +12,7 @@ identically for a VAE, a GAN, or a diffusion model.
 """
 from typing import List
 
+import torch
 import torch.nn as nn
 
 from registry import Registry
@@ -24,11 +25,22 @@ class ConditionalGenerator(nn.Module):
     (latent_size, gen_channels, ...) so no generator subclass ever reads a
     hardcoded constant -- everything comes from the CLI/config."""
 
-    def __init__(self, num_classes: int, in_channels: int, img_size: int, args):
+    def __init__(self, num_classes: int, in_channels: int, img_size: int, args, output_activation: str = "tanh"):
         super().__init__()
         self.num_classes = num_classes
         self.in_channels = in_channels
         self.img_size = img_size
+        self.output_activation = output_activation
+
+    def _apply_activation(self, h):
+        if self.output_activation == "tanh":
+            return torch.tanh(h)
+        elif self.output_activation == "relu":
+            return torch.relu(h)
+        elif self.output_activation == "none":
+            return h
+        else:
+            raise ValueError(f"Unknown activation: {self.output_activation}")
 
     def conditioning_parameter_names(self) -> List[str]:
         """state_dict keys (this module's own naming) that encode

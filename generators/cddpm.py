@@ -130,8 +130,8 @@ class _UNetLite(nn.Module):
 
 @GEN_REGISTRY.register("ddpm")
 class CDDPM(ConditionalGenerator):
-    def __init__(self, num_classes: int, in_channels: int, img_size: int, args):
-        super().__init__(num_classes, in_channels, img_size, args)
+    def __init__(self, num_classes: int, in_channels: int, img_size: int, args, output_activation: str = "tanh"):
+        super().__init__(num_classes, in_channels, img_size, args, output_activation)
         self.n_T = args.n_T
         self.guide_w = args.guide_w
         cond_dim = args.n_feat * 4
@@ -204,4 +204,11 @@ class CDDPM(ConditionalGenerator):
                 x = mean + torch.sqrt(beta) * torch.randn_like(x)
             else:
                 x = mean
-        return x.clamp(-1, 1)
+        if self.output_activation == "tanh":
+            return x.clamp(-1, 1)
+        elif self.output_activation == "relu":
+            return torch.relu(x)
+        elif self.output_activation == "none":
+            return x
+        else:
+            raise ValueError(f"Unknown activation: {self.output_activation}")

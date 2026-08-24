@@ -1,0 +1,36 @@
+2026-08-24 18:17:21 | INFO    | ======================================================================
+2026-08-24 18:17:21 | INFO    | EXPERIMENT: gefl_cifar10lt_baseline
+2026-08-24 18:17:21 | INFO    | ======================================================================
+2026-08-24 18:17:21 | DEBUG   | Full config: {"num_users": 10, "frac": 1.0, "num_models": 3, "dataset": "cifar10", "data_root": "./data", "img_size": null, "num_workers": 2, "noniid": true, "dir_param": 0.3, "imbalance_factor": 0.01, "max_per_class": null, "data_fraction": 0.5, "partition_seed": 0, "bs": 128, "local_bs": 128, "lr": 0.1, "momentum": 0.9, "weight_decay": 0.0, "optimizer": "sgd", "seed": 0, "num_experiment": 1, "device": "cuda", "gen_wu_epochs": 2, "epochs": 2, "local_ep": 1, "gen_local_ep": 5, "aid_by_gen": 1, "freeze_gen": 0, "synth_batch": 64, "target_ts": 1, "target_tr": 5, "gen_model": "vae", "latent_size": 50, "gen_lr": 0.001, "gen_lr_gan": 0.0002, "gen_lr_ddpm": 0.0001, "weight_decay_ddpm": 0.001, "gen_channels": 64, "dcgan_g_channels": 128, "dcgan_d_channels": 128, "b1": 0.5, "b2": 0.999, "n_feat": 64, "n_T": 200, "guide_w": 0.3, "target_models": "cnn_small,cnn_deep,mobilenet_lite", "gefl_f": 0, "fe_channels": 32, "fe_rounds": 50, "header_models": "header_small,header_deep,header_wide", "mechanism_a": 0, "mech_a_beta": 0.999, "mechanism_b": 0, "mech_b_ema_decay": 0.6, "mech_b_init_fidelity": 0.15, "mech_b_inv_freq_power": 1.0, "creff_feat_dim": 128, "creff_rounds": 15, "creff_synth_per_class": 100, "creff_head_retrain_steps": 300, "sample_test": 5, "eval_centralized_upper_bound": 1, "centralized_epochs": 20, "name": "gefl_cifar10lt_baseline", "out_dir": "./logs", "ckpt_dir": "./checkpoint", "save_ckpt": 1, "wandb": 0, "wandb_proj_name": "gefl-classbalanced", "verbose": 1, "tensorboard": 0, "log_per_class": 1, "log_per_client": 0, "plot_every": 0, "save_synthetic_samples": 1, "show_plots": 0, "target_models_list": ["cnn_small", "cnn_deep", "mobilenet_lite"]}
+2026-08-24 18:17:25 | INFO    | dataset=cifar10 classes=10 clients=10 imbalance_factor=0.010 dir_param=0.300 gen_model=vae mechanism_a=0 mechanism_b=0
+2026-08-24 18:17:35 | INFO    | Saved data distribution plot
+2026-08-24 18:17:35 | INFO    | warm-up: training shared vae generator for 2 rounds
+2026-08-24 18:18:11 | DEBUG   | warm-up round 1/2 gen_loss=0.7278
+2026-08-24 18:18:43 | DEBUG   | warm-up round 2/2 gen_loss=0.5297
+2026-08-24 18:18:43 | DEBUG   | Round 1 started
+2026-08-24 18:19:21 | INFO    | ======================================================================
+2026-08-24 18:19:21 | INFO    | EXPERIMENT: gefl_cifar10lt_baseline
+2026-08-24 18:19:21 | INFO    | ======================================================================
+2026-08-24 18:19:21 | DEBUG   | Full config: {"num_users": 10, "frac": 1.0, "num_models": 3, "dataset": "cifar10", "data_root": "./data", "img_size": null, "num_workers": 2, "noniid": true, "dir_param": 0.3, "imbalance_factor": 0.01, "max_per_class": null, "data_fraction": 0.5, "partition_seed": 0, "bs": 128, "local_bs": 128, "lr": 0.1, "momentum": 0.9, "weight_decay": 0.0, "optimizer": "sgd", "seed": 0, "num_experiment": 1, "device": "cuda", "gen_wu_epochs": 100, "epochs": 100, "local_ep": 1, "gen_local_ep": 5, "aid_by_gen": 1, "freeze_gen": 0, "synth_batch": 64, "target_ts": 1, "target_tr": 5, "gen_model": "vae", "latent_size": 50, "gen_lr": 0.001, "gen_lr_gan": 0.0002, "gen_lr_ddpm": 0.0001, "weight_decay_ddpm": 0.001, "gen_channels": 64, "dcgan_g_channels": 128, "dcgan_d_channels": 128, "b1": 0.5, "b2": 0.999, "n_feat": 64, "n_T": 200, "guide_w": 0.3, "target_models": "cnn_small,cnn_deep,mobilenet_lite", "gefl_f": 0, "fe_channels": 32, "fe_rounds": 50, "header_models": "header_small,header_deep,header_wide", "mechanism_a": 0, "mech_a_beta": 0.999, "mechanism_b": 0, "mech_b_ema_decay": 0.6, "mech_b_init_fidelity": 0.15, "mech_b_inv_freq_power": 1.0, "creff_feat_dim": 128, "creff_rounds": 15, "creff_synth_per_class": 100, "creff_head_retrain_steps": 300, "sample_test": 5, "eval_centralized_upper_bound": 1, "centralized_epochs": 20, "name": "gefl_cifar10lt_baseline", "out_dir": "./logs", "ckpt_dir": "./checkpoint", "save_ckpt": 1, "wandb": 0, "wandb_proj_name": "gefl-classbalanced", "verbose": 1, "tensorboard": 0, "log_per_class": 1, "log_per_client": 0, "plot_every": 0, "save_synthetic_samples": 1, "show_plots": 0, "target_models_list": ["cnn_small", "cnn_deep", "mobilenet_lite"]}
+2026-08-24 18:19:25 | INFO    | dataset=cifar10 classes=10 clients=10 imbalance_factor=0.010 dir_param=0.300 gen_model=vae mechanism_a=0 mechanism_b=0
+2026-08-24 18:19:33 | INFO    | Saved data distribution plot
+2026-08-24 18:19:33 | INFO    | warm-up: training shared vae generator for 100 rounds
+2026-08-24 18:20:06 | DEBUG   | warm-up round 1/100 gen_loss=0.7278
+2026-08-24 18:20:34 | DEBUG   | warm-up round 2/100 gen_loss=0.5297
+2026-08-24 18:21:02 | DEBUG   | warm-up round 3/100 gen_loss=0.4783
+2026-08-24 18:21:30 | DEBUG   | warm-up round 4/100 gen_loss=0.4492
+2026-08-24 18:21:56 | DEBUG   | warm-up round 5/100 gen_loss=0.4336
+2026-08-24 18:22:22 | DEBUG   | warm-up round 6/100 gen_loss=0.4236
+2026-08-24 18:22:43 | DEBUG   | warm-up round 7/100 gen_loss=0.4175
+2026-08-24 18:23:04 | DEBUG   | warm-up round 8/100 gen_loss=0.4099
+2026-08-24 18:23:25 | DEBUG   | warm-up round 9/100 gen_loss=0.4028
+2026-08-24 18:23:48 | DEBUG   | warm-up round 10/100 gen_loss=0.3987
+2026-08-24 18:24:13 | DEBUG   | warm-up round 11/100 gen_loss=0.3971
+2026-08-24 18:24:37 | DEBUG   | warm-up round 12/100 gen_loss=0.3980
+2026-08-24 18:25:03 | DEBUG   | warm-up round 13/100 gen_loss=0.3862
+2026-08-24 18:25:29 | DEBUG   | warm-up round 14/100 gen_loss=0.3872
+2026-08-24 18:25:54 | DEBUG   | warm-up round 15/100 gen_loss=0.3853
+2026-08-24 18:26:18 | DEBUG   | warm-up round 16/100 gen_loss=0.3876
+2026-08-24 18:26:44 | DEBUG   | warm-up round 17/100 gen_loss=0.3806
+2026-08-24 18:27:12 | DEBUG   | warm-up round 18/100 gen_loss=0.3820
+2026-08-24 18:27:41 | DEBUG   | warm-up round 19/100 gen_loss=0.3820

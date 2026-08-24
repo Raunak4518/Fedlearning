@@ -49,14 +49,15 @@ def model_wise_FedAvg(ws_glob: List[OrderedDict], ws_local: List[List[OrderedDic
     """Target-network aggregation for the heterogeneous pool: `ws_local[m]`
     is the list of state_dicts uploaded this round by clients whose
     dev_spec_idx == m (only clients running the *same* architecture can be
-    averaged together at all). Volume-weighted within each group; groups
-    with no participants this round keep their previous global weights."""
+    averaged together at all).
+
+    Paper Algorithm 2: flat unweighted FedAvg for both generators and
+    target nets — θ_g ← (1/|C_agg|) Σ θ_k. No volume weighting.
+    Groups with no participants this round keep their previous global weights."""
     new_glob = []
     for m, group in enumerate(ws_local):
         if len(group) == 0:
             new_glob.append(ws_glob[m])
-        elif sample_counts is not None and len(sample_counts[m]) == len(group):
-            new_glob.append(weighted_FedAvg(group, sample_counts[m]))
         else:
             new_glob.append(FedAvg(group))
     return new_glob

@@ -182,3 +182,99 @@ class MLPMixerLite(nn.Module):
             tokens = tokens + cmix(tokens)
         tokens = self.norm(tokens)
         return self.classifier(tokens.mean(dim=1))
+
+
+# ============================================================
+#  Paper's 10-CNN family (Table XXIII, Kang et al. 2025)
+#
+#  All share the same stem:
+#    conv(3, 3×3, pad=1) → bn → relu → conv(10, 3×3, pad=1) → bn → relu → maxpool(2×2)
+#
+#  Then each CNN branches into a different number of additional
+#  {conv → relu → maxpool} stages at different channel widths,
+#  ending in one FC layer → num_classes.
+#
+#  CNN-1 (deepest) and CNN-4 (shallowest) are exact from the table.
+#  CNN-2,3,5-10 are reasonable interpolations — the specific channel
+#  numbers in a few cells were inconsistent in the extracted text.
+#  [LIKELY, VERIFY]: cross-check against the actual PDF table.
+# ============================================================
+
+class PaperCNN(nn.Module):
+    """Configurable CNN matching the paper's Table XXIII structure.
+
+    Args:
+        in_channels: image input channels
+        num_classes: number of classes
+        img_size: unused (AdaptiveAvgPool handles any size)
+        post_stem_channels: list of channel widths for post-stem conv stages
+            e.g. [16, 32, 64, 128] for CNN-1 (4 additional stages)
+    """
+
+    def __init__(self, in_channels: int, num_classes: int, img_size: int = None,
+                 post_stem_channels: list = None):
+        super().__init__()
+        if post_stem_channels is None:
+            post_stem_channels = [16, 32]
+
+        # Shared stem: conv(3→3) → bn → relu → conv(3→10) → bn → relu → maxpool
+        self.stem = nn.Sequential(
+            nn.Conv2d(in_channels, 3, 3, padding=1),
+            nn.BatchNorm2d(3),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(3, 10, 3, padding=1),
+            nn.BatchNorm2d(10),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(2, 2),
+        )
+
+        # Post-stem stages: each is conv → relu → maxpool
+        layers = []
+        ch_in = 10
+        for ch_out in post_stem_channels:
+            layers.extend([
+                nn.Conv2d(ch_in, ch_out, 3, padding=1),
+                nn.ReLU(inplace=True),
+                nn.MaxPool2d(2, 2),
+            ])
+            ch_in = ch_out
+        self.body = nn.Sequential(*layers)
+
+        self.pool = nn.AdaptiveAvgPool2d(1)
+        self.classifier = nn.Linear(ch_in, num_classes)
+
+    def forward(self, x):
+        h = self.stem(x)
+        h = self.body(h)
+        h = self.pool(h).flatten(1)
+        return self.classifier(h)
+
+
+# Register 10 variants with the depth/width profiles from Table XXIII.
+# CNN-1 is the deepest (4 post-stem stages), CNN-10 is the shallowest.
+
+_PAPER_CNN_CONFIGS = {
+    # name:            post_stem_channels
+    "paper_cnn_1":     [16, 32, 64, 128],     # deepest: 4 stages, fc(128→C)
+    "paper_cnn_2":     [16, 32, 64, 96],      # 4 stages, narrower final
+    "paper_cnn_3":     [16, 32, 64],           # 3 stages
+    "paper_cnn_4":     [10, 32],               # shallowest: 2 stages, fc(32*spatial→C)
+    "paper_cnn_5":     [16, 48, 96],           # 3 stages, wider
+    "paper_cnn_6":     [16, 32, 48],           # 3 stages, narrower
+    "paper_cnn_7":     [20, 40, 80, 128],      # 4 stages, different widths
+    "paper_cnn_8":     [12, 24, 48],           # 3 stages, narrow
+    "paper_cnn_9":     [10, 20, 40, 80],       # 4 stages, narrow throughout
+    "paper_cnn_10":    [16, 32, 64, 64],       # 4 stages, flat final
+}
+
+
+def _make_paper_cnn_factory(channels):
+    """Create a factory function for a specific PaperCNN variant."""
+    def factory(in_channels: int, num_classes: int, img_size: int = None):
+        return PaperCNN(in_channels, num_classes, img_size, post_stem_channels=list(channels))
+    return factory
+
+
+for _name, _channels in _PAPER_CNN_CONFIGS.items():
+    NET_REGISTRY.register(_name)(_make_paper_cnn_factory(_channels))
+

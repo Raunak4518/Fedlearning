@@ -2,24 +2,28 @@
 utils/localUpdateTarget.py
 
 One client's local target-network training step, for one communication
-round. Matches the original repo's `LocalUpdate` naming/interface:
+round. Implements the paper's SEQUENTIAL (not joint) training design
+(Algorithm 1, Table XIV):
 
-    weight, loss, fidelity_feedback = LocalUpdate(args, dataloader).train(
-        net, gennet=global_generator, label_sampler=...
-    )
+    Phase 1 — Synthetic-only (T_s epochs):
+        for t = 1...T_s:
+            (x_i, y_i) ~ G(z|y, w_g)
+            θ ← θ − α∇J(θ)
 
-- If `args.aid_by_gen` is 0, this degrades to plain local SGD on real data
-  only (the FedAvg-without-any-generator baseline).
-- If `args.aid_by_gen` is 1 and `gennet` is provided, each round the
-  client draws `args.synth_batch` synthetic labels from its label sampler
-  (uniform under the GeFL baseline, fidelity-gated under Mechanism B),
-  generates the matching synthetic images from the (already-aggregated)
-  global generator, and trains on real-local ∪ synthetic together.
-- If `label_sampler` is a FidelityGatedSampler (Mechanism B active), this
-  also measures mean target-net confidence on the synthetic batch, per
-  class, and returns it as `fidelity_feedback` so the caller can call
-  `label_sampler.update_fidelity(...)` for next round -- reusing this same
-  forward pass, no extra compute.
+    Phase 2 — Real-only (T_r epochs):
+        for t = 1...T_r:
+            (x_i, y_i) ~ D_k (real local data)
+            θ ← θ − α∇J(θ)
+
+Real data gets T_r/T_s = 5x the epoch exposure synthetic data gets (by
+default), and they NEVER share a batch. This is a deliberate design
+choice from the paper: the 1:5 sequential split anchors training in real
+data far more than a 1:1 joint mix would, diluting any miscalibration in
+the generator's p(y).
+
+- If `args.aid_by_gen` is 0, only the real-only phase runs (plain FedAvg).
+- If Mechanism B is active, fidelity feedback is collected during the
+  synthetic phase (same forward pass, no extra compute).
 """
 from collections import defaultdict
 
@@ -47,35 +51,48 @@ class LocalUpdate:
         fidelity_conf_sum = defaultdict(float)
         fidelity_conf_n = defaultdict(int)
 
-        for _ in range(args.local_ep):
+        # ---- Phase 1: Synthetic-only (T_s epochs) ----
+        # Paper Algorithm 1: train on generated samples ONLY, before real data.
+        if args.aid_by_gen and gennet is not None:
+            for _ in range(args.target_ts):
+                for x_real, _ in self.dataloader:
+                    # Use same batch count as real data, but draw synthetic samples
+                    batch_size = x_real.size(0)
+                    syn_y = label_sampler.sample(batch_size).to(args.device)
+                    with torch.no_grad():
+                        syn_x = gennet.sample(syn_y)
+
+                    opt.zero_grad()
+                    logits = net(syn_x)
+                    loss = F.cross_entropy(logits, syn_y)
+                    loss.backward()
+                    opt.step()
+                    total_loss += loss.item()
+                    n_batches += 1
+
+                    # Collect fidelity feedback for Mechanism B (reusing this forward pass)
+                    if args.mechanism_b:
+                        with torch.no_grad():
+                            probs = F.softmax(logits.detach(), dim=1)
+                            conf = probs.gather(1, syn_y.unsqueeze(1)).squeeze(1)
+                        for c in syn_y.unique().tolist():
+                            mask = syn_y == c
+                            fidelity_conf_sum[c] += conf[mask].sum().item()
+                            fidelity_conf_n[c] += int(mask.sum())
+
+        # ---- Phase 2: Real-only (T_r epochs) ----
+        # Paper Algorithm 1: train on real local data ONLY, after synthetic.
+        for _ in range(args.target_tr):
             for x, y in self.dataloader:
                 x, y = x.to(args.device), y.to(args.device)
 
-                if args.aid_by_gen and gennet is not None:
-                    syn_y = label_sampler.sample(args.synth_batch).to(args.device)
-                    with torch.no_grad():
-                        syn_x = gennet.sample(syn_y)
-                    xb = torch.cat([x, syn_x], dim=0)
-                    yb = torch.cat([y, syn_y], dim=0)
-                else:
-                    xb, yb = x, y
-
                 opt.zero_grad()
-                logits = net(xb)
-                loss = F.cross_entropy(logits, yb)
+                logits = net(x)
+                loss = F.cross_entropy(logits, y)
                 loss.backward()
                 opt.step()
                 total_loss += loss.item()
                 n_batches += 1
-
-                if args.aid_by_gen and gennet is not None and args.mechanism_b:
-                    with torch.no_grad():
-                        probs = F.softmax(net(syn_x), dim=1)
-                        conf = probs.gather(1, syn_y.unsqueeze(1)).squeeze(1)
-                    for c in syn_y.unique().tolist():
-                        mask = syn_y == c
-                        fidelity_conf_sum[c] += conf[mask].sum().item()
-                        fidelity_conf_n[c] += int(mask.sum())
 
         avg_loss = total_loss / max(n_batches, 1)
         fidelity_feedback = {c: fidelity_conf_sum[c] / fidelity_conf_n[c] for c in fidelity_conf_sum}
@@ -94,7 +111,7 @@ class LocalUpdate_onlyGen(LocalUpdate):
         opt = self._make_optimizer(net)
         total_loss, n_batches = 0.0, 0
         n_real = sum(x.size(0) for x, _ in self.dataloader)
-        for _ in range(args.local_ep):
+        for _ in range(args.target_ts):
             remaining = n_real
             while remaining > 0:
                 b = min(args.local_bs, remaining)

@@ -101,21 +101,40 @@ def iid_partition(labels: np.ndarray, num_clients: int, seed: int = 0) -> Dict[i
 
 
 def partition_dataset(labels: np.ndarray, num_classes: int, args) -> Dict[int, List[int]]:
-    """Top-level entry point used by utils/setup.py. Applies the long-tail
-    schedule first (if imbalance_factor < 1.0), then splits what remains
-    across clients either IID or via Dirichlet, per args.noniid."""
-    kept_idx = apply_long_tail(labels, num_classes, args.imbalance_factor,
-                                args.max_per_class, seed=args.partition_seed)
-    kept_labels = labels[kept_idx]
+    """Top-level entry point used by utils/setup.py. Applies:
+    1. data_fraction subsample (paper Table XIV: 0.5 for CIFAR10) — reduces
+       the total pool uniformly across all classes before any imbalance.
+    2. long-tail schedule (if imbalance_factor < 1.0).
+    3. cross-client split (IID or Dirichlet).
+    """
+    # Step 1: data fraction subsample (§1.9)
+    data_fraction = getattr(args, 'data_fraction', 1.0)
+    if data_fraction < 1.0:
+        rng_frac = np.random.RandomState(args.partition_seed)
+        n_total = len(labels)
+        n_keep = max(1, int(n_total * data_fraction))
+        frac_idx = rng_frac.choice(n_total, n_keep, replace=False)
+        frac_idx.sort()
+    else:
+        frac_idx = np.arange(len(labels))
 
+    frac_labels = labels[frac_idx]
+
+    # Step 2: long-tail schedule on the subsampled pool
+    kept_local = apply_long_tail(frac_labels, num_classes, args.imbalance_factor,
+                                  args.max_per_class, seed=args.partition_seed)
+    kept_labels = frac_labels[kept_local]
+
+    # Step 3: cross-client partition
     if args.noniid:
         local_partition = dirichlet_partition(kept_labels, args.num_users, num_classes,
                                                args.dir_param, seed=args.partition_seed)
     else:
         local_partition = iid_partition(kept_labels, args.num_users, seed=args.partition_seed)
 
-    # map back from indices-into-kept_labels to indices-into-the-original dataset
-    return {cid: [int(kept_idx[j]) for j in local_idxs] for cid, local_idxs in local_partition.items()}
+    # Map back: local_partition indices -> kept_local indices -> frac_idx -> original dataset indices
+    return {cid: [int(frac_idx[kept_local[j]]) for j in local_idxs]
+            for cid, local_idxs in local_partition.items()}
 
 
 def client_class_counts(labels: np.ndarray, indices: List[int], num_classes: int) -> Dict[int, int]:

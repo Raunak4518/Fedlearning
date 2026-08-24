@@ -68,8 +68,9 @@ class FidelityGatedSampler(BaseLabelSampler):
         super().__init__(num_classes, natural_class_counts, args)
         total = natural_class_counts.sum()
         self.natural_freq = (natural_class_counts / total) if total > 0 else np.full(num_classes, 1 / num_classes)
-        init_fidelity = getattr(args, "mech_b_init_fidelity", 0.3) if args is not None else 0.3
+        init_fidelity = getattr(args, "mech_b_init_fidelity", 0.15) if args is not None else 0.15
         self.ema_decay = getattr(args, "mech_b_ema_decay", 0.6) if args is not None else 0.6
+        self.inv_freq_power = getattr(args, "mech_b_inv_freq_power", 1.0) if args is not None else 1.0
         self.fidelity = np.full(num_classes, init_fidelity, dtype=np.float64)
 
     def update_fidelity(self, class_confidences: dict) -> None:
@@ -78,6 +79,7 @@ class FidelityGatedSampler(BaseLabelSampler):
 
     def _inverse_freq_dist(self) -> np.ndarray:
         inv = 1.0 / np.clip(self.natural_freq, 1e-6, None)
+        inv = np.power(inv, self.inv_freq_power)
         inv = inv * self.fidelity  # don't oversample a rare-but-still-unreliable class
         if inv.sum() == 0:
             return self.natural_freq.copy()

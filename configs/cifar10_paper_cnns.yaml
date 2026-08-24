@@ -1,0 +1,46 @@
+# configs/cifar10_paper_cnns.yaml
+# Paper-matching ablation config: 10 homogeneous CNN family from Table XXIII.
+# All 10 share the same structural family (same stem, differing only in
+# depth and channel width) — a milder heterogeneity test than the default
+# 5-family pool (CNN/MobileNet/ResNet/MLP-Mixer).
+#
+# [LIKELY, VERIFY]: CNN-2,3,5-10 channel widths are interpolated from
+# partially-legible table columns. Cross-check against the actual PDF.
+
+dataset: cifar10
+data_root: ./data
+num_users: 10
+num_models: 10
+target_models: paper_cnn_1,paper_cnn_2,paper_cnn_3,paper_cnn_4,paper_cnn_5,paper_cnn_6,paper_cnn_7,paper_cnn_8,paper_cnn_9,paper_cnn_10
+frac: 1.0
+
+noniid: true
+dir_param: 0.3
+imbalance_factor: 0.01
+data_fraction: 0.5
+
+lr: 0.1
+local_bs: 128
+optimizer: sgd
+
+gen_wu_epochs: 100
+epochs: 100
+target_ts: 1
+target_tr: 5
+gen_local_ep: 5
+
+gen_model: vae
+latent_size: 50
+gen_channels: 64
+gen_lr: 0.001
+
+mechanism_a: 0
+mechanism_b: 0
+
+eval_centralized_upper_bound: 1
+centralized_epochs: 20
+sample_test: 5
+
+seed: 0
+num_experiment: 1
+name: gefl_cifar10lt_paper_cnns

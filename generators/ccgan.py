@@ -22,8 +22,9 @@ from generators.base import ConditionalGenerator, GEN_REGISTRY
 
 
 class _Generator(nn.Module):
-    def __init__(self, num_classes, in_channels, img_size, latent_size, base, embed_dim):
+    def __init__(self, num_classes, in_channels, img_size, latent_size, base, embed_dim, output_activation="tanh"):
         super().__init__()
+        self.output_activation = output_activation
         self.latent_size = latent_size
         self.label_embed = nn.Embedding(num_classes, embed_dim)
 
@@ -62,7 +63,15 @@ class _Generator(nn.Module):
         e = self.label_embed(y)
         h = self.fc(torch.cat([z, e], dim=1))
         h = h.view(-1, self.start_channels, self.start_size, self.start_size)
-        return torch.tanh(self.net(h))
+        out = self.net(h)
+        if self.output_activation == "tanh":
+            return torch.tanh(out)
+        elif self.output_activation == "relu":
+            return torch.relu(out)
+        elif self.output_activation == "none":
+            return out
+        else:
+            raise ValueError(f"Unknown activation: {self.output_activation}")
 
 
 class _Discriminator(nn.Module):
@@ -96,12 +105,16 @@ class _Discriminator(nn.Module):
 
 @GEN_REGISTRY.register("gan")
 class CCGAN(ConditionalGenerator):
-    def __init__(self, num_classes: int, in_channels: int, img_size: int, args):
-        super().__init__(num_classes, in_channels, img_size, args)
-        embed_dim = max(8, args.gen_channels // 4)
+    def __init__(self, num_classes: int, in_channels: int, img_size: int, args, output_activation: str = "tanh"):
+        super().__init__(num_classes, in_channels, img_size, args, output_activation)
+        # Paper Table XV: d_g = 256 (generator), d_d = 64 (discriminator)
+        g_channels = getattr(args, 'dcgan_g_channels', args.gen_channels)
+        d_channels = getattr(args, 'dcgan_d_channels', args.gen_channels)
+        embed_dim_g = max(8, g_channels // 4)
+        embed_dim_d = max(8, d_channels // 4)
         self.latent_size = args.latent_size
-        self.G = _Generator(num_classes, in_channels, img_size, args.latent_size, args.gen_channels, embed_dim)
-        self.D = _Discriminator(num_classes, in_channels, img_size, args.gen_channels, embed_dim)
+        self.G = _Generator(num_classes, in_channels, img_size, args.latent_size, g_channels, embed_dim_g, output_activation)
+        self.D = _Discriminator(num_classes, in_channels, img_size, d_channels, embed_dim_d)
 
     def conditioning_parameter_names(self) -> List[str]:
         return ["G.label_embed.weight", "D.label_embed.weight"]

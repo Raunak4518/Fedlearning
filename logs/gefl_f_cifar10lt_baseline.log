@@ -1,0 +1,17 @@
+2026-08-24 02:47:19 | INFO    | ======================================================================
+2026-08-24 02:47:19 | INFO    | EXPERIMENT: gefl_f_cifar10lt_baseline
+2026-08-24 02:47:19 | INFO    | ======================================================================
+2026-08-24 02:47:19 | DEBUG   | Full config: {"num_users": 10, "frac": 1.0, "num_models": 3, "dataset": "cifar10", "data_root": "./data", "img_size": null, "num_workers": 2, "noniid": true, "dir_param": 0.3, "imbalance_factor": 0.01, "max_per_class": null, "data_fraction": 0.5, "partition_seed": 0, "bs": 128, "local_bs": 128, "lr": 0.1, "momentum": 0.9, "weight_decay": 0.0, "optimizer": "sgd", "seed": 0, "num_experiment": 1, "device": "cuda", "gen_wu_epochs": 200, "epochs": 100, "local_ep": 5, "gen_local_ep": 5, "aid_by_gen": 1, "freeze_gen": 0, "synth_batch": 64, "target_ts": 1, "target_tr": 5, "gen_model": "ddpm", "latent_size": 50, "gen_lr": 0.001, "gen_lr_gan": 0.0002, "gen_lr_ddpm": 0.0001, "weight_decay_ddpm": 0.001, "gen_channels": 64, "dcgan_g_channels": 128, "dcgan_d_channels": 128, "b1": 0.5, "b2": 0.999, "n_feat": 64, "n_T": 200, "guide_w": 0.3, "target_models": "cnn_small,cnn_deep,mobilenet_lite", "gefl_f": 1, "fe_channels": 32, "fe_rounds": 50, "header_models": "header_small,header_deep,header_wide", "mechanism_a": 0, "mech_a_beta": 0.999, "mechanism_b": 0, "mech_b_ema_decay": 0.6, "mech_b_init_fidelity": 0.15, "creff_feat_dim": 128, "creff_rounds": 15, "creff_synth_per_class": 100, "creff_head_retrain_steps": 300, "sample_test": 5, "eval_centralized_upper_bound": 0, "centralized_epochs": 10, "name": "gefl_f_cifar10lt_baseline", "out_dir": "./logs", "ckpt_dir": "./checkpoint", "save_ckpt": 1, "wandb": 0, "wandb_proj_name": "gefl-classbalanced", "verbose": 1, "tensorboard": 0, "log_per_class": 1, "log_per_client": 0, "plot_every": 0, "save_synthetic_samples": 1, "show_plots": 0, "target_models_list": ["cnn_small", "cnn_deep", "mobilenet_lite"]}
+2026-08-24 02:47:22 | INFO    | GeFL-F: dataset=cifar10 classes=10 clients=10 fe_channels=32 fe_spatial=16 gen_model=ddpm_f T_FE=50 T_KA=200 T_TN=100
+2026-08-24 02:47:22 | INFO    | === Stage (i): FE warm-up for 50 rounds ===
+2026-08-24 02:49:13 | DEBUG   | FE warm-up round 5/50 loss=1.1488
+2026-08-24 02:50:56 | DEBUG   | FE warm-up round 10/50 loss=0.8826
+2026-08-24 02:52:31 | DEBUG   | FE warm-up round 15/50 loss=0.7075
+2026-08-24 02:54:38 | DEBUG   | FE warm-up round 20/50 loss=0.4890
+2026-08-24 02:56:37 | DEBUG   | FE warm-up round 25/50 loss=0.4323
+2026-08-24 02:58:29 | DEBUG   | FE warm-up round 30/50 loss=0.2699
+2026-08-24 03:00:14 | DEBUG   | FE warm-up round 35/50 loss=0.2491
+2026-08-24 03:02:09 | DEBUG   | FE warm-up round 40/50 loss=0.1577
+2026-08-24 03:04:03 | DEBUG   | FE warm-up round 45/50 loss=0.1965
+2026-08-24 03:05:59 | DEBUG   | FE warm-up round 50/50 loss=0.0880
+2026-08-24 03:05:59 | INFO    | === Stage (ii): Feature-generator training for 200 rounds ===

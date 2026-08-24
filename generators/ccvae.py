@@ -29,8 +29,8 @@ from generators.base import ConditionalGenerator, GEN_REGISTRY
 
 @GEN_REGISTRY.register("vae")
 class CCVAE(ConditionalGenerator):
-    def __init__(self, num_classes: int, in_channels: int, img_size: int, args):
-        super().__init__(num_classes, in_channels, img_size, args)
+    def __init__(self, num_classes: int, in_channels: int, img_size: int, args, output_activation: str = "tanh"):
+        super().__init__(num_classes, in_channels, img_size, args, output_activation)
         base = args.gen_channels
         self.embed_dim = max(8, base // 4)
         self.label_embed = nn.Embedding(num_classes, self.embed_dim)
@@ -93,7 +93,7 @@ class CCVAE(ConditionalGenerator):
         e = self.label_embed(y)
         h = self.dec_fc(torch.cat([z, e], dim=1))
         h = h.view(-1, self.enc_out_channels, self.enc_out_size, self.enc_out_size)
-        return torch.tanh(self.decoder(h))
+        return self._apply_activation(self.decoder(h))
 
     def forward(self, x, y):
         mu, logvar = self.encode(x, y)

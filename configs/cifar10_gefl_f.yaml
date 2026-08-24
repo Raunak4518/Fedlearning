@@ -1,0 +1,47 @@
+# configs/cifar10_gefl_f.yaml
+# GeFL-F (feature extractor variant) on CIFAR-10-LT.
+# Three-stage training: T_FE=50 → T_KA=200 → T_TN=100.
+# Paper Tables XIV, XV hyperparameters.
+
+dataset: cifar10
+data_root: ./data
+num_users: 10
+num_models: 3
+frac: 1.0
+
+noniid: true
+dir_param: 0.3
+imbalance_factor: 0.01
+data_fraction: 0.5
+
+lr: 0.1
+local_bs: 128
+optimizer: sgd
+
+# GeFL-F specific
+gefl_f: 1
+fe_channels: 32
+fe_rounds: 50             # T_FE — stage (i) FE warm-up
+header_models: header_small,header_deep,header_wide
+
+# Generator (feature-space)
+gen_wu_epochs: 200         # T_KA — stage (ii) feature-generator training
+epochs: 100                # T_TN — stage (iii) header training
+target_ts: 1
+target_tr: 5
+gen_local_ep: 5
+
+gen_model: vae
+latent_size: 50
+gen_channels: 64
+gen_lr: 0.001
+
+mechanism_a: 0
+mechanism_b: 0
+
+eval_centralized_upper_bound: 0    # no centralized upper bound for GeFL-F (different architecture)
+sample_test: 5
+
+seed: 0
+num_experiment: 1
+name: gefl_f_cifar10lt_baseline

@@ -18,6 +18,7 @@ gen_wu_epochs: 1
 epochs: 3
 local_ep: 1
 gen_local_ep: 1
+fe_rounds: 1
 synth_batch: 16
 gen_channels: 8
 latent_size: 8

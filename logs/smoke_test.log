@@ -1,0 +1,30 @@
+2026-08-23 19:54:07 | INFO    | ======================================================================
+2026-08-23 19:54:07 | INFO    | EXPERIMENT: smoke_test
+2026-08-23 19:54:07 | INFO    | ======================================================================
+2026-08-23 19:54:07 | DEBUG   | Full config: {"num_users": 3, "frac": 1.0, "num_models": 3, "dataset": "synthetic", "data_root": "./data", "img_size": null, "num_workers": 2, "noniid": true, "dir_param": 0.3, "imbalance_factor": 0.1, "max_per_class": null, "data_fraction": 1.0, "partition_seed": 0, "bs": 128, "local_bs": 32, "lr": 0.01, "momentum": 0.9, "weight_decay": 0.0, "optimizer": "sgd", "seed": 0, "num_experiment": 1, "device": "cuda", "gen_wu_epochs": 2, "epochs": 3, "local_ep": 5, "gen_local_ep": 5, "aid_by_gen": 1, "freeze_gen": 0, "synth_batch": 128, "target_ts": 1, "target_tr": 2, "gen_model": "vae", "latent_size": 16, "gen_lr": 0.001, "gen_lr_gan": 0.0002, "gen_lr_ddpm": 0.0001, "weight_decay_ddpm": 0.001, "gen_channels": 16, "dcgan_g_channels": 256, "dcgan_d_channels": 64, "b1": 0.5, "b2": 0.999, "n_feat": 128, "n_T": 400, "guide_w": 0.0, "target_models": "cnn_small,cnn_deep,mobilenet_lite", "gefl_f": 0, "fe_channels": 32, "fe_rounds": 50, "header_models": "header_small,header_deep,header_wide", "mechanism_a": 0, "mech_a_beta": 0.999, "mechanism_b": 0, "mech_b_ema_decay": 0.6, "mech_b_init_fidelity": 0.15, "creff_feat_dim": 128, "creff_rounds": 15, "creff_synth_per_class": 100, "creff_head_retrain_steps": 300, "sample_test": 1, "eval_centralized_upper_bound": 0, "centralized_epochs": 10, "name": "smoke_test", "out_dir": "./logs", "ckpt_dir": "./checkpoint", "save_ckpt": 0, "wandb": 0, "wandb_proj_name": "gefl-classbalanced", "verbose": 1, "tensorboard": 0, "log_per_class": 1, "log_per_client": 0, "plot_every": 0, "save_synthetic_samples": 0, "show_plots": 0, "target_models_list": ["cnn_small", "cnn_deep", "mobilenet_lite"]}
+2026-08-23 19:54:08 | INFO    | dataset=synthetic classes=10 clients=3 imbalance_factor=0.100 dir_param=0.300 gen_model=vae mechanism_a=0 mechanism_b=0
+2026-08-23 19:54:15 | INFO    | Saved data distribution plot
+2026-08-23 19:54:15 | INFO    | warm-up: training shared vae generator for 2 rounds
+2026-08-23 19:54:24 | DEBUG   | warm-up round 1/2 gen_loss=0.3519
+2026-08-23 19:54:29 | DEBUG   | warm-up round 2/2 gen_loss=0.3191
+2026-08-23 19:54:29 | DEBUG   | Round 1 started
+2026-08-23 19:54:36 | INFO    | step=1  round=1  train_loss=1.8002  gen_loss=0.3118  acc_overall=0.3430  acc_head=0.7956  acc_medium=0.3189  acc_tail=0.0217  macro_f1=0.2711  class_balanced_accuracy=0.4000  gen_time=4.8630  target_time=1.6290  eval_time=0.5760  wall_time=29.3000
+2026-08-23 19:54:36 | DEBUG   | Round 2 started
+2026-08-23 19:54:43 | INFO    | step=2  round=2  train_loss=1.1569  gen_loss=0.3086  acc_overall=0.5633  acc_head=0.8889  acc_medium=0.6333  acc_tail=0.2667  macro_f1=0.5355  class_balanced_accuracy=0.6100  gen_time=5.7530  target_time=1.5320  eval_time=0.2630  wall_time=36.9000
+2026-08-23 19:54:43 | DEBUG   | Round 3 started
+2026-08-23 19:54:50 | INFO    | step=3  round=3  train_loss=0.5464  gen_loss=0.3070  acc_overall=0.6663  acc_head=0.8889  acc_medium=0.7633  acc_tail=0.4267  macro_f1=0.7750  class_balanced_accuracy=0.8160  gen_time=5.2000  target_time=1.3570  eval_time=0.2390  wall_time=43.7000
+2026-08-23 19:54:51 | INFO    | MND privacy ratio: 1.3607 (< 1 = good generalization, > 1 = potential memorization)
+2026-08-23 19:54:53 | INFO    | ======================================================================
+2026-08-23 19:54:53 | INFO    | EXPERIMENT SUMMARY
+2026-08-23 19:54:53 | INFO    | ======================================================================
+2026-08-23 19:54:53 | INFO    |   acc_overall                     0.6663
+2026-08-23 19:54:53 | INFO    |   acc_head                        0.8889
+2026-08-23 19:54:53 | INFO    |   acc_medium                      0.7633
+2026-08-23 19:54:53 | INFO    |   acc_tail                        0.4267
+2026-08-23 19:54:53 | INFO    |   macro_f1                        0.7750
+2026-08-23 19:54:53 | INFO    |   class_balanced_accuracy         0.8160
+2026-08-23 19:54:53 | INFO    |   train_loss                      0.5464
+2026-08-23 19:54:53 | INFO    |   mnd_ratio                       1.3607
+2026-08-23 19:54:53 | INFO    |   total_time_s                    23.9000
+2026-08-23 19:54:53 | INFO    | ======================================================================
+2026-08-23 19:54:53 | INFO    | Logs saved: CSV=./logs\smoke_test_1787495047.csv  JSONL=./logs\smoke_test_metrics.jsonl
