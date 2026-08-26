@@ -28,3 +28,34 @@
 2026-08-23 19:54:53 | INFO    |   total_time_s                    23.9000
 2026-08-23 19:54:53 | INFO    | ======================================================================
 2026-08-23 19:54:53 | INFO    | Logs saved: CSV=./logs\smoke_test_1787495047.csv  JSONL=./logs\smoke_test_metrics.jsonl
+2026-08-24 19:12:23 | INFO    | ======================================================================
+2026-08-24 19:12:23 | INFO    | EXPERIMENT: smoke_test
+2026-08-24 19:12:23 | INFO    | ======================================================================
+2026-08-24 19:12:23 | DEBUG   | Full config: {"num_users": 10, "frac": 1.0, "num_models": 3, "dataset": "cifar10", "data_root": "./data", "img_size": null, "num_workers": 2, "noniid": true, "dir_param": 0.3, "imbalance_factor": 0.01, "max_per_class": null, "data_fraction": 0.5, "partition_seed": 0, "bs": 128, "local_bs": 128, "lr": 0.1, "momentum": 0.9, "weight_decay": 0.0, "optimizer": "sgd", "seed": 0, "num_experiment": 1, "device": "cuda", "gen_wu_epochs": 2, "epochs": 2, "local_ep": 1, "gen_local_ep": 5, "aid_by_gen": 1, "freeze_gen": 0, "synth_batch": 64, "target_ts": 1, "target_tr": 5, "gen_model": "vae", "latent_size": 50, "gen_lr": 0.001, "gen_lr_gan": 0.0002, "gen_lr_ddpm": 0.0001, "weight_decay_ddpm": 0.001, "gen_channels": 64, "dcgan_g_channels": 128, "dcgan_d_channels": 128, "b1": 0.5, "b2": 0.999, "n_feat": 64, "n_T": 200, "guide_w": 0.3, "target_models": "cnn_small,cnn_deep,mobilenet_lite", "gefl_f": 0, "fe_channels": 32, "fe_rounds": 50, "header_models": "header_small,header_deep,header_wide", "mechanism_a": 0, "mech_a_beta": 0.999, "mechanism_b": 0, "mech_b_ema_decay": 0.6, "mech_b_init_fidelity": 0.15, "mech_b_inv_freq_power": 1.0, "creff_feat_dim": 128, "creff_rounds": 15, "creff_synth_per_class": 100, "creff_head_retrain_steps": 300, "sample_test": 5, "eval_centralized_upper_bound": 1, "centralized_epochs": 20, "name": "smoke_test", "out_dir": "./logs", "ckpt_dir": "./checkpoint", "save_ckpt": 1, "wandb": 0, "wandb_proj_name": "gefl-classbalanced", "verbose": 1, "tensorboard": 0, "log_per_class": 1, "log_per_client": 0, "plot_every": 0, "save_synthetic_samples": 1, "show_plots": 0, "target_models_list": ["cnn_small", "cnn_deep", "mobilenet_lite"]}
+2026-08-24 19:12:25 | INFO    | dataset=cifar10 classes=10 clients=10 imbalance_factor=0.010 dir_param=0.300 gen_model=vae mechanism_a=0 mechanism_b=0
+2026-08-24 19:12:31 | INFO    | Saved data distribution plot
+2026-08-24 19:12:31 | INFO    | warm-up: training shared vae generator for 2 rounds
+2026-08-24 19:12:55 | DEBUG   | warm-up round 1/2 gen_loss=0.7278
+2026-08-24 19:13:17 | DEBUG   | warm-up round 2/2 gen_loss=0.5297
+2026-08-24 19:13:17 | DEBUG   | Round 1 started
+2026-08-24 19:14:02 | DEBUG   | Round 2 started
+2026-08-24 19:15:41 | DEBUG   | Generator quality metrics failed: name 'generator_quality_metrics' is not defined
+2026-08-24 19:15:41 | INFO    | step=2  round=2  train_loss=1.7162  gen_loss=0.4493  acc_overall=0.1554  acc_head=0.4295  acc_medium=0.0887  acc_tail=0.0000  macro_f1=0.0685  class_balanced_accuracy=0.1554  gen_time=21.6280  target_time=20.4510  eval_time=57.0600  wall_time=198.7000
+2026-08-24 19:22:41 | INFO    | centralized upper bound: {'head': 0.682, 'medium': 0.5256666666666666, 'tail': 0.74725, 'overall': 0.6612}
+2026-08-24 19:22:41 | INFO    | centralized-vs-federated gap: {'head': 0.2525, 'medium': 0.437, 'tail': 0.7472, 'overall': 0.5058}
+2026-08-24 19:22:42 | INFO    | MND privacy ratio: 0.9708 (< 1 = good generalization, > 1 = potential memorization)
+2026-08-24 19:23:40 | INFO    | ======================================================================
+2026-08-24 19:23:40 | INFO    | EXPERIMENT SUMMARY
+2026-08-24 19:23:40 | INFO    | ======================================================================
+2026-08-24 19:23:40 | INFO    |   acc_overall                     0.1554
+2026-08-24 19:23:40 | INFO    |   acc_head                        0.4295
+2026-08-24 19:23:40 | INFO    |   acc_medium                      0.0887
+2026-08-24 19:23:40 | INFO    |   acc_tail                        0.0000
+2026-08-24 19:23:40 | INFO    |   macro_f1                        0.0685
+2026-08-24 19:23:40 | INFO    |   class_balanced_accuracy         0.1554
+2026-08-24 19:23:40 | INFO    |   train_loss                      1.7162
+2026-08-24 19:23:40 | INFO    |   mnd_ratio                       0.9708
+2026-08-24 19:23:40 | INFO    |   centralized_gap                 {'head': '0.2525', 'medium': '0.4370', 'tail': '0.7472', 'overall': '0.5058'}
+2026-08-24 19:23:40 | INFO    |   total_time_s                    622.8000
+2026-08-24 19:23:40 | INFO    | ======================================================================
+2026-08-24 19:23:40 | INFO    | Logs saved: CSV=./logs\smoke_test_1787578943.csv  JSONL=./logs\smoke_test_metrics.jsonl
