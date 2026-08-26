@@ -106,7 +106,11 @@ class CCVAE(ConditionalGenerator):
         return self.decode(z, labels)
 
     @staticmethod
-    def loss_function(recon, x, mu, logvar, kld_weight: float = 0.1) -> torch.Tensor:
-        recon_loss = F.mse_loss(recon, x, reduction="mean")
-        kld = -0.5 * torch.mean(1 + logvar - mu.pow(2) - logvar.exp())
-        return recon_loss + kld_weight * kld
+    def loss_function(recon, x, mu, logvar) -> torch.Tensor:
+        # Paper / reference: sum-reduction ELBO, KL weight = 1.
+        # Mean+0.1*KL (β-VAE style) under-regularizes the latent, degrades
+        # conditional-generation fidelity, and is not what GEFL runs.
+        # Loss is divided by dataset size at logging time (see localUpdateGen).
+        recon_loss = F.mse_loss(recon, x, reduction="sum")
+        kld = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+        return recon_loss + kld

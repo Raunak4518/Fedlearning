@@ -73,7 +73,14 @@ def _build_header(header_name: str, fe_channels: int, num_classes: int, args):
 
 
 def _build_feature_generator(num_classes, fe_channels, fe_spatial, args):
-    """Build the feature-space generator."""
+    """Build the feature-space generator.
+
+    Output activation: ReLU for VAE/GAN because the frozen FE ends in
+    ReLU+MaxPool so real features are non-negative — matching that range
+    keeps synthetic and real features on the same manifold. DDPM predicts
+    the noise epsilon (unbounded); wrapping its output in ReLU is a
+    semantic error, so the DDPM path leaves it unbounded.
+    """
     from generators.base import GEN_REGISTRY
     # Import specific generators so they register
     import generators.ccvae
@@ -81,12 +88,13 @@ def _build_feature_generator(num_classes, fe_channels, fe_spatial, args):
     import generators.cddpm
     gen_name = args.gen_model
     gen_cls = GEN_REGISTRY.get(gen_name)
+    out_act = "relu" if gen_name in ("vae", "gan") else "none"
     return gen_cls(
         num_classes=num_classes,
         in_channels=fe_channels,
         img_size=fe_spatial,
         args=args,
-        output_activation="relu"
+        output_activation=out_act,
     ).to(args.device)
 
 
@@ -217,6 +225,7 @@ def _stage_ii_round(exp, args, fe_state, gen_state, gen_opt_states, client_ids, 
     new_state = aggregate_generator(
         client_states, client_counts, client_class_counts_list, exp.meta.num_classes,
         conditioning_keys, mechanism_a=bool(args.mechanism_a), beta=args.mech_a_beta,
+        support_floor=getattr(args, "mech_a_support_floor", 0),
     )
     mean_gen_loss = sum(gen_losses) / len(gen_losses) if gen_losses else float("nan")
     return new_state, mean_gen_loss
@@ -256,17 +265,22 @@ def _stage_iii_round(exp, args, fe_state, gen_state, header_states, client_ids,
         header.load_state_dict(header_states[group])
         header.train()
 
-        # Only optimize header parameters
-        if args.optimizer == "adam":
-            opt = torch.optim.Adam(header.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-        else:
-            opt = torch.optim.SGD(header.parameters(), lr=args.lr, momentum=args.momentum,
-                                   weight_decay=args.weight_decay)
+        def _make_header_opt():
+            if args.optimizer == "adam":
+                return torch.optim.Adam(header.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+            return torch.optim.SGD(header.parameters(), lr=args.lr, momentum=args.momentum,
+                                    weight_decay=args.weight_decay)
 
         total_loss, n_batches = 0.0, 0
+        # Accumulate fidelity across the whole synthetic phase, apply once at
+        # the end (matches GEFL's utils/localUpdateTarget.py behaviour so both
+        # variants respond to Mechanism B identically).
+        fid_sum = defaultdict(float)
+        fid_n = defaultdict(int)
 
-        # Phase 1: Synthetic features (T_s epochs)
+        # Phase 1: Synthetic features (T_s epochs) — fresh optimizer per phase.
         if gen_net is not None:
+            opt = _make_header_opt()
             for _ in range(args.target_ts):
                 for x_real, _ in loader:
                     batch_size = x_real.size(0)
@@ -283,21 +297,22 @@ def _stage_iii_round(exp, args, fe_state, gen_state, header_states, client_ids,
                     total_loss += loss.item()
                     n_batches += 1
 
-                    # Fidelity feedback for Mechanism B
+                    # Collect fidelity feedback for Mechanism B (single update at end).
                     if args.mechanism_b and cid in label_samplers:
                         with torch.no_grad():
                             probs = F.softmax(logits.detach(), dim=1)
                             conf = probs.gather(1, syn_y.unsqueeze(1)).squeeze(1)
-                        fid_sum = defaultdict(float)
-                        fid_n = defaultdict(int)
                         for c in syn_y.unique().tolist():
                             mask = syn_y == c
                             fid_sum[c] += conf[mask].sum().item()
                             fid_n[c] += int(mask.sum())
-                        feedback = {c: fid_sum[c] / fid_n[c] for c in fid_sum}
-                        label_samplers[cid].update_fidelity(feedback)
 
-        # Phase 2: Real features through frozen FE (T_r epochs)
+            if args.mechanism_b and cid in label_samplers and fid_sum:
+                feedback = {c: fid_sum[c] / fid_n[c] for c in fid_sum}
+                label_samplers[cid].update_fidelity(feedback)
+
+        # Phase 2: Real features through frozen FE (T_r epochs) — fresh optimizer.
+        opt = _make_header_opt()
         for _ in range(args.target_tr):
             for x, y in loader:
                 x, y = x.to(args.device), y.to(args.device)
@@ -502,7 +517,7 @@ def run_gefl_f(args) -> dict:
 
         # Evaluation
         if (rnd + 1) % args.sample_test == 0 or rnd == args.epochs - 1:
-            client_models = _build_all_client_models(exp, args, fe_state, header_states)
+            client_models = _build_all_eval_models(exp, args, fe_state, header_states)
             from utils.evaluate import average_client_metrics
             scores = average_client_metrics(client_models, dataset_test, num_classes, buckets, args.device)
 

@@ -45,7 +45,6 @@ class LocalUpdate:
     def train(self, net, gennet=None, label_sampler=None):
         args = self.args
         net.train()
-        opt = self._make_optimizer(net)
 
         total_loss, n_batches = 0.0, 0
         fidelity_conf_sum = defaultdict(float)
@@ -53,7 +52,10 @@ class LocalUpdate:
 
         # ---- Phase 1: Synthetic-only (T_s epochs) ----
         # Paper Algorithm 1: train on generated samples ONLY, before real data.
+        # Reference impl uses a fresh optimizer per phase; SGD momentum
+        # carried over from a synthetic step corrupts the real-only phase.
         if args.aid_by_gen and gennet is not None:
+            opt = self._make_optimizer(net)
             for _ in range(args.target_ts):
                 for x_real, _ in self.dataloader:
                     # Use same batch count as real data, but draw synthetic samples
@@ -82,6 +84,7 @@ class LocalUpdate:
 
         # ---- Phase 2: Real-only (T_r epochs) ----
         # Paper Algorithm 1: train on real local data ONLY, after synthetic.
+        opt = self._make_optimizer(net)  # fresh optimizer, per reference impl
         for _ in range(args.target_tr):
             for x, y in self.dataloader:
                 x, y = x.to(args.device), y.to(args.device)

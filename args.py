@@ -167,6 +167,11 @@ def _add_all_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentPars
                               '0: GeFL baseline (flat average over the whole generator)')
     parser.add_argument('--mech_a_beta', type=float, default=0.999,
                          help='beta in the effective-number weight E_n = (1-beta^n)/(1-beta)')
+    parser.add_argument('--mech_a_support_floor', type=int, default=0,
+                         help='min total count of a class across selected clients before Mech A '
+                              'trusts frequency-weighted aggregation for that class conditioning row; '
+                              'below this, fall back to flat mean (paper baseline). 0 disables. '
+                              'Recommended: 20 for CIFAR-10-LT to protect tail-class rows from noise')
 
     # ---------------------------------------------------------------- Mechanism B (fidelity-gated sampling)
     parser.add_argument('--mechanism_b', type=int, default=0,
