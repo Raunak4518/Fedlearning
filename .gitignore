@@ -2,9 +2,14 @@ __pycache__/
 *.pyc
 .pytest_cache/
 data/
-checkpoint/*.pt
-logs/*.csv
-logs/*.pkl
-logs/*.json
+checkpoint/
+logs/
+!logs/.gitkeep
 *.egg-info/
 .DS_Store
+.claude/
+# Reference implementation (belongs to upstream authors, do not redistribute)
+GEFl original implementation/
+# Kaggle-only artifacts
+gefl_classbalanced.zip
+

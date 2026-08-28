@@ -78,6 +78,7 @@ def _generator_round(exp, args, gen_global_state, gen_opt_states, client_ids, lo
     new_state = aggregate_generator(
         client_states, client_counts, client_class_counts_list, exp.meta.num_classes,
         conditioning_keys, mechanism_a=bool(args.mechanism_a), beta=args.mech_a_beta,
+        support_floor=getattr(args, "mech_a_support_floor", 0),
     )
     mean_gen_loss = sum(gen_losses) / len(gen_losses) if gen_losses else float("nan")
     return new_state, mean_gen_loss

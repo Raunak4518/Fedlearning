@@ -79,7 +79,8 @@ def _effective_num_weight(count: int, beta: float) -> float:
 
 def frequency_weighted_row_average(client_tensors: List[torch.Tensor], client_class_counts: List[Dict[int, int]],
                                     num_conditioning_classes: int, beta: float,
-                                    fallback_weights: List[float]) -> torch.Tensor:
+                                    fallback_weights: List[float],
+                                    support_floor: int = 0) -> torch.Tensor:
     """
     client_tensors: list of identically-shaped [R, ...] tensors (R rows),
                      one per client -- e.g. a label-embedding weight matrix.
@@ -91,19 +92,38 @@ def frequency_weighted_row_average(client_tensors: List[torch.Tensor], client_cl
                      "null" row for classifier-free guidance) fall back to
                      `fallback_weights` (ordinary volume weighting) since
                      they aren't tied to any single class's frequency.
+    support_floor: minimum total count of a class across ALL selected clients
+                     required before we trust the per-client frequency-weighted
+                     average for that class's conditioning row. Below this
+                     threshold, fall back to flat unweighted mean across all
+                     clients (which is what GEFL does by default) -- when
+                     nobody has enough of the class, frequency weighting is
+                     dominated by noise from the 1-2 clients that hold it,
+                     and the paper baseline is strictly better. 0 disables
+                     the floor (original behaviour).
     """
     R = client_tensors[0].shape[0]
     out = torch.zeros_like(client_tensors[0])
     fb_norm = torch.tensor(fallback_weights, dtype=torch.float32)
     fb_norm = fb_norm / fb_norm.sum()
+    n_clients = len(client_tensors)
+    flat_w = torch.full((n_clients,), 1.0 / n_clients)
 
     for r in range(R):
         if r < num_conditioning_classes:
-            w_raw = torch.tensor([_effective_num_weight(counts.get(r, 0), beta) for counts in client_class_counts])
-            if w_raw.sum() == 0:
-                out[r] = client_tensors[0][r]  # no client had this class this round; keep prior value
+            counts_r = [counts.get(r, 0) for counts in client_class_counts]
+            total_support = sum(counts_r)
+            if total_support == 0:
+                # Nobody has this class this round; keep prior value.
+                out[r] = client_tensors[0][r]
                 continue
-            w = w_raw / w_raw.sum()
+            if support_floor > 0 and total_support < support_floor:
+                # Not enough total support for a reliable per-class weighted
+                # average -- fall back to flat mean (GEFL default) for this row.
+                w = flat_w
+            else:
+                w_raw = torch.tensor([_effective_num_weight(c, beta) for c in counts_r])
+                w = w_raw / w_raw.sum()
         else:
             w = fb_norm
         out[r] = sum(w[i] * client_tensors[i][r] for i in range(len(client_tensors)))
@@ -112,7 +132,8 @@ def frequency_weighted_row_average(client_tensors: List[torch.Tensor], client_cl
 
 def aggregate_generator(client_state_dicts: List[OrderedDict], client_sample_counts: List[int],
                          client_class_counts: List[Dict[int, int]], num_classes: int,
-                         conditioning_keys: List[str], mechanism_a: bool, beta: float = 0.999) -> OrderedDict:
+                         conditioning_keys: List[str], mechanism_a: bool, beta: float = 0.999,
+                         support_floor: int = 0) -> OrderedDict:
     """
     Full-model generator aggregation used every communication round.
 
@@ -122,7 +143,9 @@ def aggregate_generator(client_state_dicts: List[OrderedDict], client_sample_cou
                           gets weighted_FedAvg (volume-weighted, matching
                           how GeFL already treats the trunk); every key IN
                           `conditioning_keys` gets
-                          frequency_weighted_row_average instead.
+                          frequency_weighted_row_average instead, with
+                          per-class support_floor fallback to flat mean
+                          for support-starved classes.
     """
     if not mechanism_a:
         return FedAvg(client_state_dicts)
@@ -134,6 +157,7 @@ def aggregate_generator(client_state_dicts: List[OrderedDict], client_sample_cou
     for key in conditioning_keys:
         tensors = [sd[key] for sd in client_state_dicts]
         avg[key] = frequency_weighted_row_average(
-            tensors, client_class_counts, num_classes, beta, client_sample_counts
+            tensors, client_class_counts, num_classes, beta, client_sample_counts,
+            support_floor=support_floor,
         )
     return avg
