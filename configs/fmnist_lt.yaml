@@ -1,0 +1,42 @@
+# configs/fmnist_lt.yaml
+# Fashion-MNIST-LT. Same paper hyperparameters as mnist_lt.yaml.
+# Marginally harder than MNIST (finer texture, greater intra-class variance)
+# but same image size, same target-net choices.
+
+dataset: fmnist
+data_root: ./data
+num_users: 10
+num_models: 3
+target_models: cnn_small,cnn_deep,mobilenet_lite
+frac: 1.0
+
+noniid: true
+dir_param: 0.3
+imbalance_factor: 0.01
+data_fraction: 1.0
+
+lr: 0.1
+local_bs: 128
+optimizer: sgd
+
+gen_wu_epochs: 100
+epochs: 100
+target_ts: 1
+target_tr: 5
+gen_local_ep: 5
+
+gen_model: vae
+latent_size: 32
+gen_channels: 32
+gen_lr: 0.001
+
+mechanism_a: 0
+mechanism_b: 0
+
+eval_centralized_upper_bound: 1
+centralized_epochs: 20
+sample_test: 5
+
+seed: 0
+num_experiment: 1
+name: gefl_fmnistlt_baseline

@@ -1,0 +1,46 @@
+# configs/mnist_lt.yaml
+# MNIST-LT for the class-balanced GeFL experiments.
+# Same paper hyperparameters as cifar10_lt.yaml where they overlap
+# (Kang et al. 2025, Tables XIV & XV). Smaller generator width and
+# shorter warm-up because MNIST is small and easy.
+
+dataset: mnist
+data_root: ./data
+num_users: 10
+num_models: 3
+target_models: cnn_small,cnn_deep,mobilenet_lite
+frac: 1.0
+
+noniid: true
+dir_param: 0.3
+imbalance_factor: 0.01
+data_fraction: 1.0
+
+# target-net optimizer — paper Table XIV
+lr: 0.1
+local_bs: 128
+optimizer: sgd
+
+# federated schedule
+gen_wu_epochs: 100
+epochs: 100
+target_ts: 1
+target_tr: 5
+gen_local_ep: 5
+
+# generator — smaller than CIFAR (28x28 grayscale)
+gen_model: vae
+latent_size: 32
+gen_channels: 32
+gen_lr: 0.001
+
+mechanism_a: 0
+mechanism_b: 0
+
+eval_centralized_upper_bound: 1
+centralized_epochs: 20
+sample_test: 5
+
+seed: 0
+num_experiment: 1
+name: gefl_mnistlt_baseline
