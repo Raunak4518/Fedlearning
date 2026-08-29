@@ -1,0 +1,44 @@
+# configs/fmnist_gefl_f.yaml
+# GeFL-F on Fashion-MNIST-LT. Same schedule/hyperparameters as MNIST-LT
+# (28x28 grayscale, 10 classes, similar per-sample complexity).
+
+dataset: fmnist
+data_root: ./data
+num_users: 10
+num_models: 3
+frac: 1.0
+
+noniid: true
+dir_param: 0.3
+imbalance_factor: 0.01
+data_fraction: 1.0
+
+lr: 0.1
+local_bs: 128
+optimizer: sgd
+
+gefl_f: 1
+fe_channels: 32
+fe_rounds: 20
+header_models: header_small,header_deep,header_wide
+
+gen_wu_epochs: 100
+epochs: 50
+target_ts: 1
+target_tr: 5
+gen_local_ep: 5
+
+gen_model: vae
+latent_size: 32
+gen_channels: 32
+gen_lr: 0.001
+
+mechanism_a: 0
+mechanism_b: 0
+
+eval_centralized_upper_bound: 0
+sample_test: 5
+
+seed: 0
+num_experiment: 1
+name: gefl_f_fmnistlt_baseline

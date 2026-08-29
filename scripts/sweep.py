@@ -23,6 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from args import parse_args  # noqa: E402
 from engine import run_gefl  # noqa: E402
+from gefl_f.engine_f import run_gefl_f  # noqa: E402
 
 
 def _generate_sweep_plots(rows, out_dir):
@@ -134,6 +135,11 @@ def main():
     p.add_argument("--seeds", type=int, nargs="+", default=[0])
     p.add_argument("--mechanisms", type=str, nargs="+", default=["baseline", "a_only", "b_only", "proposed"],
                     choices=["baseline", "a_only", "b_only", "proposed"])
+    p.add_argument("--framework", type=str, default="gefl", choices=["gefl", "gefl_f"],
+                    help="which training engine to invoke per run — gefl (image-space generator, "
+                         "engine.run_gefl) or gefl_f (feature-space generator + shared FE, "
+                         "gefl_f.engine_f.run_gefl_f). Mech A / Mech B propagate identically "
+                         "to both because the aggregation and sampling primitives are shared.")
     p.add_argument("--out_csv", type=str, default="./logs/sweep_results.csv")
     sweep_args, remaining = p.parse_known_args()
 
@@ -160,10 +166,15 @@ def main():
                 "--seed", str(seed), "--mechanism_a", str(mech_a), "--mechanism_b", str(mech_b),
                 "--name", run_name] + remaining
         args = parse_args(argv)
-        print(f"\n[{i + 1}/{total}] {run_name}")
-        results = run_gefl(args)
+        print(f"\n[{i + 1}/{total}] {run_name}  (framework={sweep_args.framework})")
+        if sweep_args.framework == "gefl_f":
+            args.gefl_f = 1
+            results = run_gefl_f(args)
+        else:
+            results = run_gefl(args)
         final = results.get("final_scores", {})
-        row = {"run": run_name, "imbalance_factor": imb, "dir_param": dir_p, "seed": seed, "mechanism": mech,
+        row = {"run": run_name, "framework": sweep_args.framework,
+               "imbalance_factor": imb, "dir_param": dir_p, "seed": seed, "mechanism": mech,
                **{k: v for k, v in final.items() if k.startswith("acc_")}}
         # Include new metrics if available
         for extra_key in ("macro_f1", "weighted_f1", "class_balanced_accuracy",
