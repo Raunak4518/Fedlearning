@@ -38,7 +38,8 @@ from utils.checkpoint import ckpt_path, save_checkpoint, save_results
 from utils.evaluate import (average_client_bucketed_accuracy, bucketed_accuracy, gap_report,
                              make_held_out_val_split, mnd_ratio, train_centralized_upper_bound,
                              ConvergenceTracker, classification_report_from_cm,
-                             compute_confusion_matrix, per_class_accuracy, per_client_accuracy)
+                             compute_confusion_matrix, per_class_accuracy, per_client_accuracy,
+                             generator_quality_metrics)
 from utils.label_sampler import build_label_sampler
 from utils.localUpdateGen import get_local_gen_update
 from utils.localUpdateTarget import LocalUpdate
@@ -256,7 +257,7 @@ def run_gefl(args) -> dict:
                     row["gen_mean_confidence"] = gen_quality["gen_mean_confidence"]
                     row["gen_label_accuracy"] = gen_quality["gen_label_accuracy"]
                 except Exception as e:
-                    logger.console.debug("Generator quality metrics failed: %s", e)
+                    logger.console.warning("Generator quality metrics failed: %s", e)
 
             # Fidelity tracking (Mechanism B)
             if args.mechanism_b and label_samplers:
