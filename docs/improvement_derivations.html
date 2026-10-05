@@ -1,0 +1,712 @@
+<title>Class-Balanced GeFL-F Derivations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --ground:#FCFCFD; --surface:#FFFFFF; --surface-2:#F3F5F8;
+  --ink:#16181D; --ink-soft:#39404C; --muted:#616A7A;
+  --rule:#E1E5EC; --rule-strong:#C6CCD8;
+  --accent:#3D4EE8; --accent-soft:#EDEFFE; --accent-ink:#2434BE;
+  --tail:#B4650F; --tail-soft:#FBF1E2;
+  --good:#1C7A4A; --good-soft:#E8F4ED;
+  --bad:#B0231C; --bad-soft:#FBEBEA;
+  --shadow:0 1px 2px rgba(22,24,29,.05),0 6px 20px -12px rgba(22,24,29,.16);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0D0F14; --surface:#14171E; --surface-2:#1A1E27;
+  --ink:#E9EBF0; --ink-soft:#C0C6D2; --muted:#8892A3;
+  --rule:#232833; --rule-strong:#333A49;
+  --accent:#8C97FF; --accent-soft:#1A1E3C; --accent-ink:#AAB3FF;
+  --tail:#E8A44A; --tail-soft:#2A2014;
+  --good:#4FBE86; --good-soft:#12261C;
+  --bad:#F2867E; --bad-soft:#2A1614;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px -12px rgba(0,0,0,.65);
+}}
+:root[data-theme="dark"]{
+  --ground:#0D0F14; --surface:#14171E; --surface-2:#1A1E27;
+  --ink:#E9EBF0; --ink-soft:#C0C6D2; --muted:#8892A3;
+  --rule:#232833; --rule-strong:#333A49;
+  --accent:#8C97FF; --accent-soft:#1A1E3C; --accent-ink:#AAB3FF;
+  --tail:#E8A44A; --tail-soft:#2A2014;
+  --good:#4FBE86; --good-soft:#12261C;
+  --bad:#F2867E; --bad-soft:#2A1614;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px -12px rgba(0,0,0,.65);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:Spectral,Georgia,serif;
+  font-size:16.5px;line-height:1.68;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+.layout{display:grid;grid-template-columns:1fr}
+@media(min-width:1100px){.layout{grid-template-columns:200px minmax(0,1fr);gap:44px;align-items:start}}
+.rail{display:none}
+@media(min-width:1100px){
+  .rail{display:block;position:sticky;top:0;max-height:100vh;overflow-y:auto;padding:40px 0;
+    font-family:'IBM Plex Sans Condensed',sans-serif}
+  .rail ol{list-style:none;margin:0;padding:0}
+  .rail a{display:flex;gap:8px;text-decoration:none;color:var(--muted);font-size:12.5px;line-height:1.3;padding:5px 7px;border-radius:3px}
+  .rail a:hover{color:var(--ink);background:var(--surface-2)}
+  .rail a .n{color:var(--rule-strong);font-weight:700;flex:none;font-variant-numeric:tabular-nums}
+}
+header.top{border-bottom:1px solid var(--rule);background:var(--surface)}
+.mast{padding:46px 0 32px;display:flex;flex-direction:column;gap:16px}
+.kicker{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  font-weight:700;color:var(--accent);display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.kicker .dot{width:3px;height:3px;border-radius:50%;background:var(--rule-strong)}
+.kicker .plain{color:var(--muted)}
+h1{font-size:clamp(1.95rem,4.6vw,3rem);line-height:1.1;margin:0;font-weight:700;letter-spacing:-.022em;text-wrap:balance}
+h1 .sub{display:block;font-weight:300;font-style:italic;color:var(--muted);font-size:.48em;margin-top:.5em;letter-spacing:0}
+.standfirst{max-width:70ch;font-size:1.08rem;color:var(--ink-soft);margin:0}
+main{padding:0 0 90px}
+section{padding-top:52px;scroll-margin-top:16px}
+h2{font-size:clamp(1.38rem,2.8vw,1.85rem);line-height:1.2;margin:0 0 5px;font-weight:700;letter-spacing:-.016em;
+  display:flex;gap:13px;align-items:baseline;text-wrap:balance}
+h2 .num{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:.55em;font-weight:700;color:var(--accent);flex:none}
+h2+.deck{color:var(--muted);font-size:1.02rem;margin:0 0 20px;max-width:70ch;font-style:italic}
+h3{font-size:1.1rem;margin:30px 0 8px;font-weight:700}
+p{margin:0 0 14px;max-width:70ch}
+ul,ol{max-width:70ch;padding-left:21px;margin:0 0 16px}
+li{margin-bottom:6px} li::marker{color:var(--muted)}
+a{color:var(--accent-ink);text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+code{font-family:'IBM Plex Mono',monospace;font-size:.86em;background:var(--surface-2);padding:1px 5px;border-radius:3px;border:1px solid var(--rule)}
+.mono{font-family:'IBM Plex Mono',monospace;font-size:.9em}
+.eq{background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--accent);padding:15px 18px;margin:18px 0;
+  display:flex;gap:16px;align-items:center;overflow-x:auto;box-shadow:var(--shadow)}
+.eq .body{font-family:'IBM Plex Mono',monospace;font-size:14px;line-height:2.05;flex:1;min-width:0;white-space:nowrap}
+.eq .tag{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:11.5px;color:var(--muted);flex:none}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px}
+.frac .nu{border-bottom:1px solid currentColor;padding:0 5px;line-height:1.3}
+.frac .de{padding:0 5px;line-height:1.3}
+.thm{border:1px solid var(--rule-strong);background:var(--surface);margin:20px 0;box-shadow:var(--shadow)}
+.thm > .h{padding:10px 16px;border-bottom:1px solid var(--rule);background:var(--surface-2);
+  font-family:'IBM Plex Sans Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.thm > .h .st{font-weight:600;text-transform:none;letter-spacing:.02em}
+.thm > .h .st.exact{color:var(--good)} .thm > .h .st.approx{color:var(--tail)}
+.thm > .bd{padding:14px 16px}
+.thm > .bd > :last-child{margin-bottom:0}
+.proof{border-top:1px dashed var(--rule-strong);margin-top:12px;padding-top:12px;font-size:15.5px;color:var(--ink-soft)}
+.proof .lbl{font-style:italic;font-weight:600;color:var(--ink)}
+.note{border:1px solid var(--rule);border-left:3px solid var(--muted);background:var(--surface);padding:14px 16px;margin:18px 0;box-shadow:var(--shadow)}
+.note.key{border-left-color:var(--accent);background:var(--accent-soft)}
+.note.flag{border-left-color:var(--tail);background:var(--tail-soft)}
+.note.bug{border-left-color:var(--bad);background:var(--bad-soft)}
+.note.ok{border-left-color:var(--good);background:var(--good-soft)}
+.note > .h{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.note.key > .h{color:var(--accent-ink)} .note.flag > .h{color:var(--tail)} .note.bug > .h{color:var(--bad)} .note.ok > .h{color:var(--good)}
+.note > :last-child{margin-bottom:0}
+.verdict{display:grid;gap:12px;margin:22px 0}
+@media(min-width:760px){.verdict{grid-template-columns:repeat(3,1fr)}}
+.verdict .v{border:1px solid var(--rule);background:var(--surface);padding:14px 16px;box-shadow:var(--shadow);border-top:3px solid var(--muted)}
+.verdict .v.g{border-top-color:var(--good)} .verdict .v.t{border-top-color:var(--tail)} .verdict .v.a{border-top-color:var(--accent)}
+.verdict .v .k{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px}
+.verdict .v.g .k{color:var(--good)} .verdict .v.t .k{color:var(--tail)} .verdict .v.a .k{color:var(--accent-ink)}
+.verdict .v .t2{font-weight:700;margin-bottom:6px;line-height:1.35}
+.verdict .v p{font-size:14.5px;margin:0;color:var(--ink-soft)}
+.tw{overflow-x:auto;margin:18px 0;border:1px solid var(--rule);box-shadow:var(--shadow);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:560px}
+caption{caption-side:top;text-align:left;padding:10px 14px;border-bottom:1px solid var(--rule);background:var(--surface-2);
+  font-family:'IBM Plex Sans Condensed',sans-serif;font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+th{text-align:left;padding:8px 12px;border-bottom:1px solid var(--rule-strong);font-family:'IBM Plex Sans Condensed',sans-serif;
+  font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+td{padding:7px 12px;border-bottom:1px solid var(--rule);vertical-align:top;line-height:1.5}
+tbody tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;font-family:'IBM Plex Mono',monospace;font-size:12.5px}
+td.sym{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--accent-ink)}
+tr.hl td{background:var(--accent-soft)} tr.warn td{background:var(--bad-soft)}
+.tailv{color:var(--tail);font-weight:700}
+.pill{display:inline-block;font-family:'IBM Plex Sans Condensed',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;padding:1px 7px;border-radius:2px;border:1px solid currentColor;white-space:nowrap}
+.pill.g{color:var(--good)} .pill.t{color:var(--tail)} .pill.b{color:var(--bad)} .pill.m{color:var(--muted)}
+figure{margin:22px 0;border:1px solid var(--rule);background:var(--surface);box-shadow:var(--shadow);padding:18px 18px 0;overflow-x:auto}
+figure svg{display:block;max-width:100%;height:auto;margin:0 auto;color:var(--ink-soft)}
+figure svg text{font-family:'IBM Plex Sans Condensed',sans-serif}
+figure svg .mn{font-family:'IBM Plex Mono',monospace}
+figcaption{border-top:1px solid var(--rule);margin:16px -18px 0;padding:11px 18px;font-size:13px;color:var(--muted);line-height:1.55}
+figcaption b{color:var(--ink-soft);font-weight:600}
+.refs{font-size:13.5px;line-height:1.65}
+.refs li{margin-bottom:7px;color:var(--ink-soft)}
+footer{border-top:1px solid var(--rule);background:var(--surface);padding:28px 0;margin-top:50px}
+footer p{font-size:13px;color:var(--muted);margin:0 0 7px}
+</style>
+
+<header class="top"><div class="wrap"><div class="mast">
+  <div class="kicker"><span>Method justification</span><span class="dot"></span><span class="plain">Third document in the set</span><span class="dot"></span><span class="plain">Every number below was computed from the project code</span></div>
+  <h1>Class-Balanced GeFL&#8209;F Derivations
+    <span class="sub">What can be proven, what can be compared to the original paper, and how each design decision is defended</span>
+  </h1>
+  <p class="standfirst">
+    A hypothesis becomes defensible when its formula follows from a stated model of the problem, its
+    comparisons are controlled, and its predictions can fail. This document applies that standard to the
+    two proposed mechanisms. One survives intact and gains an exact proof. The other survives only in a
+    reformulated version, and only with a hard ceiling that changes what the paper should claim.
+  </p>
+</div></div></header>
+
+<div class="wrap"><div class="layout">
+<nav class="rail" aria-label="Contents"><ol>
+  <li><a href="#s0"><span class="n">0</span><span>Verdict</span></a></li>
+  <li><a href="#s1"><span class="n">1</span><span>How this field defends decisions</span></a></li>
+  <li><a href="#s2"><span class="n">2</span><span>Comparability with the paper</span></a></li>
+  <li><a href="#s3"><span class="n">3</span><span>Result 1: the damping identity</span></a></li>
+  <li><a href="#s4"><span class="n">4</span><span>Result 2: why Mechanism A's formula</span></a></li>
+  <li><a href="#s5"><span class="n">5</span><span>Result 3: the sampling ceiling</span></a></li>
+  <li><a href="#s6"><span class="n">6</span><span>Result 4: what the math adds</span></a></li>
+  <li><a href="#s7"><span class="n">7</span><span>Defects the analysis found</span></a></li>
+  <li><a href="#s8"><span class="n">8</span><span>Claims and experiments</span></a></li>
+  <li><a href="#s9"><span class="n">9</span><span>Assumptions</span></a></li>
+</ol></nav>
+
+<main>
+
+<section id="s0">
+  <h2><span class="num">00</span>Verdict</h2>
+  <p class="deck">Read this first. Everything after it is the supporting argument.</p>
+  <div class="verdict">
+    <div class="v g"><div class="k">Defensible as proposed</div><div class="t2">Mechanism A</div>
+      <p>Flat averaging provably shrinks every class's conditioning update by the fraction of clients holding that class. This is an exact identity, verified numerically. Mechanism A's weighting is the minimum-variance estimator under a stated noise model, and flat averaging is optimal only in the IID-balanced regime the paper tested.</p></div>
+    <div class="v t"><div class="k">Defensible only reformulated</div><div class="t2">Mechanism B</div>
+      <p>No choice of sampling distribution can balance the header. The synthetic phase is one-sixth of training exposure, so the best possible <span class="mono">p(y)</span> still leaves a 7.5&times; head-to-tail gap. Its correct form is derived here (client-local water-filling), but it cannot be the headline.</p></div>
+    <div class="v a"><div class="k">What the math adds</div><div class="t2">A correction after the real phase</div>
+      <p>The dominant imbalance enters in the real-data phase, which runs last and is five times longer. Logit adjustment is the provably correct correction for that term (Fisher-consistent for balanced error). It should become a component of the method, not only a baseline.</p></div>
+  </div>
+  <div class="note bug">
+    <div class="h">Correction to an earlier claim</div>
+    <p>
+      An earlier version of the project review stated that the &ldquo;support floor&rdquo; variant
+      <em>hurt</em> results and presented it as a negative finding. <strong>That was wrong</strong>, and
+      the review and paper skeleton have since been corrected. The floor switches on only when a
+      class has fewer than 20 samples across a round's clients. With all 10 clients participating, the
+      rarest CIFAR&#8209;10&#8209;LT class has 25, so the floor never activated. The &ldquo;floor&rdquo; runs
+      were exact repeats of their non-floor configurations, and any differences between them are run-to-run
+      noise. Section 3.4 turns this accident into something useful.
+    </p>
+  </div>
+</section>
+
+<section id="s1">
+  <h2><span class="num">01</span>How this field defends design decisions</h2>
+  <p class="deck">The papers this work will be judged against each justify themselves in a recognisable way. Matching that standard is the bar.</p>
+
+  <div class="tw"><table>
+    <caption>Four defence patterns, where they come from, and what each demands of this project</caption>
+    <thead><tr><th>Pattern</th><th>Exemplar</th><th>How they did it</th><th>What it demands of us</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Derive the formula from a stated model</strong></td><td>Cui et al., CVPR 2019</td>
+        <td>The effective number <span class="mono">(1&minus;&beta;<sup>n</sup>)/(1&minus;&beta;)</span> is not guessed. It falls out of modelling sampling as random covering, where each new sample overlaps old ones with probability &beta;.</td>
+        <td>Mechanism A's weights must follow from an explicit noise model (&sect;4). Mechanism B's sampling rule must solve a stated objective (&sect;5).</td></tr>
+      <tr><td><strong>Prove consistency for the reported metric</strong></td><td>Menon et al., ICLR 2021</td>
+        <td>Logit adjustment is shown to be Fisher-consistent for the <em>balanced error</em>, the very metric long-tail papers report.</td>
+        <td>Our headline metric is bucketed / balanced accuracy, so we should prefer corrections with this guarantee (&sect;6).</td></tr>
+      <tr><td><strong>Diagnose before proposing</strong></td><td>Shang et al. (CReFF), IJCAI 2022</td>
+        <td>Before introducing the method, they re-train each component of a FedAvg model separately on balanced data and show the classifier alone recovers most of the gap.</td>
+        <td>We need the analogous diagnostic: a measurement showing <em>where</em> GeFL&#8209;F loses the tail. Results 1 and 3 supply it analytically; the experiments in &sect;8 confirm it.</td></tr>
+      <tr><td><strong>Controlled, protocol-matched comparison</strong></td><td>CReFF; ablation-design literature</td>
+        <td>&ldquo;We implement all compared FL methods with the same model for a fair comparison.&rdquo; Change one factor at a time, fix seeds, report variance.</td>
+        <td>Baseline GeFL&#8209;F must be re-run in our protocol, never quoted from the paper. Each mechanism must be ablated alone and in combination (&sect;8).</td></tr>
+    </tbody>
+  </table></div>
+
+  <p>
+    A fifth pattern recurs in the reviewer-facing literature: <strong>make a prediction that could fail.</strong>
+    A method that merely improves a number is weaker than one whose theory predicts <em>how the
+    improvement should scale</em>, followed by a test of that prediction. Result 1 gives exactly such a
+    prediction, and it happens to fall on the scalability axis the GeFL&#8209;F paper itself studies.
+  </p>
+</section>
+
+<section id="s2">
+  <h2><span class="num">02</span>Comparability with the original paper</h2>
+  <p class="deck">The worry is legitimate: our implementation differs from the paper's. Some differences only shift absolute numbers; others would invalidate a comparison. They need to be separated.</p>
+
+  <h3>2.1 What the paper actually measured</h3>
+  <p>Reading the reference implementation, not just the paper text, shows the protocol behind every reported GeFL&#8209;F number:</p>
+  <ul>
+    <li><strong>Partition:</strong> <code>dict_iid</code>, an IID split of a <strong>balanced</strong> dataset. The paper never evaluates long-tailed or Dirichlet-skewed data.</li>
+    <li><strong>Feature extractor:</strong> <code>Conv(in&rarr;3) + BN + ReLU + MaxPool</code> on 32&times;32 input, giving a 3&times;16&times;16 feature (768 values).</li>
+    <li><strong>Headers:</strong> ten CNNs from the reference <code>targetNetModels/cnn.py</code>.</li>
+    <li><strong>Reported metric:</strong> <code>evaluate_models</code> keeps the <em>best</em> accuracy each architecture reaches over all rounds, and the paper averages those maxima. It is a best-over-rounds number, not a final-round one.</li>
+  </ul>
+
+  <div class="note key">
+    <div class="h">Consequence</div>
+    <p>
+      There is no long-tailed number in the paper to compare against, so none of our long-tail results can
+      be set beside the paper's table. This is <em>not</em> a weakness to hide; it is the gap the project
+      exists to fill. The defensible protocol has three tiers. <strong>Tier 1</strong> shows our
+      GeFL&#8209;F <em>is</em> GeFL&#8209;F by reproducing one cell of the paper under its own protocol.
+      <strong>Tier 2</strong> compares baseline and proposed inside our long-tail protocol, with identical
+      everything else. <strong>Tier 3</strong> tests the mechanisms' predictions directly. This is the same
+      structure CReFF uses.
+    </p>
+  </div>
+
+  <h3>2.2 The conditioning pathway is the same object in both implementations</h3>
+  <p>
+    The most important comparability question is whether replacing the reference's one-hot conditioning
+    with an <code>nn.Embedding</code> changed the method. The reference decoder concatenates a one-hot
+    label to the latent and applies a linear layer. Split that layer's weight into the columns acting on
+    <span class="mono">z</span> and the columns acting on the one-hot:
+  </p>
+  <div class="eq"><div class="body">
+    W&thinsp;[&thinsp;z ; e<sub>c</sub>&thinsp;] &nbsp;=&nbsp; W<sub>z</sub> z &nbsp;+&nbsp; W<sub>y</sub> e<sub>c</sub>
+    &nbsp;=&nbsp; W<sub>z</sub> z &nbsp;+&nbsp; <b>w<sub>c</sub></b>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--muted)">w<sub>c</sub> = column c of W<sub>y</sub></span>
+  </div><div class="tag">(1)</div></div>
+  <p>
+    A one-hot input to a linear layer <em>is</em> an embedding lookup: column <span class="mono">c</span> of
+    <span class="mono">W<sub>y</sub></span> is a learned per-class vector, and it receives gradient only
+    from samples of class <span class="mono">c</span>, because the input coordinate is zero otherwise.
+    Mechanism A is therefore well-defined on the <strong>unmodified reference architecture</strong>: its
+    conditioning parameters are those columns. Our embedding is a rank-limited factorisation of the same
+    object (<span class="mono">W<sub>e</sub> E[c]</span>, with a 16-dimensional embedding). This turns
+    &ldquo;we changed the architecture to suit our method&rdquo; into &ldquo;our method applies to the
+    original architecture; we use an equivalent factorised parameterisation.&rdquo; We still control for it
+    with an ablation.
+  </p>
+  <p>
+    One honest asymmetry: the reference <em>encoder</em> conditions on the label as a single constant
+    channel holding the integer class value, an ordinal encoding with no per-class parameters. Mechanism A
+    has nothing to act on there. This does not matter for generation, which uses only the decoder.
+  </p>
+
+  <h3>2.3 Every deviation, classified</h3>
+  <div class="tw"><table>
+    <caption>Which differences threaten a comparison, and the control each one requires</caption>
+    <thead><tr><th>Item</th><th>Paper / reference</th><th>Ours</th><th>Threatens</th><th>Required control</th></tr></thead>
+    <tbody>
+      <tr><td>Data regime</td><td>IID, balanced</td><td>Long-tail + Dirichlet</td><td><span class="pill m">absolute only</span></td><td>Intended, since it is the research question. Tier 1 parity run on IID-balanced data.</td></tr>
+      <tr class="warn"><td>Feature channels</td><td>3 (768 values)</td><td>32 (8,192 values)</td><td><span class="pill b">validity</span></td><td>Changes GeFL&#8209;F itself: the feature is 2.67&times; larger than the image. Use <code>fe_channels: 3</code> for all headline runs.</td></tr>
+      <tr><td>MNIST input size</td><td>resized to 32</td><td>native 28</td><td><span class="pill m">absolute only</span></td><td><code>--img_size 32</code> for the parity run.</td></tr>
+      <tr><td>Header pool</td><td>10 CNNs</td><td>3 headers</td><td><span class="pill t">absolute + variance</span></td><td>Parity run needs the ten reference headers ported; long-tail runs may use 3 if stated.</td></tr>
+      <tr><td>Conditioning</td><td>one-hot &oplus; Linear</td><td>Embedding</td><td><span class="pill t">mild</span></td><td>Equivalent by Eq. 1. Ablate: baseline with each conditioning, no mechanisms.</td></tr>
+      <tr><td>Reported metric</td><td>best over rounds</td><td>final round</td><td><span class="pill t">parity only</span></td><td>Use best-over-rounds <em>only</em> for the Tier 1 parity check; report final-round, the conservative choice, everywhere else.</td></tr>
+      <tr class="warn"><td>DDPM optimiser</td><td>Adam, no weight decay</td><td>Adam, weight decay 1e&#8209;3</td><td><span class="pill b">validity</span></td><td>A defect, see &sect;7.1. Remove, or switch to AdamW and exclude embeddings.</td></tr>
+      <tr><td>Long-tail protocol</td><td>(none)</td><td>IF {0.01,0.1,1}, &alpha;=0.3</td><td><span class="pill t">literature fit</span></td><td>Adopt CReFF's IF {100,50,10} with &alpha;=0.5 as primary; keep &alpha;=0.3 as the harder setting.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="s3">
+  <h2><span class="num">03</span>Result 1: flat averaging damps every class's conditioning update</h2>
+  <p class="deck">The formal statement of what &ldquo;class-blind aggregation&rdquo; costs. It is exact, not an approximation.</p>
+
+  <div class="thm">
+    <div class="h"><span>Theorem 1 &mdash; damping identity</span><span class="st exact">exact &middot; verified numerically</span></div>
+    <div class="bd">
+      <p>
+        Let <span class="mono">W<sub>r</sub></span> be the conditioning parameters of class <span class="mono">r</span>,
+        meaning an embedding row or, equivalently, a one-hot column (Eq. 1). Let
+        <span class="mono">H<sub>r</sub></span> be the set of participating clients holding at least one
+        sample of class <span class="mono">r</span>, with <span class="mono">m<sub>r</sub> = |H<sub>r</sub>|</span>
+        out of <span class="mono">K</span>. If local training uses SGD or Adam <em>without weight decay</em>,
+        then flat averaging produces
+      </p>
+      <div class="eq"><div class="body">
+        W<sub>r</sub><sup>t+1</sup> &nbsp;=&nbsp; W<sub>r</sub><sup>t</sup> &nbsp;+&nbsp;
+        <b><span class="frac"><span class="nu">m<sub>r</sub></span><span class="de">K</span></span></b>
+        &middot; &Delta;&#772;<sub>r</sub>,
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        &Delta;&#772;<sub>r</sub> = <span class="frac"><span class="nu">1</span><span class="de">m<sub>r</sub></span></span>&Sigma;<sub>k&isin;H<sub>r</sub></sub> &Delta;<sub>k,r</sub>
+      </div><div class="tag">(2)</div></div>
+      <p>so every class's update is scaled by the fraction of clients that hold it. Mechanism A, with weights <span class="mono">a<sub>k</sub></span> summing to 1 over <span class="mono">H<sub>r</sub></span>, gives <span class="mono">W<sub>r</sub><sup>t+1</sup> = W<sub>r</sub><sup>t</sup> + &Sigma;<sub>k&isin;H<sub>r</sub></sub> a<sub>k</sub>&Delta;<sub>k,r</sub></span>, with step factor 1.</p>
+      <div class="proof">
+        <span class="lbl">Proof.</span> The loss gradient with respect to <span class="mono">W<sub>r</sub></span>
+        sums only over samples labelled <span class="mono">r</span>. For a client
+        <span class="mono">k &notin; H<sub>r</sub></span> that sum is empty at every local step, so the gradient
+        on <span class="mono">W<sub>r</sub></span> is identically zero. Under SGD the update is zero. Under
+        Adam the first and second moment estimates stay exactly zero, so the update
+        <span class="mono">m&#770;/(&radic;v&#770; + &epsilon;) = 0</span>. Hence
+        <span class="mono">W<sub>k,r</sub> = W<sub>r</sub><sup>t</sup></span> for every non-holder. Then
+        <span class="mono">(1/K)&Sigma;<sub>k</sub>W<sub>k,r</sub> = W<sub>r</sub><sup>t</sup> + (1/K)&Sigma;<sub>k&isin;H<sub>r</sub></sub>&Delta;<sub>k,r</sub></span>,
+        which is Eq. 2. &#8718;
+      </div>
+    </div>
+  </div>
+
+  <h3>3.1 Numerical verification</h3>
+  <p>We trained each generator locally with the project's own <code>local_update_*</code> functions on a client holding classes 0&ndash;6 only, and measured how far each embedding row moved:</p>
+  <div class="tw"><table>
+    <caption>Largest change in a label-embedding row after local training &middot; classes 7&ndash;9 absent at this client</caption>
+    <thead><tr><th>Generator</th><th>Parameter</th><th class="num">held rows 0&ndash;6</th><th class="num">absent rows 7&ndash;9</th><th>Theorem holds?</th></tr></thead>
+    <tbody>
+      <tr><td>CVAE&#8209;F</td><td class="sym">label_embed.weight</td><td class="num">9.7e-3 &hellip; 1.1e-2</td><td class="num"><strong>0.00</strong></td><td><span class="pill g">exactly</span></td></tr>
+      <tr><td>DCGAN&#8209;F</td><td class="sym">G.label_embed.weight</td><td class="num">2.2e-3 &hellip; 2.8e-3</td><td class="num"><strong>0.00</strong></td><td><span class="pill g">exactly</span></td></tr>
+      <tr><td>DCGAN&#8209;F</td><td class="sym">D.label_embed.weight</td><td class="num">1.8e-3 &hellip; 3.1e-3</td><td class="num"><strong>0.00</strong></td><td><span class="pill g">exactly</span></td></tr>
+      <tr class="warn"><td>DDPM&#8209;F</td><td class="sym">label_embed.weight</td><td class="num">1.2e-3</td><td class="num tailv">1.2e-3</td><td><span class="pill b">no &mdash; see &sect;7.1</span></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>3.2 How severe the damping is, and how it scales</h3>
+  <p>The partition code was run with the project's CIFAR&#8209;10&#8209;LT settings (IF = 0.01, &alpha; = 0.3, every client participating), averaging over five partition seeds:</p>
+
+  <figure>
+    <svg viewBox="0 0 760 330" role="img" aria-label="Line chart of the flat-averaging step factor against number of clients. For the most frequent class the factor falls from 0.92 at 10 clients to 0.76 at 100. For the tail-class average it falls from 0.71 to 0.33, and for the rarest class from 0.60 to 0.22. Mechanism A holds the factor at 1.0 for every class.">
+      <line x1="80" y1="30" x2="80" y2="270" stroke="currentColor" stroke-width="1.2"/>
+      <line x1="80" y1="270" x2="560" y2="270" stroke="currentColor" stroke-width="1.2"/>
+      <!-- y: 0..1 => 270..30 -->
+      <line x1="80" y1="30" x2="560" y2="30" stroke="currentColor" stroke-width=".7" opacity=".15"/>
+      <line x1="80" y1="90" x2="560" y2="90" stroke="currentColor" stroke-width=".7" opacity=".15"/>
+      <line x1="80" y1="150" x2="560" y2="150" stroke="currentColor" stroke-width=".7" opacity=".15"/>
+      <line x1="80" y1="210" x2="560" y2="210" stroke="currentColor" stroke-width=".7" opacity=".15"/>
+      <text x="72" y="34" font-size="10.5" text-anchor="end" fill="currentColor" class="mn">1.00</text>
+      <text x="72" y="94" font-size="10.5" text-anchor="end" fill="currentColor" class="mn">0.75</text>
+      <text x="72" y="154" font-size="10.5" text-anchor="end" fill="currentColor" class="mn">0.50</text>
+      <text x="72" y="214" font-size="10.5" text-anchor="end" fill="currentColor" class="mn">0.25</text>
+      <text x="72" y="274" font-size="10.5" text-anchor="end" fill="currentColor" class="mn">0</text>
+      <text x="22" y="150" font-size="11" font-weight="600" fill="currentColor" text-anchor="middle" transform="rotate(-90 22 150)">step factor m/K</text>
+      <!-- x: 10,50,100 -> 120, 320, 520 -->
+      <text x="120" y="290" font-size="11" text-anchor="middle" fill="currentColor" class="mn">10</text>
+      <text x="320" y="290" font-size="11" text-anchor="middle" fill="currentColor" class="mn">50</text>
+      <text x="520" y="290" font-size="11" text-anchor="middle" fill="currentColor" class="mn">100</text>
+      <text x="320" y="314" font-size="11" font-weight="600" text-anchor="middle" fill="currentColor">number of clients K</text>
+      <!-- Mechanism A -->
+      <polyline points="120,30 320,30 520,30" fill="none" stroke="var(--accent)" stroke-width="2.6"/>
+      <text x="530" y="34" font-size="11" font-weight="700" fill="var(--accent)">Mechanism A (all classes)</text>
+      <!-- head c0: .92 .80 .76 -> y=270-240v -->
+      <polyline points="120,49 320,78 520,88" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="6 4"/>
+      <circle cx="120" cy="49" r="3.5" fill="currentColor"/><circle cx="320" cy="78" r="3.5" fill="currentColor"/><circle cx="520" cy="88" r="3.5" fill="currentColor"/>
+      <text x="530" y="92" font-size="11" font-weight="600" fill="currentColor">most frequent class</text>
+      <!-- tail mean: .71 .45 .33 -->
+      <polyline points="120,100 320,162 520,191" fill="none" stroke="var(--tail)" stroke-width="2.6"/>
+      <circle cx="120" cy="100" r="4" fill="var(--tail)"/><circle cx="320" cy="162" r="4" fill="var(--tail)"/><circle cx="520" cy="191" r="4" fill="var(--tail)"/>
+      <text x="530" y="195" font-size="11" font-weight="700" fill="var(--tail)">tail average (classes 6&ndash;9)</text>
+      <!-- c9: .60 .33 .22 -->
+      <polyline points="120,126 320,191 520,217" fill="none" stroke="var(--bad)" stroke-width="2" stroke-dasharray="3 3"/>
+      <circle cx="120" cy="126" r="3.5" fill="var(--bad)"/><circle cx="320" cy="191" r="3.5" fill="var(--bad)"/><circle cx="520" cy="217" r="3.5" fill="var(--bad)"/>
+      <text x="530" y="221" font-size="11" font-weight="600" fill="var(--bad)">rarest class</text>
+      <text x="126" y="120" font-size="10" fill="var(--tail)" class="mn">0.71</text>
+      <text x="326" y="182" font-size="10" fill="var(--tail)" class="mn">0.45</text>
+      <text x="490" y="184" font-size="10" fill="var(--tail)" class="mn">0.33</text>
+      <text x="490" y="236" font-size="10" fill="var(--bad)" class="mn">0.22</text>
+    </svg>
+    <figcaption>
+      <b>The damping grows with the number of clients, and it grows fastest for rare classes.</b> At 100
+      clients, the rarest class's conditioning row moves at 22% of the speed its holders' updates call for,
+      while the most frequent class moves at 76%. The gap between classes, and not only the size of the
+      damping, is what biases the generator toward the head.
+    </figcaption>
+  </figure>
+
+  <h3>3.3 The prediction this gives &mdash; and why it is the strongest card</h3>
+  <p>
+    At 10 clients the tail damping is moderate (0.71), so Theorem 1 predicts Mechanism A's benefit there is
+    modest. It also predicts the benefit should <strong>grow as clients increase</strong>, because flat
+    averaging degrades from 0.71 to 0.33 on the tail while Mechanism A stays at 1. This is a falsifiable
+    prediction on precisely the axis the GeFL&#8209;F paper uses to argue its own value (its Figure 4 sweeps
+    10, 50 and 100 clients). If the measured gain from Mechanism A rises with <span class="mono">K</span>, the
+    theory is confirmed on the paper's home ground. If it does not, something other than damping limits the
+    tail, and we will have learned that too.
+  </p>
+
+  <h3>3.4 A measured noise floor, from an accident</h3>
+  <p>
+    Because the support floor never activated, the gate sweep contains two pairs of mechanistically
+    identical runs. Their differences measure pure run-to-run variation:
+  </p>
+  <div class="tw"><table>
+    <caption>Gate sweep, CIFAR&#8209;10&#8209;LT IF=0.01, &alpha;=0.3 &middot; floor runs are exact repeats</caption>
+    <thead><tr><th>Comparison</th><th class="num">&Delta; overall</th><th class="num">&Delta; tail</th><th>Interpretation</th></tr></thead>
+    <tbody>
+      <tr><td>A only vs its repeat</td><td class="num">+0.3 pp</td><td class="num">+0.2 pp</td><td>noise</td></tr>
+      <tr><td>A + B vs its repeat</td><td class="num">&minus;0.6 pp</td><td class="num">&minus;0.4 pp</td><td>noise</td></tr>
+      <tr class="hl"><td><strong>baseline &rarr; A + B</strong></td><td class="num"><strong>+8.2 pp</strong></td><td class="num"><strong>+4.2 pp</strong></td><td>effect, at least 10&times; the noise</td></tr>
+    </tbody>
+  </table></div>
+  <p>
+    This is not a substitute for three seeds and a significance test, but it is real evidence that the
+    gate result is not noise, and it is more honest than the negative-result story it replaces.
+  </p>
+</section>
+
+<section id="s4">
+  <h2><span class="num">04</span>Result 2: why Mechanism A uses these particular weights</h2>
+  <p class="deck">Theorem 1 says <em>that</em> non-holders should be excluded. This says <em>how</em> the holders should be weighted, from a stated model.</p>
+
+  <div class="thm">
+    <div class="h"><span>Proposition 2 &mdash; Mechanism A is inverse-variance weighting</span><span class="st approx">under a stated noise model</span></div>
+    <div class="bd">
+      <p>
+        Model each holder's update as an unbiased, independent, noisy estimate of a common ideal update,
+        <span class="mono">&Delta;<sub>k,r</sub> = &delta;<sub>r</sub> + &xi;<sub>k</sub></span>, with
+        <span class="mono">Var(&xi;<sub>k</sub>) = &sigma;<sup>2</sup> / I(n<sub>k,r</sub>)</span>, where
+        <span class="mono">I(n)</span> is the information carried by <span class="mono">n</span> samples. The
+        minimum-variance unbiased linear combination is
+      </p>
+      <div class="eq"><div class="body">
+        a<sub>k</sub> &nbsp;=&nbsp; <span class="frac"><span class="nu">I(n<sub>k,r</sub>)</span><span class="de">&Sigma;<sub>j</sub> I(n<sub>j,r</sub>)</span></span>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        I(n) = n &nbsp;(iid samples) &nbsp;&nbsp;or&nbsp;&nbsp; I(n) = E(n) = <span class="frac"><span class="nu">1&minus;&beta;<sup>n</sup></span><span class="de">1&minus;&beta;</span></span> &nbsp;(Cui's covering model)
+      </div><div class="tag">(3)</div></div>
+      <div class="proof">
+        <span class="lbl">Sketch.</span> Minimise <span class="mono">Var(&Sigma;a<sub>k</sub>&Delta;<sub>k</sub>) = &sigma;<sup>2</sup>&Sigma;a<sub>k</sub><sup>2</sup>/I<sub>k</sub></span>
+        subject to <span class="mono">&Sigma;a<sub>k</sub> = 1</span> (unbiasedness). The Lagrangian gives
+        <span class="mono">a<sub>k</sub> &prop; I<sub>k</sub></span>, the classical inverse-variance estimator.
+        A client with <span class="mono">n<sub>k,r</sub> = 0</span> carries no information, so it gets weight 0,
+        consistent with Theorem 1. &#8718;
+      </div>
+    </div>
+  </div>
+
+  <p>
+    This answers the &ldquo;why this direction?&rdquo; question from first principles: Cui et al. use
+    <span class="mono">1/E(n)</span> to <em>reweight a loss</em>, while we use <span class="mono">E(n)</span>
+    to <em>weight independent estimates</em>. The two answer different questions, and Eq. 3 shows which
+    applies here.
+  </p>
+
+  <p>
+    It also gives the most persuasive sentence available to the paper. The flat average is the
+    minimum-variance estimator <strong>if and only if every holder has the same count</strong>, which is
+    exactly the IID-balanced regime in which GeFL&#8209;F was evaluated. Class-blind aggregation costs
+    nothing in the paper's own setting and grows costly away from it. The authors did not make a mistake;
+    their setting simply never exposed it.
+  </p>
+
+  <div class="tw"><table>
+    <caption>Variance of flat averaging relative to inverse-variance weighting, among holders only &middot; real partition, &alpha;=0.3</caption>
+    <thead><tr><th>class</th><th class="num">0</th><th class="num">1</th><th class="num">2</th><th class="num">3</th><th class="num">4</th><th class="num">5</th><th class="num">6</th><th class="num">7</th><th class="num">8</th><th class="num">9</th></tr></thead>
+    <tbody><tr><td>Var ratio</td><td class="num">20.3</td><td class="num">20.6</td><td class="num">6.1</td><td class="num">10.8</td><td class="num">9.0</td><td class="num">2.5</td><td class="num">4.4</td><td class="num">4.1</td><td class="num">2.8</td><td class="num">1.8</td></tr></tbody>
+  </table></div>
+  <p>
+    The ratio <span class="mono">(&Sigma;1/n<sub>k</sub>)(&Sigma;n<sub>k</sub>)/m<sup>2</sup></span> is at
+    least 1 by Cauchy&ndash;Schwarz, with equality only when all counts are equal. Note an honest
+    subtlety: the variance penalty is <em>largest for head classes</em>, where counts are most uneven across
+    clients. The tail benefits mainly through Theorem 1's damping. The two results act on different classes,
+    which is worth saying explicitly.
+  </p>
+  <div class="note flag">
+    <div class="h">Whether to use n or E(n) barely matters here</div>
+    <p>
+      At <span class="mono">&beta; = 0.999</span>, <span class="mono">E(n) &asymp; n</span> for small
+      counts (<span class="mono">E(25) = 24.7</span>) and saturates by only about 21% at
+      <span class="mono">n = 500</span>. The defensible core of Mechanism A is therefore &ldquo;weight by
+      evidence, give zero to clients with none.&rdquo; Effective number is a refinement. A clean ablation is
+      <span class="mono">I(n) = n</span> against <span class="mono">I(n) = E(n)</span>: if they tie, say so.
+    </p>
+  </div>
+</section>
+
+<section id="s5">
+  <h2><span class="num">05</span>Result 3: no sampling distribution can balance the header</h2>
+  <p class="deck">Mechanism B reshapes p(y). This section bounds how much that can ever achieve.</p>
+
+  <h3>5.1 An exposure model</h3>
+  <p>
+    In stage iii each round runs <span class="mono">T<sub>s</sub> = 1</span> synthetic epoch and
+    <span class="mono">T<sub>r</sub> = 5</span> real epochs, with the synthetic phase sized to one real
+    epoch's batch count. Let <span class="mono">&epsilon;<sub>c</sub></span> be the fraction of synthetic
+    class-<span class="mono">c</span> samples that do not resemble class <span class="mono">c</span>. To first
+    order, the useful per-class training exposure per round, in units of one epoch, is
+  </p>
+  <div class="eq"><div class="body">
+    U<sub>c</sub> &nbsp;=&nbsp; T<sub>s</sub>&thinsp;(1 &minus; &epsilon;<sub>c</sub>)&thinsp;p(c) &nbsp;+&nbsp; T<sub>r</sub>&thinsp;&pi;(c),
+    &nbsp;&nbsp;&nbsp;&nbsp; noise mass &nbsp;=&nbsp; T<sub>s</sub>&thinsp;&Sigma;<sub>c</sub>&thinsp;&epsilon;<sub>c</sub>&thinsp;p(c)
+  </div><div class="tag">(4)</div></div>
+  <p>
+    The balanced error weights every class equally, so the target is
+    <span class="mono">U<sub>c</sub></span> equal across classes. Aggregation averages client updates, which
+    to first order sums their gradients, so the global <span class="mono">&pi;</span> governs the aggregated
+    header.
+  </p>
+
+  <div class="thm">
+    <div class="h"><span>Proposition 3 &mdash; the sampling ceiling</span><span class="st approx">first-order model</span></div>
+    <div class="bd">
+      <p>
+        Over all <span class="mono">p</span> on the simplex, the most balanced achievable exposure, meaning
+        the largest possible worst-class <span class="mono">U<sub>c</sub></span>, is attained by water-filling:
+      </p>
+      <div class="eq"><div class="body">
+        p<sup>*</sup>(c) &nbsp;=&nbsp; <span class="frac"><span class="nu">[&thinsp;&lambda; &minus; T<sub>r</sub>&thinsp;&pi;(c)&thinsp;]<sub>+</sub></span><span class="de">T<sub>s</sub>&thinsp;(1 &minus; &epsilon;<sub>c</sub>)</span></span>,
+        &nbsp;&nbsp;&nbsp; &lambda; chosen so that &Sigma;<sub>c</sub> p<sup>*</sup>(c) = 1
+      </div><div class="tag">(5)</div></div>
+      <p>
+        Because the synthetic phase holds only <span class="mono">T<sub>s</sub>/(T<sub>s</sub>+T<sub>r</sub>) = 1/6</span>
+        of total exposure, the residual imbalance after the optimal <span class="mono">p<sup>*</sup></span> is bounded away from 1.
+      </p>
+      <div class="proof">
+        <span class="lbl">Sketch.</span> Maximising <span class="mono">min<sub>c</sub> U<sub>c</sub></span> with
+        <span class="mono">U<sub>c</sub></span> affine in <span class="mono">p</span> under a budget constraint is
+        the standard water-filling problem: raise every class below level <span class="mono">&lambda;</span> up
+        to <span class="mono">&lambda;</span>, starting from the lowest, until the budget is spent. Classes with
+        <span class="mono">T<sub>r</sub>&pi;(c) &ge; &lambda;</span> receive no synthetic samples. &#8718;
+      </div>
+    </div>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 760 270" role="img" aria-label="Bar chart of the ratio between the best-exposed and worst-exposed class. Uniform sampling gives 17.6 times with a perfect generator. The optimal sampling distribution reduces it to 7.5 times. Perfect balance would be 1 times. With a poorly rendered tail the figures are 35.0 times and 12.3 times.">
+      <text x="20" y="20" font-size="11" font-weight="700" fill="currentColor" opacity=".7" letter-spacing=".7">HEAD-TO-WORST-CLASS EXPOSURE RATIO &#8212; CIFAR&#8209;10&#8209;LT, IF = 0.01</text>
+      <line x1="230" y1="40" x2="230" y2="236" stroke="currentColor" stroke-width="1.1"/>
+      <!-- scale: 0..36 -> 230..710 (13.33 px/unit) -->
+      <text x="220" y="62" font-size="11" text-anchor="end" fill="currentColor">uniform p(y), perfect G</text>
+      <rect x="230" y="50" width="235" height="18" fill="currentColor" opacity=".55"/>
+      <text x="472" y="64" font-size="11" fill="currentColor" class="mn" font-weight="600">17.6&#215;</text>
+      <text x="220" y="94" font-size="11" text-anchor="end" fill="var(--tail)" font-weight="700">optimal p*, perfect G</text>
+      <rect x="230" y="82" width="100" height="18" fill="var(--tail)"/>
+      <text x="337" y="96" font-size="11" fill="var(--tail)" class="mn" font-weight="700">7.5&#215;</text>
+      <text x="220" y="138" font-size="11" text-anchor="end" fill="currentColor">uniform p(y), tail rendered badly</text>
+      <rect x="230" y="126" width="467" height="18" fill="currentColor" opacity=".55"/>
+      <text x="703" y="140" font-size="11" fill="currentColor" class="mn" font-weight="600">35.0&#215;</text>
+      <text x="220" y="170" font-size="11" text-anchor="end" fill="var(--tail)" font-weight="700">optimal p*, tail rendered badly</text>
+      <rect x="230" y="158" width="164" height="18" fill="var(--tail)"/>
+      <text x="401" y="172" font-size="11" fill="var(--tail)" class="mn" font-weight="700">12.3&#215;</text>
+      <text x="220" y="214" font-size="11" text-anchor="end" fill="var(--good)" font-weight="700">balanced target</text>
+      <rect x="230" y="202" width="13" height="18" fill="var(--good)"/>
+      <text x="250" y="216" font-size="11" fill="var(--good)" class="mn" font-weight="700">1.0&#215;</text>
+      <text x="230" y="258" font-size="10.5" fill="currentColor" opacity=".7">&#8220;tail rendered badly&#8221;: &#949; rising linearly from 0.1 on the head class to 0.6 on the rarest</text>
+    </svg>
+    <figcaption>
+      <b>The best possible sampling policy still leaves a 7.5&times; gap.</b> Even with a perfect generator,
+      the optimal <span class="mono">p<sup>*</sup></span> puts zero weight on the four most frequent classes and
+      every remaining sample on the tail, and that still cannot overcome a real-data phase five times longer.
+      With a realistic generator the noise mass also rises, from 0.35 to 0.54. That is the trade-off a
+      fidelity gate must manage.
+    </figcaption>
+  </figure>
+
+  <h3>5.2 What this means for Mechanism B</h3>
+  <ul>
+    <li><strong>It cannot be the headline.</strong> Its improvement is capped by construction. The gate sweep agrees: B alone gave +3.3 pp tail, a real but bounded effect.</li>
+    <li><strong>Its correct form differs from the current code.</strong> The header is trained locally, so the right <span class="mono">&pi;</span> in Eq. 5 is the <strong>client-local</strong> distribution <span class="mono">&pi;<sub>k</sub></span>, not the global one the current sampler uses. Per-client head-to-tail ratios on the real partition range from 1.0&times; to 41&times;, so one global distribution is wrong for almost every client.</li>
+    <li><strong>The fidelity gate is now derived, not heuristic.</strong> Eq. 5 multiplies by <span class="mono">1/(1&minus;&epsilon;<sub>c</sub>)</span>, which <em>increases</em> sampling of badly rendered classes and with it the noise mass. Bounding the noise, <span class="mono">&Sigma;&epsilon;<sub>c</sub>p(c) &le; &eta;</span>, or excluding classes with <span class="mono">&epsilon;<sub>c</sub> &gt; &epsilon;<sub>max</sub></span>, is what a principled fidelity gate does. Call the derived version <strong>Mechanism B&prime;: gated, client-local water-filling.</strong></li>
+  </ul>
+</section>
+
+<section id="s6">
+  <h2><span class="num">06</span>Result 4: the correction the mathematics points to</h2>
+  <p class="deck">If the dominant imbalance enters in the real phase, the fix has to act after it.</p>
+  <p>
+    Proposition 3 locates the problem: five-sixths of the header's exposure comes from the real-data phase,
+    which follows the natural long-tailed <span class="mono">&pi;</span> and runs <em>last</em>. Sequential
+    training then pulls the header back toward the real-data prior, so the first-order model, if anything,
+    overstates how much the synthetic phase can achieve. Any correction placed <em>before</em> the real phase
+    is diluted by it.
+  </p>
+  <p>Two corrections act after it, and both have a pedigree:</p>
+  <div class="tw"><table>
+    <caption>Post-real-phase corrections</caption>
+    <thead><tr><th>Correction</th><th>Guarantee</th><th>Cost</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr class="hl"><td><strong>Logit adjustment</strong> (Menon et al.): predict with <span class="mono">arg max<sub>c</sub> f<sub>c</sub>(x) &minus; &tau; log &pi;(c)</span></td>
+        <td>Fisher-consistent for balanced error, our reported metric</td><td>none at training; one hyperparameter</td>
+        <td>Directly corrects the real-phase prior that Proposition 3 identifies as dominant.</td></tr>
+      <tr><td><strong>Balanced classifier re-training</strong> (decoupling; CReFF): after stage iii, re-fit only the final layer on synthetic features drawn equally per class</td>
+        <td>Empirical, but CReFF's own diagnostic shows the classifier holds most of the gap in federated long-tail learning</td><td>a short extra stage</td>
+        <td>The feature generator makes a perfectly balanced set available at every client, which ordinary FL cannot do.</td></tr>
+    </tbody>
+  </table></div>
+  <p>
+    This turns a weakness into structure. Each component of the method maps to one term in the analysis:
+    <strong>Mechanism A</strong> removes the damping in the generator's conditioning (Theorem 1);
+    <strong>Mechanism B&prime;</strong> spends the synthetic budget optimally within its ceiling
+    (Proposition 3); <strong>logit adjustment</strong> corrects the real-phase prior that no sampling policy
+    can reach. A reviewer can see why each component exists and what it is responsible for.
+  </p>
+  <div class="note flag">
+    <div class="h">The risk this creates, stated plainly</div>
+    <p>
+      Logit adjustment is cheap and well established. If it alone matches A + B&prime; + logit adjustment,
+      the generator-side contribution is weak. That outcome would still be publishable: it would show that
+      GeFL&#8209;F's tail failure is a decision-boundary problem rather than a generative one. But the
+      paper's framing would change. The factorial design in &sect;8 is built to detect this case.
+    </p>
+  </div>
+</section>
+
+<section id="s7">
+  <h2><span class="num">07</span>Defects the analysis uncovered</h2>
+  <div class="note bug">
+    <div class="h">7.1 &nbsp;DDPM&#8209;F weight decay erases tail classes</div>
+    <p>
+      Our DDPM&#8209;F uses <code>torch.optim.Adam(weight_decay=1e-3)</code>. Plain Adam adds weight decay to
+      the gradient and then normalises the result, so a row whose only gradient is the decay term is still
+      pushed toward zero at the full learning rate. The test in &sect;3.1 shows absent-class rows moving
+      exactly as fast as held rows (1.2e&#8209;3). Every client that has never seen a class actively shrinks
+      that class's conditioning row, and flat averaging then mixes those shrunk rows in. The reference
+      implementation uses no weight decay for DDPM. <strong>Fix:</strong> remove it, or use
+      <code>AdamW</code> and exclude embedding parameters, which is standard practice. This must be done
+      before any DDPM&#8209;F result is reported.
+    </p>
+  </div>
+  <div class="note bug">
+    <div class="h">7.2 &nbsp;Feature dimensionality</div>
+    <p>
+      Already documented in the technical reference: <code>fe_channels = 32</code> makes the feature 2.67&times;
+      larger than the image, where the paper's 3 channels make it 4&times; smaller. This deviation changes
+      GeFL&#8209;F itself and must be reverted for headline results.
+    </p>
+  </div>
+  <div class="note flag">
+    <div class="h">7.3 &nbsp;Mechanism B uses the global distribution</div>
+    <p>
+      The current <code>FidelityGatedSampler</code> blends toward inverse <em>global</em> frequency. Section 5.2
+      shows the derivable optimum depends on each client's <em>local</em> distribution. This is not a crash,
+      but the implementation does not match the version that can be justified.
+    </p>
+  </div>
+</section>
+
+<section id="s8">
+  <h2><span class="num">08</span>Each claim, the experiment that tests it, and how it could fail</h2>
+  <div class="tw"><table>
+    <caption>The defensible contribution, claim by claim</caption>
+    <thead><tr><th>Claim</th><th>Support</th><th>Experiment</th><th>Falsified if</th></tr></thead>
+    <tbody>
+      <tr><td><strong>C0</strong> &nbsp;Our GeFL&#8209;F reproduces the paper</td><td>&mdash;</td>
+        <td>Tier 1: CVAE&#8209;F, MNIST resized to 32, 10 clients, IID-balanced, <code>fe_channels: 3</code>, reference headers, best-over-rounds metric</td>
+        <td>more than 1 pp from the paper's 95.47%</td></tr>
+      <tr><td><strong>C1</strong> &nbsp;Flat averaging damps tail conditioning by m/K</td><td>Theorem 1 (exact)</td>
+        <td>Log per-row update norms in stage ii, baseline vs A</td><td>logged ratio departs from m/K</td></tr>
+      <tr class="hl"><td><strong>C2</strong> &nbsp;Mechanism A's gain grows with client count</td><td>Theorem 1 + Fig. 3.2</td>
+        <td>K &isin; {10, 50, 100}, baseline vs A, 3 seeds</td><td>gain flat or shrinking in K</td></tr>
+      <tr><td><strong>C3</strong> &nbsp;Sampling alone is capped</td><td>Proposition 3</td>
+        <td>uniform, global-B, B&prime;, and static inverse-frequency, tail accuracy compared</td><td>any p(y) policy closes the tail gap by itself</td></tr>
+      <tr><td><strong>C4</strong> &nbsp;Components are complementary</td><td>&sect;6</td>
+        <td>factorial over {A} &times; {B&prime;} &times; {logit adjustment}, 3 seeds, paired test</td><td>full method &le; best single component</td></tr>
+      <tr><td><strong>C5</strong> &nbsp;The embedding parameterisation is not the source of gains</td><td>Eq. 1</td>
+        <td>baseline with one-hot vs embedding, no mechanisms</td><td>baselines differ beyond noise</td></tr>
+      <tr><td><strong>C6</strong> &nbsp;Privacy is not degraded</td><td>&mdash;</td>
+        <td>MND ratio, baseline vs full method</td><td>MND rises above 1 or by more than 0.1</td></tr>
+    </tbody>
+  </table></div>
+  <p>
+    <strong>Protocol for C1&ndash;C6:</strong> CReFF's long-tail settings (IF &isin; {100, 50, 10}, &alpha; = 0.5)
+    as the primary grid so the setup matches the established federated long-tail literature, with &alpha; = 0.3
+    as the harder secondary setting. Final-round accuracy, many/medium/few-shot buckets, three seeds, mean
+    &plusmn; standard deviation, and a paired test against the baseline. Every method shares model, partition
+    and seeds; nothing is quoted from another paper.
+  </p>
+</section>
+
+<section id="s9">
+  <h2><span class="num">09</span>What the derivations assume</h2>
+  <p class="deck">Stating these is part of the defence. A reviewer will find them anyway.</p>
+  <ul>
+    <li><strong>Theorem 1</strong> needs local optimisers without weight decay and conditioning parameters that are not tied to other parameters. Both hold for CVAE&#8209;F and DCGAN&#8209;F as implemented. It is exact about the <em>update</em>, not about final accuracy; the link to accuracy is an empirical claim (C2).</li>
+    <li><strong>Proposition 2</strong> assumes holder updates are unbiased and independent. Client drift, where local trunks move in different directions, introduces bias that inverse-variance weighting does not correct. The update of row <span class="mono">r</span> also interacts with the trunk, which the model ignores.</li>
+    <li><strong>Proposition 3</strong> is a first-order exposure model. It ignores phase ordering (which makes the synthetic phase weaker still, so the ceiling is optimistic for Mechanism B) and assumes one synthetic sample is worth one real one. A diverse synthetic sample could be worth more, which would raise the ceiling but not remove it.</li>
+    <li><strong>&epsilon;<sub>c</sub></strong> is not directly observable. The header-confidence signal currently used to estimate it is partly circular (the header scores samples it trains on). A held-out estimate, such as reconstruction error on unseen local data or a frozen referee classifier, is the defensible measurement.</li>
+  </ul>
+</section>
+
+<section style="padding-top:36px">
+  <h3>Sources</h3>
+  <ol class="refs">
+    <li>Y. Cui, M. Jia, T.-Y. Lin, Y. Song, S. Belongie. <em>Class-Balanced Loss Based on Effective Number of Samples.</em> CVPR 2019. <a href="https://arxiv.org/pdf/1901.05555">arXiv:1901.05555</a></li>
+    <li>A. K. Menon, S. Jayasumana, A. S. Rawat, H. Jain, A. Veit, S. Kumar. <em>Long-tail learning via logit adjustment.</em> ICLR 2021. <a href="https://ar5iv.labs.arxiv.org/html/2007.07314">arXiv:2007.07314</a></li>
+    <li>X. Shang, Y. Lu, G. Huang, H. Wang. <em>Federated Learning on Heterogeneous and Long-Tailed Data via Classifier Re-Training with Federated Features.</em> IJCAI 2022. <a href="https://ar5iv.labs.arxiv.org/html/2204.13399">arXiv:2204.13399</a></li>
+    <li><em>Ablation study design.</em> TheoremPath. <a href="https://theorempath.com/topics/ablation-study-design">theorempath.com</a></li>
+    <li><em>How to Do Statistical Evaluations in ECE/CS Papers: A Practical Playbook for Defensible Results.</em> <a href="https://arxiv.org/pdf/2605.00428">arXiv:2605.00428</a></li>
+    <li>H. Kang, S. Cha, J. Kang. <em>GeFL: Model-Agnostic Federated Learning with Generative Models.</em> IEEE TMC 2025, and its reference implementation <code>hetero-model-fl-gen</code>.</li>
+  </ol>
+</section>
+
+</main>
+</div></div>
+<footer><div class="wrap">
+  <p><strong>Class-Balanced GeFL&#8209;F Derivations</strong> &mdash; companion to the project review and the whiteboard reference.</p>
+  <p>Numerical claims were produced by running the project's own partition, generator and local-update code. The theorems state their assumptions; the proofs are sketched at the level a reviewer can check.</p>
+</div></footer>

@@ -20,8 +20,9 @@ FL Workshop → AAAI/CVPR (only if empirics reach top-conference bar).
 - Result headline: +__% tail accuracy over vanilla GeFL on CIFAR-10-LT
   (IF=0.01) without loss on overall or head accuracy, across MNIST-LT,
   FMNIST-LT, CIFAR-10-LT, and CIFAR-100-LT.
-- Ancillary result: a naive class-support floor variant fails; we diagnose
-  the quality-quantity tension driving that failure.
+- Analytical result: flat aggregation provably damps each class's conditioning
+  update by the fraction of clients holding it (exact identity), and no
+  sampling distribution alone can balance the header (exposure ceiling).
 
 ---
 
@@ -48,8 +49,9 @@ FL Workshop → AAAI/CVPR (only if empirics reach top-conference bar).
 3. **Mechanism B:** fidelity-gated adaptive sampling that interpolates from
    natural class frequency toward inverse-frequency rebalancing.
 4. **Empirical validation** across 4 datasets × 3 imbalance factors × 3 seeds.
-5. **Negative-result contribution:** class-support floor fails; we analyze
-   why (§__).
+5. **Analysis contribution:** an exact damping theorem for flat aggregation and
+   a ceiling on sampling-only fixes, with a falsifiable scaling prediction in
+   the number of clients (see docs/improvement_derivations.html).
 
 ---
 
@@ -217,18 +219,19 @@ communication round for baseline / A / B / A+B on CIFAR-10-LT.
 ### 5.3 Ablations
 
 **Table 3 — Mechanism ablation (CIFAR-10-LT IF=0.01).** A alone / B alone
-/ A+B / A+B + support-floor / A+B with inverse Mech-A direction.
+/ A+B / A+B + logit adjustment / A+B with inverse Mech-A direction /
+I(n)=n vs I(n)=E(n) weighting.
 
 **Table 4 — Hyperparameter sensitivity.** Mech A: $\beta \in \{0.99, 0.999, 0.9999\}$.
 Mech B: $\lambda \in \{0.4, 0.6, 0.8\}$, $\gamma \in \{0.5, 1.0, 2.0\}$.
 
 ### 5.4 Analysis
 
-**5.4.1 Why the support floor hurts.** Support-floor variant falls back
-to flat mean when total round support < 20. Empirically worse than no
-floor (Table 3). Analysis: fallback erases the very signal Mech A is
-designed to inject; adding a floor is equivalent to disabling Mech A
-for the classes that need it most.
+**5.4.1 Damping grows with client count.** Theorem 1 predicts flat
+aggregation scales each class's conditioning update by m_c/K, falling on
+the tail from 0.71 (K=10) to 0.33 (K=100). Report Mechanism A's gain
+against K and check it rises. (Note: the earlier "support floor" runs never
+activated the floor and are exact repeats; use them only as a noise estimate.)
 
 **5.4.2 Fidelity dynamics.** Figure __ shows per-class $f_c$ over
 training. Head-class $f_c$ rises within ~20 rounds; tail-class $f_c$
@@ -292,4 +295,5 @@ are complementary — combining them yields __.
   functions already present in the repo — reuse, don't rewrite.
 - Related-work paragraph on FedGen / FedFTG / DENSE is NON-NEGOTIABLE.
   Confirmed still missing from the current proposal draft.
-- Support-floor negative result stays in the paper. Instructive.
+- The support floor never triggered (min class total 25 > threshold 20); do
+  not report it as a negative result. Its runs are repeats = noise estimate.

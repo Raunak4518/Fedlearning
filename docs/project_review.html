@@ -1776,8 +1776,8 @@ footer p{font-size:13.5px;color:var(--muted);margin:0 0 8px}
           <tr><td>+ Mechanism A</td><td class="num">22.5</td><td class="num">53.0</td><td class="num">17.5</td><td class="num">3.3</td><td class="num up">+2.9</td></tr>
           <tr><td>+ Mechanism B</td><td class="num">25.1</td><td class="num">54.6</td><td class="num">24.0</td><td class="num">3.7</td><td class="num up">+3.3</td></tr>
           <tr class="hl"><td>+ A + B</td><td class="num">25.6</td><td class="num">57.8</td><td class="num">21.4</td><td class="num tailv">4.6</td><td class="num up">+4.2</td></tr>
-          <tr><td>A + support floor</td><td class="num">22.8</td><td class="num">54.8</td><td class="num">16.3</td><td class="num">3.5</td><td class="num up">+3.1</td></tr>
-          <tr><td>A + B + support floor</td><td class="num">25.0</td><td class="num">52.7</td><td class="num">25.1</td><td class="num">4.2</td><td class="num up">+3.8</td></tr>
+          <tr><td>A, repeat run<sup>&dagger;</sup></td><td class="num">22.8</td><td class="num">54.8</td><td class="num">16.3</td><td class="num">3.5</td><td class="num up">+3.1</td></tr>
+          <tr><td>A + B, repeat run<sup>&dagger;</sup></td><td class="num">25.0</td><td class="num">52.7</td><td class="num">25.1</td><td class="num">4.2</td><td class="num up">+3.8</td></tr>
         </tbody>
       </table>
     </div>
@@ -1786,11 +1786,17 @@ footer p{font-size:13.5px;color:var(--muted);margin:0 0 8px}
       Three observations. First, <strong>the gap is real and severe</strong>: 43.3% head against 0.4%
       tail answers RQ1 emphatically. Second, <strong>both mechanisms help and they compose</strong> —
       A+B is best on both overall and tail, an 11.5&times; relative improvement on tail accuracy with no
-      cost to head accuracy, which in fact improves. Third, <strong>a variant we expected to help did
-      not</strong>: the "support floor" (fall back to flat averaging when a class has fewer than 20
-      total samples across selected clients) is <em>worse</em> than no floor. In hindsight this is
-      obvious — the floor disables Mechanism A precisely for the classes it was designed to protect. We
-      will report it as a negative result rather than quietly drop it.
+      cost to head accuracy, which in fact improves. Third, <strong>the effect is far larger than
+      run-to-run noise</strong>. The two rows marked &dagger; were launched as a &ldquo;support
+      floor&rdquo; variant, which falls back to flat averaging when a class has fewer than 20 samples
+      across a round's clients. With all 10 clients participating, the rarest class has 25, so the floor
+      never activated and those runs are exact repeats of A and A+B. They differ from the originals by
+      0.3&ndash;0.6 pp overall and 0.2&ndash;0.4 pp tail, while baseline &rarr; A+B moves +8.2 pp overall
+      and +4.2 pp tail.
+    </p>
+    <p style="font-size:14px;color:var(--muted)">
+      &dagger; An earlier version of this document reported the support floor as a negative result. That
+      was wrong: the floor never triggered. The derivations document gives the full analysis.
     </p>
 
     <h3>11.3 First GeFL&#8209;F measurement &mdash; the target framework</h3>
@@ -3107,18 +3113,18 @@ footer p{font-size:13.5px;color:var(--muted);margin:0 0 8px}
     </details>
 
     <details class="qa">
-      <summary>Why do you report a variant that failed?</summary>
+      <summary>How do you know the gate result is not just noise?</summary>
       <div class="ans">
         <p>
-          The support-floor variant — reverting to flat averaging for classes with fewer than 20 total
-          samples in a round — was a reasonable-sounding hypothesis: with very few samples, the
-          frequency-weighted average might be dominated by noise. It made results worse.
+          By accident, the gate sweep contains two pairs of identical runs. The &ldquo;support
+          floor&rdquo; variant was meant to fall back to flat averaging for classes with fewer than 20
+          samples in a round, but the rarest class had 25, so the floor never activated. Those runs
+          repeat A and A+B exactly, and they differ from the originals by at most 0.6 pp, against an
+          effect of +8.2 pp overall and +4.2 pp tail.
         </p>
         <p>
-          The explanation is instructive: the floor disables Mechanism A exactly for the classes it
-          exists to protect. Reporting it strengthens the paper. It shows we tested our own assumption
-          rather than only the version that worked, and it pre-empts a reviewer proposing the same idea
-          as an improvement.
+          That is evidence, not proof. The full sweep uses three seeds and a paired test. We also correct
+          the record openly: an earlier draft called the floor a negative result, which it was not.
         </p>
       </div>
     </details>
@@ -3142,7 +3148,7 @@ footer p{font-size:13.5px;color:var(--muted);margin:0 0 8px}
           Then we still have a paper, and it is a legitimate one. We would have measured and reported
           something nobody has published: <strong>how much class imbalance costs GeFL&#8209;F, broken
           out by class frequency</strong>, together with the finding that the obvious corrections
-          — frequency-weighted aggregation, adaptive sampling, support flooring — do not fix it, and a
+          — frequency-weighted aggregation and adaptive sampling — do not fix it, and a
           diagnosis of why. Negative results with a clear mechanism are publishable, and Section 13's
           five fallbacks mean we would have four more mechanisms tested before reaching that conclusion.
         </p>
