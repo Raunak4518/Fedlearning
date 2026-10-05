@@ -25,7 +25,6 @@ Stage (iii) — Target header training (T_TN rounds):
 Key: θ_f is trained ONLY in stage (i) then frozen. Stages (ii)+(iii)
 use it in eval/no-grad mode.
 """
-import copy
 import os
 import time
 from collections import defaultdict
@@ -38,11 +37,8 @@ from torch.utils.data import DataLoader, Subset
 from gefl_f.feature_extractor import CommonFeatureExtractor
 from gefl_f.headers import HEADER_REGISTRY
 from utils.avg import FedAvg, model_wise_FedAvg, aggregate_generator
-from utils.checkpoint import ckpt_path, save_checkpoint, save_results
-from utils.evaluate import (average_client_bucketed_accuracy, bucketed_accuracy, gap_report,
-                            train_centralized_upper_bound, mnd_ratio, make_held_out_val_split,
-                            ConvergenceTracker, classification_report_from_cm,
-                            compute_confusion_matrix, per_client_accuracy)
+from utils.checkpoint import save_results
+from utils.evaluate import ConvergenceTracker
 from utils.label_sampler import build_label_sampler
 from utils.localUpdateGen import get_local_gen_update
 from utils.logger import ExperimentLogger
@@ -83,9 +79,9 @@ def _build_feature_generator(num_classes, fe_channels, fe_spatial, args):
     """
     from generators.base import GEN_REGISTRY
     # Import specific generators so they register
-    import generators.ccvae
-    import generators.ccgan
-    import generators.cddpm
+    import generators.ccvae  # noqa: F401
+    import generators.ccgan  # noqa: F401
+    import generators.cddpm  # noqa: F401
     gen_name = args.gen_model
     gen_cls = GEN_REGISTRY.get(gen_name)
     out_act = "relu" if gen_name in ("vae", "gan") else "none"
@@ -492,8 +488,6 @@ def run_gefl_f(args) -> dict:
     if gen_model_f not in LOCAL_GEN_UPDATE_REGISTRY:
         base_fn = get_local_gen_update(args.gen_model)
         LOCAL_GEN_UPDATE_REGISTRY.register(gen_model_f)(base_fn)
-
-    local_gen_update_fn = get_local_gen_update(gen_model_f)
 
     for rnd in range(args.gen_wu_epochs):
         client_ids = client_sampler.select()

@@ -24,7 +24,6 @@ One communication round:
      from this round's synthetic-sample confidence feedback.
   4. periodic evaluation + logging + checkpointing + visualization.
 """
-import copy
 import os
 import time
 
@@ -32,12 +31,10 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, Subset
 
-from targetNetModels.nets import NET_REGISTRY
 from utils.avg import aggregate_generator, model_wise_FedAvg
 from utils.checkpoint import ckpt_path, save_checkpoint, save_results
-from utils.evaluate import (average_client_bucketed_accuracy, bucketed_accuracy, gap_report,
-                             make_held_out_val_split, mnd_ratio, train_centralized_upper_bound,
-                             ConvergenceTracker, classification_report_from_cm,
+from utils.evaluate import (bucketed_accuracy, gap_report, make_held_out_val_split, mnd_ratio,
+                             train_centralized_upper_bound, ConvergenceTracker,
                              compute_confusion_matrix, per_class_accuracy, per_client_accuracy,
                              generator_quality_metrics)
 from utils.label_sampler import build_label_sampler
@@ -139,8 +136,6 @@ def run_gefl(args) -> dict:
     )
 
     client_sampler = ClientSampler(args.num_users, args.frac, args.seed)
-    natural_counts = {cid: np.array([exp.client_class_counts[cid].get(c, 0) for c in range(exp.meta.num_classes)])
-                       for cid in range(args.num_users)}
     global_natural_counts = np.array([exp.class_counts[c] for c in range(exp.meta.num_classes)])
     label_samplers = {cid: build_label_sampler(args, exp.meta.num_classes, global_natural_counts)
                        for cid in range(args.num_users)} if args.aid_by_gen else {}
@@ -413,7 +408,7 @@ def _generate_intermediate_plots(history, per_class_history, convergence_history
                 timing_history[:len(all_rounds)], all_rounds,
                 os.path.join(plots_dir, f"timing_r{current_round}.png"),
             )
-    except Exception as e:
+    except Exception:
         pass  # don't crash training for a plot failure
 
 

@@ -32,9 +32,6 @@ def save_checkpoint(path: str, round_idx: int, ws_glob, gen_state: Optional[dict
     }, path)
 
 
-def load_checkpoint(path: str, map_location: str = "cpu") -> dict:
-    return torch.load(path, map_location=map_location, weights_only=False)
-
 
 def save_results(path: str, results: dict) -> None:
     os.makedirs(os.path.dirname(path), exist_ok=True)

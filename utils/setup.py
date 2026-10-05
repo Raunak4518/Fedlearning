@@ -9,7 +9,7 @@ this file hardcodes a dataset name, an architecture name, or a class
 count; every one of those comes from `args` and the registries in
 datasets/, targetNetModels/, and generators/.
 """
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, List
 
 import numpy as np

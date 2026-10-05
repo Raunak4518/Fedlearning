@@ -63,7 +63,10 @@ python GeFL_CVAE.py --config configs/synthetic_debug.yaml
 python GeFL_CVAE.py --config configs/cifar10_lt.yaml
 
 # 3. Proposed method (both mechanisms) on the same setup
-python GeFL_CVAE.py --config configs/cifar10_lt_proposed.yaml
+python GeFL_CVAE.py --config configs/cifar10_lt.yaml --mechanism_a 1 --mechanism_b 1 --name proposed
+
+# 3b. GeFL-F (feature-space variant, the primary research target)
+python GeFL_F_CVAE.py --config configs/cifar10_gefl_f.yaml --mechanism_a 1 --mechanism_b 1
 
 # 4. Plain FedAvg, no generator at all
 python GeFL_CVAE.py --dataset cifar10 --aid_by_gen 0 --name fedavg_baseline
@@ -82,9 +85,11 @@ python GeFL_CVAE.py --dataset svhn     --img_size 32
 python GeFL_CVAE.py --dataset mnist    --num_users 20
 
 # 8. Sweep imbalance_factor x dirichlet_alpha x seed x mechanism
-#    (the proposal's Week 6-8 milestone)
-python scripts/sweep.py --config configs/cifar10_lt.yaml \
-    --imbalance_factors 0.1 0.05 0.01 --dir_params 1.0 0.3 0.1 --seeds 0 1 2
+#    (--framework gefl_f switches the engine to GeFL-F)
+python scripts/sweep.py --framework gefl_f --config configs/cifar10_gefl_f.yaml \
+    --imbalance_factors 0.1 0.01 --dir_params 0.3 --seeds 0 1 2
+
+# Full paper-style sweeps run on Kaggle 2xT4: see scripts/kaggle_full_sweep.ipynb
 
 # 9. Run the test suite
 pytest tests/ -v
@@ -153,15 +158,32 @@ utils/
   label_sampler.py                 GeFL-baseline uniform sampler + Mechanism B (FidelityGatedSampler)
   evaluate.py                      bucketed accuracy, centralized upper bound, gap analysis, MND privacy metric
   checkpoint.py / logger.py / seed.py
+gefl_f/
+  engine_f.py                    GeFL-F three-stage loop: FE warm-up -> feature-generator -> header training
+  feature_extractor.py           the common feature extractor shared by every client
+  headers.py                     heterogeneous header architectures (header_small/deep/wide/...)
 baselines/
   creff.py                       full CReFF classifier-side baseline (shared backbone, dataset-agnostic)
-engine.py                    the federated training loop itself (shared by every GeFL_*.py script)
-GeFL_CVAE.py / GeFL_GAN.py / GeFL_DDPM.py   thin per-generator entry points (mirrors original repo's naming)
+engine.py                    GeFL (image-space) training loop, shared by every GeFL_*.py script
+GeFL_CVAE.py / GeFL_GAN.py / GeFL_DDPM.py         GeFL entry points, one per generator
+GeFL_F_CVAE.py / GeFL_F_GAN.py / GeFL_F_DDPM.py   GeFL-F entry points, one per feature generator
 Baseline_CReFF.py            entry point for the CReFF baseline
-configs/                     YAML experiment presets (synthetic_debug, cifar10_lt, cifar100_lt, cifar10_lt_proposed)
-scripts/sweep.py             grid sweep over imbalance_factor x dirichlet_alpha x seed x mechanism
+configs/                     YAML presets: {mnist,fmnist,cifar10,cifar100}_lt (GeFL), *_gefl_f (GeFL-F),
+                             cifar10_paper_cnns (paper's 10-CNN pool), synthetic_debug (offline smoke test)
+scripts/
+  sweep.py                     grid sweep over IF x alpha x seed x mechanism, --framework gefl|gefl_f
+  kaggle_full_sweep.ipynb      headless Kaggle 2xT4 runner: pick frameworks/datasets/generators/mechanisms
+docs/
+  project_review.html          research proposal for review (method, math, results, fallbacks)
+  technical_walkthrough.html   whiteboard reference: every component, shape and hyperparameter
+  paper_skeleton.md            paper outline with table stubs
+  archive/                     superseded planning notes
 tests/                       pytest unit tests for partitioning, aggregation, sampling, and generators
 ```
+
+Not tracked in git (see `.gitignore`): `data/` (torchvision cache), `checkpoint/`, `logs/`
+(every run's metrics and plots), and `GEFl original implementation/` (the upstream authors'
+reference code, kept locally for comparison only).
 
 ## The MND privacy metric
 

@@ -10,12 +10,11 @@ post-hoc analysis script. All accept pre-computed data (dicts/arrays), so
 they never import torch or touch a model directly.
 """
 import os
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import matplotlib
 matplotlib.use("Agg")  # non-interactive backend for server compatibility
 import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
 import numpy as np
 
 try:

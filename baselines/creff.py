@@ -56,7 +56,7 @@ def _weighted_avg_state_dicts(state_dicts: List[dict], weights: List[int]) -> di
 
 def run_creff(exp, args) -> dict:
     device = args.device
-    num_classes, in_channels, img_size = exp.meta.num_classes, exp.meta.in_channels, exp.meta.native_img_size
+    num_classes, in_channels = exp.meta.num_classes, exp.meta.in_channels
     client_ids = [cid for cid in exp.dict_users if len(exp.dict_users[cid]) > 0]
     loaders = {cid: DataLoader(Subset(exp.dataset_train, exp.dict_users[cid]), batch_size=args.local_bs, shuffle=True)
                for cid in client_ids}

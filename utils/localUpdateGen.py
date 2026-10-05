@@ -17,7 +17,7 @@ GeFL_*.py never branches on gen_model itself:
 own optimizer momentum between rounds, as in the original repo), rather
 than re-initialized from scratch every round.
 """
-from typing import Callable, Dict
+from typing import Callable
 
 import torch
 import torch.nn.functional as F

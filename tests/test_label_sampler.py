@@ -92,7 +92,8 @@ def test_fidelity_gated_sampler_power_1_0_is_pure_inverse_frequency():
     
     inv_dist = sampler._inverse_freq_dist()
     pure_inv = (1 / (counts / counts.sum())) * sampler.fidelity
-    
+    pure_inv = pure_inv / pure_inv.sum()  # _inverse_freq_dist returns a normalized distribution
+
     np.testing.assert_allclose(inv_dist, pure_inv)
 
 def test_fidelity_gated_sampler_lower_power_reduces_tail_oversampling():

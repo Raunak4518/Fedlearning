@@ -102,30 +102,3 @@ class LocalUpdate:
         return net.state_dict(), avg_loss, fidelity_feedback
 
 
-class LocalUpdate_onlyGen(LocalUpdate):
-    """Ablation: train ONLY on synthetic samples (no real local data at
-    all) -- useful for isolating how much a client's own real data
-    contributes versus the shared generator alone."""
-
-    def train(self, net, gennet=None, label_sampler=None):
-        args = self.args
-        assert gennet is not None and label_sampler is not None
-        net.train()
-        opt = self._make_optimizer(net)
-        total_loss, n_batches = 0.0, 0
-        n_real = sum(x.size(0) for x, _ in self.dataloader)
-        for _ in range(args.target_ts):
-            remaining = n_real
-            while remaining > 0:
-                b = min(args.local_bs, remaining)
-                syn_y = label_sampler.sample(b).to(args.device)
-                with torch.no_grad():
-                    syn_x = gennet.sample(syn_y)
-                opt.zero_grad()
-                loss = F.cross_entropy(net(syn_x), syn_y)
-                loss.backward()
-                opt.step()
-                total_loss += loss.item()
-                n_batches += 1
-                remaining -= b
-        return net.state_dict(), total_loss / max(n_batches, 1), {}

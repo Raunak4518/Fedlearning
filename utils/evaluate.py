@@ -1,12 +1,9 @@
 """
 utils/evaluate.py
 
-- `evaluate_models`: per-architecture-group accuracy on the held-out test
-  set, matching the original repo's `evaluate_models(local_models,
-  ws_glob, dataset_test, args, ...)` convention.
-- `bucketed_accuracy` / `average_client_bucketed_accuracy`: accuracy
-  broken out by class-frequency bucket (head/medium/tail), the metric
-  this project's proposal commits to in its evaluation plan.
+- `bucketed_accuracy` / `average_client_metrics`: accuracy broken out by
+  class-frequency bucket (head/medium/tail), the metric this project's
+  proposal commits to in its evaluation plan.
 - `train_centralized_upper_bound` / `gap_report`: the centralized-vs-
   federated comparison the proposal's Section 5 specifies.
 - `mnd_ratio`: GeFL's own privacy metric -- the mean nearest-neighbor
@@ -27,24 +24,8 @@ import numpy as np
 
 import torch
 import torch.nn.functional as F
-from torch.utils.data import DataLoader, Subset
+from torch.utils.data import DataLoader
 
-
-@torch.no_grad()
-def evaluate_models(models: List[torch.nn.Module], ws_glob: List[dict], dataset_test, args) -> List[float]:
-    accs = []
-    loader = DataLoader(dataset_test, batch_size=args.bs)
-    for m, w in zip(models, ws_glob):
-        m.load_state_dict(w)
-        m.eval()
-        correct, total = 0, 0
-        for x, y in loader:
-            x, y = x.to(args.device), y.to(args.device)
-            pred = m(x).argmax(dim=1)
-            correct += int((pred == y).sum())
-            total += y.size(0)
-        accs.append(correct / max(total, 1))
-    return accs
 
 
 @torch.no_grad()
@@ -70,18 +51,6 @@ def bucketed_accuracy(model: torch.nn.Module, dataset_test, buckets: Dict[int, s
     out["overall"] = sum(per_class.values()) / max(len(per_class), 1)
     return out, per_class
 
-
-def average_client_bucketed_accuracy(client_models: Dict[int, torch.nn.Module], dataset_test,
-                                      buckets: Dict[int, str], device: str) -> Dict[str, float]:
-    """GeFL clients keep private, architecturally heterogeneous target
-    nets, so there is no single shared model to evaluate -- report the
-    mean of every client's own bucketed accuracy instead."""
-    all_scores = []
-    for m in client_models.values():
-        scores, _ = bucketed_accuracy(m, dataset_test, buckets, device)
-        all_scores.append(scores)
-    keys = set().union(*[s.keys() for s in all_scores]) if all_scores else set()
-    return {k: sum(s.get(k, 0.0) for s in all_scores) / len(all_scores) for k in keys}
 
 
 def train_centralized_upper_bound(net_cls, train_ds, num_classes: int, in_channels: int, img_size: int,
