@@ -1,0 +1,1590 @@
+<title>GeFL-F Whiteboard Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&display=swap">
+
+<style>
+:root{
+  --ground:#FCFCFD; --surface:#FFFFFF; --surface-2:#F3F5F8; --surface-3:#EAEDF2;
+  --ink:#16181D; --ink-soft:#39404C; --muted:#616A7A;
+  --rule:#E1E5EC; --rule-strong:#C6CCD8;
+  --accent:#3D4EE8; --accent-soft:#EDEFFE; --accent-ink:#2434BE;
+  --tail:#B4650F; --tail-soft:#FBF1E2;
+  --good:#1C7A4A; --good-soft:#E8F4ED;
+  --bad:#B0231C; --bad-soft:#FBEBEA;
+  --shadow:0 1px 2px rgba(22,24,29,.05),0 6px 20px -12px rgba(22,24,29,.16);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0D0F14; --surface:#14171E; --surface-2:#1A1E27; --surface-3:#232833;
+  --ink:#E9EBF0; --ink-soft:#C0C6D2; --muted:#8892A3;
+  --rule:#232833; --rule-strong:#333A49;
+  --accent:#8C97FF; --accent-soft:#1A1E3C; --accent-ink:#AAB3FF;
+  --tail:#E8A44A; --tail-soft:#2A2014;
+  --good:#4FBE86; --good-soft:#12261C;
+  --bad:#F2867E; --bad-soft:#2A1614;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px -12px rgba(0,0,0,.65);
+}}
+:root[data-theme="dark"]{
+  --ground:#0D0F14; --surface:#14171E; --surface-2:#1A1E27; --surface-3:#232833;
+  --ink:#E9EBF0; --ink-soft:#C0C6D2; --muted:#8892A3;
+  --rule:#232833; --rule-strong:#333A49;
+  --accent:#8C97FF; --accent-soft:#1A1E3C; --accent-ink:#AAB3FF;
+  --tail:#E8A44A; --tail-soft:#2A2014;
+  --good:#4FBE86; --good-soft:#12261C;
+  --bad:#F2867E; --bad-soft:#2A1614;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px -12px rgba(0,0,0,.65);
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font-family:Spectral,Georgia,serif;font-size:16.5px;line-height:1.68;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1240px;margin:0 auto;padding:0 22px}
+.layout{display:grid;grid-template-columns:1fr;gap:0}
+@media(min-width:1120px){.layout{grid-template-columns:216px minmax(0,1fr);gap:44px;align-items:start}}
+
+.rail{display:none}
+@media(min-width:1120px){
+  .rail{display:block;position:sticky;top:0;max-height:100vh;overflow-y:auto;padding:40px 0;
+    font-family:'IBM Plex Sans Condensed',system-ui,sans-serif}
+  .rail ol{list-style:none;margin:0;padding:0}
+  .rail a{display:flex;gap:8px;text-decoration:none;color:var(--muted);font-size:12.5px;
+    line-height:1.3;padding:4px 7px;border-radius:3px}
+  .rail a:hover{color:var(--ink);background:var(--surface-2)}
+  .rail a .n{font-variant-numeric:tabular-nums;color:var(--rule-strong);font-weight:700;flex:none}
+  .rail a.sub2{padding-left:26px;font-size:11.5px}
+  .rail .lbl{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--rule-strong);
+    font-weight:700;margin:18px 0 6px 7px}
+  .rail .lbl:first-child{margin-top:0}
+}
+
+header.top{border-bottom:1px solid var(--rule);background:var(--surface)}
+.mast{padding:48px 0 34px;display:flex;flex-direction:column;gap:18px}
+.kicker{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:10.5px;letter-spacing:.16em;
+  text-transform:uppercase;font-weight:700;color:var(--accent);display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.kicker .dot{width:3px;height:3px;border-radius:50%;background:var(--rule-strong)}
+.kicker .plain{color:var(--muted)}
+h1{font-size:clamp(2rem,4.8vw,3.2rem);line-height:1.08;margin:0;font-weight:700;letter-spacing:-.022em}
+h1 .sub{display:block;font-weight:300;font-style:italic;color:var(--muted);font-size:.46em;margin-top:.5em;letter-spacing:0}
+.standfirst{max-width:70ch;font-size:1.1rem;color:var(--ink-soft);margin:0}
+
+main{padding:0 0 100px}
+section{padding-top:56px;scroll-margin-top:16px}
+h2{font-size:clamp(1.42rem,2.9vw,1.95rem);line-height:1.2;margin:0 0 5px;font-weight:700;
+  letter-spacing:-.017em;display:flex;gap:13px;align-items:baseline}
+h2 .num{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:.55em;font-weight:700;
+  color:var(--accent);font-variant-numeric:tabular-nums;flex:none}
+h2+.deck{color:var(--muted);font-size:1.02rem;margin:0 0 22px;max-width:70ch;font-style:italic}
+h3{font-size:1.13rem;margin:34px 0 9px;font-weight:700;letter-spacing:-.006em}
+h4{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:11.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--muted);margin:24px 0 7px;font-weight:700}
+p{margin:0 0 14px;max-width:70ch}
+ul,ol{max-width:70ch;padding-left:21px;margin:0 0 16px}
+li{margin-bottom:6px}
+li::marker{color:var(--muted)}
+a{color:var(--accent-ink);text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+hr{border:0;border-top:1px solid var(--rule);margin:40px 0}
+code{font-family:'IBM Plex Mono',monospace;font-size:.86em;background:var(--surface-2);
+  padding:1px 5px;border-radius:3px;border:1px solid var(--rule)}
+.mono{font-family:'IBM Plex Mono',monospace;font-size:.9em}
+
+/* equations */
+.eq{background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--accent);
+  padding:16px 18px;margin:18px 0;display:flex;gap:16px;align-items:center;overflow-x:auto;box-shadow:var(--shadow)}
+.eq .body{font-family:'IBM Plex Mono',monospace;font-size:14px;line-height:2.05;flex:1;min-width:0;white-space:nowrap}
+.eq .tag{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:11.5px;color:var(--muted);flex:none;font-variant-numeric:tabular-nums}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px}
+.frac .num{border-bottom:1px solid currentColor;padding:0 5px;line-height:1.3}
+.frac .den{padding:0 5px;line-height:1.3}
+
+/* code / algorithm blocks */
+.code{background:var(--surface);border:1px solid var(--rule-strong);margin:20px 0;box-shadow:var(--shadow);overflow:hidden}
+.code > header{padding:9px 14px;border-bottom:1px solid var(--rule);background:var(--surface-2);
+  font-family:'IBM Plex Sans Condensed',sans-serif;font-size:11.5px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+.code > header .t{color:var(--muted);font-weight:500;letter-spacing:.03em;text-transform:none;font-size:11px}
+.code pre{margin:0;padding:14px;overflow-x:auto;font-family:'IBM Plex Mono',monospace;font-size:12.5px;
+  line-height:1.8;color:var(--ink-soft)}
+.code pre b{color:var(--accent-ink);font-weight:600}
+.code pre i{color:var(--tail);font-style:normal;font-weight:600}
+.code pre s{color:var(--muted);font-style:italic;text-decoration:none}
+.code pre em{color:var(--good);font-style:normal;font-weight:600}
+
+/* callouts */
+.note{border:1px solid var(--rule);border-left:3px solid var(--muted);background:var(--surface);
+  padding:14px 16px;margin:18px 0;box-shadow:var(--shadow)}
+.note.key{border-left-color:var(--accent);background:var(--accent-soft)}
+.note.flag{border-left-color:var(--tail);background:var(--tail-soft)}
+.note.bug{border-left-color:var(--bad);background:var(--bad-soft)}
+.note.ok{border-left-color:var(--good);background:var(--good-soft)}
+.note > .h{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:10.5px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.note.key > .h{color:var(--accent-ink)} .note.flag > .h{color:var(--tail)}
+.note.bug > .h{color:var(--bad)} .note.ok > .h{color:var(--good)}
+.note > :last-child{margin-bottom:0}
+
+/* tables */
+.tw{overflow-x:auto;margin:18px 0;border:1px solid var(--rule);box-shadow:var(--shadow);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:520px}
+caption{caption-side:top;text-align:left;padding:10px 14px;border-bottom:1px solid var(--rule);
+  background:var(--surface-2);font-family:'IBM Plex Sans Condensed',sans-serif;font-size:11.5px;
+  font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+th{text-align:left;padding:8px 12px;border-bottom:1px solid var(--rule-strong);
+  font-family:'IBM Plex Sans Condensed',sans-serif;font-size:10.5px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+td{padding:7px 12px;border-bottom:1px solid var(--rule);vertical-align:top;line-height:1.5}
+tbody tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;font-family:'IBM Plex Mono',monospace;font-size:12.5px}
+td.sym,td.shape{font-family:'IBM Plex Mono',monospace;font-size:12.5px;white-space:nowrap}
+td.sym{color:var(--accent-ink);font-weight:500}
+td.shape{color:var(--tail);font-weight:600}
+tr.hl td{background:var(--accent-soft)}
+tr.warn td{background:var(--bad-soft)}
+tr.tot td{background:var(--surface-2);font-weight:700;border-top:1px solid var(--rule-strong)}
+.tailv{color:var(--tail);font-weight:700}
+
+/* figures */
+figure{margin:24px 0;border:1px solid var(--rule);background:var(--surface);box-shadow:var(--shadow);
+  padding:20px 20px 0;overflow-x:auto}
+figure svg{display:block;max-width:100%;height:auto;margin:0 auto;color:var(--ink-soft)}
+figure svg text{font-family:'IBM Plex Sans Condensed',sans-serif}
+figure svg .mn{font-family:'IBM Plex Mono',monospace}
+figcaption{border-top:1px solid var(--rule);margin:18px -20px 0;padding:11px 20px;font-size:13px;
+  color:var(--muted);line-height:1.55}
+figcaption b{color:var(--ink-soft);font-weight:600}
+.figlbl{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:10px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:2px;display:block}
+
+/* step markers */
+.step{display:flex;gap:14px;margin:20px 0;align-items:flex-start}
+.step .k{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:700;font-size:11px;
+  letter-spacing:.05em;color:var(--surface);background:var(--accent);min-width:34px;height:24px;
+  display:flex;align-items:center;justify-content:center;flex:none;margin-top:3px;border-radius:2px}
+.step .k.t{background:var(--tail)}
+.step .bd{flex:1;min-width:0}
+.step .bd > :first-child{margin-top:0}
+.step .bd > :last-child{margin-bottom:0}
+.step .bd h4{margin-top:0}
+
+/* spec grid */
+.specs{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);margin:16px 0}
+.specs div{background:var(--surface-2);padding:9px 11px}
+.specs dt{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:9.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 0 2px}
+.specs dd{margin:0;font-size:12.5px;font-weight:600;font-family:'IBM Plex Mono',monospace}
+
+footer{border-top:1px solid var(--rule);background:var(--surface);padding:30px 0;margin-top:56px}
+footer p{font-size:13px;color:var(--muted);margin:0 0 7px}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="mast">
+      <div class="kicker">
+        <span>Technical Reference</span><span class="dot"></span>
+        <span class="plain">Companion to the project review</span><span class="dot"></span>
+        <span class="plain">Every component, every tensor, every update</span>
+      </div>
+      <h1>GeFL&#8209;F Whiteboard Reference
+        <span class="sub">The complete system traced end to end &mdash; data pipeline, all three generator families, all three federated stages, with exact shapes, exact hyperparameters and exact numbers</span>
+      </h1>
+      <p class="standfirst">
+        This document exists to be defended at a whiteboard. It follows a single CIFAR&#8209;10 image
+        from disk through normalization, long-tail subsampling, Dirichlet partitioning, the shared
+        feature extractor, the feature generator, the heterogeneous header, the loss, the gradient, and
+        the server aggregation &mdash; naming every tensor shape and every hyperparameter on the way.
+        Where the system branches (CVAE&#8209;F versus DCGAN&#8209;F versus DDPM&#8209;F) all three
+        branches are given in full.
+      </p>
+    </div>
+  </div>
+</header>
+
+<div class="wrap"><div class="layout">
+
+<nav class="rail" aria-label="Contents">
+  <div class="lbl">Data</div>
+  <ol>
+    <li><a href="#p1"><span class="n">1</span><span>The data pipeline</span></a></li>
+    <li><a href="#s11" class="sub2">1.1 Source dataset</a></li>
+    <li><a href="#s12" class="sub2">1.2 Transforms</a></li>
+    <li><a href="#s13" class="sub2">1.3 Long tail</a></li>
+    <li><a href="#s14" class="sub2">1.4 Buckets</a></li>
+    <li><a href="#s15" class="sub2">1.5 Dirichlet split</a></li>
+    <li><a href="#s16" class="sub2">1.6 Batching</a></li>
+  </ol>
+  <div class="lbl">Components</div>
+  <ol>
+    <li><a href="#p2"><span class="n">2</span><span>Every model</span></a></li>
+    <li><a href="#s21" class="sub2">2.1 Feature extractor</a></li>
+    <li><a href="#s22" class="sub2">2.2 The three headers</a></li>
+    <li><a href="#s23" class="sub2">2.3 CVAE&#8209;F</a></li>
+    <li><a href="#s24" class="sub2">2.4 DCGAN&#8209;F</a></li>
+    <li><a href="#s25" class="sub2">2.5 DDPM&#8209;F</a></li>
+    <li><a href="#s26" class="sub2">2.6 Comparison</a></li>
+  </ol>
+  <div class="lbl">Execution</div>
+  <ol>
+    <li><a href="#p3"><span class="n">3</span><span>Stage i traced</span></a></li>
+    <li><a href="#p4"><span class="n">4</span><span>Stage ii traced</span></a></li>
+    <li><a href="#p5"><span class="n">5</span><span>Stage iii traced</span></a></li>
+    <li><a href="#p6"><span class="n">6</span><span>Evaluation</span></a></li>
+  </ol>
+  <div class="lbl">Reference</div>
+  <ol>
+    <li><a href="#p7"><span class="n">7</span><span>Hyperparameters</span></a></li>
+    <li><a href="#p8"><span class="n">8</span><span>Known deviations</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ==================== PART 1 ==================== -->
+<section id="p1">
+  <h2><span class="num">01</span>The data pipeline</h2>
+  <p class="deck">From 50,000 files on disk to one batch of tensors at one client. Every filtering step, with real numbers.</p>
+
+  <figure>
+    <span class="figlbl">Figure 1</span>
+    <svg viewBox="0 0 880 250" role="img" aria-label="A funnel showing CIFAR-10's fifty thousand training images reduced by a fifty percent data fraction to twenty-five thousand, then by the long-tail schedule to six thousand two hundred, then split across ten clients averaging six hundred and twenty samples each.">
+      <defs><marker id="fa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+      <rect x="16" y="60" width="170" height="86" rx="3" fill="var(--surface-2)" stroke="currentColor" stroke-width="1.4"/>
+      <text x="101" y="86" font-size="12" text-anchor="middle" font-weight="700" fill="currentColor">CIFAR&#8209;10 train</text>
+      <text x="101" y="108" font-size="17" text-anchor="middle" font-weight="700" fill="currentColor" class="mn">50,000</text>
+      <text x="101" y="126" font-size="10.5" text-anchor="middle" fill="currentColor" opacity=".7">5,000 &#215; 10 classes</text>
+      <text x="101" y="140" font-size="10" text-anchor="middle" fill="currentColor" opacity=".6">3&#215;32&#215;32 uint8</text>
+
+      <line x1="190" y1="103" x2="222" y2="103" stroke="currentColor" stroke-width="1.6" marker-end="url(#fa)"/>
+      <text x="206" y="94" font-size="9.5" text-anchor="middle" fill="currentColor" opacity=".7">&#215;0.5</text>
+
+      <rect x="226" y="60" width="170" height="86" rx="3" fill="var(--surface-2)" stroke="currentColor" stroke-width="1.4"/>
+      <text x="311" y="86" font-size="12" text-anchor="middle" font-weight="700" fill="currentColor">data_fraction</text>
+      <text x="311" y="108" font-size="17" text-anchor="middle" font-weight="700" fill="currentColor" class="mn">25,000</text>
+      <text x="311" y="126" font-size="10.5" text-anchor="middle" fill="currentColor" opacity=".7">2,500 &#215; 10, still balanced</text>
+      <text x="311" y="140" font-size="10" text-anchor="middle" fill="currentColor" opacity=".6">uniform subsample</text>
+
+      <line x1="400" y1="103" x2="432" y2="103" stroke="var(--tail)" stroke-width="1.8" marker-end="url(#fa)"/>
+      <text x="416" y="94" font-size="9.5" text-anchor="middle" fill="var(--tail)" font-weight="700">LT</text>
+
+      <rect x="436" y="60" width="170" height="86" rx="3" fill="var(--tail-soft)" stroke="var(--tail)" stroke-width="1.8"/>
+      <text x="521" y="86" font-size="12" text-anchor="middle" font-weight="700" fill="var(--tail)">long tail IF=0.01</text>
+      <text x="521" y="108" font-size="17" text-anchor="middle" font-weight="700" fill="var(--tail)" class="mn">6,200</text>
+      <text x="521" y="126" font-size="10.5" text-anchor="middle" fill="currentColor" opacity=".8">2,500 &#8230; 25 per class</text>
+      <text x="521" y="140" font-size="10" text-anchor="middle" fill="currentColor" opacity=".6">geometric decay</text>
+
+      <line x1="610" y1="103" x2="642" y2="103" stroke="currentColor" stroke-width="1.6" marker-end="url(#fa)"/>
+      <text x="626" y="94" font-size="9.5" text-anchor="middle" fill="currentColor" opacity=".7">Dir(&#945;)</text>
+
+      <rect x="646" y="60" width="170" height="86" rx="3" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"/>
+      <text x="731" y="86" font-size="12" text-anchor="middle" font-weight="700" fill="var(--accent)">10 clients</text>
+      <text x="731" y="108" font-size="17" text-anchor="middle" font-weight="700" fill="var(--accent)" class="mn">~620</text>
+      <text x="731" y="126" font-size="10.5" text-anchor="middle" fill="currentColor" opacity=".8">each, skewed mix</text>
+      <text x="731" y="140" font-size="10" text-anchor="middle" fill="currentColor" opacity=".6">&#945; = 0.3</text>
+
+      <text x="16" y="36" font-size="11" font-weight="700" fill="currentColor" opacity=".65" letter-spacing="1">FOUR REDUCTIONS, IN THIS ORDER &#8212; ORDER MATTERS</text>
+
+      <text x="16" y="182" font-size="11" fill="currentColor"><tspan font-weight="700">Why this order:</tspan> data_fraction is applied first and uniformly, so it does not interact with the imbalance. The long tail is then imposed</text>
+      <text x="16" y="198" font-size="11" fill="currentColor">globally, and only afterwards is the (already imbalanced) pool split across clients. A client&#8217;s local skew is therefore the <tspan font-style="italic">product</tspan> of two</text>
+      <text x="16" y="214" font-size="11" fill="currentColor">effects &#8212; the global long tail and the Dirichlet draw &#8212; which is exactly the setting CReFF defines and the one we inherit.</text>
+      <text x="16" y="238" font-size="10.5" fill="currentColor" opacity=".65">Implemented in sampling/partition.py :: partition_dataset &#8212; steps 1, 2, 3 in the source correspond to boxes 2, 3, 4 here.</text>
+    </svg>
+    <figcaption>
+      <b>The reduction chain.</b> Everything downstream sees only the final per-client index lists. The
+      test set is <em>never</em> subjected to any of this &mdash; it stays the full balanced 10,000-image
+      CIFAR&#8209;10 test split, which is what makes bucketed accuracy meaningful.
+    </figcaption>
+  </figure>
+
+  <h3 id="s11">1.1 Source dataset specification</h3>
+  <div class="tw">
+    <table>
+      <caption>Registered datasets &middot; from datasets/vision.py</caption>
+      <thead><tr><th>Dataset</th><th class="num">Classes</th><th class="num">Channels</th><th class="num">Native size</th><th>Normalize mean</th><th>Normalize std</th><th class="num">Train / Test</th></tr></thead>
+      <tbody>
+        <tr class="hl"><td><strong>cifar10</strong></td><td class="num">10</td><td class="num">3</td><td class="num">32</td><td class="sym">(0.4914, 0.4822, 0.4465)</td><td class="sym">(0.2470, 0.2435, 0.2616)</td><td class="num">50,000 / 10,000</td></tr>
+        <tr><td>cifar100</td><td class="num">100</td><td class="num">3</td><td class="num">32</td><td class="sym">(0.5071, 0.4865, 0.4409)</td><td class="sym">(0.2673, 0.2564, 0.2762)</td><td class="num">50,000 / 10,000</td></tr>
+        <tr><td>mnist</td><td class="num">10</td><td class="num">1</td><td class="num">28</td><td class="sym">(0.1307,)</td><td class="sym">(0.3081,)</td><td class="num">60,000 / 10,000</td></tr>
+        <tr><td>fmnist</td><td class="num">10</td><td class="num">1</td><td class="num">28</td><td class="sym">(0.2860,)</td><td class="sym">(0.3530,)</td><td class="num">60,000 / 10,000</td></tr>
+        <tr><td>svhn</td><td class="num">10</td><td class="num">3</td><td class="num">32</td><td class="sym">(0.4377, 0.4438, 0.4728)</td><td class="sym">(0.1980, 0.2010, 0.1970)</td><td class="num">73,257 / 26,032</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    <strong>Everything below uses CIFAR&#8209;10 as the running example.</strong> Substituting another
+    dataset changes only <span class="mono">C</span>, <span class="mono">in_channels</span>,
+    <span class="mono">img_size</span> and the normalization constants; no code path branches on dataset
+    identity.
+  </p>
+
+  <h3 id="s12">1.2 The transform pipeline &mdash; what a tensor actually looks like</h3>
+  <div class="code">
+    <header><span>Transform, applied identically to train and test</span><span class="t">datasets/vision.py :: _transform</span></header>
+<pre>T.Compose([
+    T.Resize((32, 32)),            <s># no-op for CIFAR; matters for MNIST if --img_size set</s>
+    T.Lambda(lambda im: im.convert("RGB")),   <s># in_channels == 3 branch</s>
+    T.ToTensor(),                  <s># PIL uint8 [0,255] -> float32 [0,1], HWC -> CHW</s>
+    T.Normalize(mean, std),        <s># per-channel (x - mean) / std</s>
+])</pre>
+  </div>
+  <p>After this, a single image is a tensor of shape <span class="mono">(3, 32, 32)</span>, dtype <span class="mono">float32</span>, with per-channel values approximately in <span class="mono">[&minus;2.0, +2.6]</span>. Concretely, for the red channel:</p>
+  <div class="eq">
+    <div class="body">
+      x<sub>norm</sub> = <span class="frac"><span class="num">x<sub>raw</sub>/255 &minus; 0.4914</span><span class="den">0.2470</span></span>
+      &nbsp;&nbsp;&#8658;&nbsp;&nbsp; x<sub>raw</sub>=0 &rarr; &minus;1.989, &nbsp; x<sub>raw</sub>=255 &rarr; +2.059
+    </div>
+    <div class="tag">(1)</div>
+  </div>
+  <div class="note flag">
+    <div class="h">A question you will be asked</div>
+    <p>
+      <strong>&ldquo;Do you use data augmentation?&rdquo;</strong> No. The reference GeFL implementation
+      applies <span class="mono">RandomCrop</span> and <span class="mono">RandomHorizontalFlip</span> to
+      CIFAR&#8209;10; we deliberately do not, because the base paper isolates GeFL's contribution by
+      evaluating without augmentation (their Table IV is the only augmented experiment). Adding it later
+      is orthogonal and would lift every method roughly equally.
+    </p>
+  </div>
+
+  <h3 id="s13">1.3 Long-tail construction &mdash; the exact schedule</h3>
+  <p>The imbalance factor <span class="mono">&rho;</span> is defined as the ratio of the smallest to the largest class count. Classes decay geometrically between those endpoints:</p>
+  <div class="eq">
+    <div class="body">
+      &mu; = &rho;<sup>1/(C&minus;1)</sup>, &nbsp;&nbsp;&nbsp;
+      n<sub>c</sub> = max( 1, &nbsp;&#8970; N<sub>cap</sub> &middot; &mu;<sup>c</sup> &#8971; ),
+      &nbsp;&nbsp; c = 0, 1, &hellip;, C&minus;1
+    </div>
+    <div class="tag">(2)</div>
+  </div>
+  <p>For CIFAR&#8209;10 with <span class="mono">&rho; = 0.01</span>, <span class="mono">C = 10</span>, and <span class="mono">N<sub>cap</sub> = 2500</span> (after the 50% data fraction):</p>
+  <div class="eq">
+    <div class="body">
+      &mu; = 0.01<sup>1/9</sup> = e<sup>&thinsp;ln(0.01)/9</sup> = e<sup>&minus;0.51169</sup> = <b>0.59948</b>
+    </div>
+    <div class="tag">(3)</div>
+  </div>
+
+  <div class="tw">
+    <table>
+      <caption>CIFAR&#8209;10&#8209;LT, IF = 0.01, data_fraction = 0.5 &middot; computed from the actual code</caption>
+      <thead><tr><th class="num">c</th><th class="num">&mu;<sup>c</sup></th><th class="num">2500 &middot; &mu;<sup>c</sup></th><th class="num">n<sub>c</sub></th><th>Bucket</th><th class="num">Share</th></tr></thead>
+      <tbody>
+        <tr><td class="num">0</td><td class="num">1.00000</td><td class="num">2500.0</td><td class="num">2500</td><td>head</td><td class="num">40.3%</td></tr>
+        <tr><td class="num">1</td><td class="num">0.59948</td><td class="num">1498.7</td><td class="num">1498</td><td>head</td><td class="num">24.2%</td></tr>
+        <tr><td class="num">2</td><td class="num">0.35938</td><td class="num">898.4</td><td class="num">898</td><td>head</td><td class="num">14.5%</td></tr>
+        <tr><td class="num">3</td><td class="num">0.21544</td><td class="num">538.6</td><td class="num">538</td><td>medium</td><td class="num">8.7%</td></tr>
+        <tr><td class="num">4</td><td class="num">0.12915</td><td class="num">322.9</td><td class="num">322</td><td>medium</td><td class="num">5.2%</td></tr>
+        <tr><td class="num">5</td><td class="num">0.07743</td><td class="num">193.6</td><td class="num">193</td><td>medium</td><td class="num">3.1%</td></tr>
+        <tr><td class="num">6</td><td class="num">0.04642</td><td class="num">116.0</td><td class="num">116</td><td class="tailv">tail</td><td class="num">1.9%</td></tr>
+        <tr><td class="num">7</td><td class="num">0.02783</td><td class="num">69.6</td><td class="num">69</td><td class="tailv">tail</td><td class="num">1.1%</td></tr>
+        <tr><td class="num">8</td><td class="num">0.01668</td><td class="num">41.7</td><td class="num">41</td><td class="tailv">tail</td><td class="num">0.7%</td></tr>
+        <tr class="warn"><td class="num">9</td><td class="num">0.01000</td><td class="num">25.0</td><td class="num tailv">25</td><td class="tailv">tail</td><td class="num">0.4%</td></tr>
+        <tr class="tot"><td colspan="3">Total training pool</td><td class="num">6200</td><td></td><td class="num">100%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note key">
+    <div class="h">The number that explains everything downstream</div>
+    <p>
+      Class 9 has <strong>25 training images in the entire federation</strong>. Split across 10 clients
+      under Dirichlet(0.3), a typical client holds <strong>two or three</strong> &mdash; and several
+      clients hold <strong>zero</strong>. Every design decision in this project follows from that number.
+      When the professor asks &ldquo;why is this hard,&rdquo; this is the answer: you are asking a
+      federated generative model to learn a class from two examples per client, and then asking ten
+      architecturally different networks to learn a decision boundary for it.
+    </p>
+  </div>
+
+  <h3 id="s14">1.4 Frequency bucketing &mdash; and a subtlety</h3>
+  <p>Classes are ranked by count and split into three buckets. The implementation is:</p>
+  <div class="code">
+    <header><span>Bucket assignment</span><span class="t">sampling/partition.py :: frequency_bucket_labels</span></header>
+<pre>ordered    = sorted(class_counts, key=lambda c: -class_counts[c])   <s># descending</s>
+per_bucket = max(1, C // num_buckets)          <s># 10 // 3 = 3</s>
+bucket(c)  = min(rank(c) // per_bucket, num_buckets - 1)</pre>
+  </div>
+  <p>
+    With <span class="mono">C = 10</span> and 3 buckets, <span class="mono">per_bucket = 3</span>, so
+    ranks 0&ndash;2 are head, 3&ndash;5 medium, 6&ndash;8 tail &mdash; and rank 9 hits the
+    <span class="mono">min(&middot;, 2)</span> clamp and also lands in tail.
+    <strong>The tail bucket therefore contains four classes, not three.</strong>
+  </p>
+  <div class="tw">
+    <table>
+      <caption>Bucket composition &mdash; note the asymmetry</caption>
+      <thead><tr><th>Bucket</th><th>Classes</th><th class="num">Count</th><th class="num">Samples</th><th class="num">% of pool</th></tr></thead>
+      <tbody>
+        <tr><td>head</td><td class="sym">0, 1, 2</td><td class="num">3</td><td class="num">4896</td><td class="num">79.0%</td></tr>
+        <tr><td>medium</td><td class="sym">3, 4, 5</td><td class="num">3</td><td class="num">1053</td><td class="num">17.0%</td></tr>
+        <tr class="hl"><td class="tailv">tail</td><td class="sym">6, 7, 8, 9</td><td class="num">4</td><td class="num">251</td><td class="num">4.0%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Tail accuracy is the unweighted mean over those four classes. A model that predicts nothing for class 9
+    but is perfect on 6, 7 and 8 would score 75% tail accuracy &mdash; worth knowing when interpreting the
+    metric, and worth stating if asked how tail accuracy is computed.
+  </p>
+
+  <h3 id="s15">1.5 The Dirichlet partition, step by step</h3>
+  <p>
+    The long-tailed pool is now split across <span class="mono">K</span> clients. The partition is done
+    <em>per class</em>: for each class independently, a proportion vector is drawn from a Dirichlet and
+    that class's samples are cut accordingly.
+  </p>
+  <div class="code">
+    <header><span>Partition algorithm</span><span class="t">sampling/partition.py :: dirichlet_partition</span></header>
+<pre><b>for</b> attempt in range(50):                    <s># retry until no client is starved</s>
+    client_indices = {i: [] for i in range(K)}
+    <b>for</b> c in range(C):
+        idx_c = where(labels == c)              <s># all samples of class c</s>
+        shuffle(idx_c)
+        <i>p = rng.dirichlet(alpha=[&#945;] * K)</i>          <s># K proportions summing to 1</s>
+        cuts = (cumsum(p) * len(idx_c)).astype(int)[:-1]
+        <b>for</b> i, chunk in enumerate(split(idx_c, cuts)):
+            client_indices[i].extend(chunk)
+    <b>if</b> min(len(v) for v in client_indices.values()) &gt;= min_size: <b>break</b></pre>
+  </div>
+
+  <div class="eq">
+    <div class="body">
+      p<sup>(c)</sup> = (p<sup>(c)</sup><sub>1</sub>, &hellip;, p<sup>(c)</sup><sub>K</sub>) &sim; Dir(&alpha;, &hellip;, &alpha;),
+      &nbsp;&nbsp;&nbsp; n<sub>k,c</sub> &asymp; p<sup>(c)</sup><sub>k</sub> &middot; n<sub>c</sub>
+    </div>
+    <div class="tag">(4)</div>
+  </div>
+
+  <div class="tw">
+    <table>
+      <caption>Effect of &alpha; &middot; the concentration parameter controls cross-client skew</caption>
+      <thead><tr><th class="num">&alpha;</th><th>Behaviour</th><th>Typical draw for K=10</th></tr></thead>
+      <tbody>
+        <tr><td class="num">0.1</td><td>Extreme skew &mdash; a class often lands almost entirely on one client</td><td class="sym">(.87, .09, .02, .01, 0, &hellip;)</td></tr>
+        <tr class="hl"><td class="num">0.3</td><td><strong>Our default.</strong> Strong skew; most clients hold few or none of a given class</td><td class="sym">(.41, .28, .13, .09, .05, .03, &hellip;)</td></tr>
+        <tr><td class="num">1.0</td><td>Moderate &mdash; flat Dirichlet, still uneven</td><td class="sym">(.19, .16, .14, .12, .11, &hellip;)</td></tr>
+        <tr><td class="num">&#8734;</td><td>Uniform &mdash; each client gets n<sub>c</sub>/K, i.e. IID</td><td class="sym">(.10, .10, .10, &hellip;)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note flag">
+    <div class="h">The compounding effect &mdash; explain this carefully</div>
+    <p>
+      Class 9 has 25 samples globally. A Dirichlet(0.3) draw across 10 clients concentrates most of the
+      mass on two or three clients. So a realistic outcome is: client A holds 9, client B holds 7,
+      client C holds 4, clients D and E hold 2 and 3, and <strong>five clients hold zero</strong>.
+    </p>
+    <p>
+      Those five zero-holding clients are exactly the ones that, under GeFL&#8209;F's flat averaging,
+      still cast a full <span class="mono">1/10</span> vote on class 9's conditioning row. That is the
+      mechanism our Mechanism A removes, and this is the concrete situation to draw on the board.
+    </p>
+  </div>
+
+  <h3 id="s16">1.6 From index list to batch</h3>
+  <p>
+    Each client wraps its index list in a <span class="mono">Subset</span> and a
+    <span class="mono">DataLoader</span> with <span class="mono">batch_size = local_bs = 128</span>,
+    <span class="mono">shuffle = True</span>. For a client holding 620 samples:
+  </p>
+  <div class="eq">
+    <div class="body">
+      &#8968; 620 / 128 &#8969; = <b>5 batches</b> per epoch &nbsp;&mdash;&nbsp; four of size 128, one of size 108
+      &nbsp;&nbsp;(<span style="color:var(--muted)">drop_last = False</span>)
+    </div>
+    <div class="tag">(5)</div>
+  </div>
+  <p>One batch is therefore a pair of tensors:</p>
+  <div class="tw">
+    <table>
+      <caption>Shape of one training batch at a client</caption>
+      <thead><tr><th>Tensor</th><th>Shape</th><th>dtype</th><th>Range / meaning</th></tr></thead>
+      <tbody>
+        <tr><td class="sym">x</td><td class="shape">(128, 3, 32, 32)</td><td class="sym">float32</td><td>normalized pixels, &asymp;[&minus;2.0, 2.6]</td></tr>
+        <tr><td class="sym">y</td><td class="shape">(128,)</td><td class="sym">int64</td><td>class index, 0&hellip;9</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ==================== PART 2 ==================== -->
+<section id="p2">
+  <h2><span class="num">02</span>Every model, fully specified</h2>
+  <p class="deck">Six networks are involved. Here is each one, layer by layer, with output shapes and parameter counts.</p>
+
+  <h3 id="s21">2.1 The common feature extractor F</h3>
+  <div class="specs">
+    <div><dt>Role</dt><dd>shared by all clients</dd></div>
+    <div><dt>Trained in</dt><dd>stage i only</dd></div>
+    <div><dt>Frozen from</dt><dd>end of stage i</dd></div>
+    <div><dt>Aggregation</dt><dd>flat, all clients</dd></div>
+  </div>
+  <div class="tw">
+    <table>
+      <caption>F, for CIFAR&#8209;10 with fe_channels = 32 &middot; gefl_f/feature_extractor.py</caption>
+      <thead><tr><th class="num">#</th><th>Layer</th><th>Output shape</th><th class="num">Params</th></tr></thead>
+      <tbody>
+        <tr><td class="num">&mdash;</td><td>input</td><td class="shape">(B, 3, 32, 32)</td><td class="num">&mdash;</td></tr>
+        <tr><td class="num">1</td><td class="sym">Conv2d(3, 32, k=3, s=1, p=1)</td><td class="shape">(B, 32, 32, 32)</td><td class="num">896</td></tr>
+        <tr><td class="num">2</td><td class="sym">BatchNorm2d(32)</td><td class="shape">(B, 32, 32, 32)</td><td class="num">64</td></tr>
+        <tr><td class="num">3</td><td class="sym">ReLU(inplace)</td><td class="shape">(B, 32, 32, 32)</td><td class="num">0</td></tr>
+        <tr class="hl"><td class="num">4</td><td class="sym">MaxPool2d(2, 2)</td><td class="shape">(B, 32, 16, 16)</td><td class="num">0</td></tr>
+        <tr class="tot"><td colspan="3">Total</td><td class="num">960</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Parameter arithmetic for row 1: <span class="mono">3 &times; 32 &times; 3 &times; 3 = 864</span> weights
+    plus <span class="mono">32</span> biases. Row 2: BatchNorm holds a scale and a shift per channel,
+    <span class="mono">2 &times; 32 = 64</span>.
+  </p>
+
+  <div class="note bug">
+    <div class="h">Implementation defect &mdash; raise this before the professor finds it</div>
+    <p>
+      GeFL&#8209;F's entire premise is that features are <em>lower-dimensional</em> than images, which is
+      what makes the generator smaller and memorization weaker. Check our numbers:
+    </p>
+    <div class="tw" style="margin:12px 0">
+      <table>
+        <thead><tr><th>Configuration</th><th class="num">fe_channels</th><th>Feature shape</th><th class="num">Dimensions</th><th class="num">vs image (3072)</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>Reference implementation (paper)</td><td class="num">3</td><td class="shape">(3, 16, 16)</td><td class="num">768</td><td class="num">0.25&times; &mdash; 4&times; smaller</td></tr>
+          <tr class="warn"><td>Our current default</td><td class="num">32</td><td class="shape">(32, 16, 16)</td><td class="num">8192</td><td class="num">2.67&times; &mdash; <strong>larger</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      <strong>Our feature tensor is 2.67&times; larger than the input image, not smaller.</strong> The
+      reference sets <span class="mono">output_channel = 3, img_size = 16</span> explicitly for every
+      <span class="mono">-F</span> variant. With 32 channels we contradict the framework's stated
+      motivation: the generator is not meaningfully smaller, and a 32-channel feature retains far more
+      invertible information than a 3-channel one, which weakens the privacy argument that is
+      GeFL&#8209;F's main selling point over GeFL.
+    </p>
+    <p>
+      <strong>Action:</strong> add <span class="mono">fe_channels = 3</span> as the paper-matched
+      configuration and report both. This is a one-line config change, but every GeFL&#8209;F number
+      must be regenerated under it. It belongs in the ablation table as
+      &ldquo;feature dimensionality&rdquo; &mdash; a legitimate axis the base paper itself studies under
+      the name <em>homogeneity level</em>.
+    </p>
+  </div>
+
+  <h3 id="s22">2.2 The three heterogeneous headers</h3>
+  <p>
+    All three consume the same <span class="mono">(B, 32, 16, 16)</span> feature tensor and emit
+    <span class="mono">(B, 10)</span> logits. They differ in depth, width and topology &mdash; that
+    difference <em>is</em> the model heterogeneity the framework exists to accommodate.
+  </p>
+
+  <figure>
+    <span class="figlbl">Figure 2</span>
+    <svg viewBox="0 0 880 330" role="img" aria-label="Three header architectures side by side, all taking a 32 by 16 by 16 feature tensor and producing ten logits. header_small has two conv-pool blocks and 30,314 parameters. header_deep has four convolutions with a residual skip and 115,978 parameters. header_wide has two wide convolutions with batch norm and 343,178 parameters.">
+      <defs><marker id="ha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+
+      <rect x="16" y="14" width="848" height="30" rx="2" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="440" y="34" font-size="12" text-anchor="middle" font-weight="700" fill="var(--accent)" class="mn">shared input from F &#8212; (B, 32, 16, 16)</text>
+      <line x1="160" y1="44" x2="160" y2="66" stroke="currentColor" stroke-width="1.4" marker-end="url(#ha)"/>
+      <line x1="440" y1="44" x2="440" y2="66" stroke="currentColor" stroke-width="1.4" marker-end="url(#ha)"/>
+      <line x1="720" y1="44" x2="720" y2="66" stroke="currentColor" stroke-width="1.4" marker-end="url(#ha)"/>
+
+      <!-- small -->
+      <text x="160" y="84" font-size="12" text-anchor="middle" font-weight="700" fill="currentColor">header_small</text>
+      <rect x="60" y="94" width="200" height="22" rx="2" fill="var(--surface-2)" stroke="currentColor" stroke-width="1.1"/>
+      <text x="160" y="109" font-size="10" text-anchor="middle" fill="currentColor" class="mn">Conv 32&#8594;32, ReLU, Pool</text>
+      <text x="272" y="109" font-size="9.5" fill="var(--tail)" class="mn">8&#178;</text>
+      <rect x="60" y="120" width="200" height="22" rx="2" fill="var(--surface-2)" stroke="currentColor" stroke-width="1.1"/>
+      <text x="160" y="135" font-size="10" text-anchor="middle" fill="currentColor" class="mn">Conv 32&#8594;64, ReLU, Pool</text>
+      <text x="272" y="135" font-size="9.5" fill="var(--tail)" class="mn">4&#178;</text>
+      <rect x="60" y="146" width="200" height="22" rx="2" fill="var(--surface-2)" stroke="currentColor" stroke-width="1.1"/>
+      <text x="160" y="161" font-size="10" text-anchor="middle" fill="currentColor" class="mn">AdaptiveAvgPool(2)</text>
+      <text x="272" y="161" font-size="9.5" fill="var(--tail)" class="mn">2&#178;</text>
+      <rect x="60" y="172" width="200" height="22" rx="2" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.4"/>
+      <text x="160" y="187" font-size="10" text-anchor="middle" fill="var(--accent)" class="mn">Linear 256 &#8594; 10</text>
+      <text x="160" y="216" font-size="11" text-anchor="middle" font-weight="700" fill="currentColor" class="mn">30,314 params</text>
+      <text x="160" y="231" font-size="9.5" text-anchor="middle" fill="currentColor" opacity=".65">shallowest</text>
+
+      <!-- deep -->
+      <text x="440" y="84" font-size="12" text-anchor="middle" font-weight="700" fill="currentColor">header_deep</text>
+      <rect x="340" y="94" width="200" height="22" rx="2" fill="var(--surface-2)" stroke="currentColor" stroke-width="1.1"/>
+      <text x="440" y="109" font-size="10" text-anchor="middle" fill="currentColor" class="mn">Conv 32&#8594;32, ReLU</text>
+      <text x="552" y="109" font-size="9.5" fill="var(--tail)" class="mn">16&#178;</text>
+      <rect x="340" y="120" width="200" height="22" rx="2" fill="var(--good-soft)" stroke="var(--good)" stroke-width="1.3"/>
+      <text x="440" y="135" font-size="10" text-anchor="middle" fill="var(--good)" class="mn">Conv 32&#8594;32 + skip</text>
+      <text x="552" y="135" font-size="9.5" fill="var(--tail)" class="mn">16&#178;</text>
+      <rect x="340" y="146" width="200" height="22" rx="2" fill="var(--surface-2)" stroke="currentColor" stroke-width="1.1"/>
+      <text x="440" y="161" font-size="10" text-anchor="middle" fill="currentColor" class="mn">Conv 32&#8594;64, stride 2</text>
+      <text x="552" y="161" font-size="9.5" fill="var(--tail)" class="mn">8&#178;</text>
+      <rect x="340" y="172" width="200" height="22" rx="2" fill="var(--surface-2)" stroke="currentColor" stroke-width="1.1"/>
+      <text x="440" y="187" font-size="10" text-anchor="middle" fill="currentColor" class="mn">Conv 64&#8594;128, stride 2</text>
+      <text x="552" y="187" font-size="9.5" fill="var(--tail)" class="mn">4&#178;</text>
+      <rect x="340" y="198" width="200" height="22" rx="2" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.4"/>
+      <text x="440" y="213" font-size="10" text-anchor="middle" fill="var(--accent)" class="mn">Pool(2), Linear 512 &#8594; 10</text>
+      <text x="440" y="242" font-size="11" text-anchor="middle" font-weight="700" fill="currentColor" class="mn">115,978 params</text>
+      <text x="440" y="257" font-size="9.5" text-anchor="middle" fill="var(--good)">only one with a residual connection</text>
+
+      <!-- wide -->
+      <text x="720" y="84" font-size="12" text-anchor="middle" font-weight="700" fill="currentColor">header_wide</text>
+      <rect x="620" y="94" width="200" height="22" rx="2" fill="var(--surface-2)" stroke="currentColor" stroke-width="1.1"/>
+      <text x="720" y="109" font-size="10" text-anchor="middle" fill="currentColor" class="mn">Conv 32&#8594;128, BN, ReLU</text>
+      <text x="832" y="109" font-size="9.5" fill="var(--tail)" class="mn">16&#178;</text>
+      <rect x="620" y="120" width="200" height="22" rx="2" fill="var(--surface-2)" stroke="currentColor" stroke-width="1.1"/>
+      <text x="720" y="135" font-size="10" text-anchor="middle" fill="currentColor" class="mn">MaxPool2d(2)</text>
+      <text x="832" y="135" font-size="9.5" fill="var(--tail)" class="mn">8&#178;</text>
+      <rect x="620" y="146" width="200" height="22" rx="2" fill="var(--surface-2)" stroke="currentColor" stroke-width="1.1"/>
+      <text x="720" y="161" font-size="10" text-anchor="middle" fill="currentColor" class="mn">Conv 128&#8594;256, BN, ReLU</text>
+      <text x="832" y="161" font-size="9.5" fill="var(--tail)" class="mn">8&#178;</text>
+      <rect x="620" y="172" width="200" height="22" rx="2" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.4"/>
+      <text x="720" y="187" font-size="10" text-anchor="middle" fill="var(--accent)" class="mn">Pool(2), Linear 1024 &#8594; 10</text>
+      <text x="720" y="216" font-size="11" text-anchor="middle" font-weight="700" fill="currentColor" class="mn">343,178 params</text>
+      <text x="720" y="231" font-size="9.5" text-anchor="middle" fill="currentColor" opacity=".65">11&#215; header_small</text>
+
+      <line x1="16" y1="278" x2="864" y2="278" stroke="currentColor" stroke-width="1" opacity=".2"/>
+      <text x="16" y="298" font-size="11" fill="currentColor"><tspan font-weight="700">These three can never be averaged together.</tspan> Their parameter tensors have different shapes, so &#952;&#688; aggregation is strictly</text>
+      <text x="16" y="314" font-size="11" fill="currentColor">within-family: clients running header_small average only with other header_small clients. That is what &#8220;model-heterogeneous&#8221; means here.</text>
+    </svg>
+    <figcaption>
+      <b>Three genuinely different networks sharing one input contract.</b> The parameter counts span
+      11&times;, and only <span class="mono">header_deep</span> has a residual path. Client
+      <span class="mono">k</span> is assigned family <span class="mono">m<sub>k</sub> = k mod 3</span>,
+      so with 10 clients the families hold 4, 3 and 3 clients respectively.
+    </figcaption>
+  </figure>
+
+  <h3 id="s23">2.3 CVAE&#8209;F &mdash; the conditional variational autoencoder</h3>
+  <p>
+    This is the default generator (<span class="mono">--gen_model vae</span>) and the one used for all
+    headline experiments. It learns to reconstruct feature tensors conditioned on a class label, and
+    generates by sampling latent noise and decoding.
+  </p>
+
+  <div class="specs">
+    <div><dt>Input</dt><dd>(B, 32, 16, 16)</dd></div>
+    <div><dt>Latent</dt><dd>50-dim</dd></div>
+    <div><dt>Label embed</dt><dd>16-dim</dd></div>
+    <div><dt>Params</dt><dd>600,676</dd></div>
+    <div><dt>Optimizer</dt><dd>Adam, lr 1e&#8209;3</dd></div>
+  </div>
+
+  <p>
+    <strong>The dynamic size schedule.</strong> The architecture is built at construction time by halving
+    the spatial size until it reaches 4: from 16 we get <span class="mono">[16, 8, 4]</span>, so there
+    are <strong>2 encoder stages and 2 decoder stages</strong>. Channels double per stage from
+    <span class="mono">gen_channels = 64</span>.
+  </p>
+
+  <div class="tw">
+    <table>
+      <caption>CVAE&#8209;F encoder &middot; generators/ccvae.py</caption>
+      <thead><tr><th>Layer</th><th>Output shape</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td>input feature</td><td class="shape">(B, 32, 16, 16)</td><td>from frozen F</td></tr>
+        <tr><td class="sym">Conv2d(32, 64, k=4, s=2, p=1) + BN + ReLU</td><td class="shape">(B, 64, 8, 8)</td><td>stage 1</td></tr>
+        <tr><td class="sym">Conv2d(64, 128, k=4, s=2, p=1) + BN + ReLU</td><td class="shape">(B, 128, 4, 4)</td><td>stage 2</td></tr>
+        <tr><td class="sym">flatten(1)</td><td class="shape">(B, 2048)</td><td>128&#183;4&#183;4</td></tr>
+        <tr class="hl"><td class="sym">cat with label_embed(y)</td><td class="shape">(B, 2064)</td><td>2048 + 16 &mdash; <strong>the conditioning point</strong></td></tr>
+        <tr><td class="sym">Linear(2064, 50) &rarr; &mu;</td><td class="shape">(B, 50)</td><td rowspan="2">two parallel heads</td></tr>
+        <tr><td class="sym">Linear(2064, 50) &rarr; log&sigma;&sup2;</td><td class="shape">(B, 50)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>The reparameterization trick &mdash; why it is needed</h4>
+  <p>
+    We must sample <span class="mono">z &sim; &#119977;(&mu;, &sigma;&sup2;)</span>, but sampling is not
+    differentiable. The trick moves the randomness outside the gradient path:
+  </p>
+  <div class="eq">
+    <div class="body">
+      &sigma; = exp(&frac12; log&sigma;&sup2;), &nbsp;&nbsp;
+      &epsilon; &sim; &#119977;(0, I), &nbsp;&nbsp;
+      <b>z = &mu; + &sigma; &#8857; &epsilon;</b>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--muted)">&#8706;z/&#8706;&mu; = 1, &nbsp; &#8706;z/&#8706;&sigma; = &epsilon; &mdash; both defined</span>
+    </div>
+    <div class="tag">(6)</div>
+  </div>
+
+  <div class="tw">
+    <table>
+      <caption>CVAE&#8209;F decoder &mdash; an exact mirror of the encoder's size schedule</caption>
+      <thead><tr><th>Layer</th><th>Output shape</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr class="hl"><td class="sym">cat(z, label_embed(y))</td><td class="shape">(B, 66)</td><td>50 + 16 &mdash; <strong>conditioning again</strong></td></tr>
+        <tr><td class="sym">Linear(66, 2048)</td><td class="shape">(B, 2048)</td><td></td></tr>
+        <tr><td class="sym">view(&minus;1, 128, 4, 4)</td><td class="shape">(B, 128, 4, 4)</td><td></td></tr>
+        <tr><td class="sym">Upsample(size=8) + Conv2d(128,64,3,1,1) + BN + ReLU</td><td class="shape">(B, 64, 8, 8)</td><td>stage 1</td></tr>
+        <tr><td class="sym">Upsample(size=16) + Conv2d(64,32,3,1,1)</td><td class="shape">(B, 32, 16, 16)</td><td>stage 2, no BN/ReLU</td></tr>
+        <tr class="hl"><td class="sym">ReLU (output activation)</td><td class="shape">(B, 32, 16, 16)</td><td>matches F's non-negative output</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note key">
+    <div class="h">Why Upsample + Conv instead of ConvTranspose2d</div>
+    <p>
+      The reference uses <span class="mono">ConvTranspose2d</span>, which can only double a size exactly.
+      We use <span class="mono">nn.Upsample(size=&hellip;)</span> followed by a stride-1 convolution, which
+      hits an <em>exact</em> target size regardless of parity. That is what makes one class work for
+      MNIST's 28px, CIFAR's 32px and STL&#8209;10's 96px without per-resolution subclasses. It also
+      avoids the checkerboard artifacts transposed convolutions are known for. This is a deliberate
+      deviation and worth stating as such.
+    </p>
+  </div>
+
+  <h4>The loss &mdash; and the bug we fixed</h4>
+  <div class="eq">
+    <div class="body">
+      &#8466; = &#8214;x&#770; &minus; x&#8214;&sup2;<sub>2</sub> &nbsp;+&nbsp;
+      D<sub>KL</sub>( &#119977;(&mu;, &sigma;&sup2;) &#8214; &#119977;(0, I) )
+      &nbsp;&nbsp;=&nbsp;&nbsp;
+      &Sigma;<sub>i</sub>(x&#770;<sub>i</sub>&minus;x<sub>i</sub>)&sup2;
+      &nbsp;&minus;&nbsp; &frac12;&Sigma;<sub>j</sub>( 1 + log&sigma;&sup2;<sub>j</sub> &minus; &mu;<sub>j</sub>&sup2; &minus; &sigma;&sup2;<sub>j</sub> )
+    </div>
+    <div class="tag">(7)</div>
+  </div>
+  <div class="note ok">
+    <div class="h">Both terms use sum reduction &mdash; this was wrong until we fixed it</div>
+    <p>
+      Our implementation previously used <span class="mono">reduction="mean"</span> with a
+      <span class="mono">0.1</span> KL weight. Because reconstruction is summed over
+      <span class="mono">32&times;16&times;16 = 8192</span> elements while KL is summed over 50 latent
+      dimensions, mean-reduction plus a 0.1 weight under-weighted the KL term by roughly four orders of
+      magnitude. The result was a near-autoencoder with an unregularized latent space, which samples
+      badly. <strong>Restoring sum reduction was the single largest correctness fix in the project</strong>
+      and is what took our MNIST reproduction to 93.76%.
+    </p>
+  </div>
+
+  <h4>Sampling</h4>
+  <div class="code">
+    <header><span>CVAE&#8209;F generation &mdash; one forward pass, no iteration</span><span class="t">generators/ccvae.py :: sample</span></header>
+<pre><b>def</b> sample(labels):              <s># labels: (B,) int64</s>
+    z = torch.randn(B, 50)        <s># (B, 50)   fresh Gaussian noise</s>
+    e = label_embed(labels)       <s># (B, 16)   learned per-class vector</s>
+    h = dec_fc(cat([z, e]))       <s># (B, 2048)</s>
+    h = h.view(-1, 128, 4, 4)
+    x = decoder(h)                <s># (B, 32, 16, 16)</s>
+    <b>return</b> relu(x)</pre>
+  </div>
+  <p><strong>Cost: one forward pass.</strong> This is why CVAE&#8209;F is the default &mdash; generating a batch of 128 synthetic features is as cheap as a single decoder evaluation.</p>
+
+  <h3 id="s24">2.4 DCGAN&#8209;F &mdash; the conditional adversarial pair</h3>
+  <div class="specs">
+    <div><dt>Sub-modules</dt><dd>G and D</dd></div>
+    <div><dt>Latent</dt><dd>50-dim</dd></div>
+    <div><dt>Params</dt><dd>1,267,137</dd></div>
+    <div><dt>Optimizer</dt><dd>Adam, lr 2e&#8209;4</dd></div>
+    <div><dt>Betas</dt><dd>(0.5, 0.999)</dd></div>
+  </div>
+
+  <div class="note key">
+    <div class="h">Why the discriminator is federated too &mdash; a likely question</div>
+    <p>
+      A GAN cannot be trained federated with only the generator shared. If each client kept a private
+      discriminator, that discriminator would instantly overfit to its own local class distribution, and
+      the generator would receive contradictory gradients from ten differently-biased critics &mdash;
+      silently reintroducing exactly the class-imbalance pathology we are trying to remove. So
+      <span class="mono">CCGAN</span> holds both <span class="mono">G</span> and
+      <span class="mono">D</span> as sub-modules and the federated loop aggregates both. This doubles the
+      communication cost relative to CVAE&#8209;F, which is the honest price.
+    </p>
+  </div>
+
+  <div class="tw">
+    <table>
+      <caption>DCGAN&#8209;F generator &middot; d_g = 128</caption>
+      <thead><tr><th>Layer</th><th>Output shape</th></tr></thead>
+      <tbody>
+        <tr><td class="sym">z &sim; &#119977;(0,I) : (B,50) &nbsp;cat&nbsp; label_embed(y) : (B,32)</td><td class="shape">(B, 82)</td></tr>
+        <tr><td class="sym">Linear(82, 4096)</td><td class="shape">(B, 4096)</td></tr>
+        <tr><td class="sym">view(&minus;1, 256, 4, 4)</td><td class="shape">(B, 256, 4, 4)</td></tr>
+        <tr><td class="sym">Upsample(8) + Conv2d(256,128,3,1,1) + BN + ReLU</td><td class="shape">(B, 128, 8, 8)</td></tr>
+        <tr><td class="sym">Upsample(16) + Conv2d(128,32,3,1,1)</td><td class="shape">(B, 32, 16, 16)</td></tr>
+        <tr class="hl"><td class="sym">ReLU</td><td class="shape">(B, 32, 16, 16)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="tw">
+    <table>
+      <caption>DCGAN&#8209;F discriminator &middot; d_d = 128 &middot; projection conditioning</caption>
+      <thead><tr><th>Layer</th><th>Output shape</th></tr></thead>
+      <tbody>
+        <tr><td class="sym">Conv2d(32,128,k=4,s=2,p=1) + LeakyReLU(0.2)</td><td class="shape">(B, 128, 8, 8)</td></tr>
+        <tr><td class="sym">Conv2d(128,256,k=4,s=2,p=1) + LeakyReLU(0.2)</td><td class="shape">(B, 256, 4, 4)</td></tr>
+        <tr><td class="sym">flatten &nbsp;cat&nbsp; label_embed(y)</td><td class="shape">(B, 4128)</td></tr>
+        <tr><td class="sym">Linear(4128, 1)</td><td class="shape">(B, 1) &mdash; raw logit</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>The two losses, and the alternating update</h4>
+  <div class="eq">
+    <div class="body">
+      &#8466;<sub>D</sub> = BCEWithLogits( D(x<sub>real</sub>, y), 1 ) + BCEWithLogits( D(G(z,y).detach(), y), 0 )<br>
+      &#8466;<sub>G</sub> = BCEWithLogits( D(G(z,y), y), 1 )
+      &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--muted)">— the non-saturating form</span>
+    </div>
+    <div class="tag">(8)</div>
+  </div>
+  <p>
+    Two details that get asked about. <strong>The <span class="mono">.detach()</span></strong> in
+    <span class="mono">&#8466;<sub>D</sub></span> stops gradient flowing into G during the D step &mdash;
+    without it, D's update would also modify G in the wrong direction.
+    <strong>The non-saturating form</strong> means G maximises
+    <span class="mono">log D(G(z))</span> rather than minimising
+    <span class="mono">log(1 &minus; D(G(z)))</span>; the latter has vanishing gradient exactly when G is
+    performing badly, which is when gradient is most needed.
+  </p>
+  <div class="code">
+    <header><span>One DCGAN&#8209;F training batch</span><span class="t">utils/localUpdateGen.py :: local_update_gan</span></header>
+<pre><s># ---- D step ----</s>
+opt_d.zero_grad()
+z    = randn(b, 50)
+fake = net.G(z, y).detach()          <s># (b,32,16,16) — no grad to G</s>
+d_loss = BCE(net.D(x, y),    ones)  \
+       + BCE(net.D(fake, y), zeros)
+d_loss.backward(); opt_d.step()
+
+<s># ---- G step: fresh noise, fresh graph ----</s>
+opt_g.zero_grad()
+z    = randn(b, 50)
+fake = net.G(z, y)                   <s># NOT detached this time</s>
+g_loss = BCE(net.D(fake, y), ones)
+g_loss.backward(); opt_g.step()</pre>
+  </div>
+
+  <h3 id="s25">2.5 DDPM&#8209;F &mdash; the conditional diffusion model</h3>
+  <div class="specs">
+    <div><dt>Timesteps</dt><dd>n_T = 200</dd></div>
+    <div><dt>n_feat</dt><dd>64</dd></div>
+    <div><dt>cond_dim</dt><dd>256</dd></div>
+    <div><dt>Params</dt><dd>4,982,880</dd></div>
+    <div><dt>Optimizer</dt><dd>Adam, lr 1e&#8209;4</dd></div>
+    <div><dt>Weight decay</dt><dd>1e&#8209;3</dd></div>
+  </div>
+
+  <figure>
+    <span class="figlbl">Figure 3</span>
+    <svg viewBox="0 0 880 300" role="img" aria-label="Top row shows the forward diffusion process adding noise to a clean feature over two hundred timesteps until it becomes pure Gaussian noise, computed in one step by a closed form. Bottom row shows the reverse process, which must iterate all two hundred steps one at a time, each requiring a full UNet evaluation.">
+      <defs><marker id="da" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>
+      <marker id="dat" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--tail)"/></marker></defs>
+
+      <text x="16" y="20" font-size="11" font-weight="700" fill="var(--good)" letter-spacing=".7">FORWARD (TRAINING) &#8212; CLOSED FORM, ONE STEP, CHEAP</text>
+
+      <rect x="30" y="34" width="52" height="52" rx="2" fill="var(--good-soft)" stroke="var(--good)" stroke-width="1.6"/>
+      <text x="56" y="65" font-size="11" text-anchor="middle" fill="var(--good)" class="mn">x&#8320;</text>
+      <text x="56" y="100" font-size="9.5" text-anchor="middle" fill="currentColor" opacity=".7">clean feature</text>
+
+      <path d="M90,60 C 140,60 150,60 196,60" fill="none" stroke="var(--good)" stroke-width="2" marker-end="url(#da)"/>
+      <text x="143" y="50" font-size="10" text-anchor="middle" fill="var(--good)" font-weight="700">single jump</text>
+      <text x="143" y="80" font-size="9.5" text-anchor="middle" fill="currentColor" opacity=".7">pick random t</text>
+
+      <rect x="200" y="34" width="52" height="52" rx="2" fill="var(--surface-2)" stroke="currentColor" stroke-width="1.3"/>
+      <text x="226" y="65" font-size="11" text-anchor="middle" fill="currentColor" class="mn">x&#8348;</text>
+      <text x="226" y="100" font-size="9.5" text-anchor="middle" fill="currentColor" opacity=".7">noised</text>
+
+      <path d="M260,60 L296,60" fill="none" stroke="currentColor" stroke-width="1.4" marker-end="url(#da)"/>
+      <rect x="300" y="40" width="90" height="40" rx="2" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"/>
+      <text x="345" y="65" font-size="11" text-anchor="middle" font-weight="700" fill="var(--accent)">UNet &#949;&#952;</text>
+      <path d="M394,60 L430,60" fill="none" stroke="currentColor" stroke-width="1.4" marker-end="url(#da)"/>
+      <text x="470" y="64" font-size="11" fill="currentColor" class="mn">&#949;&#770;</text>
+      <text x="500" y="64" font-size="11" fill="currentColor">vs true &#949; &#8594; MSE loss</text>
+
+      <rect x="620" y="36" width="240" height="48" rx="3" fill="var(--good-soft)" stroke="var(--good)" stroke-width="1.4"/>
+      <text x="632" y="54" font-size="10" fill="currentColor" class="mn">x&#8348; = &#8730;&#0257;&#8348;&#183;x&#8320; + &#8730;(1&#8722;&#0257;&#8348;)&#183;&#949;</text>
+      <text x="632" y="72" font-size="9.5" fill="var(--good)" font-weight="700">one matrix op &#8212; no loop</text>
+
+      <line x1="16" y1="118" x2="864" y2="118" stroke="currentColor" stroke-width="1" opacity=".25"/>
+
+      <text x="16" y="142" font-size="11" font-weight="700" fill="var(--tail)" letter-spacing=".7">REVERSE (SAMPLING) &#8212; MUST ITERATE ALL 200 STEPS</text>
+
+      <rect x="30" y="156" width="46" height="46" rx="2" fill="var(--surface-2)" stroke="currentColor" stroke-width="1.3"/>
+      <text x="53" y="184" font-size="10.5" text-anchor="middle" fill="currentColor" class="mn">x&#8322;&#8320;&#8320;</text>
+      <text x="53" y="216" font-size="9" text-anchor="middle" fill="currentColor" opacity=".7">pure noise</text>
+
+      <path d="M82,179 L118,179" fill="none" stroke="var(--tail)" stroke-width="1.6" marker-end="url(#dat)"/>
+      <rect x="122" y="160" width="60" height="38" rx="2" fill="var(--tail-soft)" stroke="var(--tail)" stroke-width="1.4"/>
+      <text x="152" y="183" font-size="9.5" text-anchor="middle" fill="var(--tail)">UNet</text>
+      <path d="M186,179 L216,179" fill="none" stroke="var(--tail)" stroke-width="1.6" marker-end="url(#dat)"/>
+      <rect x="220" y="156" width="46" height="46" rx="2" fill="var(--surface-2)" stroke="currentColor" stroke-width="1.3"/>
+      <text x="243" y="184" font-size="10.5" text-anchor="middle" fill="currentColor" class="mn">x&#8321;&#8329;&#8329;</text>
+
+      <path d="M272,179 L302,179" fill="none" stroke="var(--tail)" stroke-width="1.6" marker-end="url(#dat)"/>
+      <rect x="306" y="160" width="60" height="38" rx="2" fill="var(--tail-soft)" stroke="var(--tail)" stroke-width="1.4"/>
+      <text x="336" y="183" font-size="9.5" text-anchor="middle" fill="var(--tail)">UNet</text>
+      <path d="M370,179 L400,179" fill="none" stroke="var(--tail)" stroke-width="1.6" marker-end="url(#dat)"/>
+
+      <text x="416" y="184" font-size="14" fill="var(--tail)" font-weight="700">&#183; &#183; &#183;</text>
+      <text x="440" y="205" font-size="9.5" fill="var(--tail)">197 more</text>
+
+      <path d="M462,179 L492,179" fill="none" stroke="var(--tail)" stroke-width="1.6" marker-end="url(#dat)"/>
+      <rect x="496" y="160" width="60" height="38" rx="2" fill="var(--tail-soft)" stroke="var(--tail)" stroke-width="1.4"/>
+      <text x="526" y="183" font-size="9.5" text-anchor="middle" fill="var(--tail)">UNet</text>
+      <path d="M560,179 L590,179" fill="none" stroke="var(--tail)" stroke-width="1.6" marker-end="url(#dat)"/>
+      <rect x="594" y="156" width="46" height="46" rx="2" fill="var(--good-soft)" stroke="var(--good)" stroke-width="1.6"/>
+      <text x="617" y="184" font-size="10.5" text-anchor="middle" fill="var(--good)" class="mn">x&#8320;</text>
+
+      <rect x="664" y="152" width="196" height="56" rx="3" fill="var(--bad-soft)" stroke="var(--bad)" stroke-width="1.5"/>
+      <text x="676" y="172" font-size="10.5" font-weight="700" fill="var(--bad)">200 UNet passes per batch</text>
+      <text x="676" y="188" font-size="10" fill="currentColor" opacity=".8">and 400 if guide_w &#8800; 0</text>
+      <text x="676" y="202" font-size="9.5" fill="currentColor" opacity=".7">vs 1 for CVAE&#8209;F</text>
+
+      <line x1="16" y1="238" x2="864" y2="238" stroke="currentColor" stroke-width="1" opacity=".2"/>
+      <text x="16" y="258" font-size="11" fill="currentColor"><tspan font-weight="700">This asymmetry is the whole story of DDPM cost.</tspan> Training is cheap because the closed form jumps straight to any timestep.</text>
+      <text x="16" y="274" font-size="11" fill="currentColor">Sampling is expensive because the reverse process has no closed form and must be walked one step at a time. The base paper measures</text>
+      <text x="16" y="290" font-size="11" fill="currentColor">220.87 GMACs sampling cost for FedDDPM against 135.29 MMACs for FedCVAE &#8212; roughly 1,600&#215;.</text>
+    </svg>
+    <figcaption>
+      <b>Why diffusion is a stretch goal, not a default.</b> Stage iii calls
+      <span class="mono">sample()</span> once per batch per synthetic epoch. With CVAE&#8209;F that is one
+      decoder pass; with DDPM&#8209;F it is 200 UNet passes, doubled again if classifier-free guidance is
+      active.
+    </figcaption>
+  </figure>
+
+  <h4>The forward process &mdash; where the closed form comes from</h4>
+  <p>A linear schedule of noise rates <span class="mono">&beta;<sub>1</sub> = 10<sup>&minus;4</sup></span> to <span class="mono">&beta;<sub>200</sub> = 0.02</span> defines</p>
+  <div class="eq">
+    <div class="body">
+      &alpha;<sub>t</sub> = 1 &minus; &beta;<sub>t</sub>, &nbsp;&nbsp;&nbsp;
+      &#0257;<sub>t</sub> = &#8719;<sub>s=1</sub><sup>t</sup> &alpha;<sub>s</sub>
+      &nbsp;&nbsp;&nbsp;&#8658;&nbsp;&nbsp;&nbsp;
+      q(x<sub>t</sub> | x<sub>0</sub>) = &#119977;( &#8730;&#0257;<sub>t</sub> x<sub>0</sub>, &nbsp;(1&minus;&#0257;<sub>t</sub>) I )
+    </div>
+    <div class="tag">(9)</div>
+  </div>
+  <p>Because the composition of Gaussians is Gaussian, we can jump from <span class="mono">x<sub>0</sub></span> to any <span class="mono">x<sub>t</sub></span> in one operation &mdash; no loop during training:</p>
+  <div class="eq">
+    <div class="body">
+      x<sub>t</sub> = &#8730;&#0257;<sub>t</sub> &middot; x<sub>0</sub> &nbsp;+&nbsp; &#8730;(1 &minus; &#0257;<sub>t</sub>) &middot; &epsilon;,
+      &nbsp;&nbsp;&nbsp; &epsilon; &sim; &#119977;(0, I)
+    </div>
+    <div class="tag">(10)</div>
+  </div>
+
+  <h4>The training objective</h4>
+  <p>The network predicts the noise that was added, not the clean signal:</p>
+  <div class="eq">
+    <div class="body">
+      &#8466; = &#120124;<sub>t &sim; U[0,T), &thinsp;&epsilon; &sim; &#119977;(0,I)</sub>
+      &nbsp;&#8214; &epsilon; &minus; &epsilon;<sub>&theta;</sub>( x<sub>t</sub>, &nbsp;t, &nbsp;y ) &#8214;&sup2;<sub>2</sub>
+    </div>
+    <div class="tag">(11)</div>
+  </div>
+  <p>
+    Conditioning enters as an <em>additive</em> embedding:
+    <span class="mono">cond = time_embed(t) + label_embed(y)</span>, a 256-dim vector injected into every
+    residual block via a learned linear projection. With probability
+    <span class="mono">0.1</span> during training the label is replaced by a reserved null token
+    (index <span class="mono">C = 10</span>, hence <span class="mono">Embedding(11, 256)</span>) so the
+    model also learns the unconditional score &mdash; which is what makes classifier-free guidance
+    possible at sampling time.
+  </p>
+
+  <h4>Reverse sampling with classifier-free guidance</h4>
+  <div class="eq">
+    <div class="body">
+      &epsilon;&#770; = (1 + w) &middot; &epsilon;<sub>&theta;</sub>(x<sub>t</sub>, t, y) &minus; w &middot; &epsilon;<sub>&theta;</sub>(x<sub>t</sub>, t, &empty;)<br>
+      x<sub>t&minus;1</sub> =
+      <span class="frac"><span class="num">1</span><span class="den">&#8730;&alpha;<sub>t</sub></span></span>
+      ( x<sub>t</sub> &minus;
+      <span class="frac"><span class="num">&beta;<sub>t</sub></span><span class="den">&#8730;(1&minus;&#0257;<sub>t</sub>)</span></span>
+      &epsilon;&#770; ) &nbsp;+&nbsp; &#8730;&beta;<sub>t</sub> &middot; z, &nbsp;&nbsp; z &sim; &#119977;(0,I) for t &gt; 0
+    </div>
+    <div class="tag">(12)</div>
+  </div>
+  <p>
+    <span class="mono">w = 0</span> means no guidance &mdash; one UNet pass per step, more diverse but
+    lower-fidelity samples. <span class="mono">w = 2</span> sharpens class identity at the cost of
+    diversity and <em>doubles</em> the cost. The base paper finds <span class="mono">w = 0</span>
+    consistently outperforms <span class="mono">w = 2</span> downstream, which they attribute to
+    diversity mattering more than per-sample fidelity for augmentation.
+  </p>
+
+  <h3 id="s26">2.6 The three generators side by side</h3>
+  <div class="tw">
+    <table>
+      <caption>Measured on our code at 32&#215;16&#215;16 features, 10 classes</caption>
+      <thead><tr><th>Property</th><th>CVAE&#8209;F</th><th>DCGAN&#8209;F</th><th>DDPM&#8209;F</th></tr></thead>
+      <tbody>
+        <tr><td>Parameters</td><td class="num">600,676</td><td class="num">1,267,137</td><td class="num">4,982,880</td></tr>
+        <tr><td>Sub-networks aggregated</td><td>encoder + decoder</td><td>G + D</td><td>UNet only</td></tr>
+        <tr><td>Passes to generate a batch</td><td class="num">1</td><td class="num">1</td><td class="num tailv">200 (or 400)</td></tr>
+        <tr><td>Loss</td><td>recon + KL</td><td>2 adversarial BCEs</td><td>&epsilon;-prediction MSE</td></tr>
+        <tr><td>Conditioning mechanism</td><td>concat embed &times;2</td><td>concat embed in G and D</td><td>additive embed into all blocks</td></tr>
+        <tr class="hl"><td><strong>conditioning_parameter_names()</strong></td><td class="sym">label_embed.weight</td><td class="sym">G.label_embed.weight<br>D.label_embed.weight</td><td class="sym">label_embed.weight<br>(11 rows &mdash; incl. null)</td></tr>
+        <tr><td>Failure mode</td><td>blurry samples</td><td>mode collapse</td><td>cost</td></tr>
+        <tr><td>Our role for it</td><td><strong>primary</strong></td><td>generality check</td><td>stretch goal</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note flag">
+    <div class="h">Note the DDPM row in the conditioning table</div>
+    <p>
+      DDPM&#8209;F's label embedding has <span class="mono">C + 1 = 11</span> rows: ten classes plus the
+      reserved null token for classifier-free guidance. Mechanism A weights rows
+      <span class="mono">0&hellip;9</span> by effective number and falls back to ordinary volume weighting
+      for row 10, since the null token is not tied to any single class's frequency. That special case is
+      handled explicitly in <span class="mono">frequency_weighted_row_average</span> via the
+      <span class="mono">num_conditioning_classes</span> argument, and is exactly the kind of detail a
+      careful examiner will probe.
+    </p>
+  </div>
+</section>
+
+<!-- ==================== PART 3 ==================== -->
+<section id="p3">
+  <h2><span class="num">03</span>Stage i traced &mdash; warming up the feature extractor</h2>
+  <p class="deck">T<sub>FE</sub> rounds. The only stage in which F receives a gradient.</p>
+
+  <div class="step"><div class="k">0</div><div class="bd">
+    <h4>Initialization, before any round</h4>
+    <p>
+      The server constructs one <span class="mono">CommonFeatureExtractor</span> and one header per
+      family, capturing their <span class="mono">state_dict</span>s. Client
+      <span class="mono">k</span> is assigned family <span class="mono">m<sub>k</sub> = k mod M</span>.
+      With <span class="mono">K = 10, M = 3</span>: clients 0,3,6,9 &rarr; family 0; clients 1,4,7 &rarr;
+      family 1; clients 2,5,8 &rarr; family 2.
+    </p>
+  </div></div>
+
+  <div class="step"><div class="k">1</div><div class="bd">
+    <h4>Broadcast</h4>
+    <p>Server sends <span class="mono">&theta;<sup>f</sup><sub>g</sub></span> to all clients and <span class="mono">&theta;<sup>h</sup><sub>g,m</sub></span> to the clients of family <span class="mono">m</span>.</p>
+  </div></div>
+
+  <div class="step"><div class="k">2</div><div class="bd">
+    <h4>Local training &mdash; one batch, every shape</h4>
+    <div class="code">
+      <header><span>Forward pass at client k, batch of 128</span><span class="t">gefl_f/engine_f.py :: _stage_i_round</span></header>
+<pre>x, y      = batch                       <s># (128,3,32,32) float32, (128,) int64</s>
+features  = fe(x)                       <s># (128,32,16,16)  <b>F IS TRAINABLE HERE</b></s>
+logits    = header(features)            <s># (128,10)</s>
+loss      = F.cross_entropy(logits, y)  <s># scalar</s>
+opt.zero_grad(); loss.backward(); opt.step()</pre>
+    </div>
+    <p>
+      <strong>One optimizer covers both networks:</strong>
+      <span class="mono">params = list(fe.parameters()) + list(header.parameters())</span>, SGD with
+      <span class="mono">lr = 0.1, momentum = 0.9</span>. F and the header are trained
+      <em>jointly</em> &mdash; the feature extractor learns representations useful to whichever header
+      sits on top of it.
+    </p>
+    <p>Cross-entropy expanded, for the record:</p>
+    <div class="eq">
+      <div class="body">
+        &#8466; = &minus;
+        <span class="frac"><span class="num">1</span><span class="den">B</span></span>
+        &Sigma;<sub>i=1</sub><sup>B</sup> log
+        <span class="frac">
+          <span class="num">exp(&#8467;<sub>i,y<sub>i</sub></sub>)</span>
+          <span class="den">&Sigma;<sub>c=0</sub><sup>9</sup> exp(&#8467;<sub>i,c</sub>)</span>
+        </span>
+      </div>
+      <div class="tag">(13)</div>
+    </div>
+  </div></div>
+
+  <div class="step"><div class="k">3</div><div class="bd">
+    <h4>The loop structure &mdash; exact iteration counts</h4>
+    <div class="tw">
+      <table>
+        <caption>Nesting for MNIST&#8209;LT config: T_FE = 20, T_w = 5, 620 samples/client, bs = 128</caption>
+        <thead><tr><th>Level</th><th>Variable</th><th class="num">Count</th><th class="num">Cumulative</th></tr></thead>
+        <tbody>
+          <tr><td>communication rounds</td><td class="sym">T_FE</td><td class="num">20</td><td class="num">20</td></tr>
+          <tr><td>clients per round</td><td class="sym">frac &#183; K</td><td class="num">10</td><td class="num">200</td></tr>
+          <tr><td>local epochs</td><td class="sym">T_w (= gen_local_ep)</td><td class="num">5</td><td class="num">1,000</td></tr>
+          <tr><td>batches per epoch</td><td class="sym">&#8968;620/128&#8969;</td><td class="num">5</td><td class="num">5,000</td></tr>
+          <tr class="tot"><td colspan="3">Total SGD steps in stage i</td><td class="num">5,000</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div></div>
+
+  <div class="step"><div class="k">4</div><div class="bd">
+    <h4>Aggregation &mdash; two different rules in the same step</h4>
+    <div class="eq">
+      <div class="body">
+        &theta;<sup>f</sup><sub>g</sub> &#8592;
+        <span class="frac"><span class="num">1</span><span class="den">|&#119966;|</span></span>
+        &Sigma;<sub>k&isin;&#119966;</sub> &theta;<sup>f</sup><sub>k</sub>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &theta;<sup>h</sup><sub>g,m</sub> &#8592;
+        <span class="frac"><span class="num">1</span><span class="den">|&#119966;<sub>m</sub>|</span></span>
+        &Sigma;<sub>k : m<sub>k</sub>=m</sub> &theta;<sup>h</sup><sub>k</sub>
+      </div>
+      <div class="tag">(14)</div>
+    </div>
+    <p>
+      F averages over all 10 clients. Headers average over the 4, 3 and 3 clients of each family
+      separately. If a family has no participant this round, its previous global weights are carried
+      forward unchanged.
+    </p>
+  </div></div>
+
+  <div class="note key">
+    <div class="h">What has changed when stage i ends</div>
+    <p>
+      <span class="mono">&theta;<sup>f</sup><sub>g</sub></span> is now a feature extractor that all ten
+      clients agree on, trained on the union of their data through the proxy of their own headers. It is
+      <strong>frozen from this moment and never updated again</strong>. Everything in stages ii and iii
+      treats <span class="mono">F</span> as a fixed, deterministic function from images to features.
+    </p>
+  </div>
+</section>
+
+<!-- ==================== PART 4 ==================== -->
+<section id="p4">
+  <h2><span class="num">04</span>Stage ii traced &mdash; training the feature generator</h2>
+  <p class="deck">T<sub>KA</sub> rounds. F is frozen; only the generator learns. This is where Mechanism A acts.</p>
+
+  <div class="step"><div class="k">1</div><div class="bd">
+    <h4>Feature extraction &mdash; what &ldquo;frozen&rdquo; means mechanically</h4>
+    <div class="code">
+      <header><span>Building the feature dataset at client k</span><span class="t">gefl_f/engine_f.py :: _stage_ii_round</span></header>
+<pre>fe.load_state_dict(fe_state)
+fe.eval()                     <s># BatchNorm uses running stats, not batch stats</s>
+features_list, labels_list = [], []
+<b>with</b> torch.no_grad():        <s># no graph is built at all</s>
+    <b>for</b> x, y <b>in</b> loader:
+        features_list.append(fe(x.to(device)).cpu())   <s># (128,32,16,16)</s>
+        labels_list.append(y)
+feat_dataset = TensorDataset(cat(features_list), cat(labels_list))
+feat_loader  = DataLoader(feat_dataset, batch_size=128, shuffle=True)</pre>
+    </div>
+    <p>
+      Two distinct things happen here and both matter. <span class="mono">fe.eval()</span> switches
+      BatchNorm to its running statistics so the same image always maps to the same feature.
+      <span class="mono">torch.no_grad()</span> prevents the autograd graph from being constructed, so
+      no gradient can reach <span class="mono">&theta;<sup>f</sup></span> even in principle.
+    </p>
+  </div></div>
+
+  <div class="step"><div class="k">2</div><div class="bd">
+    <h4>Generator training &mdash; three different loops</h4>
+    <p>From here the code branches on <span class="mono">args.gen_model</span>. All three share the signature <span class="mono">(net, dataloader, args, opt_state) &rarr; (state_dict, avg_loss, opt_state)</span>, which is what lets the federated loop stay generator-agnostic.</p>
+
+    <div class="code">
+      <header><span>vae</span><span class="t">utils/localUpdateGen.py :: local_update_vae</span></header>
+<pre><b>for</b> epoch <b>in</b> range(T_g = 5):
+    <b>for</b> feat, y <b>in</b> feat_loader:              <s># (128,32,16,16), (128,)</s>
+        recon, mu, logvar = net(feat, y)      <s># forward: encode -> reparam -> decode</s>
+        loss = mse(recon, feat, sum) + kld(mu, logvar)
+        loss.backward(); opt.step()</pre>
+    </div>
+    <div class="code">
+      <header><span>gan</span><span class="t">utils/localUpdateGen.py :: local_update_gan</span></header>
+<pre><b>for</b> epoch <b>in</b> range(T_g = 5):
+    <b>for</b> feat, y <b>in</b> feat_loader:
+        <s># D step then G step, each with fresh noise (see 2.4)</s>
+        d_loss.backward(); opt_d.step()
+        g_loss.backward(); opt_g.step()
+<s># opt_state is a dict: {"G": ..., "D": ...} — two optimizers threaded per client</s></pre>
+    </div>
+    <div class="code">
+      <header><span>ddpm</span><span class="t">utils/localUpdateGen.py :: local_update_ddpm</span></header>
+<pre><b>for</b> epoch <b>in</b> range(T_g = 5):
+    <b>for</b> feat, y <b>in</b> feat_loader:
+        loss = net(feat, y)      <s># forward() IS the loss — samples t, adds noise, predicts &#949;</s>
+        loss.backward(); opt.step()</pre>
+    </div>
+    <p>
+      <strong>Optimizer state is threaded across rounds per client.</strong> Client
+      <span class="mono">k</span>'s Adam moments are stored in
+      <span class="mono">gen_opt_states[k]</span> and reloaded next round, matching the reference
+      implementation's behaviour. This matters: Adam's second-moment estimate takes many steps to
+      stabilise, and resetting it every round would cripple generator training.
+    </p>
+  </div></div>
+
+  <div class="step"><div class="k t">3</div><div class="bd">
+    <h4>Aggregation &mdash; the line Mechanism A replaces</h4>
+    <p><strong>Baseline.</strong> Flat unweighted mean over every parameter tensor:</p>
+    <div class="code">
+      <header><span>GeFL&#8209;F baseline</span><span class="t">utils/avg.py :: FedAvg</span></header>
+<pre><b>for</b> key <b>in</b> state_dicts[0].keys():
+    stacked  = stack([sd[key].float() <b>for</b> sd <b>in</b> state_dicts])   <s># (K, ...)</s>
+    avg[key] = stacked.mean(dim=0)</pre>
+    </div>
+    <p><strong>Mechanism A.</strong> Partition the keys, then apply two different rules:</p>
+    <div class="code">
+      <header><span>Mechanism A</span><span class="t">utils/avg.py :: aggregate_generator</span></header>
+<pre>cond_keys  = generator.conditioning_parameter_names()   <s># e.g. ["label_embed.weight"]</s>
+trunk_keys = [k <b>for</b> k <b>in</b> sd.keys() <b>if</b> k <b>not in</b> cond_keys]
+
+<i>avg = weighted_FedAvg(trunk, client_sample_counts)</i>       <s># volume-weighted, Eq. 6</s>
+<b>for</b> key <b>in</b> cond_keys:
+    <i>avg[key] = frequency_weighted_row_average(...)</i>        <s># per-row, Eq. 7</s></pre>
+    </div>
+  </div></div>
+
+  <h3>4.1 Mechanism A computed by hand</h3>
+  <p>Three clients, four classes, <span class="mono">&beta;<sub>EN</sub> = 0.999</span>. Recall <span class="mono">E(n) = (1 &minus; 0.999<sup>n</sup>) / 0.001</span>.</p>
+  <div class="tw">
+    <table>
+      <caption>Step 1 &mdash; the histograms uploaded alongside the weights</caption>
+      <thead><tr><th>Client</th><th class="num">class 0</th><th class="num">class 1</th><th class="num">class 2</th><th class="num">class 3</th><th class="num">n<sub>k</sub></th></tr></thead>
+      <tbody>
+        <tr><td>k = 1</td><td class="num">500</td><td class="num">100</td><td class="num">20</td><td class="num">2</td><td class="num">622</td></tr>
+        <tr><td>k = 2</td><td class="num">400</td><td class="num">150</td><td class="num">5</td><td class="num tailv">0</td><td class="num">555</td></tr>
+        <tr><td>k = 3</td><td class="num">450</td><td class="num">80</td><td class="num">15</td><td class="num">8</td><td class="num">553</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="eq">
+    <div class="body">
+      E(500)=393.7 &nbsp; E(400)=329.8 &nbsp; E(450)=362.5 &nbsp;&nbsp;|&nbsp;&nbsp; E(100)=95.2 &nbsp; E(150)=139.3 &nbsp; E(80)=76.9<br>
+      E(20)=19.8 &nbsp; E(5)=5.0 &nbsp; E(15)=14.9 &nbsp;&nbsp;|&nbsp;&nbsp; E(2)=2.0 &nbsp; <b style="color:var(--tail)">E(0)=0</b> &nbsp; E(8)=8.0
+    </div>
+    <div class="tag">(15)</div>
+  </div>
+  <div class="tw">
+    <table>
+      <caption>Step 2 &mdash; normalise each column independently</caption>
+      <thead><tr><th>Row</th><th class="num">a<sup>(r)</sup><sub>1</sub></th><th class="num">a<sup>(r)</sup><sub>2</sub></th><th class="num">a<sup>(r)</sup><sub>3</sub></th><th class="num">&Sigma;</th><th>Flat baseline</th></tr></thead>
+      <tbody>
+        <tr><td>class 0</td><td class="num">0.363</td><td class="num">0.304</td><td class="num">0.334</td><td class="num">1.000</td><td class="num">0.333 each</td></tr>
+        <tr><td>class 1</td><td class="num">0.306</td><td class="num">0.447</td><td class="num">0.247</td><td class="num">1.000</td><td class="num">0.333 each</td></tr>
+        <tr><td>class 2</td><td class="num">0.499</td><td class="num">0.126</td><td class="num">0.375</td><td class="num">1.000</td><td class="num">0.333 each</td></tr>
+        <tr class="hl"><td class="tailv">class 3</td><td class="num">0.201</td><td class="num tailv">0.000</td><td class="num">0.799</td><td class="num">1.000</td><td class="num">0.333 each</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Then row <span class="mono">r</span> of the global embedding is
+    <span class="mono">&Sigma;<sub>k</sub> a<sup>(r)</sup><sub>k</sub> w<sup>cond,r</sup><sub>k</sub></span>,
+    a 16-dimensional vector in the CVAE case. Head-class weights barely move from
+    <span class="mono">0.333</span>; the tail row changes completely, and client 2 &mdash; which holds no
+    class-3 samples at all &mdash; is removed from that row's vote entirely.
+  </p>
+</section>
+
+<!-- ==================== PART 5 ==================== -->
+<section id="p5">
+  <h2><span class="num">05</span>Stage iii traced &mdash; training the headers</h2>
+  <p class="deck">T<sub>TN</sub> rounds. F and G<sub>F</sub> are both frozen; only headers learn. Mechanism B acts here.</p>
+
+  <div class="step"><div class="k t">1</div><div class="bd">
+    <h4>Drawing the conditioning labels</h4>
+    <p><strong>Baseline:</strong> <span class="mono">torch.randint(0, C, (B,))</span> &mdash; uniform, every class at probability <span class="mono">1/C = 0.1</span>.</p>
+    <p><strong>Mechanism B:</strong> compute the gated distribution, then draw from it.</p>
+    <div class="code">
+      <header><span>Fidelity-gated sampler</span><span class="t">utils/label_sampler.py :: FidelityGatedSampler</span></header>
+<pre>g   = fidelity.mean()                                <s># scalar gate in [0,1]</s>
+inv = (1.0 / clip(natural_freq, 1e-6)) ** gamma      <s># inverse frequency</s>
+inv = inv * fidelity                                 <s># per-class quality scaling</s>
+inv = inv / inv.sum()
+p   = (1 - g) * natural_freq + g * inv               <s># the blend</s>
+labels = np.random.choice(C, size=n, p=p / p.sum())</pre>
+    </div>
+    <div class="tw">
+      <table>
+        <caption>Worked, C = 4, &pi; = (.60, .25, .10, .05), &gamma; = 1</caption>
+        <thead><tr><th>Phase</th><th>f</th><th class="num">g</th><th>p<sup>inv</sup></th><th>final p(y)</th></tr></thead>
+        <tbody>
+          <tr><td>early</td><td class="sym">(.20,.18,.12,.10)</td><td class="num">0.150</td><td class="sym">(.078,.169,.282,.470)</td><td class="sym">(.522,.238,.127,<b class="tailv">.113</b>)</td></tr>
+          <tr><td>late</td><td class="sym">(.85,.80,.70,.60)</td><td class="num">0.738</td><td class="sym">(.060,.136,.296,.508)</td><td class="sym">(.202,.166,.245,<b class="tailv">.388</b>)</td></tr>
+          <tr class="hl"><td>GeFL&#8209;F baseline</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td class="sym">(.250,.250,.250,<b>.250</b>)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note flag">
+      <div class="h">The point to make on the board</div>
+      <p>
+        The tail class goes <strong>0.113 early &rarr; 0.388 late</strong>, crossing the baseline's fixed
+        0.250. Early we ask for it <em>less</em> than uniform does, because the generator would return
+        noise. Late we ask for it <em>more</em>, because now it can deliver. Mechanism B is a
+        <strong>curriculum</strong>, not a reweighting &mdash; and note that uniform sampling was already
+        over-representing the tail fivefold relative to &pi;<sub>3</sub> = 0.05. Anyone who says
+        &ldquo;uniform ignores imbalance&rdquo; has it wrong.
+      </p>
+    </div>
+  </div></div>
+
+  <div class="step"><div class="k">2</div><div class="bd">
+    <h4>Phase 1 &mdash; synthetic, T<sub>s</sub> = 1 epoch</h4>
+    <div class="code">
+      <header><span>One synthetic batch</span><span class="t">gefl_f/engine_f.py :: _stage_iii_round</span></header>
+<pre>opt = fresh_optimizer(header.parameters())    <s># <b>phase-local optimizer</b></s>
+<b>for</b> x_real, _ <b>in</b> loader:                     <s># iterate for batch COUNT only</s>
+    B      = x_real.size(0)                   <s># 128</s>
+    syn_y  = label_sampler.sample(B)          <s># (128,) from p(y)</s>
+    <b>with</b> torch.no_grad():
+        syn_feat = gen_net.sample(syn_y)      <s># (128,32,16,16) — 1 pass, or 200 for DDPM</s>
+    logits = header(syn_feat)                 <s># (128,10)</s>
+    loss   = cross_entropy(logits, syn_y)
+    loss.backward(); opt.step()
+    <i>accumulate softmax(logits)[i, syn_y[i]] into fid_sum[c], fid_n[c]</i></pre>
+    </div>
+    <p>
+      Note the loop iterates over the <em>real</em> loader but discards its contents &mdash; it is used
+      purely to fix the number of synthetic batches at the same count as a real epoch, so synthetic and
+      real exposure are directly comparable.
+    </p>
+  </div></div>
+
+  <div class="step"><div class="k t">3</div><div class="bd">
+    <h4>Fidelity accumulation &mdash; free, and applied once</h4>
+    <div class="eq">
+      <div class="body">
+        p&#772;<sub>c</sub> =
+        <span class="frac">
+          <span class="num">fid_sum[c]</span>
+          <span class="den">fid_n[c]</span>
+        </span>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        f<sub>c</sub> &#8592; 0.6 &middot; f<sub>c</sub> + 0.4 &middot; p&#772;<sub>c</sub>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--muted)">applied once, after the whole phase</span>
+      </div>
+      <div class="tag">(16)</div>
+    </div>
+    <p>
+      Initial value <span class="mono">f<sub>c</sub> = 0.15</span> for all c &mdash; deliberately
+      pessimistic, so <span class="mono">g &asymp; 0.15</span> at round 1 and the sampler starts close to
+      the natural distribution. Applying the EMA <em>once per phase</em> rather than per batch was a bug
+      fix; per-batch updates made the estimate track within-epoch noise.
+    </p>
+  </div></div>
+
+  <div class="step"><div class="k">4</div><div class="bd">
+    <h4>Phase 2 &mdash; real, T<sub>r</sub> = 5 epochs</h4>
+    <div class="code">
+      <header><span>One real batch</span><span class="t">gefl_f/engine_f.py :: _stage_iii_round</span></header>
+<pre>opt = fresh_optimizer(header.parameters())    <s># <b>reset again — momentum must not cross phases</b></s>
+<b>for</b> epoch <b>in</b> range(T_r = 5):
+    <b>for</b> x, y <b>in</b> loader:
+        <b>with</b> torch.no_grad():
+            real_feat = fe(x)                 <s># (128,32,16,16) — frozen F</s>
+        loss = cross_entropy(header(real_feat), y)
+        loss.backward(); opt.step()</pre>
+    </div>
+    <div class="note ok">
+      <div class="h">Why the optimizer is reconstructed between phases</div>
+      <p>
+        SGD with momentum 0.9 carries an exponentially-weighted average of past gradients. If the same
+        optimizer spans both phases, the first few real-data steps are still being pushed in the
+        direction the <em>synthetic</em> gradients pointed. The reference implementation constructs a
+        fresh optimizer for the real phase; we did not, and fixing it was one of the six corrections
+        needed before our reproduction matched the paper.
+      </p>
+    </div>
+  </div></div>
+
+  <div class="step"><div class="k">5</div><div class="bd">
+    <h4>Aggregation</h4>
+    <p>
+      Headers only, grouped by family:
+      <span class="mono">&theta;<sup>h</sup><sub>g,m</sub> &#8592; FlatAvg({&theta;<sup>h</sup><sub>k</sub> : m<sub>k</sub> = m})</span>.
+      <span class="mono">&theta;<sup>f</sup></span> and <span class="mono">w<sub>g</sub></span> are
+      untouched &mdash; nothing in stage iii can modify them.
+    </p>
+  </div></div>
+</section>
+
+<!-- ==================== PART 6 ==================== -->
+<section id="p6">
+  <h2><span class="num">06</span>Evaluation</h2>
+  <p class="deck">How every reported number is computed.</p>
+
+  <div class="step"><div class="k">1</div><div class="bd">
+    <h4>Build one evaluation model per client</h4>
+    <p>
+      For each of the 10 clients, wrap the frozen <span class="mono">F</span> and that client's family
+      header into a single module. All clients of the same family produce identical models &mdash; the
+      per-client loop exists so that per-client metrics remain available.
+    </p>
+  </div></div>
+
+  <div class="step"><div class="k">2</div><div class="bd">
+    <h4>Forward the full balanced test set</h4>
+    <p>
+      All <strong>10,000</strong> CIFAR&#8209;10 test images, <strong>1,000 per class</strong>. The test
+      set is never long-tailed &mdash; that is what makes tail accuracy interpretable, and it is a
+      question worth pre-empting.
+    </p>
+  </div></div>
+
+  <div class="step"><div class="k">3</div><div class="bd">
+    <h4>Confusion matrix and derived metrics</h4>
+    <div class="eq">
+      <div class="body">
+        acc<sub>c</sub> =
+        <span class="frac"><span class="num">CM[c,c]</span><span class="den">&Sigma;<sub>j</sub> CM[c,j]</span></span>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        acc<sub>bucket</sub> =
+        <span class="frac"><span class="num">1</span><span class="den">|bucket|</span></span>
+        &Sigma;<sub>c &isin; bucket</sub> acc<sub>c</sub>
+      </div>
+      <div class="tag">(17)</div>
+    </div>
+    <div class="tw">
+      <table>
+        <caption>Every metric we log, and what it is for</caption>
+        <thead><tr><th>Metric</th><th>Definition</th><th>Answers</th></tr></thead>
+        <tbody>
+          <tr><td class="sym">acc_overall</td><td>diagonal sum / total</td><td>comparability with the base paper</td></tr>
+          <tr class="hl"><td class="sym">acc_head / medium / tail</td><td>mean per-class recall within bucket</td><td><strong>the headline claim</strong></td></tr>
+          <tr><td class="sym">macro_f1</td><td>unweighted mean per-class F1</td><td>imbalance-aware aggregate</td></tr>
+          <tr><td class="sym">class_balanced_accuracy</td><td>mean per-class recall over all C</td><td>as if the test set were balanced</td></tr>
+          <tr><td class="sym">gen_label_accuracy</td><td>probe agreement on synthetic samples</td><td><strong>did the generator improve, or just the classifier?</strong></td></tr>
+          <tr><td class="sym">gen_mean_confidence</td><td>mean max-softmax on synthetic</td><td>generator sharpness</td></tr>
+          <tr><td class="sym">mnd_ratio</td><td>LPIPS nearest-neighbour ratio, Eq. 1 of the paper</td><td>memorization / privacy</td></tr>
+          <tr><td class="sym">mean_fidelity</td><td>mean of f<sub>c</sub> across clients</td><td>Mechanism B diagnostics</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note key">
+      <div class="h">gen_label_accuracy is the metric that decides the fallback</div>
+      <p>
+        It separates &ldquo;the generator got better&rdquo; from &ldquo;the classifier got better&rdquo;.
+        If tail accuracy rises while this stays flat, our stated mechanism is <em>not</em> what produced
+        the gain and we must find out what did. It is also the branch variable in the fallback decision
+        tree. Note that a missing import silently disabled this metric in earlier runs &mdash; the
+        exception handler logged at <span class="mono">debug</span> level, so nothing appeared. It now
+        logs at <span class="mono">warning</span>.
+      </p>
+    </div>
+  </div></div>
+</section>
+
+<!-- ==================== PART 7 ==================== -->
+<section id="p7">
+  <h2><span class="num">07</span>Hyperparameter reference</h2>
+  <p class="deck">Every value, its source, and what breaks if it is wrong.</p>
+
+  <div class="tw">
+    <table>
+      <caption>Complete hyperparameter table &middot; GeFL&#8209;F, CIFAR&#8209;10&#8209;LT</caption>
+      <thead><tr><th>Flag</th><th class="num">Value</th><th>Meaning</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td colspan="4" style="background:var(--surface-2);font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase">Federation</td></tr>
+        <tr><td class="sym">--num_users</td><td class="num">10</td><td>clients K</td><td>paper</td></tr>
+        <tr><td class="sym">--frac</td><td class="num">1.0</td><td>fraction sampled per round</td><td>paper</td></tr>
+        <tr><td class="sym">--num_models</td><td class="num">3</td><td>header families M</td><td class="tailv">paper uses 10</td></tr>
+        <tr><td colspan="4" style="background:var(--surface-2);font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase">Data</td></tr>
+        <tr><td class="sym">--imbalance_factor</td><td class="num">0.01</td><td>&rho; = n<sub>min</sub>/n<sub>max</sub></td><td>CReFF</td></tr>
+        <tr><td class="sym">--dir_param</td><td class="num">0.3</td><td>Dirichlet &alpha;</td><td>CReFF</td></tr>
+        <tr><td class="sym">--data_fraction</td><td class="num">0.5</td><td>pre-subsample</td><td>paper Table XIV</td></tr>
+        <tr><td class="sym">--local_bs</td><td class="num">128</td><td>batch size B</td><td>paper Table XIV</td></tr>
+        <tr><td colspan="4" style="background:var(--surface-2);font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase">Schedule</td></tr>
+        <tr><td class="sym">--fe_rounds</td><td class="num">50</td><td>T<sub>FE</sub>, stage i</td><td>paper (20 for MNIST/FMNIST)</td></tr>
+        <tr><td class="sym">--gen_wu_epochs</td><td class="num">200</td><td>T<sub>KA</sub>, stage ii</td><td>paper (100 for MNIST/FMNIST)</td></tr>
+        <tr><td class="sym">--epochs</td><td class="num">100</td><td>T<sub>TN</sub>, stage iii</td><td>paper (50 for MNIST/FMNIST)</td></tr>
+        <tr><td class="sym">--gen_local_ep</td><td class="num">5</td><td>T<sub>g</sub> and T<sub>w</sub></td><td>paper Table XIV</td></tr>
+        <tr class="hl"><td class="sym">--target_ts</td><td class="num">1</td><td>T<sub>s</sub>, synthetic epochs</td><td>paper Table XIV</td></tr>
+        <tr class="hl"><td class="sym">--target_tr</td><td class="num">5</td><td>T<sub>r</sub>, real epochs</td><td>paper Table XIV</td></tr>
+        <tr><td colspan="4" style="background:var(--surface-2);font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase">Optimization</td></tr>
+        <tr><td class="sym">--lr</td><td class="num">0.1</td><td>&alpha;, target nets (SGD)</td><td>paper Table XIV</td></tr>
+        <tr><td class="sym">--momentum</td><td class="num">0.9</td><td>SGD momentum</td><td>reference impl</td></tr>
+        <tr><td class="sym">--gen_lr</td><td class="num">1e-3</td><td>&beta;, CVAE (Adam)</td><td>paper Table XV</td></tr>
+        <tr><td class="sym">--gen_lr_gan</td><td class="num">2e-4</td><td>DCGAN (Adam)</td><td>paper Table XV</td></tr>
+        <tr><td class="sym">--gen_lr_ddpm</td><td class="num">1e-4</td><td>DDPM (Adam)</td><td>paper Table XV</td></tr>
+        <tr><td class="sym">--b1 / --b2</td><td class="num">0.5 / 0.999</td><td>Adam betas, GAN</td><td>DCGAN convention</td></tr>
+        <tr><td colspan="4" style="background:var(--surface-2);font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase">Architecture</td></tr>
+        <tr class="warn"><td class="sym">--fe_channels</td><td class="num">32</td><td>F output channels</td><td class="tailv">ours &mdash; paper uses 3, see &sect;8</td></tr>
+        <tr><td class="sym">--latent_size</td><td class="num">50</td><td>VAE / GAN latent dim</td><td>paper: l = 50</td></tr>
+        <tr><td class="sym">--gen_channels</td><td class="num">64</td><td>CVAE base width</td><td>ours</td></tr>
+        <tr><td class="sym">--n_feat</td><td class="num">64</td><td>DDPM UNet width</td><td class="tailv">paper: 128</td></tr>
+        <tr><td class="sym">--n_T</td><td class="num">200</td><td>diffusion timesteps</td><td class="tailv">paper: 400/500</td></tr>
+        <tr><td colspan="4" style="background:var(--surface-2);font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase">Our mechanisms</td></tr>
+        <tr class="hl"><td class="sym">--mechanism_a</td><td class="num">0 / 1</td><td>frequency-weighted aggregation</td><td>ours</td></tr>
+        <tr class="hl"><td class="sym">--mech_a_beta</td><td class="num">0.999</td><td>&beta;<sub>EN</sub> effective number</td><td>Cui et al. 2019</td></tr>
+        <tr class="hl"><td class="sym">--mechanism_b</td><td class="num">0 / 1</td><td>fidelity-gated sampling</td><td>ours</td></tr>
+        <tr class="hl"><td class="sym">--mech_b_ema_decay</td><td class="num">0.6</td><td>&lambda;, fidelity EMA</td><td>ours</td></tr>
+        <tr class="hl"><td class="sym">--mech_b_init_fidelity</td><td class="num">0.15</td><td>f<sub>c</sub> at round 0</td><td>ours</td></tr>
+        <tr class="hl"><td class="sym">--mech_b_inv_freq_power</td><td class="num">1.0</td><td>&gamma;, inverse-freq exponent</td><td>ours</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ==================== PART 8 ==================== -->
+<section id="p8">
+  <h2><span class="num">08</span>Known deviations from the reference implementation</h2>
+  <p class="deck">Stated openly. Every one of these is a question waiting to be asked.</p>
+
+  <div class="tw">
+    <table>
+      <caption>Deviations, severity, and status</caption>
+      <thead><tr><th>#</th><th>Deviation</th><th>Consequence</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr class="warn">
+          <td class="num">1</td>
+          <td><strong>fe_channels = 32 rather than 3</strong>. Feature is (32,16,16) = 8192 dims versus the paper's (3,16,16) = 768.</td>
+          <td>Feature is 2.67&times; <em>larger</em> than the image, not 4&times; smaller. Contradicts GeFL&#8209;F's stated motivation; weakens the privacy argument.</td>
+          <td><strong>Open</strong> &mdash; add paper-matched config and report both</td>
+        </tr>
+        <tr>
+          <td class="num">2</td>
+          <td>3 header families rather than 10 architectures.</td>
+          <td>Numbers not directly comparable to paper Table II.</td>
+          <td>Deliberate &mdash; compute budget. Documented.</td>
+        </tr>
+        <tr>
+          <td class="num">3</td>
+          <td><span class="mono">nn.Embedding</span> conditioning rather than one-hot concatenation.</td>
+          <td>Gives Mechanism A a well-defined per-class row to reweight. The reference has no such row.</td>
+          <td>Deliberate and <strong>necessary</strong>. Must be ablated to show the change alone does not explain the gain.</td>
+        </tr>
+        <tr>
+          <td class="num">4</td>
+          <td><span class="mono">Upsample + Conv</span> rather than <span class="mono">ConvTranspose2d</span>.</td>
+          <td>Exact target sizes at any resolution; avoids checkerboard artifacts.</td>
+          <td>Deliberate. Improvement.</td>
+        </tr>
+        <tr>
+          <td class="num">5</td>
+          <td><span class="mono">n_T = 200</span>, <span class="mono">n_feat = 64</span> rather than 400/500 and 128.</td>
+          <td>Under-trained diffusion; DDPM results not paper-comparable.</td>
+          <td>Compute-driven. DDPM is a stretch goal.</td>
+        </tr>
+        <tr>
+          <td class="num">6</td>
+          <td>No data augmentation.</td>
+          <td>Lower absolute accuracy than augmented baselines.</td>
+          <td>Deliberate &mdash; matches the paper's main tables.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>8.1 Defects found and fixed</h3>
+  <div class="tw">
+    <table>
+      <caption>Six corrections required before the reproduction matched the paper</caption>
+      <thead><tr><th>Defect</th><th>Effect</th></tr></thead>
+      <tbody>
+        <tr><td>VAE loss used <span class="mono">reduction="mean"</span> with 0.1 KL weight</td><td><strong>Largest single fix.</strong> Under-weighted KL by ~4 orders of magnitude &rarr; unregularized latent, poor samples</td></tr>
+        <tr><td><span class="mono">generator_quality_metrics</span> not imported in engine.py</td><td>Silent <span class="mono">NameError</span> caught at debug level &rarr; <span class="mono">gen_label_accuracy</span> never logged</td></tr>
+        <tr><td><span class="mono">_build_all_client_models</span> undefined in engine_f.py</td><td>Every GeFL&#8209;F evaluation crashed</td></tr>
+        <tr><td>Mechanism B fidelity updated per batch, not per phase</td><td>EMA tracked within-epoch noise; GeFL and GeFL&#8209;F behaved differently for identical settings</td></tr>
+        <tr><td>Single optimizer spanning synthetic and real phases</td><td>SGD momentum carried across, corrupting real-phase gradient direction</td></tr>
+        <tr><td><span class="mono">output_activation="relu"</span> applied to DDPM&#8209;F</td><td>Semantically wrong &mdash; DDPM predicts unbounded &epsilon;</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note ok">
+    <div class="h">Post-fix reproduction status</div>
+    <p>
+      Balanced MNIST, GeFL, 20 rounds, 5 clients, 3 families: <strong>93.76%</strong> overall,
+      <strong>MND 0.625</strong>. Paper reports 94.46 &plusmn; 0.43% for FedCVAE on MNIST with ten
+      architectures and a longer schedule; MND 0.714. Landing marginally below on accuracy with a
+      smaller, shorter configuration is the expected direction, and the MND agreement is close. We treat
+      the reproduction as sound.
+    </p>
+  </div>
+</section>
+
+</main>
+</div></div>
+
+<footer>
+  <div class="wrap">
+    <p><strong>GeFL&#8209;F Whiteboard Reference</strong> &mdash; companion to the project review document.</p>
+    <p>All shapes, parameter counts and class distributions in this document were computed by executing the project code, not estimated. Hyperparameter sources are marked paper / CReFF / reference-implementation / ours throughout.</p>
+  </div>
+</footer>
