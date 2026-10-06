@@ -164,7 +164,7 @@ td.rule{font-size:13px}
 <nav class="rail" aria-label="Contents"><ol>
   <li><a href="#s0"><span class="n">0</span><span>The plan on one page</span></a></li>
   <li><a href="#s1"><span class="n">1</span><span>What the paper establishes</span></a></li>
-  <li><a href="#s2"><span class="n">2</span><span>What we still don't know</span></a></li>
+  <li><a href="#s2"><span class="n">2</span><span>What the appendix settled</span></a></li>
   <li><a href="#s3"><span class="n">3</span><span>Every improvement dimension</span></a></li>
   <li><a href="#p0"><span class="n">P0</span><span>Fidelity</span></a></li>
   <li><a href="#p1"><span class="n">P1</span><span>Diagnosis</span></a></li>
@@ -213,16 +213,23 @@ td.rule{font-size:13px}
     <thead><tr><th>Fact</th><th>Value</th><th>Source</th></tr></thead>
     <tbody>
       <tr><td>Datasets evaluated for GeFL&#8209;F</td><td>MNIST, FMNIST, SVHN, CIFAR&#8209;10 (not CIFAR&#8209;100)</td><td>&sect;IV-B(a)</td></tr>
-      <tr><td>Target networks</td><td>10 CNNs, each = common FE + distinct header</td><td>&sect;IV-B(a); <code>getModels.py</code> CNN2&hellip;CNN5c</td></tr>
-      <tr><td>Feature extractor</td><td>Conv(in&rarr;3, 3&times;3) + BN + ReLU + MaxPool &rarr; 3&times;16&times;16</td><td><code>cnn.py:365</code> FE_CNN</td></tr>
-      <tr><td>Rounds T<sub>FE</sub> / T<sub>KA</sub> / T<sub>TN</sub></td><td>20/100/50 (MNIST, FMNIST); 50/100/50 (SVHN); 50/200/100 (CIFAR&#8209;10)</td><td>&sect;IV-B(a)</td></tr>
+      <tr><td>Target networks</td><td>10 CNNs, each = common FE + distinct header. Header widths and final <code>fc</code> sizes (1024, 512, 640, 320, 256, 320, 160, 128, 100, 80) fully specified</td><td>&sect;IV-B(a); Tables XXI (MNIST), XXII (FMNIST, SVHN: headers add BN), XXIII (CIFAR&#8209;10)</td></tr>
+      <tr><td>Feature extractor</td><td>MNIST/FMNIST/SVHN: Conv(&rarr;3, 3&times;3) + BN + ReLU + MaxPool &rarr; <strong>3&times;16&times;16</strong> from a 32&times;32 input. CIFAR&#8209;10: <strong>two</strong> convs (&rarr;3, &rarr;10) + BN + ReLU, then MaxPool &rarr; <strong>10&times;16&times;16</strong></td><td>Tables XXI&ndash;XXIII, XVI; <code>cnn.py:365</code></td></tr>
+      <tr><td>Rounds T<sub>FE</sub> / T<sub>KA</sub> / T<sub>TN</sub></td><td>20/100/50 (MNIST, FMNIST); 50/100/50 or 100 (SVHN, see &sect;2); 50/200/100 (CIFAR&#8209;10)</td><td>&sect;IV-B(a); Tables XIV, XV</td></tr>
+      <tr><td>Local epochs T<sub>w</sub>/T<sub>g</sub>/T<sub>s</sub>/T<sub>r</sub></td><td>5/5/1/5, all datasets</td><td>Table XIV</td></tr>
       <tr><td>Data partition</td><td>IID, equal-sized; total size fixed and split evenly</td><td>Footnote 5; <code>dict_iid</code> in <code>setup.py</code></td></tr>
-      <tr><td>Data size per client</td><td>600 at 10 clients, 60 at 100 clients</td><td>Footnote 5 (implies ~6,000 total for MNIST)</td></tr>
+      <tr><td>Data fraction</td><td>0.1 (MNIST, FMNIST, SVHN), <strong>0.5</strong> (CIFAR&#8209;10). MNIST: 6,000 total, 600/client at K=10, 60 at K=100. CIFAR&#8209;10: 25,000 total, 2,500/client at K=10</td><td>Table XIV; footnote 5</td></tr>
+      <tr><td>Generators (-F variants)</td><td>CVAE&#8209;F: Adam 1e-3, <strong>weight decay 1e-3</strong>, latent 16 (50 on CIFAR&#8209;10), encoder 64&rarr;128&rarr;256&rarr;512. DCGAN&#8209;F: Adam 2e-4, &beta; (0.5, 0.999), (d<sub>g</sub>, d<sub>d</sub>) = (128,128) or (256,64) on CIFAR&#8209;10. DDPM&#8209;F: Adam 1e-4, <strong>no weight decay</strong>, n<sub>feat</sub> 128, T 100 (500 on CIFAR&#8209;10). Batch 64 for all</td><td>Tables XV, XVIII, XX; <code>localUpdateGenF.py:41</code>; <code>GeFL_DDPM-F.py:60</code></td></tr>
+      <tr><td>Class conditioning</td><td>CVAE&#8209;F decoder: one-hot concatenated to z, then Linear(l+10&rarr;512); encoder gets the label as one scalar channel. DCGAN&#8209;F: ConvT(10&rarr;2d<sub>g</sub>) on the one-hot. DDPM&#8209;F: one-hot through EmbedFC; the null token is the zero vector (dropout 0.1), not a learned row</td><td>Tables XVIII, XX; <code>generators16/CCVAE.py:47,58</code>; <code>DDPM/ddpm16.py:122,155-161</code></td></tr>
+      <tr><td>Synthetic label prior p(y)</td><td>uniform over the 10 classes</td><td><code>CCVAE.py:99</code>, <code>DCGAN.py:83</code></td></tr>
+      <tr><td>Generator optimizer state</td><td>each client keeps its own Adam state across rounds</td><td><code>GeFL_CVAE-F.py:60-71</code></td></tr>
+      <tr><td>Baselines</td><td>FedProx &mu; = 1e-2; LG-FedAvg averages the first conv over all clients; FedDF public set SVHN / CIFAR&#8209;10 / CIFAR&#8209;100</td><td>Appendix B</td></tr>
+      <tr><td>Privacy metric</td><td>MND with LPIPS, |S| = |V| = 600, 1,000 training points; for GeFL&#8209;F, images reconstructed by model inversion through a white-box FE</td><td>&sect;III-C(a), &sect;IV-B(b)</td></tr>
       <tr><td>Client &rarr; architecture</td><td>contiguous blocks, <code>idx // (K/M)</code>; at K=10, M=10 each client is a unique model</td><td><code>GeFL_CVAE-F.py:35</code></td></tr>
       <tr class="hl"><td><strong>Consequence</strong></td><td><strong>At 10 clients, header averaging is a no-op.</strong> Only the FE and generator are federated.</td><td>derived from the two rows above</td></tr>
       <tr><td>Generator during stage iii</td><td>frozen (Algorithm 3); <code>freeze_gen=1</code></td><td>Alg. 3; <code>args.py:48</code></td></tr>
-      <tr><td>Local epochs</td><td>T<sub>s</sub> = <code>local_ep_gen</code> = 1, T<sub>r</sub> = <code>local_ep</code> = 5, T<sub>g</sub> = 5</td><td><code>args.py:43-45</code> (defaults)</td></tr>
-      <tr><td>Optimiser for target nets</td><td>SGD, lr 0.1, <strong>momentum 0</strong>, weight decay 0, batch 128</td><td><code>args.py:25-28, 73</code></td></tr>
+      <tr><td>Meaning of T<sub>s</sub></td><td>epoch-equivalent: T<sub>s</sub> &times; &lfloor;|D<sub>k</sub>|/B&rfloor; synthetic batches of size B, so synthetic : real exposure per round = T<sub>s</sub> : T<sub>r</sub> = 1 : 5</td><td><code>localUpdateTarget.py:121-158</code></td></tr>
+      <tr><td>Optimiser for target nets</td><td>SGD, lr 0.1, <strong>momentum 0</strong>, weight decay 0, batch <strong>64</strong> (128 on CIFAR&#8209;10), fresh optimizer per phase</td><td>Table XIV; <code>args.py:25-28</code></td></tr>
       <tr><td>Seeds</td><td><code>num_experiment = 3</code>; results reported with 95% CI</td><td><code>args.py:32</code>; Table II caption</td></tr>
       <tr><td>Reported metric</td><td>mean over the 10 architectures of each one's <strong>best</strong> accuracy over rounds</td><td><code>util.py:96</code> evaluate_models</td></tr>
       <tr><td>Significance</td><td>paired t-test, p &lt; 0.05 vs FedAvg</td><td>Footnote 2</td></tr>
@@ -233,8 +240,9 @@ td.rule{font-size:13px}
     <div class="h">Claims of ours that this check overturned</div>
     <ul>
       <li><strong>Momentum.</strong> Our code uses SGD momentum 0.9, and earlier documents attributed that to the reference implementation. The reference uses <strong>0</strong>.</li>
-      <li><strong>&ldquo;Paper Table XIV&rdquo; values in our configs.</strong> Several config comments cite Table XIV (for example <code>data_fraction: 0.5</code> for CIFAR&#8209;10). The appendix containing Table XIV was never provided, so those values are <em>unverified</em>, not the paper's.</li>
-      <li><strong>Data volume.</strong> Our MNIST configs use all 60,000 images. The paper uses about 6,000. That is a different regime: Figure&nbsp;10 shows GeFL's gains are largest when data is scarce.</li>
+      <li><strong>&ldquo;Paper Table XIV&rdquo; values in our configs.</strong> Now checked against the appendix. <code>data_fraction: 0.5</code> for CIFAR&#8209;10 is correct. The rest of our MNIST config is not: batch 128 (paper 64), FE 32 channels (paper 3), 3 headers (paper 10), latent 32 (paper 16).</li>
+      <li><strong>Data volume.</strong> Our MNIST configs use all 60,000 images. The paper uses 6,000 (Table XIV, fraction 0.1). That is a different regime: Figure&nbsp;10 shows GeFL's gains are largest when data is scarce.</li>
+      <li><strong>Generator weight decay is swapped.</strong> Table XV puts weight decay 1e-3 on CVAE and CVAE&#8209;F only; DDPM has none. Our code does the opposite: <code>utils/localUpdateGen.py:103</code> gives DDPM 1e-3 (its comment misreads Table XV), and the VAE optimizer at line 31 has none. So every CVAE&#8209;F result we have was produced without the paper's regulariser, and every DDPM&#8209;F result with one it never used. &sect;2.1 shows why this matters more than it looks.</li>
       <li><strong>Client-to-architecture assignment.</strong> We use <code>k mod M</code>; the reference uses contiguous blocks. The difference matters once K &gt; M.</li>
     </ul>
   </div>
@@ -261,24 +269,82 @@ td.rule{font-size:13px}
 </section>
 
 <section id="s2">
-  <h2><span class="num">02</span>What we still don't know</h2>
-  <p class="deck">These must be resolved from the paper's appendix before Phase 0 can finish. Nothing here should be guessed.</p>
+  <h2><span class="num">02</span>What the appendix settled, and what it leaves inconsistent</h2>
+  <p class="deck">Every earlier unknown now has an answer (&sect;1). Where the paper text, its tables and its code disagree, we follow the code, because the code produced the reported numbers, and we say so in our paper.</p>
   <div class="tw"><table>
-    <caption>Open questions and where the answer lives</caption>
-    <thead><tr><th>Unknown</th><th>Why it matters</th><th>Where to find it</th></tr></thead>
+    <caption>Remaining inconsistencies and the choice we make</caption>
+    <thead><tr><th>Item</th><th>Paper says</th><th>Elsewhere</th><th>We use</th></tr></thead>
     <tbody>
-      <tr><td>Data proportion per dataset</td><td>Footnote 4 says it varies by dataset, &ldquo;detailed in Table XIV&rdquo;. We only know MNIST's.</td><td>Appendix Table XIV</td></tr>
-      <tr><td>Generator hyperparameters (latent size, widths, lr)</td><td>Needed for parity runs</td><td>Appendix Table XV</td></tr>
-      <tr><td>CIFAR&#8209;10 model pool for GeFL&#8209;F</td><td>The reference <code>getModels.py</code> has no CIFAR&#8209;10 branch at all</td><td>Appendix architecture tables</td></tr>
-      <tr><td>Meaning of T<sub>s</sub></td><td>&sect;V-D says T<sub>s</sub>=1 generates 64 samples per round; the code generates &lfloor;|D<sub>k</sub>|/128&rfloor; batches per epoch. These agree only for very small clients.</td><td>Table XIV; ask authors if unclear</td></tr>
-      <tr><td>Partial participation</td><td>The text never states a participation fraction; the code defaults to 1.0</td><td>Table XIV</td></tr>
-      <tr><td>Feature resolution per homogeneity level</td><td>Needed for the feature-dimension ablation</td><td>Appendix Table XVI</td></tr>
+      <tr><td>T<sub>s</sub> = 1</td><td>&sect;V-D: 64 synthetic samples per round</td><td>code: &lfloor;|D<sub>k</sub>|/B&rfloor; batches, 576 at 600 images/client</td><td>code (they agree only at the 1% data scale of Fig. 10)</td></tr>
+      <tr><td>SVHN T<sub>TN</sub></td><td>&sect;IV-B: 50</td><td>Table XIV: 100</td><td>100, and report it</td></tr>
+      <tr><td>DDPM&#8209;F steps on MNIST</td><td>Table XV: 100</td><td><code>setup.py:24-27</code> sets 500 for every -F model</td><td>500 for parity runs; 100 as a cheaper variant</td></tr>
+      <tr><td>DCGAN noise prior</td><td>Appendix C: uniform</td><td><code>DCGAN.py:82</code>: Gaussian</td><td>Gaussian (code)</td></tr>
+      <tr><td>CIFAR&#8209;10 CNN&#8209;5, second conv</td><td>Table XXIII: 10 channels</td><td>Tables XXI&ndash;XXII: 16</td><td>16 (likely a typo; the fc width is unaffected)</td></tr>
+      <tr><td>Participation fraction</td><td>never stated</td><td><code>args.py</code>: <code>frac = 1</code></td><td>1.0</td></tr>
     </tbody>
   </table></div>
+
+  <h3>2.1 A consequence of the appendix: weight decay erases rare-class conditioning in CVAE&#8209;F</h3>
+  <p>
+    Table XV gives CVAE&#8209;F, the paper's strongest GeFL&#8209;F generator, Adam with L2 weight decay
+    &lambda; = 10<sup>&minus;3</sup>. PyTorch's <code>Adam(weight_decay=&lambda;)</code> adds &lambda;W to the
+    gradient before the moment estimates. Combine that with how the decoder sees the label: the one-hot
+    e<sub>y</sub> is concatenated to z and passed through Linear(l+10 &rarr; 512), so column w<sub>r</sub> of
+    that weight matrix is the only parameter specific to class r.
+  </p>
+  <div class="eq"><div class="body">
+    client k with no class-r sample in a batch: &nbsp;g<sub>r</sub> = &part;L/&part;w<sub>r</sub> + &lambda;w<sub>r</sub> = &lambda;w<sub>r</sub><br>
+    Adam step: &nbsp;&Delta;w<sub>r</sub> = &minus;&eta; m&#770;/(&radic;v&#770; + &epsilon;) &nbsp;&rarr;&nbsp; &minus;&eta; sign(w<sub>r</sub>) &nbsp;&nbsp;(since |&lambda;w<sub>r</sub>| &#8811; &epsilon; = 10<sup>&minus;8</sup>)
+  </div><div class="tag">(2.1)</div></div>
+  <p>
+    Adam normalises the gradient, so the pull toward zero has speed &eta; = 10<sup>&minus;3</sup> per step
+    <em>whatever &lambda; is</em>. A client takes S = T<sub>g</sub>&lceil;n<sub>k</sub>/B&rceil; = 5 &times; 10 = 50
+    steps per round, so a non-holder shrinks each coordinate of w<sub>r</sub> by up to S&eta; = 0.05 per
+    round. The same bound caps how far any client can push a coordinate outward in a round, because Adam's
+    step is also about &eta; when there is data. Under flat averaging with m<sub>r</sub> holders out of K:
+  </p>
+  <div class="eq"><div class="body">
+    growth of |w<sub>r,i</sub>| per round &nbsp;&le;&nbsp; (m<sub>r</sub>/K)&middot;S&eta; &minus; (1 &minus; m<sub>r</sub>/K)&middot;S&eta; &nbsp;=&nbsp; (2m<sub>r</sub>/K &minus; 1)&middot;S&eta;
+  </div><div class="tag">(2.2)</div></div>
+  <p>
+    <strong>Whenever fewer than half the clients hold class r, the bound is negative and its conditioning
+    column cannot grow; it collapses to a neighbourhood of zero.</strong> At w<sub>r</sub> &asymp; 0 the decoder
+    receives no class information for r, so its class-r samples come out class-agnostic. Once non-holders
+    return w<sub>r</sub> &asymp; 0, the server update is w &larr; (m<sub>r</sub>/K)(w + &delta;) with
+    |&delta;| &le; S&eta;, a fixed point of |w*| &le; (m<sub>r</sub>/K)S&eta;/(1 &minus; m<sub>r</sub>/K) &asymp;
+    0.0056 for m<sub>r</sub>/K = 0.1, against an initial scale of 1/&radic;26 &asymp; 0.20.
+    Two caveats keep this a prediction rather than a result. First, (2.2) is a worst-case bound: a holder's
+    data gradient need not point away from zero in every coordinate. Second, the effect also hits holders
+    with very few samples, since any batch without class r is a pure decay step.
+  </p>
+  <p>
+    Why the paper never sees this: in its IID protocol each client holds about 60 images of every class, so
+    a batch of 64 misses a given class with probability about 0.9<sup>64</sup> &asymp; 0.001; m<sub>r</sub> = K,
+    and (2.2) is positive. Under Dirichlet or long-tailed partitions, the tail has m<sub>r</sub> &#8810; K/2.
+  </p>
   <div class="note key">
-    <div class="h">Action</div>
-    <p>Obtain the supplementary appendix (reference [1] in the paper). Until then, Phase 0 can run on MNIST, where the text and footnote 5 fix enough of the protocol, and every other value is marked provisional.</p>
+    <div class="h">What this adds to the plan</div>
+    <ul>
+      <li><strong>A stronger motivation for Mechanism A.</strong> With holder-weighted averaging, non-holders get weight E(0) = 0, so the decay term in (2.2) vanishes. Theorem 1 described dilution; (2.2) describes collapse.</li>
+      <li><strong>A new, one-line component: lazy conditioning decay.</strong> Apply weight decay to a class column only in steps where that class is in the batch, in the spirit of TensorFlow's LazyAdam, which updates only the embedding rows present in a batch. It removes the collapse at its source, including for small holders, which Mechanism A does not.</li>
+      <li><strong>Three falsifiable predictions.</strong> (i) Under flat averaging, &#8214;w<sub>r</sub>&#8214; for tail classes falls toward 0 over stage ii, logged by E1.3. (ii) CVAE&#8209;F loses more tail accuracy under imbalance than DCGAN&#8209;F and DDPM&#8209;F, which have no weight decay in the paper. (iii) Setting &lambda; = 0 shrinks the collapse but leaves Theorem&nbsp;1's dilution.</li>
+    </ul>
   </div>
+
+  <h3>2.2 How much data a long-tailed run gets</h3>
+  <p>
+    The paper holds the total fixed (6,000 MNIST images) and divides it among clients. Two ways to add a
+    long tail: apply the profile n<sub>c</sub> = n<sub>max</sub>&mu;<sup>c</sup> inside a 600-per-class pool,
+    which leaves 1,489 images at IF=100 and a tail class of 6 images in the whole federation; or rescale the
+    profile so the total stays 6,000, giving n<sub>max</sub> &asymp; 2,420 and a tail of 24 (IF=100), or
+    n<sub>max</sub> &asymp; 1,470 and a tail of 147 (IF=10). <strong>We choose the second:</strong> it changes
+    only the class prior and keeps the paper's data budget, so a reader can attribute any difference to
+    imbalance alone. The rule fits MNIST, FMNIST and SVHN, whose smallest classes exceed n<sub>max</sub>. It
+    cannot fit CIFAR&#8209;10: holding 25,000 images at IF=100 would need about 10,070 images in the head
+    class, and CIFAR&#8209;10 has 5,000 per class. There we cap the head at 5,000, leaving about 12,400 images
+    at IF=100 and 20,400 at IF=10, and state that the CIFAR&#8209;10 long-tail runs use less data than the
+    paper's balanced ones.
+  </p>
 </section>
 
 <section id="s3">
@@ -290,6 +356,7 @@ td.rule{font-size:13px}
     <tbody>
       <tr class="hl"><td><strong>Data regime</strong>: non-IID and long-tailed clients</td><td>Paper tests IID only (footnote 5). Real federations are skewed.</td><td>Evaluate GeFL&#8209;F where it was never measured</td><td><span class="tier A">primary</span></td></tr>
       <tr class="hl"><td><strong>Generator aggregation</strong></td><td>Theorem 1: flat averaging scales class-r updates by m<sub>r</sub>/K, tail 0.71&rarr;0.33 as K grows</td><td>Mechanism A</td><td><span class="tier A">primary</span></td></tr>
+      <tr class="hl"><td><strong>Regularisation of conditioning parameters</strong></td><td>&sect;2.1: under the paper's CVAE&#8209;F weight decay, a class column held by fewer than half the clients cannot grow</td><td>Lazy conditioning decay</td><td><span class="tier A">component</span></td></tr>
       <tr><td><strong>Decision rule of the header</strong></td><td>Proposition 3: 5/6 of exposure is real data, which carries the long-tail prior</td><td>Logit adjustment (Menon et al.)</td><td><span class="tier A">component</span></td></tr>
       <tr><td><strong>Synthetic label sampling</strong></td><td>Proposition 3: helps, but capped at a 7.5&times; residual gap</td><td>Mechanism B&prime;, client-local water-filling</td><td><span class="tier B">component</span></td></tr>
       <tr><td><strong>Classifier re-training</strong></td><td>CReFF shows the classifier carries most of the federated long-tail gap; G<sub>F</sub> can supply balanced features</td><td>Stage iv: balanced final-layer retrain</td><td><span class="tier B">component</span></td></tr>
@@ -316,9 +383,9 @@ td.rule{font-size:13px}
     <thead><tr><th>ID</th><th>Experiment</th><th>Setup</th><th class="num">Runs</th><th>Why</th><th>Decision rule</th></tr></thead>
     <tbody>
       <tr><td class="sym">E0.1</td><td>Timing calibration</td><td>one GeFL&#8209;F run per dataset, 1 seed, log seconds per stage</td><td class="num">4</td><td class="why">Every budget figure in &sect;9 is an estimate until measured.</td><td class="rule">replace &sect;9 estimates with measurements</td></tr>
-      <tr><td class="sym">E0.2</td><td><span class="tier A">A</span> Paper parity, MNIST</td><td>CVAE&#8209;F, K=10, IID, 600/client, MNIST resized to 32, FE 3 channels, ten reference headers, momentum 0, best-over-rounds, T 20/100/50</td><td class="num">3</td><td class="why">Reproduces Figure 4(a), 95.47%. MNIST is the only dataset whose protocol is fully fixed by the text.</td><td class="rule">pass: 94.5&ndash;96.5. Fail: stop and diagnose.</td></tr>
-      <tr><td class="sym">E0.3</td><td><span class="tier B">B</span> Parity, SVHN and CIFAR&#8209;10</td><td>as E0.2, once Table XIV is known</td><td class="num">6</td><td class="why">Targets 76.26% and 55.86%. CIFAR&#8209;10 parity is required for Track 2.</td><td class="rule">same tolerance</td></tr>
-      <tr><td class="sym">E0.4</td><td><span class="tier A">A</span> Deviation audit</td><td>E0.2, changing one factor at a time: embedding conditioning; FE 32 channels; 3 headers; momentum 0.9; final-round metric</td><td class="num">15</td><td class="why">Shows which of our implementation choices move the baseline. Any choice that shifts it by more than noise must be reverted or reported.</td><td class="rule">keep a deviation only if within &plusmn;0.5 pp</td></tr>
+      <tr><td class="sym">E0.2</td><td><span class="tier A">A</span> Paper parity, MNIST</td><td>CVAE&#8209;F (latent 16, Adam 1e-3, weight decay 1e-3), K=10, IID, 600/client, MNIST resized to 32, FE 3 channels, the ten Table&nbsp;XXI headers, SGD lr 0.1 momentum 0 batch 64, uniform p(y), best-over-rounds, T 20/100/50, T<sub>w</sub>/T<sub>g</sub>/T<sub>s</sub>/T<sub>r</sub> 5/5/1/5</td><td class="num">3</td><td class="why">Reproduces Figure 4(a), 95.47%. MNIST is the cheapest cell and has the largest margin over FedProx, so a failure here is unambiguous.</td><td class="rule">pass: 94.5&ndash;96.5. Fail: stop and diagnose.</td></tr>
+      <tr><td class="sym">E0.3</td><td><span class="tier B">B</span> Parity, SVHN and CIFAR&#8209;10</td><td>as E0.2 with Table&nbsp;XIV&ndash;XV values: SVHN fraction 0.1, Table XXII headers; CIFAR&#8209;10 fraction 0.5, batch 128, 10-channel FE, Table XXIII headers, latent 50, T 50/200/100</td><td class="num">6</td><td class="why">Targets 76.26% and 55.86%. CIFAR&#8209;10 parity is required for Track 2.</td><td class="rule">same tolerance</td></tr>
+      <tr><td class="sym">E0.4</td><td><span class="tier A">A</span> Deviation audit</td><td>E0.2, changing one factor at a time: embedding conditioning; FE 32 channels; 3 headers; momentum 0.9; final-round metric; CVAE&#8209;F without weight decay (our old setting)</td><td class="num">18</td><td class="why">Shows which of our implementation choices move the baseline. Any choice that shifts it by more than noise must be reverted or reported.</td><td class="rule">keep a deviation only if within &plusmn;0.5 pp</td></tr>
     </tbody>
   </table></div></div></div>
 </section>
@@ -331,7 +398,7 @@ td.rule{font-size:13px}
     <tbody>
       <tr><td class="sym">E1.1</td><td><span class="tier A">A</span> The gap, by regime</td><td>baseline GeFL&#8209;F on MNIST and CIFAR&#8209;10 across four regimes: IID-balanced; non-IID &alpha;=0.5 balanced; LT IF=10; LT IF=100 (&alpha;=0.5)</td><td class="num">24</td><td class="why">Quantifies what imbalance costs GeFL&#8209;F per frequency bucket. This number appears nowhere in the paper and is a contribution in itself.</td><td class="rule">tail accuracy must fall monotonically with imbalance</td></tr>
       <tr><td class="sym">E1.2</td><td><span class="tier A">A</span> Component oracles</td><td>CIFAR&#8209;10 LT IF=100. Swap in one balanced-data oracle at a time: (a) FE trained on balanced pooled data; (b) G<sub>F</sub> trained centrally on balanced features; (c) final layer re-fit on balanced real features</td><td class="num">9</td><td class="why">The CReFF diagnostic adapted to three stages. Whichever oracle recovers the most tail accuracy is where the method must act. Proposition 3 predicts (c) &gt; (b).</td><td class="rule">rank the three gains; shapes P2's emphasis</td></tr>
-      <tr><td class="sym">E1.3</td><td><span class="tier A">A</span> Mechanism instruments</td><td>no extra runs: add logging to E1.1 for per-class conditioning-row update norms, per-class generator fidelity from a frozen referee classifier, and per-class exposure</td><td class="num">0</td><td class="why">Checks Theorem 1 (measured row step &asymp; m<sub>r</sub>/K) and gives a non-circular estimate of &epsilon;<sub>c</sub>.</td><td class="rule">measured ratios match theory within 10%</td></tr>
+      <tr><td class="sym">E1.3</td><td><span class="tier A">A</span> Mechanism instruments</td><td>no extra runs: add logging to E1.1 for per-class conditioning-column norms &#8214;w<sub>r</sub>&#8214; and update norms, per-class generator fidelity from a frozen referee classifier, and per-class exposure</td><td class="num">0</td><td class="why">Checks Theorem 1 (measured row step &asymp; m<sub>r</sub>/K) and prediction (i) of &sect;2.1 (tail &#8214;w<sub>r</sub>&#8214; collapses under CVAE&#8209;F), and gives a non-circular estimate of &epsilon;<sub>c</sub>.</td><td class="rule">measured ratios match theory within 10%; tail column norms fall below 10% of head</td></tr>
     </tbody>
   </table></div></div></div>
   <div class="note flag">
@@ -346,7 +413,7 @@ td.rule{font-size:13px}
   <div class="phase"><div class="h"><span class="id">P2</span><span class="t">Components, combinations, baselines</span><span class="q">Gate: the full method beats every single component and every baseline, with p &lt; 0.05</span></div><div class="bd"><div class="tw"><table>
     <thead><tr><th>ID</th><th>Experiment</th><th>Setup</th><th class="num">Runs</th><th>Why</th><th>Decision rule</th></tr></thead>
     <tbody>
-      <tr><td class="sym">E2.1</td><td><span class="tier A">A</span> One component at a time</td><td>+A; +B&prime;; +logit adjustment; +stage-iv retrain; +G<sub>F</sub> updated in stage iii; +balanced FE warm-up</td><td class="num">18</td><td class="why">The ablation literature's first rule: change one factor, hold the rest. Each component must earn its place alone.</td><td class="rule">drop any component that is within noise</td></tr>
+      <tr><td class="sym">E2.1</td><td><span class="tier A">A</span> One component at a time</td><td>+A; +lazy conditioning decay; +B&prime;; +logit adjustment; +stage-iv retrain; +G<sub>F</sub> updated in stage iii; +balanced FE warm-up</td><td class="num">21</td><td class="why">The ablation literature's first rule: change one factor, hold the rest. Each component must earn its place alone.</td><td class="rule">drop any component that is within noise</td></tr>
       <tr><td class="sym">E2.2</td><td><span class="tier A">A</span> Factorial over {A, B&prime;, LA}</td><td>all 8 combinations (4 already in E2.1), then the best plus stage-iv retrain</td><td class="num">15</td><td class="why">The theory says the three act on different terms (conditioning, synthetic budget, real-phase prior), so they should add. A factorial is the only design that detects interactions.</td><td class="rule">full &gt; best pair &gt; best single</td></tr>
       <tr><td class="sym">E2.3</td><td><span class="tier A">A</span> Baselines</td><td>FedAvg (grouped by architecture), FedProx, LG&#8209;FedAvg (the paper's own GeFL&#8209;F baselines); CReFF adapted to shared-FE; GeFL&#8209;F + balanced softmax</td><td class="num">15</td><td class="why">The paper's baselines keep us comparable to it. CReFF is the federated long-tail state of the art. Balanced softmax is the strongest cheap classifier-side fix, the obvious competitor.</td><td class="rule">full method beats all</td></tr>
     </tbody>
@@ -371,7 +438,7 @@ td.rule{font-size:13px}
       <tr class="hl"><td class="sym">E3.1</td><td><span class="tier A">A</span> Client scaling</td><td>K &isin; {50, 100} &times; {baseline, A, full} on MNIST and CIFAR&#8209;10</td><td class="num">36</td><td class="why">Tests Theorem 1's falsifiable prediction, on the same axis as the paper's own Figure&nbsp;4. This is the strongest single result available.</td><td class="rule">A's gain at K=100 &gt; at K=10</td></tr>
       <tr><td class="sym">E3.2</td><td><span class="tier B">B</span> Imbalance severity</td><td>CIFAR&#8209;10: IF &isin; {50, 10} at &alpha;=0.5; IF=100 at &alpha;=0.1</td><td class="num">18</td><td class="why">CReFF's grid (IF 100/50/10), so the setup matches the federated long-tail literature.</td><td class="rule">gain grows with imbalance</td></tr>
       <tr><td class="sym">E3.3</td><td><span class="tier A">A</span> Datasets</td><td>MNIST, FMNIST, SVHN at LT IF=100, &alpha;=0.5</td><td class="num">18</td><td class="why">The paper's own GeFL&#8209;F dataset set. Matching it is what makes the result read as an extension of GeFL&#8209;F.</td><td class="rule">holds on &ge; 3 of 4</td></tr>
-      <tr><td class="sym">E3.4</td><td><span class="tier B">B</span> Generator family</td><td>DCGAN&#8209;F on MNIST and CIFAR&#8209;10; DDPM&#8209;F (w=0) on MNIST, after the weight-decay fix</td><td class="num">18</td><td class="why">Our conditioning argument is generator-agnostic. Showing it on all three of the paper's families supports that claim.</td><td class="rule">holds for &ge; 2 of 3</td></tr>
+      <tr><td class="sym">E3.4</td><td><span class="tier B">B</span> Generator family</td><td>DCGAN&#8209;F on MNIST and CIFAR&#8209;10; DDPM&#8209;F (w=0) on MNIST, after the weight-decay fix</td><td class="num">18</td><td class="why">Our conditioning argument is generator-agnostic. Showing it on all three of the paper's families supports that claim. Also tests prediction (ii) of &sect;2.1: CVAE&#8209;F, the only one with weight decay, should lose the most tail accuracy under the baseline.</td><td class="rule">holds for &ge; 2 of 3</td></tr>
       <tr><td class="sym">E3.5</td><td><span class="tier A">A</span> Do-no-harm check</td><td>full method on IID-balanced MNIST and CIFAR&#8209;10</td><td class="num">6</td><td class="why">Proposition 2 predicts Mechanism A reduces to flat averaging when counts are equal. A method that hurts the paper's own setting would be rejected.</td><td class="rule">within &plusmn;0.5 pp of baseline</td></tr>
     </tbody>
   </table></div></div></div>
@@ -391,7 +458,8 @@ td.rule{font-size:13px}
       <tr><td class="sym">E4.6</td><td>Phase schedule</td><td>T<sub>s</sub>:T<sub>r</sub> &isin; {1:5, 2:4, 3:3}; real-then-synthetic order</td><td class="num">4</td><td class="why">Proposition 3 says the ratio bounds sampling-based fixes. Tests whether rebalancing the schedule helps.</td></tr>
       <tr><td class="sym">E4.7</td><td>Feature channels</td><td>{3, 8, 32}</td><td class="num">3</td><td class="why">Analogue of the paper's homogeneity-level study (Fig. 7), now under long-tailed data.</td></tr>
       <tr><td class="sym">E4.8</td><td>Conditioning</td><td>one-hot&oplus;Linear vs embedding</td><td class="num">2</td><td class="why">Shows the parameterisation is not the source of the gain.</td></tr>
-      <tr class="hl"><td colspan="3">Screening total, then 3-seed confirmation of each chosen value on CIFAR&#8209;10</td><td class="num">26 + 24</td><td class="why"></td></tr>
+      <tr><td class="sym">E4.9</td><td>Weight decay vs aggregation</td><td>CVAE&#8209;F &lambda; &isin; {0, 1e-3} &times; {flat, A, lazy decay}</td><td class="num">6</td><td class="why">Separates the two failure modes: collapse from decay (&sect;2.1) and dilution from averaging (Theorem&nbsp;1). Tests prediction (iii).</td></tr>
+      <tr class="hl"><td colspan="3">Screening total, then 3-seed confirmation of each chosen value on CIFAR&#8209;10</td><td class="num">32 + 24</td><td class="why"></td></tr>
     </tbody>
   </table></div></div></div>
 </section>
@@ -430,7 +498,7 @@ td.rule{font-size:13px}
     <caption>Run counts by tier &middot; per-run hours are estimates until E0.1 measures them</caption>
     <thead><tr><th>Tier</th><th>Contents</th><th class="num">Runs</th><th>Estimated run-hours</th><th>Weeks at 60 h/week</th></tr></thead>
     <tbody>
-      <tr class="hl"><td><span class="tier A">A</span> minimum publishable</td><td>E0.1&ndash;2, E0.4, E1.1&ndash;3, E2.1&ndash;3, E3.1, E3.3, E3.5</td><td class="num">~163</td><td>~200&ndash;320</td><td class="num">3.5&ndash;5.5</td></tr>
+      <tr class="hl"><td><span class="tier A">A</span> minimum publishable</td><td>E0.1&ndash;2, E0.4, E1.1&ndash;3, E2.1&ndash;3, E3.1, E3.3, E3.5</td><td class="num">~170</td><td>~200&ndash;320</td><td class="num">3.5&ndash;5.5</td></tr>
       <tr><td><span class="tier B">B</span> strong paper</td><td>adds E0.3, E3.2, E3.4, P4, E5.2, Track 2</td><td class="num">~113</td><td>~120&ndash;200</td><td class="num">+2&ndash;3.5</td></tr>
       <tr><td><span class="tier C">C</span> optional</td><td>CIFAR&#8209;100, DDPM&#8209;F beyond MNIST</td><td class="num">~40</td><td>~80+</td><td class="num">+1.5</td></tr>
     </tbody>
@@ -455,7 +523,7 @@ td.rule{font-size:13px}
   <h3>Order of execution</h3>
   <p>Gated by phase, not by calendar. Approximate compute per step:</p>
   <ol>
-    <li><strong>Step 1 (~15 run-hours):</strong> fix the known defects (FE 3 channels, momentum 0, DDPM weight decay, paper data size, Mechanism B&prime; local distribution), then E0.1, E0.2, E0.4. Request the appendix.</li>
+    <li><strong>Step 1 (~15 run-hours):</strong> bring the code to the appendix: weight decay 1e-3 on CVAE&#8209;F and none on DDPM&#8209;F; FE 3 channels (10 on CIFAR&#8209;10); the ten Table XXI&ndash;XXIII headers; momentum 0; batch 64; latent 16; data fraction 0.1 / 0.5; contiguous client&rarr;architecture blocks; best-over-rounds metric; Mechanism B&prime; local distribution. Add the &#8214;w<sub>r</sub>&#8214; logging. Then E0.1, E0.2, E0.4.</li>
     <li><strong>Step 2 (~50&ndash;80):</strong> E1.1&ndash;E1.3. <em>Decision 1:</em> does the oracle analysis point at the generator or the classifier?</li>
     <li><strong>Step 3 (~75&ndash;135):</strong> E2.1&ndash;E2.3. <em>Decision 2:</em> does the full method beat logit adjustment alone?</li>
     <li><strong>Step 4 (~55&ndash;90):</strong> E3.1, E3.3, E3.5. <em>Decision 3:</em> does Mechanism A's gain rise with K?</li>
@@ -482,6 +550,7 @@ td.rule{font-size:13px}
       <tr><td>Is your baseline implemented correctly?</td><td>E0.2&ndash;E0.4: parity with a published number, and a one-factor audit of every deviation</td><td>standard reproducibility practice</td></tr>
       <tr><td>Is the problem real, and where is it?</td><td>E1.1 gap by regime; E1.2 component oracles</td><td>CReFF's component-retraining diagnostic</td></tr>
       <tr><td>Why these formulas?</td><td>Theorem 1, Propositions 2&ndash;3 (derivations document); E4.1&ndash;E4.2</td><td>Cui et al. derive effective number from a model</td></tr>
+      <tr><td>Why does flat averaging fail, beyond dilution?</td><td>&sect;2.1 bound (2.2), checked by E1.3 and E4.9</td><td>LazyAdam's treatment of sparse rows</td></tr>
       <tr><td>Which component does the work?</td><td>E2.1 one-at-a-time; E2.2 factorial</td><td>ablation-design literature</td></tr>
       <tr><td>Isn't this just logit adjustment?</td><td>E2.2 / E2.3: full method vs LA and balanced softmax</td><td>Menon et al. as the baseline to beat</td></tr>
       <tr><td>Does it generalise?</td><td>E3.1&ndash;E3.4: clients, imbalance, datasets, generators</td><td>CReFF's IF 100/50/10 grid</td></tr>
