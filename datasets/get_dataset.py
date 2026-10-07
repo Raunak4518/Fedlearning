@@ -16,10 +16,11 @@ import logging
 import warnings
 
 import numpy as np
+from torch.utils.data import Dataset
 
 import datasets.synthetic  # noqa: F401 -- registers "synthetic"
 import datasets.vision  # noqa: F401 -- registers cifar10/100, mnist, fmnist, svhn, stl10
-from datasets.vision import DATASET_REGISTRY
+from datasets.vision import DATASET_REGISTRY, configure_transforms
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -39,6 +40,26 @@ def _extract_labels(dataset) -> np.ndarray:
     return np.array([int(dataset[i][1]) for i in range(len(dataset))])
 
 
+class _CachedDataset(Dataset):
+    """Memoises (tensor, label) per index. The transforms are deterministic
+    unless --train_augment is on, so decoding and resizing every image once
+    instead of once per epoch changes nothing but speed."""
+
+    def __init__(self, base):
+        self.base = base
+        self._cache = {}
+
+    def __len__(self):
+        return len(self.base)
+
+    def __getitem__(self, idx):
+        item = self._cache.get(idx)
+        if item is None:
+            x, y = self.base[idx]
+            item = self._cache[idx] = (x, int(y))
+        return item
+
+
 def get_dataset(args):
     """
     Returns:
@@ -50,6 +71,7 @@ def get_dataset(args):
     if name not in DATASET_REGISTRY:
         raise KeyError(f"Unknown --dataset '{args.dataset}'. Registered: {DATASET_REGISTRY.names()}")
 
+    configure_transforms(getattr(args, "normalize", "dataset"), bool(getattr(args, "train_augment", 0)))
     builder = DATASET_REGISTRY.get(name)
     try:
         train_ds, test_ds, meta = builder(root=args.data_root, img_size=args.img_size, download=True)
@@ -66,6 +88,10 @@ def get_dataset(args):
         train_ds, test_ds, meta = builder(root=args.data_root, img_size=args.img_size, download=False)
 
     train_labels = _extract_labels(train_ds)
+    if getattr(args, "cache_dataset", 1):
+        test_ds = _CachedDataset(test_ds)
+        if not getattr(args, "train_augment", 0):
+            train_ds = _CachedDataset(train_ds)
     logger.info("Loaded dataset=%s  num_classes=%d  in_channels=%d  img_size=%d  train_n=%d  test_n=%d",
                 meta.name, meta.num_classes, meta.in_channels, meta.native_img_size, len(train_ds), len(test_ds))
     return train_ds, test_ds, meta, train_labels

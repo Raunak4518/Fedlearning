@@ -33,7 +33,10 @@ def _add_all_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentPars
     parser.add_argument('--frac', type=float, default=1.0, help='fraction of clients sampled each round')
     parser.add_argument('--num_models', type=int, default=3,
                          help='number of distinct target-network architectures in the heterogeneous pool; '
-                              'clients are assigned round-robin, dev_spec_idx = idx %% num_models')
+                              'see --arch_assignment for how clients map to architectures')
+    parser.add_argument('--arch_assignment', type=str, default='contiguous', choices=['contiguous', 'roundrobin'],
+                         help='GeFL-F client -> architecture map. contiguous: idx // (num_users // num_models), '
+                              'as the reference GeFL_CVAE-F.py:35; roundrobin: idx %% num_models')
 
     # ---------------------------------------------------------------- dataset (dataset-agnostic)
     parser.add_argument('--dataset', type=str, default='synthetic',
@@ -45,6 +48,15 @@ def _add_all_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentPars
                          help='override the dataset\'s native resolution (images are resized); '
                               'default: use the dataset\'s native size')
     parser.add_argument('--num_workers', type=int, default=2, help='DataLoader worker processes')
+    parser.add_argument('--normalize', type=str, default='dataset', choices=['dataset', 'half', 'none'],
+                         help='input normalization: per-dataset mean/std, (0.5, 0.5), or none. Reference '
+                              'repo: none for MNIST, half for FMNIST, dataset stats for CIFAR-10 and SVHN')
+    parser.add_argument('--cache_dataset', type=int, default=1,
+                         help='1: keep each transformed image in memory after first use (augmented '
+                              'training images are never cached)')
+    parser.add_argument('--train_augment', type=int, default=0,
+                         help='1: random crop (pad 4) + horizontal flip on training images '
+                              '(reference repo does this for CIFAR-10 only)')
 
     # ---------------------------------------------------------------- long-tail + non-IID partitioning
     parser.add_argument('--noniid', action='store_true', default=True,
@@ -70,10 +82,11 @@ def _add_all_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentPars
     # ---------------------------------------------------------------- optimizer / training
     parser.add_argument('--bs', type=int, default=128, help='evaluation batch size')
     parser.add_argument('--local_bs', type=int, default=64,
-                         help='local training batch size (paper Table XIV: 128)')
+                         help='local training batch size (paper Table XIV: 64; 128 for CIFAR-10)')
     parser.add_argument('--lr', type=float, default=0.1,
                          help='target-network SGD learning rate (paper Table XIV: 0.1)')
-    parser.add_argument('--momentum', type=float, default=0.9)
+    parser.add_argument('--momentum', type=float, default=0.0,
+                         help='SGD momentum (reference args.py: 0)')
     parser.add_argument('--weight_decay', type=float, default=0.0)
     parser.add_argument('--optimizer', type=str, default='sgd', choices=['sgd', 'adam'])
 
@@ -111,7 +124,7 @@ def _add_all_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentPars
                               '(paper Table XIV: T_r = 5)')
 
     # ---------------------------------------------------------------- generator choice + shared params
-    parser.add_argument('--gen_model', type=str, default='vae', choices=['vae', 'gan', 'ddpm'],
+    parser.add_argument('--gen_model', type=str, default='vae', choices=['vae', 'gan', 'ddpm', 'cvae_paper'],
                          help='which registered conditional generator architecture to use')
     parser.add_argument('--latent_size', type=int, default=32,
                          help='VAE / GAN latent dimension (paper: CVAE l = 50)')
@@ -121,8 +134,15 @@ def _add_all_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentPars
                          help='DCGAN generator/discriminator LR (paper Table XV: 2e-4)')
     parser.add_argument('--gen_lr_ddpm', type=float, default=1e-4,
                          help='DDPM learning rate (paper Table XV: 1e-4)')
-    parser.add_argument('--weight_decay_ddpm', type=float, default=1e-3,
-                         help='DDPM weight decay (paper Table XV: 1e-3)')
+    parser.add_argument('--weight_decay_ddpm', type=float, default=0.0,
+                         help='DDPM weight decay (paper Table XV: none)')
+    parser.add_argument('--weight_decay_vae', type=float, default=1e-3,
+                         help='CVAE / CVAE-F Adam weight decay (paper Table XV: 1e-3)')
+    parser.add_argument('--lazy_cond_decay', type=int, default=0,
+                         help='1: apply generator weight decay to a class-conditioning row only in steps whose '
+                              'batch contains that class (experiment plan section 2.1); 0: paper behaviour')
+    parser.add_argument('--gen_local_bs', type=int, default=None,
+                         help='generator training batch size; default: local_bs (paper Table XV: 64)')
     parser.add_argument('--gen_channels', type=int, default=64,
                          help='base channel width of the generator (CVAE); '
                               'for DCGAN use dcgan_g_channels/dcgan_d_channels instead')
@@ -153,8 +173,14 @@ def _add_all_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentPars
     parser.add_argument('--gefl_f', type=int, default=0,
                          help='1: run GeFL-F (feature extractor + heterogeneous headers) '
                               'instead of plain GeFL')
+    parser.add_argument('--fe_arch', type=str, default='simple', choices=['simple', 'paper'],
+                         help='simple: one conv block with --fe_channels outputs; paper: the Tables XXI-XXIII '
+                              'feature extractor (3 channels, or 10 for CIFAR-10), which sets fe_channels itself')
     parser.add_argument('--fe_channels', type=int, default=32,
-                         help='feature extractor output channels (paper unspecified, our choice: 32)')
+                         help='feature extractor output channels for --fe_arch simple')
+    parser.add_argument('--fe_aggregate', type=int, default=1,
+                         help='1: average the FE over all clients in stage (i) (paper Algorithm 3); '
+                              '0: leave it at initialisation (reference repo default, avg_FE=0)')
     parser.add_argument('--fe_rounds', type=int, default=50,
                          help='stage (i) FE warm-up rounds (paper Table XIV: T_FE = 50)')
     parser.add_argument('--header_models', type=str, default='header_small,header_deep,header_wide',
@@ -182,6 +208,9 @@ def _add_all_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentPars
                          help='EMA decay for the per-class fidelity signal (higher = slower to update)')
     parser.add_argument('--mech_b_init_fidelity', type=float, default=0.15,
                         help='initial (cautious) fidelity value before any measurement')
+    parser.add_argument('--mech_b_scope', type=str, default='local', choices=['local', 'global'],
+                         help="class distribution Mechanism B rebalances against: each client's own "
+                              'counts (local) or the federation-wide counts (global)')
     parser.add_argument('--mech_b_inv_freq_power', type=float, default=1.0,
                         help='exponent for the inverse frequency weighting (e.g. 0.5 for softened inverse)')
 
@@ -193,7 +222,14 @@ def _add_all_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentPars
     parser.add_argument('--creff_head_retrain_steps', type=int, default=300)
 
     # ---------------------------------------------------------------- evaluation
-    parser.add_argument('--sample_test', type=int, default=1, help='evaluate every N rounds')
+    parser.add_argument('--sample_test', type=int, default=1,
+                         help='evaluate every N rounds (also at round 1 and the last round)')
+    parser.add_argument('--eval_warmup', type=int, default=0,
+                         help='GeFL-F: also evaluate during stage (i) and count it toward best_mean_acc, '
+                              'as the reference evaluate_models does')
+    parser.add_argument('--log_cond_norms', type=int, default=1,
+                         help='GeFL-F: write per-class L2 norms of the generator conditioning rows after '
+                              'every stage (ii) round to {out_dir}/{name}_cond_norms.csv')
     parser.add_argument('--eval_centralized_upper_bound', type=int, default=1)
     parser.add_argument('--centralized_epochs', type=int, default=10)
 
@@ -261,7 +297,8 @@ def parse_args(argv=None) -> argparse.Namespace:
     target_list = [m.strip() for m in args.target_models.split(',') if m.strip()]
     if len(target_list) == 1:
         target_list = target_list * args.num_models
-    if len(target_list) != args.num_models:
+    # GeFL-F builds its networks from --header_models (checked in engine_f), not --target_models
+    if len(target_list) != args.num_models and not args.gefl_f:
         raise ValueError(
             f"--target_models has {len(target_list)} entries but --num_models={args.num_models}; "
             f"pass exactly num_models comma-separated names, or a single name to repeat."

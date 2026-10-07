@@ -1,0 +1,58 @@
+# configs/svhn_gefl_f_paper.yaml
+# GeFL-F paper-parity setting on SVHN (experiment plan E0.2/E0.3).
+# Every value is from the paper's appendix (Tables XIV, XV, XX-XXIII) or,
+# where the paper is silent, the reference repo; see docs/experiment_plan.html section 1.
+# Target: 76.26% (Figure 4c, FedCVAE-F, 10 clients).
+# Report best_mean_acc: the mean over the 10 architectures of each one's best
+# accuracy over evaluated rounds.
+
+dataset: svhn
+data_root: ./data
+normalize: dataset        # reference getData.py: SVHN mean/std
+train_augment: 0
+data_fraction: 0.1        # Table XIV
+local_bs: 64
+header_models: cnn1_bn,cnn2_bn,cnn3_bn,cnn4_bn,cnn5_bn,cnn6_bn,cnn7_bn,cnn8_bn,cnn9_bn,cnn10_bn   # Table XXII
+fe_rounds: 50             # T_FE
+gen_wu_epochs: 100        # T_KA
+epochs: 100               # T_TN: Table XIV says 100, Section IV-B says 50
+latent_size: 16           # Table XV
+num_users: 10
+num_models: 10
+frac: 1.0
+arch_assignment: contiguous
+
+noniid: false             # paper: IID, equal-sized clients (footnote 5)
+imbalance_factor: 1.0
+partition_seed: 0
+
+lr: 0.1
+momentum: 0.0
+weight_decay: 0.0
+optimizer: sgd
+
+gefl_f: 1
+fe_arch: paper
+fe_aggregate: 1           # Algorithm 3 averages the FE over all clients
+
+target_ts: 1              # T_s (epoch-equivalent: |D_k|/B synthetic batches)
+target_tr: 5              # T_r
+gen_local_ep: 5           # T_w = T_g = 5 (Table XIV)
+
+gen_model: cvae_paper     # Table XX CVAE-F
+gen_lr: 0.001
+weight_decay_vae: 0.001   # Table XV
+lazy_cond_decay: 0
+gen_local_bs: 64          # Table XV
+
+mechanism_a: 0
+mechanism_b: 0
+
+sample_test: 10           # reference cadence: round 1, every 10th, last
+eval_warmup: 1            # reference evaluate_models also scores stage (i)
+eval_centralized_upper_bound: 0
+log_cond_norms: 1
+
+seed: 0
+num_experiment: 3
+name: gefl_f_svhn_paper

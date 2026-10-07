@@ -375,6 +375,8 @@ def average_client_metrics(client_models, dataset_test, num_classes: int, bucket
         scores = {b: sum(v) / max(len(v), 1) for b, v in bucket_scores.items()}
         scores["overall"] = report["class_balanced_accuracy"]
         scores["class_balanced_accuracy"] = report["class_balanced_accuracy"]
+        # Plain accuracy, the metric the GeFL paper reports (reference test_img)
+        scores["accuracy"] = float(np.trace(cm) / max(cm.sum(), 1))
         scores["macro_f1"] = report["macro_avg"]["f1"]
         scores["weighted_f1"] = report["weighted_avg"]["f1"]
         scores["macro_precision"] = report["macro_avg"]["precision"]

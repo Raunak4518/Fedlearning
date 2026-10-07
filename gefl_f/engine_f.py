@@ -25,6 +25,7 @@ Stage (iii) — Target header training (T_TN rounds):
 Key: θ_f is trained ONLY in stage (i) then frozen. Stages (ii)+(iii)
 use it in eval/no-grad mode.
 """
+import csv
 import os
 import time
 from collections import defaultdict
@@ -36,6 +37,7 @@ from torch.utils.data import DataLoader, Subset
 
 from gefl_f.feature_extractor import CommonFeatureExtractor
 from gefl_f.headers import HEADER_REGISTRY
+from gefl_f.paper_nets import PaperFeatureExtractor
 from utils.avg import FedAvg, model_wise_FedAvg, aggregate_generator
 from utils.checkpoint import save_results
 from utils.evaluate import ConvergenceTracker
@@ -52,20 +54,31 @@ def _client_loader(exp, client_id: int, args) -> DataLoader:
     return DataLoader(Subset(exp.dataset_train, idxs), batch_size=args.local_bs, shuffle=True)
 
 
-def _build_fe(args) -> CommonFeatureExtractor:
-    """Build the common feature extractor."""
-    fe_channels = getattr(args, 'fe_channels', 32)
-    # in_channels is determined by dataset — set in run_gefl_f
+def _build_fe(args):
+    """Build the common feature extractor (in_channels is set in run_gefl_f)."""
+    if getattr(args, 'fe_arch', 'simple') == 'paper':
+        variant = 'cifar10' if args.dataset.lower() == 'cifar10' else 'mnist'
+        return PaperFeatureExtractor(args._fe_in_channels, variant).to(args.device)
     return CommonFeatureExtractor(
         in_channels=args._fe_in_channels,
-        fe_channels=fe_channels,
+        fe_channels=getattr(args, 'fe_channels', 32),
     ).to(args.device)
 
 
 def _build_header(header_name: str, fe_channels: int, num_classes: int, args):
     """Build one header network."""
     cls = HEADER_REGISTRY.get(header_name)
-    return cls(fe_channels=fe_channels, num_classes=num_classes).to(args.device)
+    return cls(fe_channels=fe_channels, num_classes=num_classes,
+               fe_spatial=args._fe_spatial).to(args.device)
+
+
+def _assign_architectures(num_users: int, num_models: int, mode: str):
+    """Client -> architecture index. contiguous matches the reference
+    GeFL_CVAE-F.py:35, min(idx // (K // M), M - 1)."""
+    if mode == 'roundrobin':
+        return [i % num_models for i in range(num_users)]
+    block = max(num_users // num_models, 1)
+    return [min(i // block, num_models - 1) for i in range(num_users)]
 
 
 def _build_feature_generator(num_classes, fe_channels, fe_spatial, args):
@@ -82,9 +95,10 @@ def _build_feature_generator(num_classes, fe_channels, fe_spatial, args):
     import generators.ccvae  # noqa: F401
     import generators.ccgan  # noqa: F401
     import generators.cddpm  # noqa: F401
+    import generators.ccvae_paper  # noqa: F401
     gen_name = args.gen_model
     gen_cls = GEN_REGISTRY.get(gen_name)
-    out_act = "relu" if gen_name in ("vae", "gan") else "none"
+    out_act = "relu" if gen_name in ("vae", "gan", "cvae_paper") else "none"
     return gen_cls(
         num_classes=num_classes,
         in_channels=fe_channels,
@@ -150,8 +164,9 @@ def _stage_i_round(exp, args, fe_state, header_states, client_ids):
         per_group_header_states[group].append(header.state_dict())
         losses.append(total_loss / max(n_batches, 1))
 
-    # Aggregate FE across ALL clients (flat FedAvg)
-    if fe_updates:
+    # Aggregate FE across ALL clients (flat FedAvg). fe_aggregate=0 keeps it at
+    # initialisation, which is what the reference repo does by default (avg_FE=0).
+    if fe_updates and getattr(args, 'fe_aggregate', 1):
         new_fe_state = FedAvg(fe_updates)
     else:
         new_fe_state = fe_state
@@ -196,7 +211,8 @@ def _stage_ii_round(exp, args, fe_state, gen_state, gen_opt_states, client_ids, 
         feat_dataset = torch.utils.data.TensorDataset(
             torch.cat(features_list), torch.cat(labels_list)
         )
-        feat_loader = DataLoader(feat_dataset, batch_size=args.local_bs, shuffle=True)
+        gen_bs = getattr(args, 'gen_local_bs', None) or args.local_bs
+        feat_loader = DataLoader(feat_dataset, batch_size=gen_bs, shuffle=True)
 
         # Train feature generator
         gen_net = _build_feature_generator(exp.meta.num_classes, fe_channels, fe_spatial, args)
@@ -361,18 +377,40 @@ def _build_eval_model(fe_state, header_state, header_name, fe_channels, num_clas
 
 
 def _build_all_eval_models(exp, args, fe_state, header_states):
-    """Build evaluation models for all clients."""
+    """One evaluation model per architecture in use. Clients sharing an
+    architecture hold the same aggregated header, so this is the reference
+    evaluate_models: one score per architecture, averaged over architectures."""
     fe_channels = getattr(args, 'fe_channels', 32)
-    models = {}
-    for cid in range(args.num_users):
-        group = exp.dev_spec_idx[cid]
-        model = _build_eval_model(
-            fe_state, header_states[group],
-            args.header_models_list[group], fe_channels,
-            exp.meta.num_classes, args
-        )
-        models[cid] = model
-    return models
+    return {g: _build_eval_model(fe_state, header_states[g], args.header_models_list[g],
+                                 fe_channels, exp.meta.num_classes, args)
+            for g in sorted(set(exp.dev_spec_idx))}
+
+
+def _evaluate(exp, args, fe_state, header_states, best_per_arch):
+    """Scores averaged over architectures, plus the paper's reported metric:
+    the mean over architectures of each one's best plain accuracy so far
+    (reference utils/util.py evaluate_models). Updates best_per_arch in place."""
+    from utils.evaluate import average_client_metrics
+    models = _build_all_eval_models(exp, args, fe_state, header_states)
+    per_arch = {g: average_client_metrics({g: m}, exp.dataset_test, exp.meta.num_classes,
+                                          exp.buckets, args.device) for g, m in models.items()}
+    keys = set().union(*[v.keys() for v in per_arch.values()])
+    scores = {k: sum(v.get(k, 0.0) for v in per_arch.values()) / len(per_arch) for k in keys}
+    for g, v in per_arch.items():
+        best_per_arch[g] = max(best_per_arch.get(g, 0.0), v["accuracy"])
+    scores["best_mean_acc"] = sum(best_per_arch.values()) / len(best_per_arch)
+    return scores
+
+
+def _conditioning_row_norms(gen_state, conditioning_keys, num_classes):
+    """Per-class L2 norm of the generator's class-conditioning rows (rows
+    0..C-1 of each conditioning parameter, concatenated)."""
+    sq = torch.zeros(num_classes)
+    for k in conditioning_keys:
+        if k in gen_state:
+            w = gen_state[k].detach().float().cpu()
+            sq += w[:num_classes].reshape(num_classes, -1).pow(2).sum(1)
+    return sq.sqrt().tolist()
 
 
 # ============================================================
@@ -422,20 +460,23 @@ def run_gefl_f(args) -> dict:
     header_list = [h.strip() for h in args.header_models.split(',') if h.strip()]
     if len(header_list) == 1:
         header_list = header_list * args.num_models
+    if len(header_list) != args.num_models:
+        raise ValueError(f"--header_models has {len(header_list)} entries but --num_models={args.num_models}")
     args.header_models_list = header_list
-    exp.dev_spec_idx = [i % args.num_models for i in range(args.num_users)]
+    exp.dev_spec_idx = _assign_architectures(args.num_users, args.num_models,
+                                             getattr(args, 'arch_assignment', 'contiguous'))
 
-    fe_channels = getattr(args, 'fe_channels', 32)
-
-    # Initialize FE
+    # Initialize FE; the paper FE fixes its own channel count
     fe_init = _build_fe(args)
     fe_state = fe_init.state_dict()
+    args.fe_channels = fe_channels = fe_init.out_channels
 
     # Compute FE spatial output size
     with torch.no_grad():
+        fe_init.eval()
         dummy = torch.randn(1, in_channels, img_size, img_size, device=args.device)
-        fe_out = fe_init(dummy)
-        fe_spatial = fe_out.shape[-1]
+        fe_spatial = fe_init(dummy).shape[-1]
+    args._fe_spatial = fe_spatial
 
     # Initialize headers
     header_states = []
@@ -445,19 +486,47 @@ def run_gefl_f(args) -> dict:
 
     client_sampler = ClientSampler(args.num_users, args.frac, args.seed)
     global_natural_counts = np.array([exp.class_counts[c] for c in range(num_classes)])
-    label_samplers = {cid: build_label_sampler(args, num_classes, global_natural_counts)
-                       for cid in range(args.num_users)}
+    label_samplers = {}
+    for cid in range(args.num_users):
+        if getattr(args, 'mech_b_scope', 'local') == 'local':
+            # Each client rebalances against its own class mix. Add-one smoothing
+            # keeps a class the client lacks from getting an unbounded weight.
+            counts = np.array([per_client_counts[cid][c] for c in range(num_classes)], dtype=float) + 1.0
+        else:
+            counts = global_natural_counts
+        label_samplers[cid] = build_label_sampler(args, num_classes, counts)
 
     logger.console.info(
-        "GeFL-F: dataset=%s classes=%d clients=%d fe_channels=%d fe_spatial=%d "
-        "gen_model=%s_f T_FE=%d T_KA=%d T_TN=%d",
-        meta.name, num_classes, args.num_users, fe_channels, fe_spatial,
-        args.gen_model, args.fe_rounds, args.gen_wu_epochs, args.epochs
+        "GeFL-F: dataset=%s classes=%d clients=%d models=%d fe=%s fe_channels=%d fe_spatial=%d "
+        "gen_model=%s_f T_FE=%d T_KA=%d T_TN=%d train_n=%d",
+        meta.name, num_classes, args.num_users, args.num_models, getattr(args, 'fe_arch', 'simple'),
+        fe_channels, fe_spatial, args.gen_model, args.fe_rounds, args.gen_wu_epochs, args.epochs,
+        sum(len(v) for v in dict_users.values())
     )
 
     t_start = time.time()
     history = []
+    best_per_arch = {}
     convergence_tracker = ConvergenceTracker(patience=5)
+
+    def _is_eval_round(rnd, total):
+        return rnd == 0 or (rnd + 1) % args.sample_test == 0 or rnd == total - 1
+
+    def _log_eval(stage, rnd, loss, scores):
+        row = {
+            "stage": stage,
+            "round": rnd + 1,
+            "train_loss": loss,
+            **{f"acc_{k}": scores[k] for k in ["overall", "head", "medium", "tail"] if k in scores},
+            "accuracy": scores.get("accuracy", 0),
+            "best_mean_acc": scores["best_mean_acc"],
+            "elapsed_s": round(time.time() - t_start, 1),
+        }
+        row["best_acc"] = convergence_tracker.update(scores.get("overall", 0))["best_acc"]
+        for k in ["macro_f1", "weighted_f1", "class_balanced_accuracy", "macro_precision", "macro_recall"]:
+            row[k] = scores.get(k, 0)
+        logger.log(row, step=len(history) + 1)
+        history.append(row)
 
     # ============================================================
     #  STAGE (i): Feature extractor warm-up
@@ -468,34 +537,53 @@ def run_gefl_f(args) -> dict:
         fe_state, header_states, wu_loss = _stage_i_round(exp, args, fe_state, header_states, client_ids)
         if (rnd + 1) % max(1, args.fe_rounds // 10) == 0:
             logger.console.debug("FE warm-up round %d/%d loss=%.4f", rnd + 1, args.fe_rounds, wu_loss)
+        if getattr(args, 'eval_warmup', 0) and _is_eval_round(rnd, args.fe_rounds):
+            _log_eval("fe_warmup", rnd, wu_loss, _evaluate(exp, args, fe_state, header_states, best_per_arch))
+    stage1_s = time.time() - t_start
 
     # ============================================================
     #  STAGE (ii): Feature-generator training (FE frozen)
     # ============================================================
     logger.console.info("=== Stage (ii): Feature-generator training for %d rounds ===", args.gen_wu_epochs)
-    gen_state = None
     gen_opt_states = {}
-
-    # Initialize generator
     gen_init = _build_feature_generator(num_classes, fe_channels, fe_spatial, args)
     gen_state = gen_init.state_dict()
-
-    # Register -F generator update functions
-    from utils.localUpdateGen import LOCAL_GEN_UPDATE_REGISTRY
+    conditioning_keys = gen_init.conditioning_parameter_names()
 
     # -F variants use the same training logic as their full counterparts
+    from utils.localUpdateGen import LOCAL_GEN_UPDATE_REGISTRY
     gen_model_f = args.gen_model + "_f"
     if gen_model_f not in LOCAL_GEN_UPDATE_REGISTRY:
-        base_fn = get_local_gen_update(args.gen_model)
-        LOCAL_GEN_UPDATE_REGISTRY.register(gen_model_f)(base_fn)
+        LOCAL_GEN_UPDATE_REGISTRY.register(gen_model_f)(get_local_gen_update(args.gen_model))
+
+    # Per-class conditioning-row norms (experiment plan E1.3, section 2.1).
+    # Row "holders" = number of clients holding at least one sample of the class.
+    norms_writer, norms_file = None, None
+    cond_norms = []
+    if getattr(args, 'log_cond_norms', 1):
+        norms_file = open(os.path.join(args.out_dir, f"{args.name}_cond_norms.csv"), "w",
+                          newline="", encoding="utf-8")
+        norms_writer = csv.writer(norms_file)
+        holders = [sum(1 for cid in dict_users if per_client_counts[cid][c] > 0) for c in range(num_classes)]
+        norms_writer.writerow(["round"] + [f"norm_c{c}" for c in range(num_classes)])
+        norms_writer.writerow(["holders"] + holders)
+        norms_writer.writerow([0] + _conditioning_row_norms(gen_state, conditioning_keys, num_classes))
 
     for rnd in range(args.gen_wu_epochs):
         client_ids = client_sampler.select()
         gen_state, gen_loss = _stage_ii_round(
             exp, args, fe_state, gen_state, gen_opt_states, client_ids, fe_channels, fe_spatial
         )
+        if norms_writer is not None:
+            norms = _conditioning_row_norms(gen_state, conditioning_keys, num_classes)
+            cond_norms.append(norms)
+            norms_writer.writerow([rnd + 1] + [round(v, 6) for v in norms])
+            norms_file.flush()
         if (rnd + 1) % max(1, args.gen_wu_epochs // 10) == 0:
             logger.console.debug("Gen training round %d/%d gen_loss=%.4f", rnd + 1, args.gen_wu_epochs, gen_loss)
+    if norms_file is not None:
+        norms_file.close()
+    stage2_s = time.time() - t_start - stage1_s
 
     # ============================================================
     #  STAGE (iii): Header training (FE frozen, sequential Ts/Tr)
@@ -503,46 +591,27 @@ def run_gefl_f(args) -> dict:
     logger.console.info("=== Stage (iii): Header training for %d rounds ===", args.epochs)
     for rnd in range(args.epochs):
         client_ids = client_sampler.select()
-
         header_states, avg_loss = _stage_iii_round(
             exp, args, fe_state, gen_state, header_states, client_ids,
             fe_channels, fe_spatial, label_samplers
         )
-
-        # Evaluation
-        if (rnd + 1) % args.sample_test == 0 or rnd == args.epochs - 1:
-            client_models = _build_all_eval_models(exp, args, fe_state, header_states)
-            from utils.evaluate import average_client_metrics
-            scores = average_client_metrics(client_models, dataset_test, num_classes, buckets, args.device)
-
-            row = {
-                "round": rnd + 1,
-                "train_loss": avg_loss,
-                **{f"acc_{k}": v for k, v in scores.items() if k in ["overall", "head", "medium", "tail"]},
-                "elapsed_s": round(time.time() - t_start, 1),
-            }
-
-            conv_info = convergence_tracker.update(scores.get("overall", 0))
-            row["best_acc"] = conv_info["best_acc"]
-            
-            # Additional metrics
-            row["macro_f1"] = scores.get("macro_f1", 0)
-            row["weighted_f1"] = scores.get("weighted_f1", 0)
-            row["class_balanced_accuracy"] = scores.get("class_balanced_accuracy", 0)
-            row["macro_precision"] = scores.get("macro_precision", 0)
-            row["macro_recall"] = scores.get("macro_recall", 0)
-
-            logger.log(row, step=rnd + 1)
-            history.append(row)
+        if _is_eval_round(rnd, args.epochs):
+            _log_eval("header", rnd, avg_loss, _evaluate(exp, args, fe_state, header_states, best_per_arch))
+    stage3_s = time.time() - t_start - stage1_s - stage2_s
 
     # ---- Final results ----
-    results = {"history": history, "final_scores": history[-1] if history else {}}
+    results = {"history": history, "final_scores": history[-1] if history else {},
+               "best_per_arch": best_per_arch, "cond_norms": cond_norms}
+    results["best_mean_acc"] = sum(best_per_arch.values()) / len(best_per_arch) if best_per_arch else float("nan")
     results["total_time_s"] = round(time.time() - t_start, 1)
+    results["stage_time_s"] = {"fe": round(stage1_s, 1), "gen": round(stage2_s, 1), "header": round(stage3_s, 1)}
 
-    logger.console.info("GeFL-F training complete. Total time: %.1fs", results["total_time_s"])
+    logger.console.info("GeFL-F training complete. Total time: %.1fs (stages %s)",
+                        results["total_time_s"], results["stage_time_s"])
     if history:
         logger.console.info("Final scores: %s",
-                             {k: v for k, v in history[-1].items() if k.startswith("acc_")})
+                            {k: v for k, v in history[-1].items() if k.startswith("acc_")})
+    logger.console.info("Best-over-rounds mean accuracy (paper metric): %.4f", results["best_mean_acc"])
 
     save_results(os.path.join(args.out_dir, f"{args.name}_results.pkl"), results)
     logger.close()

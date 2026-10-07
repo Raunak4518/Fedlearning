@@ -23,6 +23,20 @@ from registry import Registry
 
 DATASET_REGISTRY = Registry("dataset")
 
+# Transform options, set once per run: get_dataset() calls configure_transforms().
+#   normalize: "dataset" (per-dataset mean/std), "half" ((0.5,), (0.5,)), or "none"
+#   augment:   random crop (pad 4) + horizontal flip on the TRAIN split only
+# The GeFL reference uses none for MNIST, "half" for FMNIST and crop+flip for
+# CIFAR-10 (utils/getData.py), so paper-parity configs set these explicitly.
+_TRANSFORM_OPTS = {"normalize": "dataset", "augment": False}
+
+
+def configure_transforms(normalize: str = "dataset", augment: bool = False) -> None:
+    if normalize not in ("dataset", "half", "none"):
+        raise ValueError(f"normalize must be dataset|half|none, got {normalize!r}")
+    _TRANSFORM_OPTS["normalize"] = normalize
+    _TRANSFORM_OPTS["augment"] = bool(augment)
+
 
 @dataclass
 class DatasetMeta:
@@ -34,24 +48,43 @@ class DatasetMeta:
     std: tuple
 
 
-def _transform(img_size: int, in_channels: int, mean: tuple, std: tuple) -> T.Compose:
+def _transform(img_size: int, in_channels: int, mean: tuple, std: tuple, train: bool = False) -> T.Compose:
     ops = [T.Resize((img_size, img_size))]
     if in_channels == 3:
         ops.append(T.Lambda(lambda im: im.convert("RGB")))
     elif in_channels == 1:
         ops.append(T.Grayscale(num_output_channels=1))
-    ops += [T.ToTensor(), T.Normalize(mean, std)]
+    if train and _TRANSFORM_OPTS["augment"]:
+        ops += [T.RandomCrop(img_size, padding=4), T.RandomHorizontalFlip()]
+    ops.append(T.ToTensor())
+    if _TRANSFORM_OPTS["normalize"] == "dataset":
+        ops.append(T.Normalize(mean, std))
+    elif _TRANSFORM_OPTS["normalize"] == "half":
+        ops.append(T.Normalize((0.5,) * in_channels, (0.5,) * in_channels))
     return T.Compose(ops)
+
+
+def _effective_stats(in_channels: int, mean: tuple, std: tuple):
+    """(mean, std) that undo the active normalization, for code that denormalizes."""
+    mode = _TRANSFORM_OPTS["normalize"]
+    if mode == "half":
+        return (0.5,) * in_channels, (0.5,) * in_channels
+    if mode == "none":
+        return (0.0,) * in_channels, (1.0,) * in_channels
+    return mean, std
 
 
 def _build(cls, root, img_size, download, in_channels, num_classes, native_size, mean, std, name,
            train_kwargs=None, test_kwargs=None):
     train_kwargs = train_kwargs or {}
     test_kwargs = test_kwargs or {}
-    tfm = _transform(img_size or native_size, in_channels, mean, std)
-    train = cls(root=root, download=download, transform=tfm, **train_kwargs)
-    test = cls(root=root, download=download, transform=tfm, **test_kwargs)
-    meta = DatasetMeta(name, num_classes, in_channels, img_size or native_size, mean, std)
+    size = img_size or native_size
+    train = cls(root=root, download=download, transform=_transform(size, in_channels, mean, std, train=True),
+                **train_kwargs)
+    test = cls(root=root, download=download, transform=_transform(size, in_channels, mean, std, train=False),
+               **test_kwargs)
+    mean, std = _effective_stats(in_channels, mean, std)
+    meta = DatasetMeta(name, num_classes, in_channels, size, mean, std)
     return train, test, meta
 
 

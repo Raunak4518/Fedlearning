@@ -177,7 +177,9 @@ def main():
                "imbalance_factor": imb, "dir_param": dir_p, "seed": seed, "mechanism": mech,
                **{k: v for k, v in final.items() if k.startswith("acc_")}}
         # Include new metrics if available
-        for extra_key in ("macro_f1", "weighted_f1", "class_balanced_accuracy",
+        if "best_mean_acc" in results:  # GeFL-F: the paper's best-over-rounds metric
+            row["best_mean_acc"] = results["best_mean_acc"]
+        for extra_key in ("accuracy", "macro_f1", "weighted_f1", "class_balanced_accuracy",
                           "gen_mean_confidence", "gen_label_accuracy"):
             if extra_key in final:
                 row[extra_key] = final[extra_key]

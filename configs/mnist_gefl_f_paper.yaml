@@ -1,0 +1,59 @@
+# configs/mnist_gefl_f_paper.yaml
+# GeFL-F paper-parity setting on MNIST (experiment plan E0.2/E0.3).
+# Every value is from the paper's appendix (Tables XIV, XV, XX-XXIII) or,
+# where the paper is silent, the reference repo; see docs/experiment_plan.html section 1.
+# Target: 95.47% (Figure 4a, FedCVAE-F, 10 clients).
+# Report best_mean_acc: the mean over the 10 architectures of each one's best
+# accuracy over evaluated rounds.
+
+dataset: mnist
+data_root: ./data
+img_size: 32              # Table XVI: 32x32 input, 16x16 features
+normalize: none           # reference getData.py: ToTensor only
+train_augment: 0
+data_fraction: 0.1        # Table XIV: 6,000 images, 600 per client at K=10
+local_bs: 64
+header_models: cnn1,cnn2,cnn3,cnn4,cnn5,cnn6,cnn7,cnn8,cnn9,cnn10   # Table XXI
+fe_rounds: 20             # T_FE
+gen_wu_epochs: 100        # T_KA
+epochs: 50                # T_TN
+latent_size: 16           # Table XV
+num_users: 10
+num_models: 10
+frac: 1.0
+arch_assignment: contiguous
+
+noniid: false             # paper: IID, equal-sized clients (footnote 5)
+imbalance_factor: 1.0
+partition_seed: 0
+
+lr: 0.1
+momentum: 0.0
+weight_decay: 0.0
+optimizer: sgd
+
+gefl_f: 1
+fe_arch: paper
+fe_aggregate: 1           # Algorithm 3 averages the FE over all clients
+
+target_ts: 1              # T_s (epoch-equivalent: |D_k|/B synthetic batches)
+target_tr: 5              # T_r
+gen_local_ep: 5           # T_w = T_g = 5 (Table XIV)
+
+gen_model: cvae_paper     # Table XX CVAE-F
+gen_lr: 0.001
+weight_decay_vae: 0.001   # Table XV
+lazy_cond_decay: 0
+gen_local_bs: 64          # Table XV
+
+mechanism_a: 0
+mechanism_b: 0
+
+sample_test: 10           # reference cadence: round 1, every 10th, last
+eval_warmup: 1            # reference evaluate_models also scores stage (i)
+eval_centralized_upper_bound: 0
+log_cond_norms: 1
+
+seed: 0
+num_experiment: 3
+name: gefl_f_mnist_paper

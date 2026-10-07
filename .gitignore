@@ -13,3 +13,6 @@ GEFl original implementation/
 # Kaggle-only artifacts
 gefl_classbalanced.zip
 
+# Experiment scratch output (summaries in experiments/results are kept)
+experiments/results_test/
+experiments/results/logs/

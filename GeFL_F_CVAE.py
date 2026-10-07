@@ -20,7 +20,8 @@ from utils.seed import set_seed
 
 def main():
     args = parse_args()
-    args.gen_model = "vae"
+    if args.gen_model not in ("vae", "cvae_paper"):  # cvae_paper = the paper's Table XX CVAE-F
+        args.gen_model = "vae"
     args.gefl_f = 1
     base_name = args.name if args.name != "run" else "gefl_f_cvae"
 
