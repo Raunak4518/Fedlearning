@@ -15,8 +15,8 @@ Baselines: LG-FedAvg (+LA = FedLC-style local calibration), FedAvg grouped.
 """
 LABELS = [("GeFL-F", ""), ("+LA", "LA"), ("+GF", "GF"), ("+PCM", "PCM"), ("+BCR", "BCR"),
           ("+HWA", "HWA"), ("+LCD", "LCD"), ("+HWA+LCD", "HWA+LCD"), ("+HWA+LCD+GF", "HWA+LCD+GF"),
-          ("+HWA+LCD+LA", "HWA+LCD+LA"), ("+PCM+LA", "PCM+LA"), ("+HWA+LCD+PCM", "HWA+LCD+PCM"),
-          ("Ours (HWA+LCD+PCM+LA)", OURS), ("Ours+BCR", OURS + "+BCR"), ("Ours+LAFE", OURS + "+LAFE")]
+          ("+HWA+LCD+LA", "HWA+LCD+LA"), ("+HWA+LA", "HWA+LA"), ("+LCD+LA", "LCD+LA"), ("+PCM+LA", "PCM+LA"), ("+HWA+LCD+PCM", "HWA+LCD+PCM"),
+          ("Ours (HWA+LCD+PCM+LA)", OURS), ("Ours-private (LCD+PCM+LA)", OURS_PRIVATE), ("Ours+BCR", OURS + "+BCR"), ("Ours+LAFE", OURS + "+LAFE")]
 BASELINES = [("LG-FedAvg", "LG-FedAvg", False), ("LG-FedAvg+LA", "LG-FedAvg", True),
              ("FedAvg (grouped)", "FedAvg", False)]
 EXPERIMENT = dict(

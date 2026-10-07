@@ -15,5 +15,6 @@ EXPERIMENT = dict(
     plan=lambda cfg: [run_spec(lab, "mnist", s, compose(c), IF=0.01, alpha=0.5, K=K)
                       for K in [10, 50, 100] for s in cfg["seeds"]
                       for lab, c in [("GeFL-F", ""), ("+HWA+LCD", "HWA+LCD"), ("+LA", "LA"),
-                                     ("Ours (HWA+LCD+PCM+LA)", OURS)]],
+                                     ("Ours (HWA+LCD+PCM+LA)", OURS),
+                                     ("Ours-private (LCD+PCM+LA)", OURS_PRIVATE)]],
 )

@@ -20,9 +20,10 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-ALL = ["E00_paper_parity", "E01_imbalance_gap", "E02_conditioning_collapse", "E03_method_components",
-       "E04_client_scaling", "E05_datasets", "E06_iid_paper_setting", "E07_ablations",
-       "E08_generators", "E09_oracles", "E10_cifar10_track2", "E11_privacy_cost"]
+# Quick phase order: the experiments that decide whether full runs are worth it first.
+ALL = ["E03_method_components", "E02_conditioning_collapse", "E06_iid_paper_setting", "E04_client_scaling",
+       "E01_imbalance_gap", "E00_paper_parity", "E09_oracles", "E05_datasets", "E08_generators",
+       "E07_ablations", "E11_privacy_cost", "E10_cifar10_track2"]
 
 # Full phase: most decision-relevant first (plan section 9). Each lane is
 # a list; lanes run in parallel.
@@ -88,7 +89,8 @@ def main():
     ap.add_argument("--phase", choices=["quick", "full", "all"], default="all")
     ap.add_argument("--data_root", default="./data")
     ap.add_argument("--out_dir", default=os.path.join(HERE, "results"))
-    ap.add_argument("--lanes", type=int, default=2)
+    ap.add_argument("--lanes", type=int, default=1,
+                    help="parallel processes; 1 on a 4 GB GPU (two overfill it and Windows pages to RAM)")
     a = ap.parse_args()
     os.makedirs(os.path.join(a.out_dir, "logs"), exist_ok=True)
     common = ["--data_root", a.data_root, "--out_dir", a.out_dir]
@@ -96,7 +98,8 @@ def main():
         quick = [[(n, []) for n in ALL[i::a.lanes]] for i in range(a.lanes)]
         run_phase(quick, common + ["--quick"], a.out_dir)
     if a.phase in ("full", "all"):
-        run_phase(FULL_LANES, common, a.out_dir)
+        lanes = FULL_LANES if a.lanes > 1 else [[job for lane in FULL_LANES for job in lane]]
+        run_phase(lanes, common, a.out_dir)
 
 
 if __name__ == "__main__":

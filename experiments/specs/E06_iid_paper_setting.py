@@ -18,5 +18,6 @@ EXPERIMENT = dict(
                       for ds in ["mnist", "fmnist", "svhn"] for s in cfg["seeds"]
                       for lab, m in [("GeFL-F", compose()), ("+PCM", compose("PCM")),
                                      ("+PCM (r=0.5)", compose("PCM", head=dict(mix_ratio=0.5))),
-                                     ("Ours (HWA+LCD+PCM+LA)", compose(OURS))]],
+                                     ("Ours (HWA+LCD+PCM+LA)", compose(OURS)),
+                                     ("Ours-private (LCD+PCM+LA)", compose(OURS_PRIVATE))]],
 )

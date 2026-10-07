@@ -490,8 +490,11 @@ COMPONENTS = {
     "RF": dict(head=dict(order="real_first")),  # real phase first, synthetic last
     "GENUPD": dict(head=dict(gen_update=True)),  # keep training G_F during stage (iii)
     "DCGAN": dict(gen=dict(type="dcgan", wd=0.0)),
+    "GAUSS": dict(gen=dict(type="gauss", wd=0.0)),   # federated sufficient-statistics Gaussian (FSG)
+    "HYB": dict(gen=dict(type="hybrid")),            # CVAE-F for common classes, FSG for rare ones
 }
 OURS = "HWA+LCD+PCM+LA"
+OURS_PRIVATE = "LCD+PCM+LA"  # no class histograms leave any client
 
 
 def compose(parts="", **over):
@@ -845,6 +848,86 @@ def stage_ii_oracle(ctx, gspec, feats, ys_list, rounds):
     return sd_clone(G), np.array([cond_row_norms(G)]), G
 
 
+# ----- FSG: federated sufficient-statistics Gaussian generator (new)
+class GaussFeatureGen(nn.Module):
+    """Class-conditional Gaussian in the common FE feature space with a
+    shared (pooled within-class) covariance:  h | y ~ N(mu_y, Sigma),
+    samples clipped at 0 (FE features are post-ReLU). Built in ONE round
+    from client SUMS (see stage_ii_gauss), so the federated model equals
+    the centralised one exactly - no averaging of weights, hence none of
+    the dilution / collapse of a learned conditional generator."""
+    kind = "gauss"
+
+    def __init__(self, mu, chol, shape):
+        super().__init__()
+        self.mu = nn.Parameter(mu, requires_grad=False)
+        self.chol = nn.Parameter(chol, requires_grad=False)
+        self.shape = shape
+
+    cond = {"mu": 0}
+
+    @torch.no_grad()
+    def sample(self, y):
+        eps = torch.randn(len(y), self.mu.shape[1], device=self.mu.device)
+        return (self.mu[y] + eps @ self.chol.T).clamp(min=0).view(len(y), *self.shape)
+
+
+class HybridFeatureGen(nn.Module):
+    """CVAE-F for classes with at least n_min samples federation-wide, the
+    Gaussian for rarer ones (bias-variance: a low-capacity model is the
+    better estimator when a class has few samples)."""
+    kind = "hybrid"
+
+    def __init__(self, cvae, gauss, use_gauss):
+        super().__init__()
+        self.cvae, self.gauss = cvae, gauss
+        self.register_buffer("use_gauss", use_gauss)
+        self.cond = {"gauss.mu": 0}
+
+    @torch.no_grad()
+    def sample(self, y):
+        out = self.cvae.sample(y)
+        m = self.use_gauss[y]
+        if m.any():
+            out[m] = self.gauss.sample(y[m])
+        return out
+
+
+def stage_ii_gauss(ctx, gspec, feats, ys_list, shrink=0.1, rng=None):
+    """Each client uploads, for its features h (flattened, D dims):
+        n_kc = #samples of class c,  S_kc = sum_{h in c} h,  M_k = sum_h h h^T.
+    Under secure aggregation the server sees only the sums, which give the
+    exact pooled estimates
+        mu_c = sum_k S_kc / sum_k n_kc,
+        W    = sum_k M_k - sum_c n_c mu_c mu_c^T   (within-class scatter),
+        Sigma = (1 - shrink) W/(N - C) + shrink * tr(.)/D * I.
+    Optional epsilon-DP: Laplace noise on counts (gspec['dp_eps'])."""
+    D = feats[0][0].numel()
+    shape = tuple(feats[0].shape[1:])
+    C = NUM_CLASSES
+    n = torch.zeros(C, device=DEV, dtype=torch.float64)
+    S = torch.zeros(C, D, device=DEV, dtype=torch.float64)
+    M = torch.zeros(D, D, device=DEV, dtype=torch.float64)
+    for X, Y in zip(feats, ys_list):
+        Xf = X.reshape(len(X), -1).double()
+        n += torch.bincount(Y, minlength=C).double()
+        S.index_add_(0, Y, Xf)
+        M += Xf.T @ Xf
+    if gspec.get("dp_eps"):
+        r = rng or np.random.RandomState(ctx.seed + 11)
+        n = (n + torch.from_numpy(r.laplace(0, 1.0 / gspec["dp_eps"], C)).to(DEV)).clamp(min=1.0)
+    mu = S / n.clamp(min=1.0)[:, None]
+    W = M - (mu.T * n) @ mu
+    N = float(n.sum())
+    Sig = W / max(N - C, 1.0)
+    Sig = (Sig + Sig.T) / 2
+    Sig = (1 - shrink) * Sig + shrink * (torch.trace(Sig) / D) * torch.eye(D, device=DEV, dtype=torch.float64)
+    L = torch.linalg.cholesky(Sig + 1e-6 * torch.eye(D, device=DEV, dtype=torch.float64))
+    G = GaussFeatureGen(mu.float(), L.float(), shape).to(DEV)
+    G.graphs = GraphCache()
+    return G, n
+
+
 # ----- referee (per-class generator fidelity) and feature-space MND
 def train_referee(ctx, fe):
     d = ctx.data
@@ -1126,7 +1209,19 @@ def run_one(cfg, run, cache, data_cache):
         if k2 not in cache:
             t2 = time.time()
             set_seed(seed + 1000)
-            if m["gen"]["oracle"]:
+            if m["gen"]["type"] == "gauss":
+                G2, _ = stage_ii_gauss(ctx, m["gen"], s1["feats"], s1["ys"])
+                g_sd = sd_clone(G2)
+                nrm = cond_row_norms(G2)
+                norms, clients, W = np.array([nrm, nrm]), None, None
+            elif m["gen"]["type"] == "hybrid":
+                cv = dict(m["gen"], type="cvae")
+                g_sd_c, norms, Gc, clients, W = stage_ii(ctx, cv, s1["feats"], s1["ys"], T["T_KA"])
+                Gc.load_state_dict(g_sd_c)
+                Gg, n_c = stage_ii_gauss(ctx, m["gen"], s1["feats"], s1["ys"])
+                G2 = HybridFeatureGen(Gc, Gg, n_c < m["gen"].get("n_min", 100)).to(DEV)
+                g_sd, clients = sd_clone(G2), None
+            elif m["gen"]["oracle"]:
                 g_sd, norms, G2 = stage_ii_oracle(ctx, m["gen"], s1["feats"], s1["ys"], T["T_KA"])
                 clients, W = None, None
             else:
@@ -1172,6 +1267,9 @@ def run_one(cfg, run, cache, data_cache):
         with torch.no_grad():
             res["referee_test_acc"] = float((s1["ref"](s1["feats_te"]).argmax(1) == data["yte"]).float().mean())
     res["time_s"] = time.time() - t0
+    if DEV == "cuda":
+        res["gpu_peak_mb"] = round(torch.cuda.max_memory_allocated() / 2 ** 20)
+        torch.cuda.reset_peak_memory_stats()
     return finish(res, tracker, G)
 
 
@@ -1345,6 +1443,7 @@ EXPERIMENT = dict(
                       for lab, m in [("GeFL-F", compose()), ("+LA", compose("LA")),
                                      ("+HWA+LCD+LA", compose("HWA+LCD+LA")),
                                      ("Ours (HWA+LCD+PCM+LA)", compose(OURS)),
+                                     ("Ours-private (LCD+PCM+LA)", compose(OURS_PRIVATE)),
                                      ("LG-FedAvg+LA", baseline_method("LG-FedAvg", la=True))]],
 )
 

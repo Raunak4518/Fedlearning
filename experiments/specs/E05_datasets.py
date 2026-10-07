@@ -15,5 +15,6 @@ EXPERIMENT = dict(
                       for lab, m in [("GeFL-F", compose()), ("+LA", compose("LA")),
                                      ("+HWA+LCD+LA", compose("HWA+LCD+LA")),
                                      ("Ours (HWA+LCD+PCM+LA)", compose(OURS)),
+                                     ("Ours-private (LCD+PCM+LA)", compose(OURS_PRIVATE)),
                                      ("LG-FedAvg+LA", baseline_method("LG-FedAvg", la=True))]],
 )

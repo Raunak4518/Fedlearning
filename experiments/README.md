@@ -171,6 +171,92 @@ After each round, the server re-fits each header's last layer on
 class-balanced synthetic features from G_F (a CReFF-style re-training
 that needs no client data). Ablated in E03 and E07.
 
+### 6. FSG: federated sufficient-statistics generator (new, E13)
+
+The quick pass showed two things. First, every method sits about 13 pp
+below the classifier oracle. At K = 10 each architecture lives on a single
+client, so classifier knowledge about rare classes can reach it only
+through the generator. Second, the CVAE-F generator models rare classes
+poorly: its tail fidelity is 0.15–0.40, even after HWA. PCM failed for the
+same reason, because it puts its synthetic mass on exactly those classes.
+
+FSG replaces the learned generator with a class-conditional Gaussian in
+the shared FE feature space, h | y ~ N(μ_y, Σ), with a pooled
+within-class covariance. Samples are clipped at 0, because FE features
+come after a ReLU. Client k uploads, once:
+
+    n_k,c  (counts),   S_k,c = Σ_{h∈c} h  (class sums),   M_k = Σ_h h hᵀ  (second moment)
+
+The server forms the exact pooled estimates
+
+    μ_c = Σ_k S_k,c / Σ_k n_k,c,    W = Σ_k M_k − Σ_c n_c μ_c μ_cᵀ,
+    Σ = (1 − γ)·W/(N − C) + γ·(tr/D)·I
+
+with γ = 0.1 shrinkage, because rare classes have n_c ≪ D.
+
+* **No aggregation loss.** Because these are sums, the federated FSG equals
+  the centralised one. Theorem 1's dilution and eq. 2.2's collapse cannot
+  occur.
+* **The right capacity for rare classes.** With n_c ≈ 24, a mean has
+  estimation error tr(Σ)/n_c. A 5.5M-parameter generator fitted to the
+  same 24 samples through 100 rounds of averaging is a far noisier
+  estimator. The pooled Σ borrows second-moment strength from every
+  class, as LDA does.
+* **Privacy.** The server needs only sums, so it works under secure
+  aggregation, and the counts can take DP noise (E13 tests ε = 1). A
+  Gaussian cannot reproduce an individual training sample.
+* **Communication.** One round of D² + C·D + C numbers (about 600k for
+  3×16×16 features), against 5.5M parameters × 100 rounds for CVAE-F:
+  about 1000× less. Stage (ii) takes seconds instead of minutes.
+
+HYB keeps CVAE-F for classes with at least 100 samples federation-wide and
+uses FSG below that, in case the Gaussian is too crude for common classes.
+
+### Privacy: what each component discloses
+
+| Component | Runs where | New information leaving a client | Under secure aggregation |
+|---|---|---|---|
+| LA | client | none (uses the client's own label counts locally) | none |
+| PCM | client | none (uses the shared generator, already in GeFL-F) | none |
+| LCD | client | none (an optimiser change) | none |
+| HWA | server | the class histogram E(n_k,·), C numbers | only federation-wide totals Σ_k E(n_k,c) |
+| BCR | server | none (uses only the generator) | none |
+
+Two points matter here.
+
+1. **Original GeFL-F already leaks class presence.** A conditioning row of a
+   class the client lacks gets no data gradient, so its update is just the
+   weight-decay shrinkage, which a server can tell apart from a data
+   update. HWA's counts add *how many* samples, on top of *whether*.
+2. **HWA works with secure aggregation.** Each client uploads
+   E(n_k,c)·w_k,c for the conditioning rows, and the vector E(n_k,c),
+   inside the same masked sum as the rest of its update. The server
+   recovers Σ_k E(n_k,c)·w_k,c / Σ_k E(n_k,c) without seeing any one
+   client's histogram. E11 adds Laplace noise to the histograms (ε-DP) to
+   price even the plain version.
+
+**Ours-private = LCD + PCM + LA** sends nothing beyond what GeFL-F
+already sends. It runs beside Ours in E03, E04, E05, E06 and E11, so the
+privacy price of HWA is measured rather than asserted.
+
+### Federated trade-offs the experiments cover
+
+* **Client count and data scarcity** (E04): K = 10, 50, 100 with the
+  paper's fixed total data, so clients get smaller and rarer classes have
+  fewer holders.
+* **Statistical heterogeneity** (E01): IID, Dirichlet label skew, and long
+  tails of increasing severity.
+* **The paper's own regime** (E06, E10): a method that only helps under
+  imbalance but hurts IID clients would be rejected.
+* **Communication**: HWA adds C numbers per client once. Nothing else adds
+  traffic. PCM generates S = 0.2·B features per batch, the same synthetic
+  budget as GeFL-F's T_s = 1 epoch, so client compute does not change.
+* **Model heterogeneity**: all ten architectures are trained and reported.
+  At K = 10 each is unique and never averaged; at K = 50 and 100, five or
+  ten clients share each one.
+* **Memorisation** (E11): feature-space MND, so our generator does not
+  memorise more than the baseline's.
+
 **Ours = HWA + LCD + PCM + LA.** The decisive comparison is Ours against
 **+LA** alone, the cheap classifier-side fix (FedLC-style). If Ours wins,
 the generator-side parts contribute something a classifier-side
