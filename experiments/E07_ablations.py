@@ -492,7 +492,8 @@ COMPONENTS = {
     "GENUPD": dict(head=dict(gen_update=True)),  # keep training G_F during stage (iii)
     "DCGAN": dict(gen=dict(type="dcgan", wd=0.0)),
     "GAUSS": dict(gen=dict(type="gauss", wd=0.0)),   # federated sufficient-statistics Gaussian (FSG)
-    "HYB": dict(gen=dict(type="hybrid")),            # CVAE-F for common classes, FSG for rare ones
+    "HYB": dict(gen=dict(type="hybrid")),            # CVAE-F for common classes, FSG for rare ones (n < 100)
+    "RHYB": dict(gen=dict(type="hybrid", n_min_rel=0.5)),  # FSG for classes below half the average count
 }
 OURS = "HWA+LCD+PCM+LA"
 OURS_PRIVATE = "LCD+PCM+LA"  # no class histograms leave any client
@@ -923,7 +924,11 @@ def stage_ii_gauss(ctx, gspec, feats, ys_list, shrink=0.1, rng=None):
     Sig = W / max(N - C, 1.0)
     Sig = (Sig + Sig.T) / 2
     Sig = (1 - shrink) * Sig + shrink * (torch.trace(Sig) / D) * torch.eye(D, device=DEV, dtype=torch.float64)
-    L = torch.linalg.cholesky(Sig + 1e-6 * torch.eye(D, device=DEV, dtype=torch.float64))
+    # Square root via eigendecomposition with a positive floor: W can lose
+    # positive-definiteness when the counts carry DP noise.
+    evals, evecs = torch.linalg.eigh(Sig)
+    evals = evals.clamp(min=1e-6 * float(torch.trace(Sig)) / D)
+    L = evecs * evals.sqrt()
     G = GaussFeatureGen(mu.float(), L.float(), shape).to(DEV)
     G.graphs = GraphCache()
     return G, n
@@ -1209,6 +1214,7 @@ def run_one(cfg, run, cache, data_cache):
         k2 = key_of(run, cfg, 2)
         if k2 not in cache:
             t2 = time.time()
+            n_gauss = None
             set_seed(seed + 1000)
             if m["gen"]["type"] == "gauss":
                 G2, _ = stage_ii_gauss(ctx, m["gen"], s1["feats"], s1["ys"])
@@ -1220,7 +1226,12 @@ def run_one(cfg, run, cache, data_cache):
                 g_sd_c, norms, Gc, clients, W = stage_ii(ctx, cv, s1["feats"], s1["ys"], T["T_KA"])
                 Gc.load_state_dict(g_sd_c)
                 Gg, n_c = stage_ii_gauss(ctx, m["gen"], s1["feats"], s1["ys"])
-                G2 = HybridFeatureGen(Gc, Gg, n_c < m["gen"].get("n_min", 100)).to(DEV)
+                # A class gets FSG when it is rare relative to the federation:
+                # n_c < rel * N / C (n_min_rel); else an absolute threshold n_min.
+                rel = m["gen"].get("n_min_rel")
+                thr = rel * float(n_c.sum()) / NUM_CLASSES if rel else m["gen"].get("n_min", 100)
+                G2 = HybridFeatureGen(Gc, Gg, n_c < thr).to(DEV)
+                n_gauss = int((n_c < thr).sum())
                 g_sd, clients = sd_clone(G2), None
             elif m["gen"]["oracle"]:
                 g_sd, norms, G2 = stage_ii_oracle(ctx, m["gen"], s1["feats"], s1["ys"], T["T_KA"])
@@ -1230,12 +1241,16 @@ def run_one(cfg, run, cache, data_cache):
             G2.load_state_dict(g_sd)
             fid = referee_fidelity(s1["ref"], G2) if s1["ref"] is not None else None
             mnd = feature_mnd(ctx, G2, s1["fe"]) if cfg.get("mnd", False) else None
+            if m["gen"]["type"] == "gauss":
+                n_gauss = NUM_CLASSES
             cache[k2] = dict(g_sd=g_sd, norms=norms, G=G2, clients=clients, W=W, fid=fid, mnd=mnd,
-                             t=time.time() - t2)
+                             t=time.time() - t2, n_gauss=n_gauss)
         s2 = cache[k2]
         G = s2["G"]
         G.load_state_dict(s2["g_sd"])
         res["gen_time_s"] = s2["t"]
+        if s2.get("n_gauss") is not None:
+            res["n_gauss_classes"] = s2["n_gauss"]
         nr = s2["norms"]
         res["cond_norm_tail_over_head_end"] = float(nr[-1, 6:].mean() / max(nr[-1, :3].mean(), 1e-12))
         res["cond_norm_tail_rel_init"] = float(nr[-1, 6:].mean() / max(nr[0, 6:].mean(), 1e-12))
@@ -1284,7 +1299,7 @@ def finish(res, tracker, G):
     return res
 
 
-SCALAR_FIELDS = ["final_bal", "final_acc", "final_tail", "final_head", "final_medium", "final_worst",
+SCALAR_FIELDS = ["final_bal", "final_acc", "final_tail", "final_head", "final_medium", "final_worst", "n_gauss_classes",
                  "best_mean_acc", "oracle_bal", "oracle_tail", "fidelity_head", "fidelity_tail",
                  "cond_norm_tail_over_head_end", "cond_norm_tail_rel_init", "feature_mnd", "referee_test_acc",
                  "time_s", "fe_time_s", "gen_time_s", "head_time_s", "n_train", "min_client", "tail_holders"]
