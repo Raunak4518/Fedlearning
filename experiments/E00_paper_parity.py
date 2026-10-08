@@ -176,15 +176,17 @@ def load_dataset(name, root):
     spec = DATASETS[name]
 
     def prep(x):
-        x = x.float().div(255.0)
-        if x.shape[-1] != 32:  # MNIST / FMNIST 28 -> 32 (Table XVI)
-            x = F.interpolate(x, size=32, mode="bilinear", align_corners=False, antialias=True)
+        if x.shape[-1] != 32:  # MNIST / FMNIST 28 -> 32 (Table XVI); in chunks to bound peak RAM
+            x = torch.cat([F.interpolate(x[i:i + 8192].float().div(255.0), size=32, mode="bilinear",
+                                         align_corners=False, antialias=True) for i in range(0, len(x), 8192)])
+        else:
+            x = x.float().div(255.0)
         if spec["norm"] == "half":
-            x = (x - 0.5) / 0.5
+            x.sub_(0.5).div_(0.5)  # in place: no second full-size copy
         elif spec["norm"] != "none":
             m = torch.tensor(spec["norm"][0]).view(1, -1, 1, 1)
             s = torch.tensor(spec["norm"][1]).view(1, -1, 1, 1)
-            x = (x - m) / s
+            x.sub_(m).div_(s)
         return x
 
     # training images stay on the CPU; localize() moves only the ones in use
@@ -506,7 +508,8 @@ FE_DEFAULTS = dict(la=False, T_FE=None, oracle=False)
 GEN_DEFAULTS = dict(type="cvae", wd=1e-3, agg="flat", lazy=False, beta=0.999, weight="en",
                     dp_eps=None, oracle=False, T_KA=None)
 HEAD_DEFAULTS = dict(sampler="uniform", order="syn_first", ts=1, tr=5, mix=None, mix_ratio=0.2,
-                     loss="ce", tau=1.0, bcr=0, bcr_lr=0.05, gen_update=False, csl=0.0, csl_mix=False)
+                     loss="ce", tau=1.0, bcr=0, bcr_lr=0.05, gen_update=False, csl=0.0, csl_mix=False,
+                     sed=0, sed_lr=0.05, sed_beta=0.5, sed_bs=128)
 
 
 def method(pipeline="gefl_f", fe=None, gen=None, head=None):
@@ -529,8 +532,10 @@ COMPONENTS = {
     "RF": dict(head=dict(order="real_first")),  # real phase first, synthetic last
     "GENUPD": dict(head=dict(gen_update=True)),  # keep training G_F during stage (iii)
     "DCGAN": dict(gen=dict(type="dcgan", wd=0.0)),
+    "DDPM": dict(gen=dict(type="ddpm", wd=0.0)),   # the authors' DDPM-F (feature diffusion, w = 0)
     "CSL": dict(head=dict(csl=0.5)),            # consensus soft labels for synthetic features
-    "CSLM": dict(head=dict(csl=0.5, csl_mix=True)),  # ...interleaved into every real batch (no forgetting)
+    "CSLM": dict(head=dict(csl=0.5, csl_mix=True)),
+    "SED": dict(head=dict(sed=20)),             # server-side ensemble distillation on generated features  # ...interleaved into every real batch (no forgetting)
     "GAUSS": dict(gen=dict(type="gauss", wd=0.0)),   # federated sufficient-statistics Gaussian (FSG)
     "HYB": dict(gen=dict(type="hybrid")),            # CVAE-F for common classes, FSG for rare ones (n < 100)
     "RHYB": dict(gen=dict(type="hybrid", n_min_rel=0.5)),  # FSG for classes below half the average count
@@ -780,9 +785,122 @@ def stage_i_oracle(ctx, epochs=30):
     return sd_clone(fe), [sd_clone(h) for h in headers], fe
 
 
+
+# ----- DDPM-F: the authors' feature diffusion model (DDPM/ddpm16.py), ported
+class _ResConv(nn.Module):
+    def __init__(self, cin, cout, is_res=False):
+        super().__init__()
+        self.same, self.is_res = cin == cout, is_res
+        self.conv1 = nn.Sequential(nn.Conv2d(cin, cout, 3, 1, 1), nn.BatchNorm2d(cout), nn.GELU())
+        self.conv2 = nn.Sequential(nn.Conv2d(cout, cout, 3, 1, 1), nn.BatchNorm2d(cout), nn.GELU())
+
+    def forward(self, x):
+        x1 = self.conv1(x)
+        x2 = self.conv2(x1)
+        if self.is_res:
+            return ((x if self.same else x1) + x2) / 1.414
+        return x2
+
+
+class _EmbedFC(nn.Module):
+    def __init__(self, din, demb):
+        super().__init__()
+        self.din = din
+        self.model = nn.Sequential(nn.Linear(din, demb), nn.GELU(), nn.Linear(demb, demb))
+
+    def forward(self, x):
+        return self.model(x.view(-1, self.din))
+
+
+class _ContextUnet(nn.Module):
+    """ContextUnet of the reference ddpm16.py (16x16 feature maps)."""
+
+    def __init__(self, cin, n_feat=128, n_classes=10):
+        super().__init__()
+        self.n_feat, self.n_classes = n_feat, n_classes
+        self.init_conv = _ResConv(cin, n_feat, is_res=True)
+        self.down1 = nn.Sequential(_ResConv(n_feat, n_feat), nn.MaxPool2d(2))
+        self.down2 = nn.Sequential(_ResConv(n_feat, 2 * n_feat), nn.MaxPool2d(2))
+        self.to_vec = nn.Sequential(nn.AvgPool2d(4), nn.GELU())
+        self.timeembed1, self.timeembed2 = _EmbedFC(1, 2 * n_feat), _EmbedFC(1, n_feat)
+        self.contextembed1, self.contextembed2 = _EmbedFC(n_classes, 2 * n_feat), _EmbedFC(n_classes, n_feat)
+        self.up0 = nn.Sequential(nn.ConvTranspose2d(2 * n_feat, 2 * n_feat, 4, 4), nn.GroupNorm(4, 2 * n_feat), nn.ReLU())
+        self.up1 = nn.Sequential(nn.ConvTranspose2d(4 * n_feat, n_feat, 2, 2), _ResConv(n_feat, n_feat), _ResConv(n_feat, n_feat))
+        self.up2 = nn.Sequential(nn.ConvTranspose2d(2 * n_feat, n_feat, 2, 2), _ResConv(n_feat, n_feat), _ResConv(n_feat, n_feat))
+        self.out = nn.Sequential(nn.Conv2d(2 * n_feat, n_feat, 3, 1, 1), nn.GroupNorm(8, n_feat), nn.ReLU(),
+                                 nn.Conv2d(n_feat, cin, 3, 1, 1))
+
+    def forward(self, x, c, t, context_mask):
+        x = self.init_conv(x)
+        d1 = self.down1(x)
+        d2 = self.down2(d1)
+        hv = self.to_vec(d2)
+        c = F.one_hot(c, num_classes=self.n_classes).float() * (1 - context_mask[:, None])
+        cemb1 = self.contextembed1(c).view(-1, 2 * self.n_feat, 1, 1)
+        temb1 = self.timeembed1(t).view(-1, 2 * self.n_feat, 1, 1)
+        cemb2 = self.contextembed2(c).view(-1, self.n_feat, 1, 1)
+        temb2 = self.timeembed2(t).view(-1, self.n_feat, 1, 1)
+        u1 = self.up0(hv)
+        u2 = self.up1(torch.cat([cemb1 * u1 + temb1, d2], 1))
+        u3 = self.up2(torch.cat([cemb2 * u2 + temb2, d1], 1))
+        return self.out(torch.cat([u3, x], 1))
+
+
+class PaperDDPMF(nn.Module):
+    """Reference DDPM-F: classifier-free-guidance DDPM on FE features
+    (n_T = 200, betas 1e-4..0.02, context dropout 0.1, Adam 1e-4 with linear
+    decay, guidance w = 0). With w = 0 the guided noise estimate equals the
+    conditional one, so sampling runs only the conditional half of the
+    reference's doubled batch (identical output, half the cost). The class
+    enters through the first Linear of each context embedding: its column c
+    is class c's conditioning row (HWA averages it over holders)."""
+    kind = "ddpm"
+    cond = {"net.contextembed1.model.0.weight": 1, "net.contextembed2.model.0.weight": 1}
+
+    def __init__(self, in_ch, shape, n_feat=128, n_T=200, drop_prob=0.1):
+        super().__init__()
+        self.net = _ContextUnet(in_ch, n_feat, NUM_CLASSES)
+        self.n_T, self.drop_prob, self.shape = n_T, drop_prob, tuple(shape)
+        beta = (0.02 - 1e-4) * torch.arange(0, n_T + 1, dtype=torch.float32) / n_T + 1e-4
+        alpha = 1 - beta
+        abar = torch.cumsum(torch.log(alpha), 0).exp()
+        self.register_buffer("sqrtab", abar.sqrt())
+        self.register_buffer("sqrtmab", (1 - abar).sqrt())
+        self.register_buffer("oneover_sqrta", 1 / alpha.sqrt())
+        self.register_buffer("mab_over_sqrtmab", (1 - alpha) / (1 - abar).sqrt())
+        self.register_buffer("sqrt_beta", beta.sqrt())
+
+    def loss(self, x, y):
+        t = torch.randint(1, self.n_T + 1, (len(x),), device=x.device)
+        noise = torch.randn_like(x)
+        xt = self.sqrtab[t, None, None, None] * x + self.sqrtmab[t, None, None, None] * noise
+        mask = torch.bernoulli(torch.full((len(y),), self.drop_prob, device=x.device))
+        return F.mse_loss(self.net(xt, y, t.float().div(self.n_T)[:, None], mask), noise)
+
+    @torch.no_grad()
+    def sample(self, y):
+        if len(y) > 768:  # bound GPU memory: 200 UNet passes per sample
+            return torch.cat([self.sample(y[i:i + 768]) for i in range(0, len(y), 768)])
+        was = self.training
+        self.eval()
+        x = torch.randn(len(y), *self.shape, device=y.device)
+        mask = torch.zeros(len(y), device=y.device)
+        for i in range(self.n_T, 0, -1):
+            t = torch.full((len(y), 1), i / self.n_T, device=y.device)
+            with torch.autocast("cuda", dtype=torch.float16, enabled=x.is_cuda):  # inference only
+                eps = self.net(x, y, t, mask).float()
+            z = torch.randn_like(x) if i > 1 else 0
+            x = self.oneover_sqrta[i] * (x - eps * self.mab_over_sqrtmab[i]) + self.sqrt_beta[i] * z
+        self.train(was)
+        return x
+
+
 # ----- stage (ii): feature-generator training
-def make_gen(ctx, gspec, in_ch):
-    G = PaperCVAE(in_ch, ctx.spec["latent"]).to(DEV) if gspec["type"] == "cvae" else PaperDCGAN(in_ch).to(DEV)
+def make_gen(ctx, gspec, in_ch, shape=None):
+    if gspec["type"] == "ddpm":
+        G = PaperDDPMF(in_ch, shape).to(DEV)
+    else:
+        G = PaperCVAE(in_ch, ctx.spec["latent"]).to(DEV) if gspec["type"] == "cvae" else PaperDCGAN(in_ch).to(DEV)
     G.graphs = GraphCache()
     return G
 
@@ -801,6 +919,8 @@ class GenClient:
             if cond:
                 groups.append({"params": cond, "weight_decay": 0.0})
             self.opts = [torch.optim.Adam(groups, lr=1e-3, fused=DEV == "cuda")]
+        elif G.kind == "ddpm":
+            self.opts = [torch.optim.Adam(G.parameters(), lr=1e-4)]
         else:
             self.opts = [torch.optim.Adam(G.g_params(), lr=2e-4, betas=(0.5, 0.999)),
                          torch.optim.Adam(G.d_params(), lr=2e-4, betas=(0.5, 0.999))]
@@ -825,6 +945,13 @@ def gen_local_update(G, gc, gspec, feats, ys, B=64, epochs=5):
             if b.numel() < 2:
                 continue
             x, y = feats[b], ys[b]
+            if G.kind == "ddpm":
+                opt = gc.opts[0]
+                loss = G.loss(x, y)
+                opt.zero_grad(set_to_none=True)
+                loss.backward()
+                opt.step()
+                continue
             if G.kind == "cvae":
                 opt = gc.opts[0]
                 loss = G.graphs(("loss", len(y)), G, G.loss, x, y) if len(y) == B else G.loss(x, y)
@@ -889,7 +1016,7 @@ def cond_row_norms(G):
 def stage_ii(ctx, gspec, feats, ys_list, rounds):
     """Federated feature-generator training on frozen-FE features."""
     in_ch = feats[0].shape[1]
-    G = make_gen(ctx, gspec, in_ch)
+    G = make_gen(ctx, gspec, in_ch, feats[0].shape[1:])
     g_sd = sd_clone(G)
     offload = ctx.K > 20
     clients = [GenClient(G, gspec, offload) for _ in range(ctx.K)]
@@ -900,6 +1027,9 @@ def stage_ii(ctx, gspec, feats, ys_list, rounds):
         avg = Averager(G.cond if gspec["agg"] == "A" else None, prev=g_sd)
         for k in range(ctx.K):
             G.load_state_dict(g_sd)
+            if G.kind == "ddpm":  # reference: lr = 1e-4 * (1 - round / T_KA)
+                for gr in clients[k].opts[0].param_groups:
+                    gr["lr"] = 1e-4 * (1 - (r + 1) / rounds)
             gen_local_update(G, clients[k], gspec, feats[k], ys_list[k])
             avg.add(G.state_dict(), W[k] if gspec["agg"] == "A" else None)
         g_sd = avg.result()
@@ -912,7 +1042,7 @@ def stage_ii_oracle(ctx, gspec, feats, ys_list, rounds):
     """E10(b): the same generator trained centrally on the pooled federation
     features with class-balanced sampling, same number of optimizer steps."""
     in_ch = feats[0].shape[1]
-    G = make_gen(ctx, gspec, in_ch)
+    G = make_gen(ctx, gspec, in_ch, feats[0].shape[1:])
     gc = GenClient(G, gspec, False)
     X, Y = torch.cat(feats), torch.cat(ys_list)
     w = 1.0 / torch.bincount(Y, minlength=NUM_CLASSES).float().clamp(min=1)
@@ -1107,16 +1237,19 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
         if G is not None:
             G.eval()
         pool = None
-        if G is not None and hspec["csl"] and hspec["ts"] > 0:
+        if G is not None and (hspec["csl"] or G.kind == "ddpm") and hspec["ts"] > 0:
             # CSL: one shared synthetic batch per round, labelled by the consensus
             # of every architecture's current header (clients would upload only
             # these probabilities; summable under secure aggregation)
             P = max(hspec["ts"] * (sz // B if sz >= B else 1) * (B if sz >= B else sz) for sz in ctx.sizes)
             py = torch.randint(0, C, (P,), device=DEV)
             px = torch.cat([G.sample(py[s:s + 4096]) for s in range(0, P, 4096)])
+            # (DDPM-F without CSL: the same shared pool with one-hot targets. Each
+            # head still sees fresh uniform-label samples every round - exactly the
+            # reference's per-client draw in distribution - at 1/K of the cost.)
             with torch.no_grad():
                 cons = torch.zeros(P, C, device=DEV)
-                for g in ctx.groups:
+                for g in (ctx.groups if hspec["csl"] else []):
                     headers[g].load_state_dict(hd_sd[g])
                     headers[g].eval()
                     cons += torch.cat([headers[g](px[s:s + 4096]).softmax(1) for s in range(0, P, 4096)])
@@ -1238,6 +1371,42 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
                     loss.backward()
                     opt.step()
                 hd_sd[g] = sd_clone(h)
+        if hspec["sed"] and G is not None:
+            # SED: server-side ensemble distillation on generated features. The
+            # server already holds every architecture's aggregated header and
+            # G_F; each header takes sed steps toward the CSL target
+            # (1 - b) onehot(y) + b * mean_g softmax(h_g(x)) on fresh synthetic
+            # features. No client computation or message is added.
+            n_sed = hspec["sed"] * hspec["sed_bs"]
+            sy = torch.randint(0, C, (n_sed,), device=DEV)
+            with torch.no_grad():
+                sx = torch.cat([G.sample(sy[s:s + 4096]) for s in range(0, n_sed, 4096)])
+                cons = torch.zeros(n_sed, C, device=DEV)
+                for g in ctx.groups:
+                    headers[g].load_state_dict(hd_sd[g])
+                    headers[g].eval()
+                    cons += torch.cat([headers[g](sx[s:s + 4096]).softmax(1) for s in range(0, n_sed, 4096)])
+                cons /= len(ctx.groups)
+                tgt = (1 - hspec["sed_beta"]) * F.one_hot(sy, C).float() + hspec["sed_beta"] * cons
+            for g in ctx.groups:
+                h = headers[g]
+                h.train()  # BN normalises synthetic batches by their own statistics, as on clients
+                opt = torch.optim.SGD(h.parameters(), lr=hspec["sed_lr"], momentum=0.0)
+                ok = True
+                for s in range(0, n_sed, hspec["sed_bs"]):
+                    loss = -(tgt[s:s + hspec["sed_bs"]] * h(sx[s:s + hspec["sed_bs"]]).log_softmax(1)).sum(1).mean()
+                    if not torch.isfinite(loss):
+                        ok = False
+                        break
+                    opt.zero_grad(set_to_none=True)
+                    loss.backward()
+                    opt.step()
+                if ok:
+                    new_sd = sd_clone(h)
+                    for k, v in hd_sd[g].items():  # BN running statistics stay those of real features
+                        if "running_" in k or "num_batches" in k:
+                            new_sd[k] = v
+                    hd_sd[g] = new_sd
         if r == 0 or (r + 1) % eval_every == 0 or r == rounds - 1:
             for g in ctx.groups:
                 headers[g].load_state_dict(hd_sd[g])
@@ -1557,6 +1726,7 @@ def main(exp):
     ap.add_argument("--datasets", nargs="+", default=None)
     ap.add_argument("--only", nargs="+", default=None, help="run only these labels")
     ap.add_argument("--K", type=int, nargs="+", default=None, help="run only these client counts")
+    ap.add_argument("--IF", type=float, nargs="+", default=None, help="run only these imbalance factors (1.0 = balanced)")
     ap.add_argument("--list", action="store_true", help="print the planned runs and exit")
     ap.add_argument("--gpus", type=int, default=None,
                     help="parallel GPU workers (default: all visible GPUs, e.g. 2 on Kaggle T4 x2)")
@@ -1572,6 +1742,8 @@ def main(exp):
         runs = [r for r in runs if r["label"] in a.only]
     if a.K:
         runs = [r for r in runs if r["K"] in a.K]
+    if a.IF:
+        runs = [r for r in runs if r["IF"] in a.IF]
     out_dir = os.path.join(a.out_dir, exp["name"] + ("_quick" if a.quick else ""))
     os.makedirs(out_dir, exist_ok=True)
     jl = os.path.join(out_dir, "runs.jsonl")
@@ -1639,9 +1811,14 @@ def main(exp):
         print(open(path, encoding="utf-8").read())
         return
     if a.worker is not None and n_gpu > 1:
-        groups = sorted({json.dumps([r["dataset"], r["IF"], r["alpha"], r["K"], r["seed"]]) for r in runs})
+        # split_by_gen: runs that train different generators may go to different
+        # GPUs (each worker then repeats the cheap FE stage); needed when one
+        # seed's generators are hours each (DDPM-F on CIFAR-10).
+        gkey = (lambda r: [r["dataset"], r["IF"], r["alpha"], r["K"], r["seed"]] +
+                ([key_of(r, cfg, 2) if r["m"]["gen"] else ""] if exp.get("split_by_gen") else []))
+        groups = sorted({json.dumps(gkey(r)) for r in runs})
         mine = set(groups[a.worker::n_gpu])
-        runs = [r for r in runs if json.dumps([r["dataset"], r["IF"], r["alpha"], r["K"], r["seed"]]) in mine]
+        runs = [r for r in runs if json.dumps(gkey(r)) in mine]
     remaining = defaultdict(int)
     for r in runs:
         if run_id(r) not in done:

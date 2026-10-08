@@ -571,6 +571,85 @@ def sec_privacy():
 </section>"""
 
 
+# Every GeFL / GeFL-F number in the paper (Fig. 4, Table II, Table IV), best_mean_acc %, IID.
+# (method, generator) -> {(dataset, K): value}
+PAPER_FIG4 = {
+    ("FedProx", "-"): {("mnist", 10): 92.57, ("mnist", 50): 92.21, ("mnist", 100): 91.33, ("fmnist", 10): 80.50, ("fmnist", 50): 79.94, ("fmnist", 100): 79.67,
+                       ("svhn", 10): 65.18, ("svhn", 50): 63.88, ("svhn", 100): 65.59, ("cifar10", 10): 55.10, ("cifar10", 50): 54.95, ("cifar10", 100): 52.71},
+    ("FedALA", "-"): {("mnist", 10): 92.70, ("mnist", 50): 91.57, ("mnist", 100): 91.93, ("fmnist", 10): 80.03, ("fmnist", 50): 79.75, ("fmnist", 100): 79.48,
+                      ("svhn", 10): 61.32, ("svhn", 50): 56.87, ("svhn", 100): 53.36, ("cifar10", 10): 53.01, ("cifar10", 50): 52.21, ("cifar10", 100): 51.56},
+    ("GeFL", "DCGAN"): {("mnist", 10): 95.32, ("mnist", 50): 92.94, ("mnist", 100): 91.76, ("fmnist", 10): 83.11, ("fmnist", 50): 81.28, ("fmnist", 100): 80.50,
+                        ("svhn", 10): 66.57, ("svhn", 50): 65.00, ("svhn", 100): 65.66, ("cifar10", 10): 58.45, ("cifar10", 50): 54.73, ("cifar10", 100): 49.35},
+    ("GeFL-F", "DCGAN-F"): {("mnist", 10): 95.13, ("mnist", 50): 93.67, ("mnist", 100): 93.08, ("fmnist", 10): 82.62, ("fmnist", 50): 81.29, ("fmnist", 100): 80.71,
+                            ("svhn", 10): 68.78, ("svhn", 50): 69.32, ("svhn", 100): 65.66, ("cifar10", 10): 54.82, ("cifar10", 50): 53.80, ("cifar10", 100): 53.95},
+    ("GeFL", "CVAE"): {("mnist", 10): 94.46, ("mnist", 50): 92.68, ("mnist", 100): 91.72, ("fmnist", 10): 82.56, ("fmnist", 50): 80.24, ("fmnist", 100): 79.83,
+                       ("svhn", 10): 74.74, ("svhn", 50): 71.66, ("svhn", 100): 70.35, ("cifar10", 10): 55.80, ("cifar10", 50): 54.84, ("cifar10", 100): 50.96},
+    ("GeFL-F", "CVAE-F"): {("mnist", 10): 95.47, ("mnist", 50): 95.04, ("mnist", 100): 94.63, ("fmnist", 10): 83.14, ("fmnist", 50): 82.21, ("fmnist", 100): 81.65,
+                           ("svhn", 10): 76.26, ("svhn", 50): 73.64, ("svhn", 100): 76.00, ("cifar10", 10): 55.86, ("cifar10", 50): 53.19, ("cifar10", 100): 51.46},
+    ("GeFL", "DDPM w=0"): {("mnist", 10): 96.44, ("mnist", 50): 94.37, ("mnist", 100): 93.12, ("fmnist", 10): 82.43, ("fmnist", 50): 81.51, ("fmnist", 100): 79.29,
+                           ("svhn", 10): 75.11, ("svhn", 50): 67.81, ("svhn", 100): 69.36, ("cifar10", 10): 59.36, ("cifar10", 50): 55.52, ("cifar10", 100): 51.51},
+    ("GeFL-F", "DDPM-F w=0"): {("mnist", 10): 95.72, ("mnist", 50): 94.11, ("mnist", 100): 94.17, ("fmnist", 10): 84.28, ("fmnist", 50): 82.96, ("fmnist", 100): 80.95,
+                               ("svhn", 10): 73.38, ("svhn", 50): 68.12, ("svhn", 100): 67.84, ("cifar10", 10): 56.61, ("cifar10", 50): 53.64, ("cifar10", 100): 51.16},
+    ("GeFL", "DDPM w=2"): {("mnist", 10): 95.17, ("mnist", 50): 93.44, ("mnist", 100): 92.63, ("fmnist", 10): 81.51, ("fmnist", 50): 81.28, ("fmnist", 100): 79.36,
+                           ("svhn", 10): 73.15, ("svhn", 50): 67.17, ("svhn", 100): 68.75, ("cifar10", 10): 58.47, ("cifar10", 50): 56.31, ("cifar10", 100): 51.83},
+    ("GeFL-F", "DDPM-F w=2"): {("mnist", 10): 93.60, ("mnist", 50): 93.52, ("mnist", 100): 94.06, ("fmnist", 10): 82.29, ("fmnist", 50): 81.04, ("fmnist", 100): 80.82,
+                               ("svhn", 10): 72.55, ("svhn", 50): 67.80, ("svhn", 100): 67.72, ("cifar10", 10): 55.35, ("cifar10", 50): 53.43, ("cifar10", 100): 50.00},
+}
+# Table IV: image-space GeFL (DCGAN) with data augmentation, CIFAR-10 IID, K = 10.
+PAPER_AUG_CIFAR = {"FedAvg": 55.65, "FedAvg + MixUp": 60.07, "FedAvg + CutMix": 58.95, "FedAvg + AugMix": 53.96, "FedAvg + AutoAugment": 56.99,
+                   "GeFL + MixUp": 62.67, "GeFL + CutMix": 61.66, "GeFL + AugMix": 56.47, "GeFL + AutoAugment": 59.97}
+
+
+def ours_iid(ds, K):
+    """Best evidence for our full method in the IID setting, with its source."""
+    cands = []
+    for exp, lab in [("F10_combined_method", "+HWA+LA+CSL"), ("F11_ddpm_generator", "Ours (DDPM-F)"),
+                     ("K01_kaggle_cifar10_svhn", "Ours (HWA+LA+CSL)"), ("K03_kaggle_client_scaling", "Ours (HWA+LA+CSL)"),
+                     ("K04_kaggle_ddpm_cifar10_svhn", "Ours (DDPM-F)")]:
+        v = pick(load(exp) if not exp.startswith("K01") else kaggle_runs()[0], lab, "best_mean_acc", dataset=ds, K=K, IF=1.0)
+        if v:
+            cands.append((mean(v), len(v), exp.split("_")[0], lab))
+    if not cands:
+        v = pick(load("F09_consensus_paper_setting"), "+CSL (beta=0.5)", "best_mean_acc", dataset=ds, K=K, IF=1.0)
+        v = v or pick(kaggle_runs()[0], "+CSL (beta=0.5)", "best_mean_acc", dataset=ds, K=K, IF=1.0)
+        if v:
+            cands.append((mean(v), len(v), "F09/K01", "+CSL"))
+    return max(cands) if cands else None
+
+
+def sec_vs_paper():
+    rows = []
+    for ds in ["mnist", "fmnist", "svhn", "cifar10"]:
+        for K in [10, 50, 100]:
+            best = max(((v[(ds, K)], m, g) for (m, g), v in PAPER_FIG4.items() if (ds, K) in v))
+            gf = PAPER_FIG4[("GeFL-F", "CVAE-F")][(ds, K)]
+            o = ours_iid(ds, K)
+            if o:
+                val, n, src, lab = o
+                verdict = ('<span class="pill g">above best</span>' if val > best[0] + 0.3 else
+                           ('<span class="pill t">tie (&plusmn;0.3)</span>' if val >= best[0] - 0.3 else '<span class="pill b">below</span>'))
+                cell = f"{val:.2f}<span class=\"sd\"> n={n}, {esc(src)} {esc(lab)}</span>"
+                d = f"{val - best[0]:+.2f}"
+            else:
+                cell, d, verdict = '<span class="pend">pending</span>', "", ""
+            rows.append([f"{DS_NAME[ds]}, K={K}", f"{gf:.2f}", f"{best[0]:.2f}<span class=\"sd\"> {esc(best[1])} {esc(best[2])}</span>", cell, d, verdict])
+    t = table("Paper's IID setting: our full method against the best of all ten methods in the paper's Figure 4 (best_mean_acc)",
+              [("Setting", ""), ("GeFL-F CVAE-F", "num"), ("Best in paper (which)", "num"), ("Ours", "num"), ("Ours &minus; best", "num"), ("", "")], rows)
+    aug = [[esc(k), f"{v:.2f}"] for k, v in PAPER_AUG_CIFAR.items()]
+    t2 = table("Paper Table IV: data augmentation (image-space GeFL with DCGAN, CIFAR-10, IID, K = 10)", [("Method", ""), ("Acc.", "num")], aug)
+    return f"""
+<section id="s11"><h2><span class="num">11</span>Against every GeFL variant in the paper</h2>
+<p class="deck">Figure 4 of the paper evaluates ten methods: GeFL and GeFL&#8209;F with DCGAN, CVAE and DDPM (w = 0, 2), plus FedProx and FedALA.
+For each setting we compare against the best of them, whichever it is.</p>
+{t}
+<p>Two of the paper's strongest numbers come from different pipelines, so it matters what they are. On CIFAR&#8209;10 the best is image-space GeFL with
+an image diffusion model (59.36), with no shared feature extractor. The augmentation results (Table IV, best 62.67) are image-space GeFL with DCGAN
+plus MixUp or CutMix. The paper never combines GeFL&#8209;F with augmentation. Our changes act on the generator's aggregation and on the heads'
+objective and labels, so they are orthogonal to augmentation: MixUp/CutMix could be added to any of these methods, ours included.</p>
+{t2}
+</section>"""
+
+
 def sec_summary():
     f01 = load("F01_main_longtail")
     f09 = load("F09_consensus_paper_setting")
@@ -607,7 +686,7 @@ Augmentation would be orthogonal and would lift every method equally.</p>
 SECTIONS = [("s0", "0", "The result on one page"), ("s1", "1", "Baseline validation"), ("s2", "2", "The collapse mechanism"),
             ("s3", "3", "Long-tail main result"), ("s4", "4", "Paper's IID setting"), ("s5", "5", "Combined method"),
             ("s6", "6", "More clients"), ("s7", "7", "SVHN and CIFAR-10"), ("s8", "8", "What did not work"),
-            ("s9", "9", "Privacy and cost"), ("s10", "10", "Reproduce")]
+            ("s9", "9", "Privacy and cost"), ("s11", "11", "Against every GeFL variant"), ("s10", "10", "Reproduce")]
 
 EXTRA_CSS = """
 .sd{color:var(--muted);font-size:.86em}
@@ -633,7 +712,7 @@ def build():
     stamp = datetime.datetime.now().strftime("%d %b %Y, %H:%M")
     rail = "".join(f'<li><a href="#{i}"><span class="n">{n}</span><span>{esc(t)}</span></a></li>' for i, n, t in SECTIONS)
     body = "".join(f() for f in [sec_summary, sec_validation, sec_diagnosis, sec_main, sec_paper_setting,
-                                  sec_combined, sec_clients, sec_kaggle, sec_negative, sec_privacy])
+                                  sec_combined, sec_clients, sec_kaggle, sec_negative, sec_privacy, sec_vs_paper])
     body += """
 <section id="s10"><h2><span class="num">10</span>Reproduce</h2>
 <p>Each experiment is one standalone file built from <code>experiments/core.py</code> and a short spec, so it can be pasted into Kaggle.
