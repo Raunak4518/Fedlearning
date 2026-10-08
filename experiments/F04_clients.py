@@ -539,8 +539,11 @@ OURS_PRIVATE = "LCD+PCM+LA"  # no class histograms leave any client
 # used by the full-run experiments F01-F08. Set once here.
 FINAL_LABEL = "Ours"
 # Full-scale F01 (3 seeds): +HWA+LA beat the hybrid on MNIST (87.9 vs 87.1)
-# and FMNIST (76.0 vs 72.4), so the final method is HWA + LA.
-FINAL_PARTS = "HWA+LA"
+# and FMNIST (76.0 vs 72.4), so the generator stays CVAE-F with HWA. F10
+# (3 seeds) then showed consensus soft labels add on top of HWA + LA in both
+# regimes (MNIST LT 89.9 vs 87.8, FMNIST LT 76.4 vs 76.0, FMNIST IID 83.2 vs
+# 82.6 for GeFL-F), so the final method is HWA + LA + CSL.
+FINAL_PARTS = "HWA+LA+CSL"
 FINAL_OVER = {}
 
 
@@ -1686,7 +1689,8 @@ EXPERIMENT = dict(
     plan=lambda cfg: [run_spec(lab, "mnist", s, m, IF=0.01, alpha=0.5, K=K)
                       for K in [50, 100] for s in cfg["seeds"]
                       for lab, m in [("GeFL-F", compose()), ("+LA", compose("LA")),
-                                     ("FSG+LA", compose("GAUSS+LA")), (FINAL_LABEL, final_method())]],
+                                     ("FSG+LA", compose("GAUSS+LA")), ("+HWA+LA", compose("HWA+LA")),
+                                     ("+HWA+LA+CSL", compose("HWA+LA+CSL"))]],
 )
 
 

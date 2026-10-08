@@ -13,5 +13,6 @@ EXPERIMENT = dict(
     plan=lambda cfg: [run_spec(lab, "mnist", s, m, IF=0.01, alpha=0.5, K=K)
                       for K in [50, 100] for s in cfg["seeds"]
                       for lab, m in [("GeFL-F", compose()), ("+LA", compose("LA")),
-                                     ("FSG+LA", compose("GAUSS+LA")), (FINAL_LABEL, final_method())]],
+                                     ("FSG+LA", compose("GAUSS+LA")), ("+HWA+LA", compose("HWA+LA")),
+                                     ("+HWA+LA+CSL", compose("HWA+LA+CSL"))]],
 )

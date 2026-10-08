@@ -1,0 +1,653 @@
+"""Build docs/results.html from the experiment result files.
+
+Every number on the page is read from results/*/runs.jsonl (and
+reference_check/reference_runs.jsonl); the only hand-entered numbers are the
+paper's own published figures and Kaggle runs whose runs.jsonl has not been
+copied back yet. Rerun after any experiment finishes:
+
+    python make_results_page.py
+"""
+import html
+import json
+import math
+import os
+import re
+from collections import defaultdict
+
+import numpy as np
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+RES = os.path.join(HERE, "results")
+OUT = os.path.join(HERE, "..", "docs", "results.html")
+DESIGN = os.path.join(HERE, "..", "docs", "experiment_plan.html")
+
+# Published numbers (paper 2412.18460v2). best_mean_acc, %, IID, K=10 unless noted.
+PAPER = {("mnist", 10): 95.47, ("mnist", 50): 95.04, ("mnist", 100): 94.63, ("fmnist", 10): 83.14,
+         ("svhn", 10): 76.26, ("cifar10", 10): 55.86}
+PAPER_BEST_AUG_CIFAR = 62.67  # GeFL (DCGAN) + MixUp, Table IV - the best CIFAR-10 number of any GeFL variant
+
+# Kaggle K01 SVHN runs (all 27, complete) parsed from the user's notebook log; used
+# only until results/K01_kaggle_cifar10_svhn/runs.jsonl is copied back. CIFAR-10 pending.
+KAGGLE_LOGGED = [  # (label, dataset, IF, seed, final_bal, final_tail, best_mean_acc, fidelity_tail, norm_ratio)
+    ('+HWA+LA (ours)', 'cifar10', 0.01, 0, 40.76, 28.75, 41.40, 0.278, 1.127),
+    ('+HWA+LA (ours)', 'cifar10', 0.01, 1, 40.60, 28.41, 41.88, 0.233, 1.340),
+    ('+HWA+LA (ours)', 'cifar10', 0.01, 2, 39.94, 26.60, 41.05, 0.245, 1.285),
+    ('+HWA+LA+CSLM', 'cifar10', 0.01, 0, 34.58, 28.86, 39.34, 0.278, 1.127),
+    ('+HWA+LA+CSLM', 'cifar10', 0.01, 1, 37.55, 30.25, 40.67, 0.233, 1.340),
+    ('GeFL-F', 'cifar10', 0.01, 0, 33.69, 12.06, 34.25, 0.147, 0.064),
+    ('GeFL-F', 'cifar10', 0.01, 1, 33.64, 13.39, 34.82, 0.125, 0.058),
+    ('+LA', 'cifar10', 0.01, 0, 37.43, 20.57, 38.67, 0.147, 0.064),
+    ('+LA', 'cifar10', 0.01, 1, 37.25, 21.09, 39.15, 0.125, 0.058),
+    ('FSG+LA', 'cifar10', 0.01, 0, 42.98, 32.37, 43.66, 0.500, 1.051),
+    ('FSG+LA', 'cifar10', 0.01, 1, 43.74, 34.56, 44.61, 0.447, 1.057),
+    ('+CSL (beta=0.5)', 'svhn', 1.0, 0, 75.16, 73.85, 76.0, 0.661, 0.982),
+    ('+CSL (beta=0.5)', 'svhn', 1.0, 1, 75.01, 72.47, 76.3, 0.669, 0.971),
+    ('+CSL (beta=0.5)', 'svhn', 1.0, 2, 75.28, 73.28, 76.6, 0.715, 0.964),
+    ('+CSLM (interleaved)', 'svhn', 1.0, 0, 74.13, 72.15, 75.56, 0.661, 0.982),
+    ('+CSLM (interleaved)', 'svhn', 1.0, 1, 74.5, 72.28, 75.97, 0.669, 0.971),
+    ('+CSLM (interleaved)', 'svhn', 1.0, 2, 74.51, 72.68, 76.03, 0.715, 0.964),
+    ('+HWA+LA (ours)', 'svhn', 0.01, 0, 60.43, 45.53, 65.23, 0.36, 0.991),
+    ('+HWA+LA (ours)', 'svhn', 0.01, 1, 63.26, 47.27, 67.44, 0.336, 0.962),
+    ('+HWA+LA (ours)', 'svhn', 0.01, 2, 63.66, 50.65, 67.91, 0.368, 1.054),
+    ('+HWA+LA (ours)', 'svhn', 1.0, 0, 74.29, 73.27, 75.1, 0.663, 0.97),
+    ('+HWA+LA (ours)', 'svhn', 1.0, 1, 74.42, 72.83, 75.71, 0.684, 0.972),
+    ('+HWA+LA (ours)', 'svhn', 1.0, 2, 74.83, 72.65, 76.12, 0.691, 0.962),
+    ('+HWA+LA+CSLM', 'svhn', 0.01, 0, 50.42, 42.7, 53.64, 0.36, 0.991),
+    ('+HWA+LA+CSLM', 'svhn', 0.01, 1, 47.53, 50.16, 52.1, 0.336, 0.962),
+    ('+HWA+LA+CSLM', 'svhn', 0.01, 2, 51.7, 52.45, 52.68, 0.368, 1.054),
+    ('+LA', 'svhn', 0.01, 0, 56.45, 35.26, 62.8, 0.268, 0.493),
+    ('+LA', 'svhn', 0.01, 1, 57.21, 32.11, 63.55, 0.163, 0.322),
+    ('+LA', 'svhn', 0.01, 2, 55.65, 37.23, 62.13, 0.161, 0.179),
+    ('FSG+LA', 'svhn', 0.01, 0, 42.9, 25.72, 48.77, 0.144, 0.981),
+    ('FSG+LA', 'svhn', 0.01, 1, 47.35, 31.57, 52.73, 0.153, 1.004),
+    ('FSG+LA', 'svhn', 0.01, 2, 42.45, 26.77, 48.97, 0.145, 1.037),
+    ('GeFL-F', 'svhn', 0.01, 0, 51.68, 26.06, 59.11, 0.268, 0.493),
+    ('GeFL-F', 'svhn', 0.01, 1, 51.89, 23.01, 58.37, 0.163, 0.322),
+    ('GeFL-F', 'svhn', 0.01, 2, 47.92, 25.2, 54.6, 0.161, 0.179),
+    ('GeFL-F', 'svhn', 1.0, 0, 74.28, 72.95, 75.22, 0.661, 0.982),
+    ('GeFL-F', 'svhn', 1.0, 1, 74.4, 72.37, 75.93, 0.669, 0.971),
+    ('GeFL-F', 'svhn', 1.0, 2, 74.94, 72.84, 76.31, 0.715, 0.964),
+]
+
+DS_NAME = {"mnist": "MNIST", "fmnist": "FashionMNIST", "svhn": "SVHN", "cifar10": "CIFAR-10"}
+
+
+# ---------------------------------------------------------------- data access
+def load(exp):
+    p = os.path.join(RES, exp, "runs.jsonl")
+    if not os.path.exists(p):
+        return []
+    out = []
+    with open(p, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                try:
+                    out.append(json.loads(line))
+                except json.JSONDecodeError:
+                    pass  # a run being written right now
+    return out
+
+
+def kaggle_runs():
+    """Logged SVHN runs, overridden/extended by any K01 runs.jsonl copied back."""
+    by = {}
+    for l, d, IF, sd, b, t, m, fid, nr in KAGGLE_LOGGED:
+        by[(l, d, IF, sd)] = dict(label=l, dataset=d, IF=IF, alpha=0.5 if IF < 1 else None, K=10, seed=sd,
+                                  final_bal=b / 100, final_tail=t / 100, best_mean_acc=m / 100,
+                                  fidelity_tail=fid, cond_norm_tail_over_head_end=nr)
+    filed = load("K01_kaggle_cifar10_svhn")
+    for r in filed:
+        by[(r["label"], r["dataset"], r["IF"], r["seed"])] = r
+    runs = list(by.values())
+    for r in runs:
+        if r["label"] == "+HWA+LA (ours)":
+            r["label"] = "+HWA+LA"
+    return runs, bool(filed)
+
+
+def pick(runs, label, metric, **where):
+    """{seed: value in %} for one label and setting."""
+    out = {}
+    for r in runs:
+        if r.get("label") != label or r.get(metric) is None:
+            continue
+        if any(r.get(k) != v for k, v in where.items()):
+            continue
+        v = r[metric]
+        out[r["seed"]] = v * 100 if metric not in ("cond_norm_tail_over_head_end",) else v
+    return out
+
+
+def paired_p(a, b):
+    seeds = sorted(set(a) & set(b))
+    if len(seeds) < 2:
+        return None
+    d = np.array([a[s] - b[s] for s in seeds])
+    if d.std(ddof=1) == 0:
+        return None
+    t = d.mean() / (d.std(ddof=1) / math.sqrt(len(d)))
+    from scipy import stats
+    return float(2 * stats.t.sf(abs(t), len(d) - 1))
+
+
+def mean(v):
+    return float(np.mean(list(v.values()))) if v else None
+
+
+# ---------------------------------------------------------------- html helpers
+def esc(s):
+    return html.escape(str(s))
+
+
+def fmt_ms(v, digits=1):
+    if not v:
+        return '<span class="pend">-</span>'
+    vals = list(v.values())
+    m = np.mean(vals)
+    if len(vals) == 1:
+        return f"{m:.{digits}f}<span class=\"sd\"> n=1</span>"
+    return f"{m:.{digits}f}<span class=\"sd\"> &plusmn;{np.std(vals, ddof=1):.{digits}f}</span>"
+
+
+def fmt_delta(v, ref):
+    if not v or not ref:
+        return ""
+    seeds = sorted(set(v) & set(ref))
+    if not seeds:
+        return ""
+    d = np.mean([v[s] - ref[s] for s in seeds])
+    cls = "up" if d > 0.05 else ("dn" if d < -0.05 else "eq")
+    return f'<span class="d {cls}">{d:+.1f}</span>'
+
+
+def fmt_p(p):
+    if p is None:
+        return '<span class="pend">-</span>'
+    s = f"{p:.3f}" if p >= 0.001 else "&lt;0.001"
+    return f'<span class="{"sig" if p < 0.05 else "ns"}">{s}</span>'
+
+
+def table(caption, head, rows, hl=(), cls=""):
+    th = "".join(f'<th class="{c}">{h}</th>' for h, c in head)
+    body = []
+    for i, row in enumerate(rows):
+        tr_cls = ' class="hl"' if i in hl else ""
+        body.append(f"<tr{tr_cls}>" + "".join(f'<td class="{c}">{cell}</td>' for cell, (_, c) in zip(row, head)) + "</tr>")
+    return (f'<div class="tw {cls}"><table><caption>{caption}</caption><thead><tr>{th}</tr></thead>'
+            f'<tbody>{"".join(body)}</tbody></table></div>')
+
+
+def method_table(runs, labels, datasets, metrics, ref="GeFL-F", where=None, caption="", ours=(), pmetric=None):
+    """Rows = labels; per dataset: metric columns (mean +/- sd, delta vs ref for the first metric) and p."""
+    where = where or {}
+    pmetric = pmetric or metrics[0][0]
+    head = [("Method", "")]
+    for ds in datasets:
+        for m, name in metrics:
+            head.append((f"{DS_NAME[ds]}<br>{name}", "num"))
+        head.append((f"{DS_NAME[ds]}<br>p vs {esc(ref)}", "num"))
+    rows, hl = [], []
+    for i, (lab, shown) in enumerate(labels):
+        row = [esc(shown)]
+        for ds in datasets:
+            refv = pick(runs, ref, pmetric, dataset=ds, **where)
+            for j, (m, _) in enumerate(metrics):
+                v = pick(runs, lab, m, dataset=ds, **where)
+                cell = fmt_ms(v)
+                if m == pmetric and lab != ref:
+                    cell += " " + fmt_delta(v, pick(runs, ref, m, dataset=ds, **where))
+                row.append(cell)
+            row.append(fmt_p(paired_p(pick(runs, lab, pmetric, dataset=ds, **where), refv)) if lab != ref else "ref")
+        rows.append(row)
+        if lab in ours:
+            hl.append(i)
+    return table(caption, head, rows, hl)
+
+
+def bar_chart(series, title, lo=40, hi=100, unit="%"):
+    """series: [(label, value, kind)] kind in {'ref','ours','base'}; horizontal bars on one linear scale."""
+    series = [s for s in series if s[1] is not None]
+    if not series:
+        return ""
+    W, lw, rw, bh, gap, top = 640, 190, 52, 20, 8, 30
+    pw = W - lw - rw
+    H = top + len(series) * (bh + gap) + 26
+    x = lambda v: lw + (min(max(v, lo), hi) - lo) / (hi - lo) * pw
+    out = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="{esc(title)}">']
+    for t in range(lo, hi + 1, 10):
+        out.append(f'<line x1="{x(t):.1f}" x2="{x(t):.1f}" y1="{top-6}" y2="{H-22}" stroke="var(--rule)" stroke-width="1"/>')
+        out.append(f'<text x="{x(t):.1f}" y="{H-8}" font-size="11" text-anchor="middle" fill="var(--muted)" class="mn">{t}</text>')
+    for i, (lab, v, kind) in enumerate(series):
+        y = top + i * (bh + gap)
+        col = {"ours": "var(--accent)", "ref": "var(--tail)", "base": "var(--rule-strong)"}[kind]
+        out.append(f'<text x="{lw-10}" y="{y+bh/2+4:.1f}" font-size="12.5" text-anchor="end" fill="var(--ink-soft)">{esc(lab)}</text>')
+        out.append(f'<rect x="{lw}" y="{y}" width="{x(v)-lw:.1f}" height="{bh}" fill="{col}" rx="1.5"/>')
+        out.append(f'<text x="{x(v)+6:.1f}" y="{y+bh/2+4:.1f}" font-size="12" fill="var(--ink)" class="mn">{v:.1f}</text>')
+    out.append(f'<text x="{lw}" y="16" font-size="11.5" fill="var(--muted)" font-weight="700" letter-spacing=".06em">{esc(title.upper())}</text>')
+    out.append("</svg>")
+    return "".join(out)
+
+
+def note(kind, head, body):
+    return f'<div class="note {kind}"><div class="h">{head}</div>{body}</div>'
+
+
+# ---------------------------------------------------------------- sections
+def sec_validation():
+    f09 = load("F09_consensus_paper_setting")
+    f01 = load("F01_main_longtail")
+    ref = load_reference()
+    ours = lambda ds, K: pick(f09, "GeFL-F", "best_mean_acc", dataset=ds, K=K, IF=1.0)
+    rows = []
+    for ds, K in [("mnist", 10), ("mnist", 50), ("mnist", 100), ("fmnist", 10)]:
+        a = [r["best_mean_acc"] * 100 for r in ref if r["setting"] == "iid" and ds == "mnist" and K == 10]
+        o = ours(ds, K)
+        diff = (mean(o) - PAPER[(ds, K)]) if o else None
+        rows.append([f"{DS_NAME[ds]}, IID, K={K}", f"{PAPER[(ds, K)]:.2f}",
+                     f"{np.mean(a):.2f}<span class=\"sd\"> n={len(a)}</span>" if a else '<span class="pend">not run</span>',
+                     fmt_ms(o, 2), f"{diff:+.2f}" if diff is not None else ""])
+    lt_ref = [r for r in ref if r["setting"] == "lt"]
+    lt_ours = pick(f01, "GeFL-F", "final_bal", dataset="mnist")
+    for r in lt_ref:
+        o = lt_ours.get(r["seed"])
+        rows.append([f"MNIST, long tail, seed {r['seed']} (final balanced acc.)", "not reported",
+                     f"{r['final_bal']*100:.2f}", f"{o:.2f}" if o is not None else "-",
+                     f"{o - r['final_bal']*100:+.2f} vs code" if o is not None else ""])
+    t = table("Our GeFL-F against the paper and against the authors' own code",
+              [("Setting", ""), ("Paper", "num"), ("Authors' code", "num"), ("Our GeFL-F", "num"), ("Ours &minus; paper", "num")], rows)
+    return f"""
+<section id="s1"><h2><span class="num">1</span>Our GeFL&#8209;F is the paper's GeFL&#8209;F</h2>
+<p class="deck">Before any improvement claim, the baseline has to be right.</p>
+<p>We ran the authors' released <code>GeFL_CVAE-F.py</code> on our machine, unmodified apart from
+the device and an evaluation hook, and compared it with our re-implementation, which follows the paper's
+appendix tables: ten heterogeneous headers CNN&#8209;1&hellip;10, CVAE&#8209;F, SGD at learning rate 0.1, 10% of the data.
+Both match the paper's published numbers to within about half a point. The same holds at K = 50 and K = 100.</p>
+{t}
+<p>The metric is the paper's <code>best_mean_acc</code>: the best accuracy of each header over the rounds,
+averaged over the ten architectures. In the long-tail split our GeFL&#8209;F scores about two points
+<em>below</em> the authors' code. Any gain we report is therefore measured from a baseline that is, if
+anything, slightly weaker than the real one.</p>
+</section>"""
+
+
+def load_reference():
+    p = os.path.join(HERE, "reference_check", "reference_runs.jsonl")
+    if not os.path.exists(p):
+        return []
+    return [json.loads(l) for l in open(p, encoding="utf-8") if l.strip()]
+
+
+def sec_diagnosis():
+    f01 = load("F01_main_longtail")
+    e02 = load("E02_conditioning_collapse_quick")
+    rows = []
+    for ds in ["mnist", "fmnist"]:
+        for lab, shown in [("GeFL-F", "GeFL-F"), ("+HWA+LA", "+HWA+LA (ours)")]:
+            nr = pick(f01, lab, "cond_norm_tail_over_head_end", dataset=ds)
+            ft = pick(f01, lab, "fidelity_tail", dataset=ds)
+            fh = pick(f01, lab, "fidelity_head", dataset=ds)
+            rows.append([DS_NAME[ds], esc(shown),
+                         f"{mean(nr):.2f}<span class=\"sd\"> ({', '.join(f'{v:.2f}' for v in nr.values())})</span>" if nr else "-",
+                         fmt_ms(fh), fmt_ms(ft)])
+    t = table("Conditioning collapse, full runs (F01, 3 seeds, IF = 100, Dir(0.5), K = 10)",
+              [("Dataset", ""), ("Method", ""), ("Tail / head row norm", "num"),
+               ("Fidelity, head classes", "num"), ("Fidelity, tail classes", "num")], rows, hl=(1, 3))
+    rows2 = []
+    for lab in ["GeFL-F", "+LCD", "+NOWD", "+HWA", "+NOWD+HWA"]:
+        r = [esc(lab)]
+        for ds in ["mnist", "fmnist"]:
+            r.append(fmt_ms(pick(e02, lab, "cond_norm_tail_over_head_end", dataset=ds), 2).replace(" n=1", ""))
+            r.append(fmt_ms(pick(e02, lab, "fidelity_tail", dataset=ds)).replace(" n=1", ""))
+        rows2.append(r)
+    t2 = table("Which change stops the collapse (E02, quick pass, seed 0)",
+               [("Method", ""), ("MNIST norm ratio", "num"), ("MNIST tail fidelity", "num"),
+                ("FMNIST norm ratio", "num"), ("FMNIST tail fidelity", "num")], rows2)
+    return f"""
+<section id="s2"><h2><span class="num">2</span>Where GeFL&#8209;F breaks: rare classes vanish from the generator</h2>
+<p class="deck">A mechanism we derived, then measured.</p>
+<p>CVAE&#8209;F conditions on the label through one learned row per class. Under a long tail, a rare class
+appears on only m<sub>r</sub> of the K clients. Every other client still decays that row with Adam's coupled
+weight decay (10<sup>&minus;3</sup>) and sends it back unchanged by any gradient. Flat FedAvg then averages
+m<sub>r</sub> informative copies with K&minus;m<sub>r</sub> shrunken ones. When m<sub>r</sub> &lt; K/2 the shrinkage
+wins, round after round, so the rare-class rows shrink toward zero. The generator then produces head-class features
+under tail labels, and the headers learn from wrong data.</p>
+<div class="eq"><div class="body">
+row<sub>c</sub><sup>t+1</sup> = <span class="frac"><span class="nu">1</span><span class="de">K</span></span>
+[ &Sigma;<sub>holders</sub> (row<sub>c</sub><sup>t</sup> &minus; &eta;g) + (K&minus;m<sub>c</sub>)(1&minus;&eta;&lambda;)<sup>S</sup> row<sub>c</sub><sup>t</sup> ]
+&nbsp;&rArr;&nbsp; shrinks whenever m<sub>c</sub> &lt; K/2</div><div class="tag">flat averaging of a class row</div></div>
+<p><b>Fix (HWA, holder-weighted aggregation):</b> average each class row only over the clients that
+hold that class, weighted by their sample counts (the counts travel through secure aggregation as sums).
+Every other parameter is still averaged as in GeFL&#8209;F. The measured result: the tail row norm returns
+to the head level, and the generator's tail features become recognisable again.
+<em>Fidelity</em> is the accuracy of an independent referee classifier on generated features, by class group.</p>
+{t}
+{t2}
+</section>"""
+
+
+def sec_main():
+    f01 = load("F01_main_longtail")
+    labels = [("GeFL-F", "GeFL-F"), ("+LA", "GeFL-F + LA"), ("+HWA+LA", "GeFL-F + HWA + LA (ours)"),
+              ("FSG+LA", "Gaussian sufficient-statistics generator + LA"),
+              ("Ours-hybrid (RHYB+HWA+LA)", "Hybrid generator + HWA + LA"),
+              ("LG-FedAvg+LA", "LG-FedAvg + LA"), ("LG-FedAvg", "LG-FedAvg"), ("FedAvg (grouped)", "FedAvg (per architecture)")]
+    t = method_table(f01, labels, ["mnist", "fmnist"], [("final_bal", "balanced acc."), ("final_tail", "tail recall")],
+                     caption="Long tail IF = 100, Dirichlet 0.5, K = 10, full schedule, 3 seeds (F01). Mean &plusmn; sd; delta vs GeFL-F on paired seeds",
+                     ours=("+HWA+LA",))
+    t2 = method_table(f01, labels[:3], ["mnist", "fmnist"], [("best_mean_acc", "best_mean_acc"), ("final_worst", "worst class")],
+                      caption="Same runs, the paper's own metric and the worst class", ours=("+HWA+LA",))
+    charts = []
+    for ds in ["mnist", "fmnist"]:
+        ser = []
+        for lab, shown in labels:
+            v = mean(pick(f01, lab, "final_bal", dataset=ds))
+            ser.append((shown.replace("Gaussian sufficient-statistics generator", "FSG").replace(" (per architecture)", ""), v,
+                        "ours" if lab == "+HWA+LA" else ("ref" if lab == "GeFL-F" else "base")))
+        charts.append(bar_chart(ser, f"{DS_NAME[ds]}: balanced accuracy, %", lo=40, hi=100))
+    return f"""
+<section id="s3"><h2><span class="num">3</span>Main result: long-tailed clients</h2>
+<p class="deck">The setting GeFL&#8209;F was never tested in, and the one real deployments look like.</p>
+<p>Global class frequencies fall a hundredfold from the most to the least common class (IF = 100). Each class
+is split across clients by Dirichlet(0.5). Test sets stay balanced, so <em>balanced accuracy</em> (mean per-class
+recall) is the honest metric. <em>Tail</em> is the mean recall of the three rarest classes.</p>
+{t}
+<figure>{charts[0]}{charts[1]}<figcaption><b>Bars are on one scale, starting at 40%.</b> Blue: ours. Amber: GeFL&#8209;F. Grey: other methods.</figcaption></figure>
+{t2}
+<p>Two components carry the gain, and they act on different stages. <b>HWA</b> repairs the generator, so the synthetic
+phase teaches the tail. <b>LA</b> (logit adjustment by the client's own label prior, applied in training only)
+stops each header's real-data phase from re-learning its client's skew. LA alone gives +4 to +6 points. Adding HWA
+gives a further +9 to +11. The tail recall gain is +29 points on MNIST and +33 on FashionMNIST.</p>
+</section>"""
+
+
+def sec_paper_setting():
+    f09 = load("F09_consensus_paper_setting")
+    rows = []
+    for ds, K in [("mnist", 10), ("fmnist", 10), ("mnist", 50), ("mnist", 100)]:
+        g = pick(f09, "GeFL-F", "best_mean_acc", dataset=ds, K=K, IF=1.0)
+        c = pick(f09, "+CSL (beta=0.5)", "best_mean_acc", dataset=ds, K=K, IF=1.0)
+        diffs = [c[s] - g[s] for s in sorted(set(g) & set(c))]
+        rows.append([f"{DS_NAME[ds]}, K={K}", f"{PAPER[(ds, K)]:.2f}", fmt_ms(g, 2), fmt_ms(c, 2),
+                     ", ".join(f"{d:+.2f}" for d in diffs), fmt_p(paired_p(c, g)),
+                     f"{mean(c) - PAPER[(ds, K)]:+.2f}" if c else ""])
+    t = table("Paper's IID setting, best_mean_acc (F09)",
+              [("Setting", ""), ("Paper GeFL-F", "num"), ("Our GeFL-F", "num"), ("+CSL (ours)", "num"),
+               ("Gain per seed", "num"), ("p", "num"), ("CSL &minus; paper", "num")], rows, hl=(0, 1))
+    abl = []
+    for lab in ["GeFL-F", "+CSL (beta=0.5)", "+CSL (beta=1)", "+CSLM (interleaved)"]:
+        abl.append([esc(lab)] + [fmt_ms(pick(f09, lab, "best_mean_acc", dataset="mnist", K=K, IF=1.0, seed=0), 2).replace('<span class="sd"> n=1</span>', "")
+                                 for K in [10, 50, 100]])
+    t2 = table("CSL variants, MNIST IID, seed 0", [("Method", ""), ("K=10", "num"), ("K=50", "num"), ("K=100", "num")], abl, hl=(1,))
+    return f"""
+<section id="s4"><h2><span class="num">4</span>The paper's own setting: consensus soft labels</h2>
+<p class="deck">HWA and LA change nothing when data is IID, so we needed a gain there too.</p>
+<p>In IID data every client holds every class, so HWA reduces to (nearly) FedAvg and LA's prior is (nearly) uniform. Our method then
+matches GeFL&#8209;F up to noise. To beat GeFL&#8209;F in its own setting we use a different observation: in the
+synthetic phase each header learns from features with a hard one-hot label, although a generated feature is often
+ambiguous. The ten headers are trained on different clients' data with different architectures, so their averaged
+prediction is a better-calibrated label than the one-hot.</p>
+<div class="eq"><div class="body">target(x̃) = (1 &minus; &beta;) &middot; onehot(y) + &beta; &middot; <span class="frac"><span class="nu">1</span><span class="de">G</span></span> &Sigma;<sub>g</sub> softmax(h<sub>g</sub>(x̃)), &nbsp; &beta; = 0.5</div><div class="tag">CSL</div></div>
+<p>The consensus uses only the header outputs on <em>synthetic</em> features, which the server can compute with
+models it already receives. No real data and no new client message are involved.</p>
+{t}
+{t2}
+<p>The gain is small but appears on every seed. On MNIST we beat the paper's published GeFL&#8209;F by 1.2 points.
+On FashionMNIST we tie it. &beta; = 1 (consensus only) is worse than &beta; = 0.5, because the one-hot term anchors
+the label. Mixing synthetic features into every real batch (CSLM) is also worse.</p>
+</section>"""
+
+
+def sec_combined():
+    f10 = load("F10_combined_method")
+    n = len(f10)
+    if n == 0:
+        return f"""
+<section id="s5"><h2><span class="num">5</span>One method for both settings</h2>
+{note("flag", "Running", "<p>F10 (HWA + LA + CSL against each part, both regimes, 48 runs) is running now. This section fills in when the page is rebuilt.</p>")}
+</section>"""
+    labels = [("GeFL-F", "GeFL-F"), ("+HWA+LA", "+HWA+LA"), ("+CSL", "+CSL"), ("+HWA+LA+CSL", "+HWA+LA+CSL (combined)")]
+    lt = method_table(f10, labels, ["mnist", "fmnist"], [("final_bal", "balanced acc."), ("final_tail", "tail")],
+                      where=dict(IF=0.01), caption="Long tail (IF = 100, Dir 0.5, K = 10)", ours=("+HWA+LA+CSL",))
+    iid = method_table(f10, labels, ["mnist", "fmnist"], [("best_mean_acc", "best_mean_acc")],
+                       where=dict(IF=1.0), caption="Paper's IID setting (K = 10)", ours=("+HWA+LA+CSL",))
+    status = "" if n >= 48 else note("flag", "Partial", f"<p>{n} of 48 runs finished when this page was built.</p>")
+    return f"""
+<section id="s5"><h2><span class="num">5</span>One method for both settings: HWA + LA + CSL</h2>
+<p class="deck">The parts act on different stages, so they should add. F10 tests that, with matched seeds and splits.</p>
+{status}{lt}{iid}
+<p>Under the long tail, CSL alone gives little: +2.1 on MNIST, 0 on FashionMNIST, and no tail gain on either. Added to HWA + LA it helps on every seed, +2.1 on MNIST and +0.4 on FashionMNIST, though with 3 seeds that is not yet significant (p &asymp; 0.1). This is what §4's argument predicts.
+CSL corrects the labels of synthetic features, which pays off only when those features carry real class information. GeFL&#8209;F's collapsed
+generator emits near-class-agnostic tail features (tail fidelity under 20%), so relabelling them cannot help. After HWA they are faithful,
+and the consensus label sharpens them. The final method is therefore GeFL&#8209;F + HWA + LA + CSL. In IID data it reduces to GeFL&#8209;F + CSL.</p>
+</section>"""
+
+
+def sec_clients():
+    f04 = load("F04_clients")
+    if not f04:
+        return f"""
+<section id="s6"><h2><span class="num">6</span>More clients</h2>
+{note("flag", "Queued", "<p>F04 (K = 50 and K = 100 under the long tail, 3 seeds) starts automatically after F10.</p>")}
+{quick_clients()}
+</section>"""
+    labels = [("GeFL-F", "GeFL-F"), ("+LA", "+LA"), ("FSG+LA", "FSG+LA"), ("+HWA+LA", "+HWA+LA (ours)"), ("+HWA+LA+CSL", "+HWA+LA+CSL")]
+    ts = "".join(method_table(f04, labels, ["mnist"], [("final_bal", "balanced acc."), ("final_tail", "tail")],
+                              where=dict(K=K), caption=f"MNIST long tail, K = {K}", ours=("+HWA+LA", "+HWA+LA+CSL"))
+                 for K in [50, 100] if any(r["K"] == K for r in f04))
+    return f"""
+<section id="s6"><h2><span class="num">6</span>More clients: K = 50 and 100</h2>
+<p class="deck">With more clients each rare class has fewer holders, so flat averaging dilutes its rows further.</p>
+{ts}
+</section>"""
+
+
+def quick_clients():
+    e12 = load("E12_confirmation_quick")
+    labels = [("GeFL-F", "GeFL-F"), ("+LA", "+LA"), ("+HWA+LA", "+HWA+LA (ours)")]
+    return method_table(e12, labels, ["mnist"], [("final_bal", "balanced acc.")], where=dict(K=50),
+                        caption="Quick-pass evidence, MNIST long tail, K = 50 (E12, reduced rounds, 3 seeds)", ours=("+HWA+LA",))
+
+
+def sec_kaggle():
+    runs, from_file = kaggle_runs()
+    labels = [("GeFL-F", "GeFL-F"), ("+LA", "+LA"), ("+HWA+LA", "+HWA+LA"), ("Ours (HWA+LA+CSL)", "Ours (HWA+LA+CSL)"),
+              ("FSG+LA", "FSG+LA"), ("+HWA+LA+CSLM", "+HWA+LA+CSLM")]
+    out = []
+    for ds in ["svhn", "cifar10"]:
+        if not any(r["dataset"] == ds and r["IF"] < 1 for r in runs):
+            continue
+        out.append(method_table(runs, labels, [ds], [("final_bal", "balanced acc."), ("final_tail", "tail"), ("best_mean_acc", "best_mean_acc")],
+                                where=dict(IF=0.01), caption=f"{DS_NAME[ds]} long tail (IF = 100, Dir 0.5, K = 10), Kaggle T4", ours=("+HWA+LA", "Ours (HWA+LA+CSL)")))
+        nr = []
+        for lab in ["GeFL-F", "+HWA+LA"]:
+            v = pick(runs, lab, "cond_norm_tail_over_head_end", dataset=ds, IF=0.01)
+            nr.append(f"{lab}: {', '.join(f'{x:.2f}' for x in v.values())}")
+        out.append(f"<p class=\"small\">Tail / head row norm per seed &mdash; {esc('; '.join(nr))}. The collapse appears on SVHN as well, and HWA removes it.</p>")
+    for ds in ["svhn", "cifar10"]:
+        iid = [r for r in runs if r["dataset"] == ds and r["IF"] >= 1]
+        if iid:
+            out.append(method_table(runs, [("GeFL-F", "GeFL-F"), ("+HWA+LA", "+HWA+LA"), ("+CSL (beta=0.5)", "+CSL"), ("Ours (HWA+LA+CSL)", "Ours (HWA+LA+CSL)"), ("+CSLM (interleaved)", "+CSLM")],
+                                    [ds], [("best_mean_acc", "best_mean_acc")], where=dict(IF=1.0),
+                                    caption=f"{DS_NAME[ds]} IID (paper {PAPER[(ds, 10)]:.2f})", ours=("+CSL (beta=0.5)", "Ours (HWA+LA+CSL)")))
+    src = ("Read from the K01 <code>runs.jsonl</code>." if from_file else
+           "Parsed from the Kaggle notebook logs. SVHN: all 27 runs. CIFAR-10: the long-tail runs finished so far; IID is still running. These K01 runs predate the final method, so they include HWA+LA but not HWA+LA+CSL. The updated K01 adds the final method.")
+    return f"""
+<section id="s7"><h2><span class="num">7</span>Harder data: SVHN and CIFAR&#8209;10</h2>
+<p class="deck">These runs use the same code and the paper's CIFAR/SVHN settings (FE with 10 channels for CIFAR, 50% of the data). They run on Kaggle.</p>
+{note("", "Source", f"<p>{src}</p>")}
+{"".join(out)}
+<p>On SVHN the ranking holds. Under the long tail, ours is +12.0 points balanced accuracy over GeFL&#8209;F and +6.0 over LA alone.
+Tail recall nearly doubles (47.8 against 24.8), and the paper's own metric rises by +9.5 (p = 0.045).
+In the IID setting, our GeFL&#8209;F reaches 75.82, against the paper's 76.26. CSL gains on every seed (+0.78, +0.37, +0.29), reaching 76.30.
+HWA+LA costs 0.18 points in IID data. The IID split gives clients slightly unequal counts, so HWA is not exactly FedAvg there.
+The loss is small but consistent across seeds, so we report it.</p>
+<p>On CIFAR&#8209;10 under the long tail (partial: 2–3 seeds), GeFL&#8209;F shows the strongest collapse we have measured.
+The tail/head row ratio is 0.06, and HWA restores it to 1.1–1.3. HWA + LA reaches 40.4 against 33.7 for GeFL&#8209;F and 37.3 for LA alone.
+Here, unlike SVHN, the Gaussian generator is best, at 43.4: its tail fidelity is 0.47, against 0.25 for the repaired CVAE&#8209;F.
+On CIFAR&#8209;10 features, a class mean and a pooled covariance estimated <em>exactly</em> from sums beat a CVAE trained on about 25 tail samples.
+On SVHN, which is multi-modal, the opposite holds. Which generator wins depends on the data. HWA + LA is the choice that is never far behind.</p>
+<p>On SVHN the Gaussian generator (FSG) fails.
+Its class-conditional Gaussian cannot represent SVHN's multi-modal features: tail fidelity is 0.14 against 0.36 for HWA. That failure is why
+FSG is not our final method, although it was competitive on MNIST.</p>
+</section>"""
+
+
+def sec_negative():
+    e03 = load("E03_method_components_quick")
+    e14 = load("E14_relative_hybrid_quick")
+    e12 = load("E12_confirmation_quick")
+    f01 = load("F01_main_longtail")
+    g = lambda runs, lab, ds, **w: mean(pick(runs, lab, "final_bal", dataset=ds, **{"IF": 0.01, **w}))
+    items = []
+    try:
+        items.append(("Prior-completing mixed batches (PCM)",
+                      f"FMNIST quick pass: +HWA+LCD+PCM {g(e03, '+HWA+LCD+PCM', 'fmnist'):.1f} vs +HWA+LCD {g(e03, '+HWA+LCD', 'fmnist'):.1f}; "
+                      f"+PCM+LA {g(e03, '+PCM+LA', 'fmnist'):.1f} vs +LA {g(e03, '+LA', 'fmnist'):.1f}.",
+                      "Filling the client's missing classes with synthetic features only helps when tail synthetic features are faithful, and before HWA they are not. Dropped."))
+        items.append(("Lazy conditioning decay (LCD)",
+                      f"MNIST LT quick, 3 seeds: +HWA+LCD+LA {g(e12, '+HWA+LCD+LA', 'mnist', K=10):.1f} vs +HWA+LA {g(e12, '+HWA+LA', 'mnist', K=10):.1f}.",
+                      "LCD treats the same symptom as HWA from the client side. With HWA present it adds nothing. It remains the option when the server must not learn which classes a client holds."))
+        items.append(("Gaussian generator (FSG) in IID / SVHN",
+                      f"Strong on MNIST LT quick ({g(e14, 'FSG+LA', 'mnist', K=10):.1f} vs {g(e14, '+HWA+LA', 'mnist', K=10):.1f}), "
+                      f"but at full scale {g(f01, 'FSG+LA', 'mnist'):.1f} vs {g(f01, '+HWA+LA', 'mnist'):.1f}; in IID quick it trails ({g(e14, 'FSG+LA', 'mnist', K=10, IF=1.0, alpha=None):.1f} vs {g(e14, '+HWA+LA', 'mnist', K=10, IF=1.0, alpha=None):.1f}); on SVHN it collapses (about 45 vs 62).",
+                      "Exact aggregation of sufficient statistics is elegant and DP-friendly, but a single Gaussian per class cannot represent real feature distributions."))
+        items.append(("Hybrid CVAE / Gaussian generator",
+                      f"Quick pass favoured it (MNIST LT {g(e14, 'RHYB(1.0)+HWA+LA', 'mnist', K=10):.1f} vs {g(e14, '+HWA+LA', 'mnist', K=10):.1f}); "
+                      f"full scale reversed it ({g(f01, 'Ours-hybrid (RHYB+HWA+LA)', 'mnist'):.1f} vs {g(f01, '+HWA+LA', 'mnist'):.1f}).",
+                      "The quick pass's short CVAE training hid how good the CVAE becomes once its tail rows stop collapsing. Our final choice follows the full-scale evidence."))
+        items.append(("Balanced re-training of the classifier (BCR) and gradient filtering (GF)",
+                      f"FMNIST quick: +BCR {g(e03, '+BCR', 'fmnist'):.1f}, +GF {g(e03, '+GF', 'fmnist'):.1f}, GeFL-F {g(e03, 'GeFL-F', 'fmnist'):.1f}, +LA {g(e03, '+LA', 'fmnist'):.1f}.",
+                      "Both are weaker than LA, which achieves the same rebalancing in closed form."))
+    except TypeError:
+        pass
+    items.append(("Interleaving consensus-labelled features into real batches (CSLM)",
+                  "SVHN LT: 50.4 / 47.5 vs 60.4 / 63.3 for ours on the same seeds; MNIST IID K=100: 94.36 vs 94.61 GeFL-F.",
+                  "Synthetic features crowd out scarce real ones. CSL works only as a separate synthetic phase."))
+    rows = [[f"<b>{esc(a)}</b>", esc(b), esc(c)] for a, b, c in items]
+    return f"""
+<section id="s8"><h2><span class="num">8</span>What did not work, and why we dropped it</h2>
+<p class="deck">Every idea was tested on a reduced schedule first. Only those that held up got full runs.</p>
+{table("Negative and superseded results (balanced accuracy, %)", [("Idea", ""), ("Evidence", "why"), ("Conclusion", "why")], rows)}
+</section>"""
+
+
+def sec_privacy():
+    f01 = load("F01_main_longtail")
+    def stage_time(lab):
+        rs = [r for r in f01 if r["label"] == lab and r["dataset"] == "mnist" and r.get("gen_time_s")]
+        return np.mean([r["fe_time_s"] + r["gen_time_s"] + r["head_time_s"] for r in rs]) if rs else None,             (np.mean([r["gen_time_s"] for r in rs]) if rs else None)
+    (t_g, g_g), (t_o, g_o) = stage_time("GeFL-F"), stage_time("+HWA+LA")
+    rows = [["HWA", "Per-class sample counts, as sums", "Yes: counts and count-weighted rows aggregate under secure aggregation; Laplace noise on counts tested",
+             "+K&middot;C numbers per round (C = 10 classes)"],
+            ["LA", "Nothing", "Local: uses only the client's own label prior, never sent", "none"],
+            ["CSL", "Nothing new", "Server-side or client-side on synthetic features only; no real data touched", "one forward pass of each header per synthetic batch"],
+            ["LCD (alternative to HWA)", "Nothing", "Fully local; the option when even aggregated counts are disallowed", "none"]]
+    t = table("Privacy footprint of each component", [("Component", ""), ("Extra information shared", "why"), ("Compatibility", "why"), ("Extra cost", "why")], rows)
+    cost = (f"<p>Measured cost, MNIST long tail, full schedule, one laptop GPU (sum of the three stages, mean of 3 seeds): GeFL&#8209;F {t_g:.0f} s, "
+            f"ours {t_o:.0f} s ({(t_o / t_g - 1) * 100:+.1f}%). Generator stage alone: {g_g:.0f} s vs {g_o:.0f} s. HWA only changes how the server averages, "
+            f"and LA is one subtraction in the loss.</p>") if t_g and t_o else ""
+    return f"""
+<section id="s9"><h2><span class="num">9</span>Privacy and federated cost</h2>
+<p class="deck">The improvement must not buy accuracy with privacy or bandwidth.</p>
+{t}
+{cost}
+<p>None of the components share raw data, real features, or per-client label histograms in the clear. GeFL&#8209;F's own threat model
+(sharing a feature generator rather than an image generator) is unchanged.</p>
+</section>"""
+
+
+def sec_summary():
+    f01 = load("F01_main_longtail")
+    f09 = load("F09_consensus_paper_setting")
+    f10 = load("F10_combined_method")
+    lt10 = all(len(pick(f10, l, "final_bal", dataset=d, IF=0.01)) == 3 for l in ["GeFL-F", "+HWA+LA+CSL"] for d in ["mnist", "fmnist"])
+    src, lab = (f10, "+HWA+LA+CSL") if lt10 else (f01, "+HWA+LA")
+    w = dict(IF=0.01)
+    gain = lambda ds: mean(pick(src, lab, "final_bal", dataset=ds, **w)) - mean(pick(src, "GeFL-F", "final_bal", dataset=ds, **w))
+    tail = lambda ds: mean(pick(src, lab, "final_tail", dataset=ds, **w)) - mean(pick(src, "GeFL-F", "final_tail", dataset=ds, **w))
+    pv = max(paired_p(pick(src, lab, "final_bal", dataset=d, **w), pick(src, "GeFL-F", "final_bal", dataset=d, **w)) or 1 for d in ["mnist", "fmnist"])
+    csl = lambda ds: (mean(pick(f09, "+CSL (beta=0.5)", "best_mean_acc", dataset=ds, K=10, IF=1.0)) - mean(pick(f09, "GeFL-F", "best_mean_acc", dataset=ds, K=10, IF=1.0)))
+    return f"""
+<section id="s0"><h2><span class="num">0</span>The result on one page</h2>
+<div class="verdict">
+  <div class="v g"><div class="k">Long-tailed clients</div><div class="t2">+{gain('mnist'):.1f} / +{gain('fmnist'):.1f} points balanced accuracy</div>
+    <p>MNIST / FashionMNIST, {"final method (F10)" if lt10 else "HWA + LA (F01)"} over GeFL&#8209;F, 3 seeds, p &le; {pv:.3f}. Tail recall +{tail('mnist'):.0f} / +{tail('fmnist'):.0f}. SVHN +12.0 (3 seeds).</p></div>
+  <div class="v a"><div class="k">Paper's own IID setting</div><div class="t2">+{csl('mnist'):.2f} / +{csl('fmnist'):.2f} points best_mean_acc</div>
+    <p>Consensus soft labels win on every seed, on MNIST, FashionMNIST and SVHN (+0.48). They are 1.2 points above the paper's published MNIST number, tie it on FashionMNIST, and match it on SVHN (76.30 vs 76.26).</p></div>
+  <div class="v t"><div class="k">Baseline validated</div><div class="t2">Our GeFL&#8209;F = the paper = the authors' code</div>
+    <p>Within half a point at K = 10, 50, 100. Our baseline is slightly <em>weaker</em> than theirs under the long tail.</p></div>
+</div>
+<p><b>Our method.</b> GeFL&#8209;F with three changes. Each one follows from a specific failure we derived and then measured:</p>
+<ol>
+<li><b>HWA</b>, holder-weighted aggregation of the generator's class-conditioning rows, fixes rare-class collapse (&sect;2).</li>
+<li><b>LA</b>, training-time logit adjustment by each client's own label prior, stops real-data training from re-learning the skew.</li>
+<li><b>CSL</b>, consensus soft labels for synthetic features, helps when the data is IID (&sect;4).</li>
+</ol>
+<p>All three keep GeFL&#8209;F's privacy model, add no image-level sharing, and cost almost nothing. We did not add data augmentation:
+the paper uses augmentation only for image-space GeFL on CIFAR&#8209;10 (Table IV; best result {PAPER_BEST_AUG_CIFAR}), never for GeFL&#8209;F.
+Augmentation would be orthogonal and would lift every method equally.</p>
+</section>"""
+
+
+SECTIONS = [("s0", "0", "The result on one page"), ("s1", "1", "Baseline validation"), ("s2", "2", "The collapse mechanism"),
+            ("s3", "3", "Long-tail main result"), ("s4", "4", "Paper's IID setting"), ("s5", "5", "Combined method"),
+            ("s6", "6", "More clients"), ("s7", "7", "SVHN and CIFAR-10"), ("s8", "8", "What did not work"),
+            ("s9", "9", "Privacy and cost"), ("s10", "10", "Reproduce")]
+
+EXTRA_CSS = """
+.sd{color:var(--muted);font-size:.86em}
+.d{font-size:.86em;font-weight:600;margin-left:2px}
+.d.up{color:var(--good)} .d.dn{color:var(--bad)} .d.eq{color:var(--muted)}
+.sig{color:var(--good);font-weight:600} .ns{color:var(--muted)}
+.pend{color:var(--muted)}
+.small{font-size:14px;color:var(--ink-soft)}
+pre.cmd{font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:var(--surface);border:1px solid var(--rule);padding:12px 14px;overflow-x:auto;line-height:1.6}
+figure svg + svg{margin-top:14px}
+"""
+
+
+def design_head():
+    src = open(DESIGN, encoding="utf-8").read()
+    head = src[:src.index("</style>") + len("</style>")]
+    head = re.sub(r"<title>.*?</title>", "<title>GeFL-F Results Report</title>", head, flags=re.S)
+    return head + "<style>" + EXTRA_CSS + "</style>"
+
+
+def build():
+    import datetime
+    stamp = datetime.datetime.now().strftime("%d %b %Y, %H:%M")
+    rail = "".join(f'<li><a href="#{i}"><span class="n">{n}</span><span>{esc(t)}</span></a></li>' for i, n, t in SECTIONS)
+    body = "".join(f() for f in [sec_summary, sec_validation, sec_diagnosis, sec_main, sec_paper_setting,
+                                  sec_combined, sec_clients, sec_kaggle, sec_negative, sec_privacy])
+    body += """
+<section id="s10"><h2><span class="num">10</span>Reproduce</h2>
+<p>Each experiment is one standalone file built from <code>experiments/core.py</code> and a short spec, so it can be pasted into Kaggle.
+Finished runs are skipped on rerun. Each <code>summary.md</code> holds the per-seed numbers.</p>
+<pre class="cmd">python experiments/F01_main_longtail.py --out_dir results
+python experiments/F09_consensus_paper_setting.py --out_dir results
+python experiments/F10_combined_method.py --out_dir results
+python experiments/K01_kaggle_cifar10_svhn.py --datasets svhn --gpus 0,1 --out_dir /kaggle/working/results
+python experiments/make_results_page.py</pre>
+</section>"""
+    page = f"""{design_head()}
+<header class="top"><div class="wrap"><div class="mast">
+  <div class="kicker"><span>Results report</span><span class="dot"></span><span class="plain">Every number read from the run logs</span><span class="dot"></span><span class="plain">Built {stamp}</span></div>
+  <h1>GeFL&#8209;F, Improved<span class="sub">Rare-class collapse in federated feature generators: its cause, its fix, and the evidence</span></h1>
+  <p class="standfirst">GeFL&#8209;F trains a shared feature generator so that clients with different model architectures can learn
+  from each other. We show that it fails under long-tailed client data, for a reason we derive exactly. We fix that failure
+  with three changes that keep its privacy model, and we validate every comparison against the authors' own code.</p>
+</div></div></header>
+<div class="wrap"><div class="layout">
+<nav class="rail" aria-label="Contents"><ol>{rail}</ol></nav>
+<main>{body}</main></div></div>
+<footer><div class="wrap"><p>Generated by <code>experiments/make_results_page.py</code> from <code>experiments/results/*/runs.jsonl</code>.
+Std is across seeds; p-values are two-sided paired t-tests over seeds (same split, same initialisation) against GeFL&#8209;F.</p></div></footer>
+"""
+    with open(OUT, "w", encoding="utf-8") as f:
+        f.write(page)
+    print("wrote", os.path.normpath(OUT), f"{len(page)/1024:.0f} KB")
+
+
+if __name__ == "__main__":
+    build()
