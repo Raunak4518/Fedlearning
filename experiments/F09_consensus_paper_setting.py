@@ -108,23 +108,27 @@ def set_seed(s):
 
 
 # ---------------------------------------------------------------- data
-def _fetch_svhn_hf(root):
-    """SVHN from the Hugging Face mirror (the Stanford server is often slow)."""
+def _fetch_hf(root, sub, base):
+    """Download <split>-00000-of-00001.parquet (test, train) from a Hugging Face
+    dataset into root/sub. The original servers (Stanford, Toronto) are often slow."""
     import urllib.request
-    d = os.path.join(root, "svhn_hf")
+    d = os.path.join(root, sub)
     os.makedirs(d, exist_ok=True)
-    base = "https://huggingface.co/datasets/ufldl-stanford/svhn/resolve/main/cropped_digits/"
     try:
         for split in ("test", "train"):
             dst = os.path.join(d, f"{split}.parquet")
             if not os.path.exists(dst):
-                log(f"downloading SVHN {split} from Hugging Face")
+                log(f"downloading {sub} {split} from Hugging Face")
                 urllib.request.urlretrieve(base + f"{split}-00000-of-00001.parquet", dst + ".part")
                 os.replace(dst + ".part", dst)
         return True
-    except Exception as e:  # fall back to torchvision's Stanford download
-        log(f"Hugging Face SVHN download failed ({e}); trying torchvision")
+    except Exception as e:  # fall back to torchvision's own download
+        log(f"Hugging Face download failed ({e}); trying torchvision")
         return False
+
+
+def _fetch_svhn_hf(root):
+    return _fetch_hf(root, "svhn_hf", "https://huggingface.co/datasets/ufldl-stanford/svhn/resolve/main/cropped_digits/")
 
 
 def load_dataset(name, root):
@@ -164,6 +168,18 @@ def load_dataset(name, root):
             tr, te = tvd.SVHN(root, split="train", download=True), tvd.SVHN(root, split="test", download=True)
             xtr, ytr = torch.from_numpy(tr.data), torch.from_numpy(tr.labels).long()
             xte, yte = torch.from_numpy(te.data), torch.from_numpy(te.labels).long()
+        elif name == "cifar10" and not os.path.isdir(os.path.join(root, "cifar-10-batches-py")) and                 _fetch_hf(root, "cifar10_hf", "https://huggingface.co/datasets/uoft-cs/cifar10/resolve/main/plain_text/"):
+            # Hugging Face mirror (~70x faster than the Toronto server); verified
+            # identical to torchvision's copy: same images, same order, same labels.
+            import io
+            import pyarrow.parquet as pq
+            from PIL import Image
+
+            def read(split):
+                t = pq.read_table(os.path.join(root, "cifar10_hf", f"{split}.parquet")).to_pydict()
+                x = np.stack([np.array(Image.open(io.BytesIO(im["bytes"])).convert("RGB")) for im in t["img"]])
+                return torch.from_numpy(x).permute(0, 3, 1, 2), torch.tensor(t["label"])
+            (xtr, ytr), (xte, yte) = read("train"), read("test")
         elif name == "cifar10":
             tr, te = tvd.CIFAR10(root, train=True, download=True), tvd.CIFAR10(root, train=False, download=True)
             xtr, ytr = torch.from_numpy(tr.data).permute(0, 3, 1, 2), torch.tensor(tr.targets)
@@ -1552,6 +1568,7 @@ def main(exp):
     ap.add_argument("--out_dir", default="./results")
     ap.add_argument("--datasets", nargs="+", default=None)
     ap.add_argument("--only", nargs="+", default=None, help="run only these labels")
+    ap.add_argument("--K", type=int, nargs="+", default=None, help="run only these client counts")
     ap.add_argument("--list", action="store_true", help="print the planned runs and exit")
     ap.add_argument("--gpus", type=int, default=None,
                     help="parallel GPU workers (default: all visible GPUs, e.g. 2 on Kaggle T4 x2)")
@@ -1565,6 +1582,8 @@ def main(exp):
         runs = [r for r in runs if r["dataset"] in a.datasets]
     if a.only:
         runs = [r for r in runs if r["label"] in a.only]
+    if a.K:
+        runs = [r for r in runs if r["K"] in a.K]
     out_dir = os.path.join(a.out_dir, exp["name"] + ("_quick" if a.quick else ""))
     os.makedirs(out_dir, exist_ok=True)
     jl = os.path.join(out_dir, "runs.jsonl")
@@ -1586,6 +1605,12 @@ def main(exp):
     if a.worker is None and n_gpu > 1 and "__file__" in globals():
         import subprocess
         argv = [x for x in sys.argv[1:]]
+        # download + cache every dataset ONCE, before workers start (they would
+        # otherwise download into the same folder at the same time)
+        for ds in sorted({r["dataset"] for r in runs}):
+            log(f"preparing dataset {ds} (download + cache, once)")
+            load_dataset(ds, cfg["data_root"])
+        torch.cuda.empty_cache()
         procs = []
         for w in range(n_gpu):
             env = dict(os.environ, CUDA_VISIBLE_DEVICES=str(w), PYTHONUNBUFFERED="1")
@@ -1594,9 +1619,30 @@ def main(exp):
                                            ["--worker", str(w), "--gpus", str(n_gpu)],
                                            env=env, stdout=logf, stderr=subprocess.STDOUT), logf))
             log(f"started worker {w} on GPU {w} (log: {out_dir}/worker{w}.log)")
+        # stream each worker's progress (run starts, results, errors) to stdout
+        pos = [0] * n_gpu
+        keys = ("] ", "bal=", "Traceback", "Error", "error", "downloading", "done in")
+        while True:
+            alive = any(pr.poll() is None for pr, _ in procs)
+            for w in range(n_gpu):
+                path = os.path.join(out_dir, f"worker{w}.log")
+                try:
+                    with open(path, encoding="utf-8", errors="replace") as fh:
+                        fh.seek(pos[w])
+                        chunk = fh.read()
+                        pos[w] = fh.tell()
+                except OSError:
+                    continue
+                for line in chunk.splitlines():
+                    if any(k in line for k in keys):
+                        print(f"[gpu{w}] {line}", flush=True)
+            if not alive:
+                break
+            time.sleep(20)
         for pr, logf in procs:
-            pr.wait()
             logf.close()
+            if pr.returncode != 0:
+                log(f"WARNING: a worker exited with code {pr.returncode}; see its log")
         rows = [json.loads(l) for l in open(jl, encoding="utf-8")] if os.path.exists(jl) else []
         ids = {run_id(r) for r in runs}
         rows = [r for r in rows if r["run_id"] in ids]

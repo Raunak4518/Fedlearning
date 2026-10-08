@@ -22,7 +22,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 def main():
     core = open(os.path.join(HERE, "core.py"), encoding="utf-8").read()
-    for spec_path in sorted(glob.glob(os.path.join(HERE, "specs", "[EF]*.py"))):
+    for spec_path in sorted(glob.glob(os.path.join(HERE, "specs", "[EFK]*.py"))):
         name = os.path.splitext(os.path.basename(spec_path))[0]
         spec = open(spec_path, encoding="utf-8").read()
         doc_end = spec.index('"""', 3) + 3
