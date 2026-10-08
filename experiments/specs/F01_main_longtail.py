@@ -17,7 +17,7 @@ EXPERIMENT = dict(
                       for ds in ["mnist", "fmnist"] for s in cfg["seeds"]
                       for lab, m in [("GeFL-F", compose()), ("+LA", compose("LA")),
                                      ("+HWA+LA", compose("HWA+LA")), ("FSG+LA", compose("GAUSS+LA")),
-                                     (FINAL_LABEL, final_method()),
+                                     ("Ours-hybrid (RHYB+HWA+LA)", compose("HWA+LA", gen=dict(type="hybrid", n_min_rel=1.0))), ("MIX+HWA+LA", compose("MIX+HWA+LA")),
                                      ("FedAvg (grouped)", baseline_method("FedAvg")),
                                      ("LG-FedAvg", baseline_method("LG-FedAvg")),
                                      ("LG-FedAvg+LA", baseline_method("LG-FedAvg", la=True))]],

@@ -14,7 +14,7 @@ EXPERIMENT = dict(
     metrics=["best_mean_acc", "final_acc", "final_bal", "final_tail", "n_gauss_classes"],
     plan=lambda cfg: [run_spec(lab, ds, s, m)
                       for ds in ["mnist", "fmnist", "svhn"] for s in cfg["seeds"]
-                      for lab, m in [("GeFL-F", compose()), (FINAL_LABEL, final_method()),
+                      for lab, m in [("GeFL-F", compose()), ("Ours-hybrid (RHYB+HWA+LA)", compose("HWA+LA", gen=dict(type="hybrid", n_min_rel=1.0))), ("MIX+HWA+LA", compose("MIX+HWA+LA")),
                                      ("FedAvg (grouped)", baseline_method("FedAvg")),
                                      ("LG-FedAvg", baseline_method("LG-FedAvg"))]],
 )

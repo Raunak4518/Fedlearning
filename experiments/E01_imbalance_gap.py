@@ -92,6 +92,25 @@ def set_seed(s):
 
 
 # ---------------------------------------------------------------- data
+def _fetch_svhn_hf(root):
+    """SVHN from the Hugging Face mirror (the Stanford server is often slow)."""
+    import urllib.request
+    d = os.path.join(root, "svhn_hf")
+    os.makedirs(d, exist_ok=True)
+    base = "https://huggingface.co/datasets/ufldl-stanford/svhn/resolve/main/cropped_digits/"
+    try:
+        for split in ("test", "train"):
+            dst = os.path.join(d, f"{split}.parquet")
+            if not os.path.exists(dst):
+                log(f"downloading SVHN {split} from Hugging Face")
+                urllib.request.urlretrieve(base + f"{split}-00000-of-00001.parquet", dst + ".part")
+                os.replace(dst + ".part", dst)
+        return True
+    except Exception as e:  # fall back to torchvision's Stanford download
+        log(f"Hugging Face SVHN download failed ({e}); trying torchvision")
+        return False
+
+
 def load_dataset(name, root):
     """Whole dataset as preprocessed GPU tensors: x (N,C,32,32) float, y (N,) long.
     Preprocessing follows the reference utils/getData.py (MNIST: none,
@@ -106,7 +125,7 @@ def load_dataset(name, root):
             cls = tvd.MNIST if name == "mnist" else tvd.FashionMNIST
             tr, te = cls(root, train=True, download=True), cls(root, train=False, download=True)
             xtr, ytr, xte, yte = tr.data.unsqueeze(1), tr.targets, te.data.unsqueeze(1), te.targets
-        elif name == "svhn" and os.path.isdir(os.path.join(root, "svhn_hf")):
+        elif name == "svhn" and (os.path.isdir(os.path.join(root, "svhn_hf")) or _fetch_svhn_hf(root)):
             sizes = {"test.parquet": 47003111, "train.parquet": 135589380}  # Hugging Face file sizes
             t_wait = time.time()
             while any(not os.path.exists(os.path.join(root, "svhn_hf", f)) or
@@ -470,7 +489,7 @@ FE_DEFAULTS = dict(la=False, T_FE=None, oracle=False)
 GEN_DEFAULTS = dict(type="cvae", wd=1e-3, agg="flat", lazy=False, beta=0.999, weight="en",
                     dp_eps=None, oracle=False, T_KA=None)
 HEAD_DEFAULTS = dict(sampler="uniform", order="syn_first", ts=1, tr=5, mix=None, mix_ratio=0.2,
-                     loss="ce", tau=1.0, bcr=0, bcr_lr=0.05, gen_update=False)
+                     loss="ce", tau=1.0, bcr=0, bcr_lr=0.05, gen_update=False, csl=0.0, csl_mix=False)
 
 
 def method(pipeline="gefl_f", fe=None, gen=None, head=None):
@@ -493,9 +512,12 @@ COMPONENTS = {
     "RF": dict(head=dict(order="real_first")),  # real phase first, synthetic last
     "GENUPD": dict(head=dict(gen_update=True)),  # keep training G_F during stage (iii)
     "DCGAN": dict(gen=dict(type="dcgan", wd=0.0)),
+    "CSL": dict(head=dict(csl=0.5)),            # consensus soft labels for synthetic features
+    "CSLM": dict(head=dict(csl=0.5, csl_mix=True)),  # ...interleaved into every real batch (no forgetting)
     "GAUSS": dict(gen=dict(type="gauss", wd=0.0)),   # federated sufficient-statistics Gaussian (FSG)
     "HYB": dict(gen=dict(type="hybrid")),            # CVAE-F for common classes, FSG for rare ones (n < 100)
     "RHYB": dict(gen=dict(type="hybrid", n_min_rel=0.5)),  # FSG for classes below half the average count
+    "MIX": dict(gen=dict(type="mix", n_min_rel=1.0)),     # every class mixes FSG (w_c) and CVAE-F (1 - w_c)
 }
 OURS = "HWA+LCD+PCM+LA"
 OURS_PRIVATE = "LCD+PCM+LA"  # no class histograms leave any client
@@ -503,8 +525,10 @@ OURS_PRIVATE = "LCD+PCM+LA"  # no class histograms leave any client
 # The final method, chosen from the quick-pass evidence (E03, E12-E14) and
 # used by the full-run experiments F01-F08. Set once here.
 FINAL_LABEL = "Ours"
-FINAL_PARTS = "RHYB+HWA+LA"
-FINAL_OVER = {"gen": {"n_min_rel": 1.0}}  # rho = 1: FSG for classes below the average class size
+# Full-scale F01 (3 seeds): +HWA+LA beat the hybrid on MNIST (87.9 vs 87.1)
+# and FMNIST (76.0 vs 72.4), so the final method is HWA + LA.
+FINAL_PARTS = "HWA+LA"
+FINAL_OVER = {}
 
 
 def final_method(**over):
@@ -594,23 +618,36 @@ def eval_headers(ctx, headers, feats_te, yte):
     MNIST/FMNIST/CIFAR-10 are balanced; SVHN's is not, hence both)."""
     out = {}
     C = NUM_CLASSES
+    prob_sum = None
     for g in ctx.groups:
         h = headers[g]
         h.eval()
-        pred = torch.cat([h(feats_te[s:s + 2000]).argmax(1) for s in range(0, len(yte), 2000)])
-        correct = (pred == yte)
+        logits = torch.cat([h(feats_te[s:s + 2000]) for s in range(0, len(yte), 2000)])
+        prob_sum = logits.softmax(1) if prob_sum is None else prob_sum + logits.softmax(1)
+        correct = (logits.argmax(1) == yte)
         rec = torch.stack([correct[yte == c].float().mean() for c in range(C)]).cpu().numpy()
         out[g] = dict(acc=float(correct.float().mean()), recall=rec)
         h.train()
+    if len(ctx.groups) > 1:
+        # diagnostic only: the averaged-softmax ensemble of all architectures,
+        # i.e. how much the headers know jointly that none knows alone
+        correct = (prob_sum.argmax(1) == yte)
+        rec = torch.stack([correct[yte == c].float().mean() for c in range(C)]).cpu().numpy()
+        out["_ens"] = dict(acc=float(correct.float().mean()), recall=rec)
     return out
 
 
 def summarize_eval(ev):
+    ens = ev.get("_ens")
+    ev = {g: v for g, v in ev.items() if g != "_ens"}
     accs = np.array([v["acc"] for v in ev.values()])
     rec = np.stack([v["recall"] for v in ev.values()]).mean(0)
-    return dict(acc=float(accs.mean()), bal=float(rec.mean()), head=float(rec[0:3].mean()),
-                medium=float(rec[3:6].mean()), tail=float(rec[6:10].mean()), worst=float(rec.min()),
-                recall=rec.tolist())
+    out = dict(acc=float(accs.mean()), bal=float(rec.mean()), head=float(rec[0:3].mean()),
+               medium=float(rec[3:6].mean()), tail=float(rec[6:10].mean()), worst=float(rec.min()),
+               recall=rec.tolist())
+    if ens is not None:
+        out.update(ens_acc=ens["acc"], ens_bal=float(np.mean(ens["recall"])))
+    return out
 
 
 class Tracker:
@@ -620,7 +657,8 @@ class Tracker:
 
     def update(self, stage, rnd, ev):
         for g, v in ev.items():
-            self.best[g] = max(self.best.get(g, 0.0), v["acc"])
+            if g != "_ens":
+                self.best[g] = max(self.best.get(g, 0.0), v["acc"])
         s = summarize_eval(ev)
         s.update(stage=stage, round=rnd, best_mean_acc=float(np.mean(list(self.best.values()))))
         self.hist.append(s)
@@ -651,10 +689,10 @@ def stage_i(ctx, rounds, fe_mode="all", la=False, tracker=None, eval_every=10):
                 for b in batches(len(idx), ctx.B):
                     if b.numel() < 2:
                         continue
-                    x = d["xtr"][idx[b]]
+                    x, y = d["xtr"][idx[b]], d["ytr"][idx[b]]
                     if spec["augment"]:
                         x = gpu_augment(x)
-                    loss = ce_or_la(headers[g](fe(x)), d["ytr"][idx[b]], priors[k] if la else None, 1.0)
+                    loss = ce_or_la(headers[g](fe(x)), y, priors[k] if la else None, 1.0)
                     opt.zero_grad(set_to_none=True)
                     loss.backward()
                     opt.step()
@@ -910,6 +948,30 @@ class HybridFeatureGen(nn.Module):
         return out
 
 
+class MixFeatureGen(nn.Module):
+    """Every class draws from BOTH generators: FSG with probability
+    w_c = nbar / (nbar + n_c) (nbar = rel * average class size), CVAE-F
+    otherwise. Unlike HybridFeatureGen, the generator's style carries no
+    information about which classes are rare, so a header cannot use it as
+    a shortcut; and mixing two estimators with different errors (bias for
+    the Gaussian, variance for the CVAE on rare classes) reduces error."""
+    kind = "mix"
+
+    def __init__(self, cvae, gauss, w):
+        super().__init__()
+        self.cvae, self.gauss = cvae, gauss
+        self.register_buffer("w", w)
+        self.cond = {"gauss.mu": 0}
+
+    @torch.no_grad()
+    def sample(self, y):
+        out = self.cvae.sample(y)
+        m = torch.rand(len(y), device=y.device) < self.w[y]
+        if m.any():
+            out[m] = self.gauss.sample(y[m])
+        return out
+
+
 def stage_ii_gauss(ctx, gspec, feats, ys_list, shrink=0.1, rng=None):
     """Each client uploads, for its features h (flattened, D dims):
         n_kc = #samples of class c,  S_kc = sum_{h in c} h,  M_k = sum_h h h^T.
@@ -1024,6 +1086,24 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
             gen_state = (g_sd, clients, gspec, W)
         if G is not None:
             G.eval()
+        pool = None
+        if G is not None and hspec["csl"] and hspec["ts"] > 0:
+            # CSL: one shared synthetic batch per round, labelled by the consensus
+            # of every architecture's current header (clients would upload only
+            # these probabilities; summable under secure aggregation)
+            P = max(hspec["ts"] * (sz // B if sz >= B else 1) * (B if sz >= B else sz) for sz in ctx.sizes)
+            py = torch.randint(0, C, (P,), device=DEV)
+            px = torch.cat([G.sample(py[s:s + 4096]) for s in range(0, P, 4096)])
+            with torch.no_grad():
+                cons = torch.zeros(P, C, device=DEV)
+                for g in ctx.groups:
+                    headers[g].load_state_dict(hd_sd[g])
+                    headers[g].eval()
+                    cons += torch.cat([headers[g](px[s:s + 4096]).softmax(1) for s in range(0, P, 4096)])
+                    headers[g].train()
+                cons /= len(ctx.groups)
+            beta = hspec["csl"]
+            pool = (px, py, (1 - beta) * F.one_hot(py, C).float() + beta * cons)
         hd_avg = {g: Averager() for g in ctx.groups}
         for k in range(ctx.K):
             g = ctx.arch[k]
@@ -1055,6 +1135,16 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
                 if G is None or hspec["ts"] <= 0:
                     return
                 opt = torch.optim.SGD(h.parameters(), lr=0.1, momentum=0.0)
+                if pool is not None:
+                    nsyn = hspec["ts"] * nb * bs
+                    xs, tgt = pool[0][:nsyn], pool[2][:nsyn]
+                    for s in range(0, nsyn, bs):
+                        logp = fwd(g, xs[s:s + bs]).log_softmax(1)
+                        loss = -(tgt[s:s + bs] * logp).sum(1).mean()
+                        opt.zero_grad(set_to_none=True)
+                        loss.backward()
+                        opt.step()
+                    return
                 ylab = torch.from_numpy(np.random.choice(C, size=hspec["ts"] * nb * bs, p=p_syn)).long().to(DEV)
                 xs = torch.cat([G.sample(ylab[s:s + 4096]) for s in range(0, len(ylab), 4096)])
                 for s in range(0, len(ylab), bs):
@@ -1070,6 +1160,21 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
                         if b.numel() < 2:
                             continue
                         x, y = Xk[b], Yk[b]
+                        if pool is not None and hspec["csl_mix"]:
+                            # CSLM: a budget-matched share of consensus-labelled synthetic
+                            # features in every real batch: L = CE(real) + soft-CE(synthetic)
+                            S = max(1, int(round(hspec["mix_ratio"] * len(y))))
+                            j = torch.randint(0, len(pool[1]), (S,), device=DEV)
+                            logits = fwd(g, torch.cat([x, pool[0][j]]))
+                            if prior is not None and hspec["tau"]:
+                                logits = logits + hspec["tau"] * prior
+                            logp = logits.log_softmax(1)
+                            tgt = torch.cat([F.one_hot(y, C).float(), pool[2][j]])
+                            loss = -(tgt * logp).sum(1).mean()
+                            opt.zero_grad(set_to_none=True)
+                            loss.backward()
+                            opt.step()
+                            continue
                         if G is not None and hspec["mix"] == "pcm":
                             # PCM: complete this batch's class prior with synthetic features
                             S = max(1, int(round(hspec["mix_ratio"] * len(y))))
@@ -1083,7 +1188,7 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
                         loss.backward()
                         opt.step()
 
-            if hspec["mix"] == "pcm":
+            if hspec["mix"] == "pcm" or (pool is not None and hspec["csl_mix"]):
                 real_phase()
             elif hspec["order"] == "real_first":
                 real_phase()
@@ -1178,7 +1283,7 @@ def cvae_part_key(run, cfg):
     """Stage-(ii) key of the plain CVAE-F that a hybrid generator contains,
     so the hybrid reuses the CVAE an ordinary run in the same setting trained."""
     g = run["m"]["gen"]
-    if not g or g["type"] != "hybrid":
+    if not g or g["type"] not in ("hybrid", "mix"):
         return None
     cv = {k: v for k, v in g.items() if k in GEN_DEFAULTS}
     cv["type"] = "cvae"
@@ -1257,7 +1362,7 @@ def run_one(cfg, run, cache, data_cache):
                 g_sd = sd_clone(G2)
                 nrm = cond_row_norms(G2)
                 norms, clients, W = np.array([nrm, nrm]), None, None
-            elif m["gen"]["type"] == "hybrid":
+            elif m["gen"]["type"] in ("hybrid", "mix"):
                 kc = cvae_part_key(run, cfg)
                 if kc not in cache:
                     cv = {k: v for k, v in m["gen"].items() if k in GEN_DEFAULTS}
@@ -1275,8 +1380,14 @@ def run_one(cfg, run, cache, data_cache):
                 # n_c < rel * N / C (n_min_rel); else an absolute threshold n_min.
                 rel = m["gen"].get("n_min_rel")
                 thr = rel * float(n_c.sum()) / NUM_CLASSES if rel else m["gen"].get("n_min", 100)
-                G2 = HybridFeatureGen(Gc, Gg, n_c < thr).to(DEV)
-                n_gauss = int((n_c < thr).sum())
+                if m["gen"]["type"] == "mix":
+                    nbar = (rel or 1.0) * float(n_c.sum()) / NUM_CLASSES
+                    w = (nbar / (nbar + n_c)).float()
+                    G2 = MixFeatureGen(Gc, Gg, w).to(DEV)
+                    n_gauss = float(w.sum())  # expected number of classes' worth of FSG samples
+                else:
+                    G2 = HybridFeatureGen(Gc, Gg, n_c < thr).to(DEV)
+                    n_gauss = int((n_c < thr).sum())
                 g_sd, clients = sd_clone(G2), None
             elif m["gen"]["oracle"]:
                 g_sd, norms, G2 = stage_ii_oracle(ctx, m["gen"], s1["feats"], s1["ys"], T["T_KA"])
@@ -1338,13 +1449,14 @@ def finish(res, tracker, G):
     last = tracker.hist[-1]
     res.update(final_acc=last["acc"], final_bal=last["bal"], final_head=last["head"], final_medium=last["medium"],
                final_tail=last["tail"], final_worst=last["worst"], best_mean_acc=last["best_mean_acc"],
-               final_recall=[round(v, 4) for v in last["recall"]])
+               final_recall=[round(v, 4) for v in last["recall"]],
+               final_ens_acc=last.get("ens_acc"), final_ens_bal=last.get("ens_bal"))
     res["history"] = [{k: (round(v, 4) if isinstance(v, float) else v) for k, v in h.items() if k != "recall"}
                       for h in tracker.hist]
     return res
 
 
-SCALAR_FIELDS = ["final_bal", "final_acc", "final_tail", "final_head", "final_medium", "final_worst", "n_gauss_classes",
+SCALAR_FIELDS = ["final_bal", "final_acc", "final_ens_acc", "final_ens_bal", "final_tail", "final_head", "final_medium", "final_worst", "n_gauss_classes",
                  "best_mean_acc", "oracle_bal", "oracle_tail", "fidelity_head", "fidelity_tail",
                  "cond_norm_tail_over_head_end", "cond_norm_tail_rel_init", "feature_mnd", "referee_test_acc",
                  "time_s", "fe_time_s", "gen_time_s", "head_time_s", "n_train", "min_client", "tail_holders"]
@@ -1425,7 +1537,10 @@ def main(exp):
     ap.add_argument("--datasets", nargs="+", default=None)
     ap.add_argument("--only", nargs="+", default=None, help="run only these labels")
     ap.add_argument("--list", action="store_true", help="print the planned runs and exit")
-    a = ap.parse_args()
+    ap.add_argument("--gpus", type=int, default=None,
+                    help="parallel GPU workers (default: all visible GPUs, e.g. 2 on Kaggle T4 x2)")
+    ap.add_argument("--worker", type=int, default=None, help=argparse.SUPPRESS)
+    a, _unknown = ap.parse_known_args()  # tolerate Jupyter/Kaggle kernel arguments
     cfg = dict(quick=a.quick, quick_scale=a.quick_scale, quick_frac={"cifar10": 0.2, "svhn": 0.5},
                seeds=a.seeds if a.seeds is not None else ([0] if a.quick else exp.get("seeds", [0, 1, 2])),
                data_root=a.data_root, referee=exp.get("referee", True), mnd=exp.get("mnd", False))
@@ -1448,6 +1563,35 @@ def main(exp):
         return
     # order so that cached stages are reused, then free them when unused
     runs.sort(key=lambda r: (key_of(r, cfg, 1), key_of(r, cfg, 2) if r["m"]["gen"] else ""))
+
+    # Multi-GPU: one worker process per GPU, each taking whole (dataset,
+    # setting, seed) groups so cached stages are never split across workers.
+    n_gpu = a.gpus if a.gpus is not None else (torch.cuda.device_count() if DEV == "cuda" else 1)
+    if a.worker is None and n_gpu > 1 and "__file__" in globals():
+        import subprocess
+        argv = [x for x in sys.argv[1:]]
+        procs = []
+        for w in range(n_gpu):
+            env = dict(os.environ, CUDA_VISIBLE_DEVICES=str(w), PYTHONUNBUFFERED="1")
+            logf = open(os.path.join(out_dir, f"worker{w}.log"), "a", encoding="utf-8")
+            procs.append((subprocess.Popen([sys.executable, os.path.abspath(__file__)] + argv +
+                                           ["--worker", str(w), "--gpus", str(n_gpu)],
+                                           env=env, stdout=logf, stderr=subprocess.STDOUT), logf))
+            log(f"started worker {w} on GPU {w} (log: {out_dir}/worker{w}.log)")
+        for pr, logf in procs:
+            pr.wait()
+            logf.close()
+        rows = [json.loads(l) for l in open(jl, encoding="utf-8")] if os.path.exists(jl) else []
+        ids = {run_id(r) for r in runs}
+        rows = [r for r in rows if r["run_id"] in ids]
+        path = write_summary(exp, rows, out_dir, cfg)
+        log(f"all workers done; summary -> {path}")
+        print(open(path, encoding="utf-8").read())
+        return
+    if a.worker is not None and n_gpu > 1:
+        groups = sorted({json.dumps([r["dataset"], r["IF"], r["alpha"], r["K"], r["seed"]]) for r in runs})
+        mine = set(groups[a.worker::n_gpu])
+        runs = [r for r in runs if json.dumps([r["dataset"], r["IF"], r["alpha"], r["K"], r["seed"]]) in mine]
     remaining = defaultdict(int)
     for r in runs:
         if run_id(r) not in done:
