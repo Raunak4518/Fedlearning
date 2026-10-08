@@ -499,6 +499,19 @@ COMPONENTS = {
 OURS = "HWA+LCD+PCM+LA"
 OURS_PRIVATE = "LCD+PCM+LA"  # no class histograms leave any client
 
+# The final method, chosen from the quick-pass evidence (E03, E12-E14) and
+# used by the full-run experiments F01-F08. Set once here.
+FINAL_LABEL = "Ours"
+FINAL_PARTS = "RHYB+HWA+LA"
+FINAL_OVER = {"gen": {"n_min_rel": 1.0}}  # rho = 1: FSG for classes below the average class size
+
+
+def final_method(**over):
+    o = {k: dict(v) for k, v in FINAL_OVER.items()}
+    for k, v in over.items():
+        o.setdefault(k, {}).update(v)
+    return compose(FINAL_PARTS, **o)
+
 
 def compose(parts="", **over):
     """compose("HWA+LCD", head=dict(tau=1.5)) -> method dict."""
@@ -1160,6 +1173,27 @@ def key_of(run, cfg, upto):
     return json.dumps(k)
 
 
+def cvae_part_key(run, cfg):
+    """Stage-(ii) key of the plain CVAE-F that a hybrid generator contains,
+    so the hybrid reuses the CVAE an ordinary run in the same setting trained."""
+    g = run["m"]["gen"]
+    if not g or g["type"] != "hybrid":
+        return None
+    cv = {k: v for k, v in g.items() if k in GEN_DEFAULTS}
+    cv["type"] = "cvae"
+    return key_of(dict(run, m=dict(run["m"], gen=cv)), cfg, 2)
+
+
+def stage_keys(run, cfg):
+    keys = [key_of(run, cfg, 1)]
+    if run["m"]["gen"]:
+        keys.append(key_of(run, cfg, 2))
+    kc = cvae_part_key(run, cfg)
+    if kc:
+        keys.append(kc)
+    return keys
+
+
 def run_one(cfg, run, cache, data_cache):
     ds, seed, K = run["dataset"], run["seed"], run["K"]
     m = run["m"]
@@ -1223,9 +1257,18 @@ def run_one(cfg, run, cache, data_cache):
                 nrm = cond_row_norms(G2)
                 norms, clients, W = np.array([nrm, nrm]), None, None
             elif m["gen"]["type"] == "hybrid":
-                cv = dict(m["gen"], type="cvae")
-                g_sd_c, norms, Gc, clients, W = stage_ii(ctx, cv, s1["feats"], s1["ys"], T["T_KA"])
-                Gc.load_state_dict(g_sd_c)
+                kc = cvae_part_key(run, cfg)
+                if kc not in cache:
+                    cv = {k: v for k, v in m["gen"].items() if k in GEN_DEFAULTS}
+                    cv["type"] = "cvae"
+                    g_sd_c, norms_c, Gc_, cl_c, W_c = stage_ii(ctx, cv, s1["feats"], s1["ys"], T["T_KA"])
+                    Gc_.load_state_dict(g_sd_c)
+                    fid_c = referee_fidelity(s1["ref"], Gc_) if s1["ref"] is not None else None
+                    cache[kc] = dict(g_sd=g_sd_c, norms=norms_c, G=Gc_, clients=cl_c, W=W_c, fid=fid_c, mnd=None,
+                                     t=time.time() - t2, n_gauss=None)
+                sc = cache[kc]
+                Gc, norms, clients, W = sc["G"], sc["norms"], None, None
+                Gc.load_state_dict(sc["g_sd"])
                 Gg, n_c = stage_ii_gauss(ctx, m["gen"], s1["feats"], s1["ys"])
                 # A class gets FSG when it is rare relative to the federation:
                 # n_c < rel * N / C (n_min_rel); else an absolute threshold n_min.
@@ -1407,9 +1450,8 @@ def main(exp):
     remaining = defaultdict(int)
     for r in runs:
         if run_id(r) not in done:
-            remaining[key_of(r, cfg, 1)] += 1
-            if r["m"]["gen"]:
-                remaining[key_of(r, cfg, 2)] += 1
+            for kk in stage_keys(r, cfg):
+                remaining[kk] += 1
     log(f"{exp['name']}: {len(runs)} runs, {len(runs) - sum(run_id(r) in done for r in runs)} to do -> {out_dir}")
     cache, data_cache = {}, {}
     rows = [done[run_id(r)] for r in runs if run_id(r) in done]
@@ -1429,9 +1471,7 @@ def main(exp):
             f"best_mean_acc={res['best_mean_acc'] * 100:.2f} oracle_bal={res.get('oracle_bal', float('nan')) * 100:.2f} "
             f"fid_tail={res.get('fidelity_tail', float('nan')):.3f} norm_t/h={res.get('cond_norm_tail_over_head_end', float('nan')):.3f} "
             f"time={res['time_s']:.0f}s")
-        for kk in (key_of(r, cfg, 1), key_of(r, cfg, 2) if r["m"]["gen"] else None):
-            if kk is None:
-                continue
+        for kk in stage_keys(r, cfg):
             remaining[kk] -= 1
             if remaining[kk] <= 0 and kk in cache:
                 del cache[kk]

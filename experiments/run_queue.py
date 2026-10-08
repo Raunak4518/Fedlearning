@@ -28,6 +28,17 @@ ALL = ["E03_method_components", "E02_conditioning_collapse", "E06_iid_paper_sett
 # Full phase: most decision-relevant first (plan section 9). Each lane is
 # a list; lanes run in parallel.
 FULL_LANES = [
+    [("F01_main_longtail", []),
+     ("F02_paper_setting", ["--datasets", "mnist", "fmnist"]),
+     ("F06_mechanism", []),
+     ("F03_regimes", []),
+     ("F04_clients", []),
+     ("F07_privacy", []),
+     ("F08_ablations", []),
+     ("F05_harder_datasets", []),
+     ("F02_paper_setting", ["--datasets", "svhn"])],
+]
+_OLD_FULL_LANES = [
     [("E03_method_components", ["--datasets", "mnist"]),
      ("E03_method_components", ["--datasets", "fmnist"]),
      ("E04_client_scaling", []),
