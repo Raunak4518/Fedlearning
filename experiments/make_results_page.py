@@ -74,9 +74,17 @@ DS_NAME = {"mnist": "MNIST", "fmnist": "FashionMNIST", "svhn": "SVHN", "cifar10"
 
 # ---------------------------------------------------------------- data access
 def load(exp):
-    p = os.path.join(RES, exp, "runs.jsonl")
-    if not os.path.exists(p):
-        return []
+    """runs of one experiment, including Kaggle folders renamed <exp>__<part> (later folders win)."""
+    import glob
+    by = {}
+    for p in [os.path.join(RES, exp, "runs.jsonl")] + sorted(glob.glob(os.path.join(RES, exp + "__*", "runs.jsonl"))):
+        if os.path.exists(p):
+            for r in _read_jsonl(p):
+                by[r.get("run_id", id(r))] = r
+    return list(by.values())
+
+
+def _read_jsonl(p):
     out = []
     with open(p, encoding="utf-8") as f:
         for line in f:

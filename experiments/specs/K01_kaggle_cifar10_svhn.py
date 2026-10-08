@@ -9,17 +9,19 @@ Part A - the paper's own setting (IID, K=10, Table XIV/XV, Figure 4):
   compared: GeFL-F; +CSL (consensus soft labels, beta=0.5); Ours = HWA+LA+CSL.
   metric of the paper: best_mean_acc.
 Part B - long tail IF=100 + Dirichlet(0.5), K=10:
-  GeFL-F; +LA; +HWA+LA; Ours = HWA+LA+CSL.
-(CSLM and FSG+LA were dropped after the SVHN run: both lost to GeFL-F.)
+  GeFL-F; +LA; +HWA+LA; Ours = HWA+LA+CSL; FSG+LA and FSG+LA+CSL (the Gaussian
+  generator lost on SVHN but led on CIFAR-10 in the first run; it costs ~2 min a run).
+(CSLM was dropped after the first run: it lost to GeFL-F.)
 
 Typical use (one Kaggle session can do one dataset; finished runs are
 skipped when runs.jsonl is present, so a cut-off session can resume):
-    python K01.py --datasets cifar10 --out_dir /kaggle/working/results
-    python K01.py --datasets svhn --only "Ours (HWA+LA+CSL)" --out_dir /kaggle/working/results
+    python K01.py --datasets cifar10 --out_dir /kaggle/working/results   # ~6 h on T4 x2
+    python K01.py --datasets svhn    --out_dir /kaggle/working/results   # ~2.5 h on T4 x2
 """
 OURS_K = ("Ours (HWA+LA+CSL)", final_method())
 IID = [("GeFL-F", compose()), ("+CSL (beta=0.5)", compose("CSL")), OURS_K]
-LT = [("GeFL-F", compose()), ("+LA", compose("LA")), ("+HWA+LA", compose("HWA+LA")), OURS_K]
+LT = [("GeFL-F", compose()), ("+LA", compose("LA")), ("+HWA+LA", compose("HWA+LA")), OURS_K,
+      ("FSG+LA", compose("GAUSS+LA")), ("FSG+LA+CSL", compose("GAUSS+LA+CSL"))]
 
 EXPERIMENT = dict(
     name="K01_kaggle_cifar10_svhn",
