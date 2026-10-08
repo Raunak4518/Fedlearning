@@ -14,5 +14,7 @@ EXPERIMENT = dict(
                       for K in [50, 100] for s in cfg["seeds"]
                       for lab, m in [("GeFL-F", compose()), ("+LA", compose("LA")),
                                      ("FSG+LA", compose("GAUSS+LA")), ("+HWA+LA", compose("HWA+LA")),
-                                     ("+HWA+LA+CSL", compose("HWA+LA+CSL"))]],
+                                     ("+HWA+LA+CSL", compose("HWA+LA+CSL")),
+                                     ("FSG+LA+CSL", compose("GAUSS+LA+CSL")),
+                                     ("MIX+HWA+LA+CSL", compose("MIX+HWA+LA+CSL"))]],
 )

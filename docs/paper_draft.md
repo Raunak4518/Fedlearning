@@ -209,8 +209,27 @@ Against GeFL-F, the gain is +13.3 (p = 0.004) on MNIST and +17.4 (p = 0.015) on 
 +33. On the paper's own metric (`best_mean_acc`) the gain is +13.5 and +17.3. LA alone accounts for +4.3 and +6.2;
 HWA adds +9.0 and +11.2 on top of it.
 
-**More clients.** At K = 50 (quick pass, 3 seeds) the result is 67.8 vs 60.0.
-**[PENDING: F04 full runs at K = 50 and K = 100.]**
+**More clients** (F04, MNIST long tail, full schedule, 3 seeds, balanced accuracy):
+
+| | K = 10 (F01/F10) | K = 50 | K = 100 |
+|---|---|---|---|
+| GeFL-F | 74.2 | 78.1 | 76.0 |
+| + LA | 78.9 | 81.4 | 79.5 |
+| + HWA + LA | 87.8 | 86.5 | 83.1 |
+| + HWA + LA + CSL (ours) | **89.9** | 86.8 | 82.7 |
+| FSG + LA | 87.0 | 87.7 | **86.1** |
+| FSG + LA + CSL | – | 87.2 | 85.5 |
+| MIX + HWA + LA + CSL | – | **87.9** | 85.2 |
+
+* Every variant beats GeFL-F at every K. The full method gains +8.7 at K = 50 and +6.7 at K = 100.
+* The best *generator* changes with K. The repaired CVAE-F wins at K = 10. The Gaussian sufficient-statistics
+  generator (FSG) wins at K = 100: 86.1 against 82.7 for HWA + LA + CSL, p = 0.105 with 3 seeds. At K = 50 the
+  variants are within noise of each other (ours vs FSG, p = 0.47).
+* This is the expected structure. FSG's federated estimate equals the centralised one at any K, because it
+  aggregates exact sums. The CVAE's rows, even under HWA, are fitted by clients that each hold fewer samples as K
+  grows: about 60 images per client at K = 100. The server can see the per-client sample size from aggregated
+  counts, so a principled rule (CVAE-F when clients are data-rich, FSG when they are data-poor) is available.
+  Validating that rule on FMNIST (K03) and CIFAR-10 (K01) is pending.
 
 **SVHN** (Kaggle, 3 seeds). Balanced accuracy is 62.45 ± 1.76 for ours, 50.49 ± 2.24 for GeFL-F and 56.44 for + LA,
 a gain of +12.0. Tail recall is 47.8 against 24.8. On `best_mean_acc` the result is 66.86 vs 57.36 (p = 0.045). The

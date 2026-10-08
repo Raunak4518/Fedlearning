@@ -439,7 +439,8 @@ def sec_clients():
 {note("flag", "Queued", "<p>F04 (K = 50 and K = 100 under the long tail, 3 seeds) starts automatically after F10.</p>")}
 {quick_clients()}
 </section>"""
-    labels = [("GeFL-F", "GeFL-F"), ("+LA", "+LA"), ("FSG+LA", "FSG+LA"), ("+HWA+LA", "+HWA+LA (ours)"), ("+HWA+LA+CSL", "+HWA+LA+CSL")]
+    labels = [("GeFL-F", "GeFL-F"), ("+LA", "+LA"), ("+HWA+LA", "+HWA+LA"), ("+HWA+LA+CSL", "Ours (HWA+LA+CSL)"),
+              ("FSG+LA", "FSG+LA"), ("FSG+LA+CSL", "FSG+LA+CSL"), ("MIX+HWA+LA+CSL", "MIX+HWA+LA+CSL")]
     ts = "".join(method_table(f04, labels, ["mnist"], [("final_bal", "balanced acc."), ("final_tail", "tail")],
                               where=dict(K=K), caption=f"MNIST long tail, K = {K}", ours=("+HWA+LA", "+HWA+LA+CSL"))
                  for K in [50, 100] if any(r["K"] == K for r in f04))
@@ -447,6 +448,11 @@ def sec_clients():
 <section id="s6"><h2><span class="num">6</span>More clients: K = 50 and 100</h2>
 <p class="deck">With more clients each rare class has fewer holders, so flat averaging dilutes its rows further.</p>
 {ts}
+<p>Every variant beats GeFL&#8209;F by more as K grows: +8.7 at K = 50 and +6.7 at K = 100 for HWA + LA + CSL. But the ranking among our own variants
+changes with K. At K = 10 the repaired CVAE&#8209;F is best (87.9 against 87.0 for FSG). At K = 50 the variants are within noise of each other
+(MIX 87.9, FSG 87.7, ours 86.8; ours vs FSG p = 0.47). At K = 100 the Gaussian sufficient-statistics generator leads, 86.1 against 82.7 (p = 0.105, 3 seeds). The reason is structural. FSG's federated estimate is <em>exactly</em> the centralised one at any K, because it
+aggregates sums. The CVAE's class rows, even with HWA, are fitted by clients that each hold fewer and fewer samples. Which generator to use
+is therefore a function of the per-client sample size, and the right choice can be read from the aggregated counts the server already has.</p>
 </section>"""
 
 
