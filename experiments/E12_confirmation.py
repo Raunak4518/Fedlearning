@@ -373,6 +373,82 @@ class PaperCVAE(nn.Module):
         return self.decode(torch.randn(y.size(0), self.latent, device=y.device), y)
 
 
+class ProtoCVAE(nn.Module):
+    """PC-VAE (new): the CVAE-F of Table XX with its per-class label rows removed.
+    Class identity comes from the EXACT federated class mean of the frozen-FE
+    features, mu_c = sum_k S_kc / sum_k n_kc (secure-aggregated sums, the same
+    disclosure as FSG), fed through a class-SHARED projection; the decoder models
+    only the within-class residual:  x = ReLU(mu_y + dec(z, mu_y)).
+    No class-specific parameter exists, so nothing can be diluted or collapse
+    under FedAvg at any K; tail classes borrow within-class variation from all
+    classes through the shared decoder. A linear decoder recovers FSG.
+    Optional ex-post latent prior (zpost): z ~ N(m, S) fitted to the encoder means
+    of all real features (exact sums, latent x latent), closing the prior hole."""
+    kind = "cvae"
+    cond = {}
+
+    def __init__(self, in_ch, latent, proto, S=16):
+        super().__init__()
+        n = int(round(math.log2(S)))
+        widths = [min(64 * 2 ** i, 512) for i in range(n)]
+        enc, ci = [], 2 * in_ch
+        for w in widths:
+            enc += [nn.Conv2d(ci, w, 4, 2, 1), nn.BatchNorm2d(w), nn.ReLU(inplace=True)]
+            ci = w
+        self.enc = nn.Sequential(*enc)
+        self.flat, self.latent = widths[-1], latent
+        self.mu, self.logvar = nn.Linear(self.flat, latent), nn.Linear(self.flat, latent)
+        self.dec_z = nn.Linear(latent, self.flat)
+        self.proto_proj = nn.Linear(proto[0].numel(), self.flat)
+        dec, rev = [], list(reversed(widths))
+        for i, w in enumerate(rev):
+            co = rev[i + 1] if i + 1 < len(rev) else in_ch
+            dec.append(nn.ConvTranspose2d(w, co, 4, 2, 1))
+            if i + 1 < len(rev):
+                dec += [nn.BatchNorm2d(co), nn.ReLU(inplace=True)]
+        self.dec = nn.Sequential(*dec)
+        self.register_buffer("proto", proto.clone())
+        self.register_buffer("zm", torch.zeros(latent))
+        self.register_buffer("zL", torch.eye(latent))
+
+    def decode(self, z, y):
+        p = self.proto[y]
+        h = F.relu(self.dec_z(z) + self.proto_proj(p.flatten(1))).view(-1, self.flat, 1, 1)
+        return F.relu(p + self.dec(h))
+
+    def encode(self, x, y):
+        h = self.enc(torch.cat([x, self.proto[y]], 1)).flatten(1)
+        return self.mu(h), self.logvar(h)
+
+    def loss(self, x, y):
+        mu, logvar = self.encode(x, y)
+        z = mu + torch.exp(0.5 * logvar) * torch.randn_like(mu)
+        rec = self.decode(z, y)
+        return F.mse_loss(rec, x, reduction="sum") - 0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+
+    @torch.no_grad()
+    def fit_zpost(self, feats, ys_list):
+        """Ex-post latent Gaussian from exact client sums of encoder means."""
+        was = self.training
+        self.eval()
+        n, s1, s2 = 0, torch.zeros(self.latent, device=self.zm.device), torch.zeros(self.latent, self.latent, device=self.zm.device)
+        for X, Y in zip(feats, ys_list):
+            for i in range(0, len(Y), 2048):
+                m, _ = self.encode(X[i:i + 2048], Y[i:i + 2048])
+                n, s1, s2 = n + len(m), s1 + m.sum(0), s2 + m.T @ m
+        mean = s1 / n
+        cov = s2 / n - torch.outer(mean, mean) + 1e-4 * torch.eye(self.latent, device=mean.device)
+        ev, V = torch.linalg.eigh(cov)
+        self.zm.copy_(mean)
+        self.zL.copy_(V * ev.clamp(min=1e-6).sqrt())
+        self.train(was)
+
+    @torch.no_grad()
+    def sample(self, y):
+        z = self.zm + torch.randn(y.size(0), self.latent, device=y.device) @ self.zL.T
+        return self.decode(z, y)
+
+
 class PaperDCGAN(nn.Module):
     """Table XVIII (d_g = d_d = 128 for MNIST/FMNIST/SVHN). D outputs logits
     (sigmoid + BCE in the paper == BCE-with-logits)."""
@@ -518,7 +594,7 @@ GEN_DEFAULTS = dict(type="cvae", wd=1e-3, agg="flat", lazy=False, beta=0.999, we
                     dp_eps=None, oracle=False, T_KA=None)
 HEAD_DEFAULTS = dict(sampler="uniform", order="syn_first", ts=1, tr=5, mix=None, mix_ratio=0.2,
                      loss="ce", tau=1.0, bcr=0, bcr_lr=0.05, gen_update=False, csl=0.0, csl_mix=False,
-                     sed=0, sed_lr=0.05, sed_beta=0.5, sed_bs=128, csl_mode="mix")
+                     sed=0, sed_lr=0.05, sed_beta=0.5, sed_bs=128, csl_mode="mix", mc=False)
 
 
 def method(pipeline="gefl_f", fe=None, gen=None, head=None):
@@ -542,6 +618,9 @@ COMPONENTS = {
     "GENUPD": dict(head=dict(gen_update=True)),  # keep training G_F during stage (iii)
     "DCGAN": dict(gen=dict(type="dcgan", wd=0.0)),
     "DDPM": dict(gen=dict(type="ddpm", wd=0.0)),   # the authors' DDPM-F (feature diffusion, w = 0)
+    "PC": dict(gen=dict(type="pcvae")),              # prototype-conditioned residual CVAE (no class rows)
+    "ZP": dict(gen=dict(zpost=True)),                # ex-post latent prior from exact sums
+    "MC": dict(head=dict(mc=True)),                  # moment-calibrated sampling (exact mean + spread)
     "CSL": dict(head=dict(csl=0.5)),            # consensus soft labels for synthetic features
     "BCSL": dict(head=dict(csl=0.5, csl_mode="bayes")),  # Bayesian CSL: label prior x ensemble, rho estimated
     "CSLM": dict(head=dict(csl=0.5, csl_mix=True)),
@@ -906,8 +985,10 @@ class PaperDDPMF(nn.Module):
 
 
 # ----- stage (ii): feature-generator training
-def make_gen(ctx, gspec, in_ch, shape=None):
-    if gspec["type"] == "ddpm":
+def make_gen(ctx, gspec, in_ch, shape=None, proto=None):
+    if gspec["type"] == "pcvae":
+        G = ProtoCVAE(in_ch, ctx.spec["latent"], proto).to(DEV)
+    elif gspec["type"] == "ddpm":
         G = PaperDDPMF(in_ch, shape).to(DEV)
     else:
         G = PaperCVAE(in_ch, ctx.spec["latent"]).to(DEV) if gspec["type"] == "cvae" else PaperDCGAN(in_ch).to(DEV)
@@ -1023,10 +1104,22 @@ def cond_row_norms(G):
     return out.sqrt().cpu().numpy()
 
 
+def class_prototypes(feats, ys_list):
+    """Exact federated class means of FE features: sums and counts per client,
+    added (what secure aggregation returns), then divided."""
+    S = torch.zeros((NUM_CLASSES,) + tuple(feats[0].shape[1:]), device=DEV)
+    n = torch.zeros(NUM_CLASSES, device=DEV)
+    for X, Y in zip(feats, ys_list):
+        S.index_add_(0, Y, X)
+        n += torch.bincount(Y, minlength=NUM_CLASSES).float()
+    return S / n.clamp(min=1).view(-1, *([1] * (S.dim() - 1)))
+
+
 def stage_ii(ctx, gspec, feats, ys_list, rounds):
     """Federated feature-generator training on frozen-FE features."""
     in_ch = feats[0].shape[1]
-    G = make_gen(ctx, gspec, in_ch, feats[0].shape[1:])
+    proto = class_prototypes(feats, ys_list) if gspec["type"] == "pcvae" else None
+    G = make_gen(ctx, gspec, in_ch, feats[0].shape[1:], proto)
     g_sd = sd_clone(G)
     offload = ctx.K > 20
     clients = [GenClient(G, gspec, offload) for _ in range(ctx.K)]
@@ -1045,6 +1138,9 @@ def stage_ii(ctx, gspec, feats, ys_list, rounds):
         g_sd = avg.result()
         G.load_state_dict(g_sd)
         norms.append(cond_row_norms(G))
+    if gspec.get("zpost") and hasattr(G, "fit_zpost"):
+        G.fit_zpost(feats, ys_list)  # one extra round of exact sums (latent stats only)
+        g_sd = sd_clone(G)
     return g_sd, np.array(norms), G, clients, W
 
 
@@ -1196,6 +1292,61 @@ def referee_fidelity(ref, G, n=300):
         y = torch.full((n,), c, device=DEV, dtype=torch.long)
         fid.append(float((ref(G.sample(y)).argmax(1) == c).float().mean()))
     return np.array(fid)
+
+
+class MomentCalibratedGen(nn.Module):
+    """MC (new): sampling-time W2 projection of each class-conditional generator
+    distribution onto the exact federated first moment and total spread:
+        x' = ReLU(mu_c + s_c (x - m_c)),   s_c = sqrt(V_c / V~_c),
+    mu_c, V_c = E||h - mu_c||^2 from exact client sums (sum h, sum ||h||^2, n per
+    class: what secure aggregation returns); m_c, V~_c from the generator's own
+    samples. Fixes VAE under-dispersion and tail-mean bias; keeps the learned shape."""
+
+    def __init__(self, G, feats, ys_list, n=500):
+        super().__init__()
+        self.G, self.kind = G, G.kind
+        X, Y = torch.cat(feats).flatten(1), torch.cat(ys_list)
+        D = X.shape[1]
+        S1 = torch.zeros(NUM_CLASSES, D, device=DEV).index_add_(0, Y, X)
+        S2 = torch.zeros(NUM_CLASSES, device=DEV).index_add_(0, Y, X.pow(2).sum(1))
+        cnt = torch.bincount(Y, minlength=NUM_CLASSES).float().clamp(min=1)
+        mu = S1 / cnt[:, None]
+        V = S2 / cnt - mu.pow(2).sum(1)
+        G.eval()
+        m, Vg = [], []
+        with torch.no_grad():
+            for c in range(NUM_CLASSES):
+                g = G.sample(torch.full((n,), c, device=DEV, dtype=torch.long)).flatten(1)
+                m.append(g.mean(0))
+                Vg.append((g - g.mean(0)).pow(2).sum(1).mean())
+        m, Vg = torch.stack(m), torch.stack(Vg)
+        self.register_buffer("mu", mu)
+        self.register_buffer("m", m)
+        self.register_buffer("scale", (V.clamp(min=0) / Vg.clamp(min=1e-8)).sqrt().clamp(0.1, 10.0))
+        self.shape = None
+
+    @torch.no_grad()
+    def sample(self, y):
+        x = self.G.sample(y)
+        shp = x.shape[1:]
+        z = self.mu[y] + self.scale[y, None] * (x.flatten(1) - self.m[y])
+        return F.relu(z).view(-1, *shp)
+
+
+@torch.no_grad()
+def sample_spread(G, feats, ys_list, n=300):
+    """Diversity diagnostic: per class, mean squared distance of generated
+    samples to their own mean over the same for real features of that class
+    (1 = realistic spread, 0 = prototype copies, > 1 = over-dispersed)."""
+    X, Y = torch.cat(feats).flatten(1), torch.cat(ys_list)
+    G.eval()
+    out = []
+    for c in range(NUM_CLASSES):
+        R = X[Y == c]
+        g = G.sample(torch.full((n,), c, device=DEV, dtype=torch.long)).flatten(1)
+        vr = (R - R.mean(0)).pow(2).sum(1).mean() if len(R) > 1 else torch.tensor(float("nan"), device=DEV)
+        out.append(float((g - g.mean(0)).pow(2).sum(1).mean() / vr))
+    return np.array(out)
 
 
 @torch.no_grad()
@@ -1641,11 +1792,12 @@ def run_one(cfg, run, cache, data_cache):
             G2.load_state_dict(g_sd)
             fid = referee_fidelity(s1["ref"], G2) if s1["ref"] is not None else None
             agree = stage1_agreement(ctx, s1, G2)
+            spread = sample_spread(G2, s1["feats"], s1["ys"])
             mnd = feature_mnd(ctx, G2, s1["fe"]) if cfg.get("mnd", False) else None
             if m["gen"]["type"] == "gauss":
                 n_gauss = NUM_CLASSES
             cache[k2] = dict(g_sd=g_sd, norms=norms, G=G2, clients=clients, W=W, fid=fid, mnd=mnd,
-                             t=time.time() - t2, n_gauss=n_gauss, agree=agree)
+                             t=time.time() - t2, n_gauss=n_gauss, agree=agree, spread=spread)
         s2 = cache[k2]
         G = s2["G"]
         G.load_state_dict(s2["g_sd"])
@@ -1664,6 +1816,9 @@ def run_one(cfg, run, cache, data_cache):
             res["feature_mnd"] = s2["mnd"]
         if s2.get("agree") is not None:
             res["stage1_agree"] = s2["agree"].round(4).tolist()
+        if s2.get("spread") is not None:
+            res["spread_ratio"] = s2["spread"].round(4).tolist()
+            res["spread_tail"] = float(np.nanmean(s2["spread"][6:]))
         if m["head"]["gen_update"] and s2["clients"] is not None:
             gen_state = (dict(s2["g_sd"]), s2["clients"], m["gen"], s2["W"])
             import copy
@@ -1671,6 +1826,13 @@ def run_one(cfg, run, cache, data_cache):
 
     # ---- stage (iii)
     t3 = time.time()
+    if G is not None and m["head"].get("mc"):
+        G = MomentCalibratedGen(G, s1["feats"], s1["ys"])
+        if s1["ref"] is not None:
+            fmc = referee_fidelity(s1["ref"], G)
+            res["fidelity_tail_mc"], res["fidelity_mc"] = float(fmc[6:].mean()), fmc.round(3).tolist()
+        smc = sample_spread(G, s1["feats"], s1["ys"])
+        res["spread_tail_mc"], res["mc_scale"] = float(np.nanmean(smc[6:])), G.scale.cpu().numpy().round(3).tolist()
     set_seed(seed + 2000)
     ctx.rho_hist, ctx.kappa_hist = [], []
     headers = stage_iii(ctx, m["head"], s1["fe"], s1["hd_sd"], G, s1["feats"], s1["ys"], s1["feats_te"],
