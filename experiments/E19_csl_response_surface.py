@@ -588,7 +588,7 @@ GEN_DEFAULTS = dict(type="cvae", wd=1e-3, agg="flat", lazy=False, beta=0.999, we
                     dp_eps=None, oracle=False, T_KA=None)
 HEAD_DEFAULTS = dict(sampler="uniform", order="syn_first", ts=1, tr=5, mix=None, mix_ratio=0.2,
                      loss="ce", tau=1.0, bcr=0, bcr_lr=0.05, gen_update=False, csl=0.0, csl_mix=False,
-                     sed=0, sed_lr=0.05, sed_beta=0.5, sed_bs=128, csl_mode="mix", mc=False)
+                     sed=0, sed_lr=0.05, sed_beta=0.5, sed_bs=128, csl_mode="mix", mc=False, rsa=0.0)
 
 
 def method(pipeline="gefl_f", fe=None, gen=None, head=None):
@@ -615,6 +615,8 @@ COMPONENTS = {
     "PC": dict(gen=dict(type="pcvae")),              # prototype-conditioned residual CVAE (no class rows)
     "ZP": dict(gen=dict(zpost=True)),                # ex-post latent prior from exact sums
     "MC": dict(head=dict(mc=True)),                  # moment-calibrated sampling (exact mean + spread)
+    "KME": dict(gen=dict(type="kme")),               # server-trained generator from exact kernel mean embeddings
+    "RSA": dict(head=dict(rsa=1.0)),                 # held-class real-synthetic alignment (shift transfer)
     "CSL": dict(head=dict(csl=0.5)),            # consensus soft labels for synthetic features
     "BCSL": dict(head=dict(csl=0.5, csl_mode="bayes")),  # Bayesian CSL: label prior x ensemble, rho estimated
     "CSLM": dict(head=dict(csl=0.5, csl_mix=True)),
@@ -673,6 +675,19 @@ def run_spec(label, dataset, seed, m, IF=1.0, alpha=None, K=10, **extra):
 
 
 # ---------------------------------------------------------------- training pieces
+def rsa_loss(er, es, y, C):
+    """Held-class real-synthetic alignment: per class present in the real batch,
+    squared distance of the synthetic embedding mean to the (stop-gradient) real
+    one, relative to the real mean's norm (scale-free)."""
+    M = F.one_hot(y, C).float()
+    cnt = M.sum(0)
+    mr = (M.T @ er.detach()) / cnt.clamp(min=1)[:, None]
+    ms = (M.T @ es) / cnt.clamp(min=1)[:, None]
+    present = cnt > 0
+    rel = (ms - mr).pow(2).sum(1) / mr.pow(2).sum(1).clamp(min=1e-6)
+    return rel[present].mean()
+
+
 def ce_or_la(logits, y, log_prior, tau):
     if log_prior is not None and tau:
         logits = logits + tau * log_prior
@@ -1109,8 +1124,113 @@ def class_prototypes(feats, ys_list):
     return S / n.clamp(min=1).view(-1, *([1] * (S.dim() - 1)))
 
 
+# ----- KME-Gen (new): a federated generator that is never trained federatedly
+class RFFMap(nn.Module):
+    """Random Fourier features for a mixture of Gaussian kernels (bandwidths
+    s0 * {0.5, 1, 2}); phi(x) = sqrt(2/D) cos(W x + b), ||phi(x)||_2 <= sqrt(2),
+    so a client's class sums have L2 sensitivity sqrt(2) (DP-ready)."""
+
+    def __init__(self, d, D, s0, seed=1234):
+        super().__init__()
+        g = torch.Generator(device="cpu").manual_seed(seed)
+        parts = []
+        for f in (0.5, 1.0, 2.0):
+            parts.append(torch.randn(D // 3, d, generator=g) / (f * s0))
+        W = torch.cat(parts)
+        self.register_buffer("W", W)
+        self.register_buffer("b", torch.rand(W.shape[0], generator=g) * 2 * math.pi)
+        self.scale = math.sqrt(2.0 / W.shape[0])
+
+    def forward(self, x):
+        return self.scale * torch.cos(x.flatten(1) @ self.W.T + self.b)
+
+
+class KMEGen(nn.Module):
+    """Class-conditional feature generator trained AT THE SERVER by matching the
+    exact federated kernel mean embedding of every class:
+        min_G  sum_c || E_z phi(G(z, c)) - mu_c ||^2 = sum_c MMD_k(G_c, P_c)^2,
+    mu_c = sum_k sum_{i in k, y_i = c} phi(h_i) / sum_k n_kc  (one secure-aggregation
+    round). The objective equals the centralised one for ANY partition of the data
+    (partition invariance): no FedAvg of generator weights, hence no collapse,
+    dilution or client drift, and no generator training on clients.
+    Decoder: the prototype-anchored residual of PC-VAE, x = ReLU(m_c + dec(z, m_c))."""
+    kind = "cvae"
+    cond = {}
+
+    def __init__(self, in_ch, latent, proto, S=16):
+        super().__init__()
+        n = int(round(math.log2(S)))
+        widths = [min(64 * 2 ** i, 512) for i in range(n)]
+        self.flat, self.latent = widths[-1], latent
+        self.dec_z = nn.Linear(latent, self.flat)
+        self.proto_proj = nn.Linear(proto[0].numel(), self.flat)
+        dec, rev = [], list(reversed(widths))
+        for i, w in enumerate(rev):
+            co = rev[i + 1] if i + 1 < len(rev) else in_ch
+            dec.append(nn.ConvTranspose2d(w, co, 4, 2, 1))
+            if i + 1 < len(rev):
+                dec += [nn.BatchNorm2d(co), nn.ReLU(inplace=True)]
+        self.dec = nn.Sequential(*dec)
+        self.register_buffer("proto", proto.clone())
+
+    def decode(self, z, y):
+        p = self.proto[y]
+        h = F.relu(self.dec_z(z) + self.proto_proj(p.flatten(1))).view(-1, self.flat, 1, 1)
+        return F.relu(p + self.dec(h))
+
+    @torch.no_grad()
+    def sample(self, y):
+        was = self.training
+        self.eval()
+        out = self.decode(torch.randn(y.size(0), self.latent, device=y.device), y)
+        self.train(was)
+        return out
+
+
+def stage_ii_kme(ctx, gspec, feats, ys_list):
+    """One upload per client (class sums of phi and of h, counts; secure-aggregated,
+    optionally Gaussian-noised for (eps, delta)-DP), then server-side training."""
+    in_ch = feats[0].shape[1]
+    X, Y = torch.cat(feats), torch.cat(ys_list)
+    d = X[0].numel()
+    proto = class_prototypes(feats, ys_list)
+    # bandwidth from exact statistics: within-class spread V_c = E||h - mu_c||^2 (sums)
+    S2 = torch.zeros(NUM_CLASSES, device=DEV).index_add_(0, Y, X.flatten(1).pow(2).sum(1))
+    cnt = torch.bincount(Y, minlength=NUM_CLASSES).float().clamp(min=1)
+    V = (S2 / cnt - proto.flatten(1).pow(2).sum(1)).clamp(min=1e-6)
+    s0 = float(torch.sqrt(2 * V.mean()))
+    phi = RFFMap(d, gspec.get("kme_D", 6144), s0, seed=1234 + ctx.seed).to(DEV)
+    K_ = torch.zeros(NUM_CLASSES, phi.W.shape[0], device=DEV)
+    for X_k, Y_k in zip(feats, ys_list):          # each client: its class sums of phi
+        for i in range(0, len(Y_k), 4096):
+            K_.index_add_(0, Y_k[i:i + 4096], phi(X_k[i:i + 4096]))
+    if gspec.get("kme_dp_eps"):
+        eps, delta = gspec["kme_dp_eps"], 1e-5
+        sig = math.sqrt(2.0) * math.sqrt(2 * math.log(1.25 / delta)) / eps
+        K_ = K_ + sig * torch.randn_like(K_)
+    mu = K_ / cnt[:, None]
+    G = KMEGen(in_ch, ctx.spec["latent"], proto).to(DEV)
+    opt = torch.optim.Adam(G.parameters(), lr=gspec.get("kme_lr", 1e-3))
+    steps, bc = gspec.get("kme_steps", 4000), gspec.get("kme_bc", 128)
+    y = torch.arange(NUM_CLASSES, device=DEV).repeat_interleave(bc)
+    G.train()
+    for t in range(steps):
+        for gr in opt.param_groups:
+            gr["lr"] = gspec.get("kme_lr", 1e-3) * (1 - t / steps)
+        x = G.decode(torch.randn(len(y), G.latent, device=DEV), y)
+        m = phi(x).view(NUM_CLASSES, bc, -1).mean(1)
+        loss = (m - mu).pow(2).sum(1).sum()
+        opt.zero_grad(set_to_none=True)
+        loss.backward()
+        opt.step()
+    G.eval()
+    return sd_clone(G), np.zeros((1, NUM_CLASSES)), G, None, None
+
+
 def stage_ii(ctx, gspec, feats, ys_list, rounds):
     """Federated feature-generator training on frozen-FE features."""
+    if gspec["type"] == "kme":
+        return stage_ii_kme(ctx, gspec, feats, ys_list)
     in_ch = feats[0].shape[1]
     proto = class_prototypes(feats, ys_list) if gspec["type"] == "pcvae" else None
     G = make_gen(ctx, gspec, in_ch, feats[0].shape[1:], proto)
@@ -1536,7 +1656,14 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
                             ys_ = torch.from_numpy(np.random.choice(C, size=S, p=p)).long().to(DEV)
                             x = torch.cat([x, G.sample(ys_)])
                             y = torch.cat([y, ys_])
-                        loss = ce_or_la(fwd(g, x), y, prior, hspec["tau"])
+                        if hspec["rsa"] and G is not None and G.kind != "ddpm":
+                            # RSA: class-matched synthetic batch, one body pass for both
+                            xs_ = G.sample(y)
+                            e = h.embed(torch.cat([x, xs_]))
+                            er, es = e[:len(y)], e[len(y):]
+                            loss = ce_or_la(h.fc(er), y, prior, hspec["tau"]) + hspec["rsa"] * rsa_loss(er, es, y, C)
+                        else:
+                            loss = ce_or_la(fwd(g, x), y, prior, hspec["tau"])
                         opt.zero_grad(set_to_none=True)
                         loss.backward()
                         opt.step()
@@ -1649,6 +1776,32 @@ def balanced_bias_calibration(ctx, headers, G, feats_te, n=500, iters=50):
             b = b - torch.log(q * NUM_CLASSES)
         out.append(_BiasedHead(h, b - b.mean()))
     return summarize_eval(eval_headers(ctx, out, feats_te, ctx.data["yte"]))
+
+
+@torch.no_grad()
+def synreal_gap(ctx, headers, G, feats_te, n=300, held_min=5):
+    """Mechanism probe for RSA: per head g (its client's counts define held =
+    count >= held_min, unheld = count == 0), the relative distance between the
+    head's embedding mean of synthetic class-c features and of REAL test
+    features of class c. Returns mean over heads of (held gap, unheld gap)."""
+    yte = ctx.data["yte"]
+    G.eval()
+    syn = {c: G.sample(torch.full((n,), c, device=DEV, dtype=torch.long)) for c in range(NUM_CLASSES)}
+    held, unheld = [], []
+    for k in range(ctx.K):
+        g = ctx.arch[k]
+        h = headers[g]
+        h.eval()
+        cnt = ctx.part["counts"][k]
+        for c in range(NUM_CLASSES):
+            if cnt[c] >= held_min or cnt[c] == 0:
+                er = h.embed(feats_te[yte == c][:1000]).mean(0)
+                es = h.embed(syn[c]).mean(0)
+                gap = float((es - er).pow(2).sum() / er.pow(2).sum().clamp(min=1e-6))
+                (held if cnt[c] >= held_min else unheld).append(gap)
+        if ctx.K > 10 and k >= 9:
+            break
+    return (float(np.mean(held)) if held else float("nan"), float(np.mean(unheld)) if unheld else float("nan"))
 
 
 def classifier_oracle(ctx, headers, feats, ys_list, feats_te, steps=300):
@@ -1880,6 +2033,8 @@ def run_one(cfg, run, cache, data_cache):
     if G is not None:
         bb = balanced_bias_calibration(ctx, headers, G, s1["feats_te"])
         res.update(bbc_bal=bb["bal"], bbc_tail=bb["tail"], bbc_acc=bb["acc"])
+        gh, gu = synreal_gap(ctx, headers, G, s1["feats_te"])
+        res.update(gap_held=gh, gap_unheld=gu)
     if s1["ref"] is not None:
         with torch.no_grad():
             res["referee_test_acc"] = float((s1["ref"](s1["feats_te"]).argmax(1) == data["yte"]).float().mean())
