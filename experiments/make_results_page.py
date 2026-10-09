@@ -470,7 +470,8 @@ consensus labels, every extra synthetic epoch helps: +CSL at T<sub>s</sub> = 10 
 FashionMNIST number of any variant (84.28, GeFL&#8209;F with the much costlier feature diffusion model). It is 1.2 points above the
 paper's GeFL&#8209;F with the same generator (83.14). MNIST is near its ceiling (oracle &asymp; 97.2), and the extra budget does not help there.
 T<sub>s</sub> was not tuned per dataset for the headline claim. With one fixed setting (T<sub>s</sub> = 5) our method gives 84.12 on FashionMNIST
-and 96.5 on MNIST: a tie with, and above, the paper's best respectively.</p>
+and 96.6 on MNIST. With T<sub>s</sub> = 10 the full method gives 84.34 on FashionMNIST (p = 0.002 against GeFL&#8209;F), a tie with the paper's best.
+Under the long tail the bigger budget helps further: our method goes from 77.0 to 79.3 balanced accuracy, 18 points above GeFL&#8209;F.</p>
 {lt}
 </section>"""
 
@@ -672,7 +673,7 @@ PAPER_AUG_CIFAR = {"FedAvg": 55.65, "FedAvg + MixUp": 60.07, "FedAvg + CutMix": 
 def ours_iid(ds, K):
     """Best evidence for our full method in the IID setting, with its source."""
     cands = []
-    for exp, lab in [("E16_csl_synthetic_budget", "Ours (HWA+LA+CSL) Ts=5"), ("F10_combined_method", "+HWA+LA+CSL"), ("F11_ddpm_generator", "Ours (DDPM-F)"),
+    for exp, lab in [("E16_csl_synthetic_budget", "Ours (HWA+LA+CSL) Ts=10"), ("F10_combined_method", "+HWA+LA+CSL"), ("F11_ddpm_generator", "Ours (DDPM-F)"),
                      ("K01_kaggle_cifar10_svhn", "Ours (HWA+LA+CSL)"), ("K03_kaggle_client_scaling", "Ours (HWA+LA+CSL)"),
                      ("K04_kaggle_ddpm_cifar10_svhn", "Ours (DDPM-F)")]:
         v = pick(load(exp) if not exp.startswith("K01") else kaggle_runs()[0], lab, "best_mean_acc", dataset=ds, K=K, IF=1.0)

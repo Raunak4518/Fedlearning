@@ -340,13 +340,25 @@ epochs should help.
 |---|---|---|---|---|
 | GeFL-F (hard labels) | 82.96 | 83.20 | 83.18 | – |
 | + CSL | 83.31 | 83.90 | 84.14 | **84.37** (84.34 / 84.16 / 84.62) |
-| Ours (HWA + LA + CSL) | 83.21 | – | 84.12 | – |
+| Ours (HWA + LA + CSL) | 83.21 | – | 84.12 | **84.34** (84.55 / 83.88 / 84.59; p = 0.002 vs GeFL-F) |
+
+**The same budgets under the long tail** (FMNIST, IF = 100, Dir 0.5, 2 seeds, balanced accuracy):
+
+| | GeFL-F | Ours, $T_s=1$ | Ours, $T_s=5$ | Ours, $T_s=10$ |
+|---|---|---|---|---|
+| Balanced accuracy | 61.33 | 76.98 | 78.76 | **79.33** |
+| Tail recall | 38.86 | 70.17 | 72.37 | 72.44 |
+
+Under the long tail the larger budget also helps: +2.35 over $T_s = 1$, and +18.0 over GeFL-F. There, HWA has made
+the tail features faithful and CSL has lowered their label bias. This is the synergy of §4.3, seen through the
+budget.
 
 * The interaction appears exactly as predicted.
 * At $T_s = 10$, CSL with the cheap CVAE-F generator reaches the paper's best FMNIST number of *any* variant, 84.28
   (GeFL-F with feature diffusion). It is +1.23 over the paper's GeFL-F with the same generator.
 * MNIST is near its ceiling (oracle ≈ 97.2), and a larger budget does not help there.
-* With one fixed setting ($T_s = 5$), the full method gives 84.12 on FMNIST and 96.6 on MNIST.
+* With one fixed setting ($T_s = 5$), the full method gives 84.12 on FMNIST and 96.6 on MNIST. With $T_s = 10$ the
+  full method gives 84.34 on FMNIST, a tie with the paper's best (84.28).
 
 ### 5.10 Against every GeFL variant in the paper (IID, `best_mean_acc`)
 
@@ -358,7 +370,7 @@ DDPM w = 2. In each setting, the comparison is with the best of them.
 | MNIST, K=10 | 95.47 | 96.44 (GeFL, image DDPM) | **96.77** | +0.33 |
 | MNIST, K=50 | 95.04 | 95.04 (GeFL-F CVAE-F) | **95.41** (CSL, 1 seed) | +0.37 |
 | MNIST, K=100 | 94.63 | 94.63 (GeFL-F CVAE-F) | 94.72 (CSL, 1 seed) | +0.09 |
-| FMNIST, K=10 | 83.14 | 84.28 (GeFL-F DDPM-F) | **84.12** (Ours, $T_s=5$); 84.37 (CSL, $T_s=10$) | −0.16 / +0.09 (tie) |
+| FMNIST, K=10 | 83.14 | 84.28 (GeFL-F DDPM-F) | **84.34** (Ours, $T_s=10$); 84.12 ($T_s=5$) | +0.06 / −0.16 (tie) |
 | SVHN, K=10 | 76.26 | 76.26 (GeFL-F CVAE-F) | 76.30 (CSL) | +0.04 (tie) |
 | CIFAR-10, K=10 | 55.86 | 59.36 (GeFL, image DDPM); 62.67 with MixUp | **[PENDING: K01, K04]** | – |
 
