@@ -1239,7 +1239,16 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
             # CSL: one shared synthetic batch per round, labelled by the consensus
             # of every architecture's current header (clients would upload only
             # these probabilities; summable under secure aggregation)
-            P = max(hspec["ts"] * (sz // B if sz >= B else 1) * (B if sz >= B else sz) for sz in ctx.sizes)
+            need = [hspec["ts"] * (sz // B if sz >= B else 1) * (B if sz >= B else sz) for sz in ctx.sizes]
+            if ctx.K == len(ctx.groups):
+                # one client per architecture: clients may share samples without
+                # correlating two heads of the same architecture before averaging
+                P, pool_off = max(need), [0] * ctx.K
+            else:
+                # several clients per architecture: disjoint fresh slices, so the
+                # synthetic diversity per architecture matches per-client sampling
+                pool_off = list(np.cumsum([0] + need[:-1]))
+                P = int(sum(need))
             py = torch.randint(0, C, (P,), device=DEV)
             px = torch.cat([G.sample(py[s:s + 4096]) for s in range(0, P, 4096)])
             # (DDPM-F without CSL: the same shared pool with one-hot targets. Each
@@ -1288,7 +1297,8 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
                 opt = torch.optim.SGD(h.parameters(), lr=0.1, momentum=0.0)
                 if pool is not None:
                     nsyn = hspec["ts"] * nb * bs
-                    xs, tgt = pool[0][:nsyn], pool[2][:nsyn]
+                    o = int(pool_off[k])
+                    xs, tgt = pool[0][o:o + nsyn], pool[2][o:o + nsyn]
                     for s in range(0, nsyn, bs):
                         logp = fwd(g, xs[s:s + bs]).log_softmax(1)
                         loss = -(tgt[s:s + bs] * logp).sum(1).mean()

@@ -7,6 +7,7 @@ copied back yet. Rerun after any experiment finishes:
 
     python make_results_page.py
 """
+import glob
 import html
 import json
 import math
@@ -571,6 +572,12 @@ def sec_clients():
                                    where=dict(IF=0.01, K=K), caption=f"FashionMNIST long tail, K = {K} (Kaggle K03)",
                                    ours=("+HWA+LA", "Ours (HWA+LA+CSL)"))
         ts += "<p class=\"small\">Kaggle K03 rows come from the pasted summary.md (mean &plusmn; sd); per-seed p-values appear once runs.jsonl is copied back.</p>"
+        if not glob.glob(os.path.join(RES, "K03_kaggle_client_scaling__K*_cslfix")):
+            ts += note("flag", "Being rerun", "<p>In the first K03 run, the rows using consensus labels (+CSL, Ours, FSG+LA+CSL) had a flaw at K = 50 and 100. "
+                       "The several clients of each architecture all trained on the <em>same</em> synthetic slice, then were averaged, which cuts "
+                       "synthetic diversity per architecture 5&ndash;10&times;. This explains why CSL's effect turned negative as K grew. "
+                       "It is fixed (each client now gets its own slice). The affected rows are being rerun on Kaggle together with "
+                       "T<sub>s</sub> = 10, and will replace these numbers. K = 10 results are unaffected: there each architecture has one client.</p>")
     return f"""
 <section id="s6"><h2><span class="num">6</span>More clients: K = 50 and 100</h2>
 <p class="deck">With more clients each rare class has fewer holders, so flat averaging dilutes its rows further.</p>

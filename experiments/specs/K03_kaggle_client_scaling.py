@@ -19,9 +19,14 @@ Typical use (finished runs are skipped when runs.jsonl is present):
     python K03.py --K 50 --out_dir /kaggle/working/results     # half, to split across accounts
     python K03.py --K 100 --out_dir /kaggle/working/results
 """
-IID = [("GeFL-F", compose()), ("+CSL (beta=0.5)", compose("CSL")), ("Ours (HWA+LA+CSL)", final_method())]
+IID = [("GeFL-F", compose()), ("+CSL (beta=0.5)", compose("CSL")), ("Ours (HWA+LA+CSL)", final_method()),
+       ("+CSL Ts=10", compose("CSL", head=dict(ts=10))), ("Ours (HWA+LA+CSL) Ts=10", final_method(head=dict(ts=10)))]
 LT = [("GeFL-F", compose()), ("+LA", compose("LA")), ("+HWA+LA", compose("HWA+LA")),
-      ("Ours (HWA+LA+CSL)", final_method()), ("FSG+LA", compose("GAUSS+LA")), ("FSG+LA+CSL", compose("GAUSS+LA+CSL"))]
+      ("Ours (HWA+LA+CSL)", final_method()), ("FSG+LA", compose("GAUSS+LA")), ("FSG+LA+CSL", compose("GAUSS+LA+CSL")),
+      ("Ours (HWA+LA+CSL) Ts=10", final_method(head=dict(ts=10)))]
+# CSL rows of the first Kaggle run (before 10 Oct) shared one synthetic slice among the
+# several clients of an architecture (K > 10); rerun them with --only CSL_LABELS.
+CSL_LABELS = ["+CSL (beta=0.5)", "Ours (HWA+LA+CSL)", "FSG+LA+CSL", "+CSL Ts=10", "Ours (HWA+LA+CSL) Ts=10"]
 
 
 def _plan(cfg):
