@@ -10,10 +10,12 @@ prototype-anchored generator by MMD: min sum_c ||E phi(G(z,c)) - mu_c||^2.
 The objective is identical to the centralised one for any partition (partition
 invariance), the clients train no generator, and one ~150 KB upload replaces
 100 rounds of generator FedAvg.
-Arms: KME with LA + CSL (+MC). References (same seeds/splits): E20.
+Arms: KME with LA + CSL (+MC / +KH); and KH (kernel herding of samples toward the exact
+federated class embeddings) on the best federated generator, PC + MC. References (same seeds/splits): E20.
 Decision rule: full test only if KME >= the best E20 arm on the long tail.
 """
-LABELS = [("Ours-KME (KME+LA+CSL)", "KME+LA+CSL"), ("Ours-KME+MC", "KME+LA+CSL+MC")]
+LABELS = [("Ours-KME (KME+LA+CSL)", "KME+LA+CSL"), ("Ours-KME+MC", "KME+LA+CSL+MC"), ("Ours-KME+KH", "KME+LA+CSL+KH"),
+          ("Ours-PC+MC+KH", "PC+LA+CSL+MC+KH")]
 SETTINGS = [("mnist", 0.01, 0.5), ("fmnist", 0.01, 0.5), ("fmnist", 1.0, None)]
 EXPERIMENT = dict(
     name="E24_kme_generator",

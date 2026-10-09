@@ -583,7 +583,7 @@ GEN_DEFAULTS = dict(type="cvae", wd=1e-3, agg="flat", lazy=False, beta=0.999, we
                     dp_eps=None, oracle=False, T_KA=None)
 HEAD_DEFAULTS = dict(sampler="uniform", order="syn_first", ts=1, tr=5, mix=None, mix_ratio=0.2,
                      loss="ce", tau=1.0, bcr=0, bcr_lr=0.05, gen_update=False, csl=0.0, csl_mix=False,
-                     sed=0, sed_lr=0.05, sed_beta=0.5, sed_bs=128, csl_mode="mix", mc=False, rsa=0.0)
+                     sed=0, sed_lr=0.05, sed_beta=0.5, sed_bs=128, csl_mode="mix", mc=False, rsa=0.0, kh=False)
 
 
 def method(pipeline="gefl_f", fe=None, gen=None, head=None):
@@ -611,6 +611,7 @@ COMPONENTS = {
     "ZP": dict(gen=dict(zpost=True)),                # ex-post latent prior from exact sums
     "MC": dict(head=dict(mc=True)),                  # moment-calibrated sampling (exact mean + spread)
     "KME": dict(gen=dict(type="kme")),               # server-trained generator from exact kernel mean embeddings
+    "KH": dict(head=dict(kh=True)),                  # kernel herding of samples toward exact class embeddings
     "RSA": dict(head=dict(rsa=1.0)),                 # held-class real-synthetic alignment (shift transfer)
     "CSL": dict(head=dict(csl=0.5)),            # consensus soft labels for synthetic features
     "BCSL": dict(head=dict(csl=0.5, csl_mode="bayes")),  # Bayesian CSL: label prior x ensemble, rho estimated
@@ -1403,6 +1404,61 @@ def referee_fidelity(ref, G, n=300):
     return np.array(fid)
 
 
+def federated_kme(ctx, feats, ys_list, D=6144):
+    """Exact pooled class kernel mean embeddings (one secure-aggregation upload of
+    per-class phi sums and counts) and the RFF map that defines them."""
+    X, Y = torch.cat(feats), torch.cat(ys_list)
+    proto = class_prototypes(feats, ys_list)
+    S2 = torch.zeros(NUM_CLASSES, device=DEV).index_add_(0, Y, X.flatten(1).pow(2).sum(1))
+    cnt = torch.bincount(Y, minlength=NUM_CLASSES).float().clamp(min=1)
+    V = (S2 / cnt - proto.flatten(1).pow(2).sum(1)).clamp(min=1e-6)
+    phi = RFFMap(X[0].numel(), D, float(torch.sqrt(2 * V.mean())), seed=1234 + ctx.seed).to(DEV)
+    K_ = torch.zeros(NUM_CLASSES, phi.W.shape[0], device=DEV)
+    for X_k, Y_k in zip(feats, ys_list):
+        for i in range(0, len(Y_k), 4096):
+            K_.index_add_(0, Y_k[i:i + 4096], phi(X_k[i:i + 4096]))
+    return phi, K_ / cnt[:, None]
+
+
+class HerdedGen(nn.Module):
+    """KH (new): sampling-time kernel herding of generated features toward the exact
+    federated class embedding mu_c. For each class, draw M = mult * n candidates
+    from the wrapped generator and greedily select n of them by Frank-Wolfe on
+    MMD(selected, P_c):  w <- w + mu_c - phi(x_t),  x_{t+1} = argmax_i <phi_i, w>
+    (without replacement). Lowers the MMD term of the head's risk bound for ANY
+    generator; uses only the federated statistics already uploaded."""
+
+    def __init__(self, G, phi, mu, mult=4):
+        super().__init__()
+        self.G, self.kind, self.phi, self.mult = G, G.kind, phi, mult
+        self.register_buffer("mu", mu)
+
+    @torch.no_grad()
+    def sample(self, y):
+        out = None
+        for c in torch.unique(y):
+            idx = (y == c).nonzero().flatten()
+            n = len(idx)
+            cand = torch.cat([self.G.sample(torch.full((min(4096, self.mult * n - i),), int(c), device=y.device,
+                                                       dtype=torch.long)) for i in range(0, self.mult * n, 4096)])
+            P = self.phi(cand)
+            w = self.mu[c].clone()
+            taken = torch.zeros(len(cand), dtype=torch.bool, device=y.device)
+            pick = []
+            for _ in range(n):
+                sc = P @ w
+                sc[taken] = -float("inf")
+                j = int(sc.argmax())
+                taken[j] = True
+                pick.append(j)
+                w += self.mu[c] - P[j]
+            sel = cand[torch.tensor(pick, device=y.device)]
+            if out is None:
+                out = torch.empty((len(y),) + tuple(sel.shape[1:]), device=y.device)
+            out[idx] = sel
+        return out
+
+
 class MomentCalibratedGen(nn.Module):
     """MC (new): sampling-time W2 projection of each class-conditional generator
     distribution onto the exact federated first moment and total spread:
@@ -2010,6 +2066,13 @@ def run_one(cfg, run, cache, data_cache):
             res["fidelity_tail_mc"], res["fidelity_mc"] = float(fmc[6:].mean()), fmc.round(3).tolist()
         smc = sample_spread(G, s1["feats"], s1["ys"])
         res["spread_tail_mc"], res["mc_scale"] = float(np.nanmean(smc[6:])), G.scale.cpu().numpy().round(3).tolist()
+    if G is not None and m["head"].get("kh"):
+        phi_, mu_ = federated_kme(ctx, s1["feats"], s1["ys"])
+        G = HerdedGen(G, phi_, mu_)
+        if s1["ref"] is not None:
+            fkh = referee_fidelity(s1["ref"], G)
+            res["fidelity_tail_kh"] = float(fkh[6:].mean())
+        res["spread_tail_kh"] = float(np.nanmean(sample_spread(G, s1["feats"], s1["ys"])[6:]))
     set_seed(seed + 2000)
     ctx.rho_hist, ctx.kappa_hist = [], []
     headers = stage_iii(ctx, m["head"], s1["fe"], s1["hd_sd"], G, s1["feats"], s1["ys"], s1["feats_te"],
