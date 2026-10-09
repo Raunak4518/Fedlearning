@@ -111,6 +111,19 @@ limiting factor in the hard regimes.
 * There is no β. A perfect generator gives hard labels, and a useless one gives the ensemble.
 * *Prediction.* BCSL ≥ CSL, and the budget pays where CSL's did not (MNIST LT).
 
+**Result for H-B (E18, 3 seeds): falsified, and the failure is informative.**
+* *Accuracy.* Bayesian CSL is significantly worse than CSL: FMNIST IID at $T_s = 10$ gives 83.16 vs 84.22
+  ($p = 0.004$), and MNIST LT at $T_s = 10$ gives 87.32 vs 90.51 ($p = 0.002$).
+* *Why: the estimator is circular.* On FMNIST IID, $\hatho$ climbs from 0.91 to 0.999, so the target collapses to
+  the hard label (82.8 ≈ GeFL-F), although the held-out referee puts generator label fidelity at about 87%. The
+  ensemble was trained on this generator's own samples and labels, so it agrees with them by construction.
+* *Fix for any label-free fidelity estimate.* It must use heads that never saw synthetic data: the stage-(i) heads
+  (the H-G probe).
+* *Mechanistic conclusion.* CSL helps as **distillation, not label correction**. Its gain is the ensemble's soft
+  class-similarity structure, kept at a fixed weight even when the label is right. BCSL discards it by reverting to
+  the label. This is consistent with β = 1 losing to β = 0.5, and with reading $b$ in Proposition 3 as the
+  target's distance to the Bayes posterior, not as the argmax error rate.
+
 **H-G: label-free per-class generator selection** (fixes §2; to implement after E18 and E19).
 * The stage-(i) heads are trained on *real* local data only, before any synthetic data exists. Their ensemble is
   therefore an unbiased referee of a generator's class-conditional samples, available at the server.
