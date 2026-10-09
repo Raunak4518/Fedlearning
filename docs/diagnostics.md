@@ -107,7 +107,7 @@ limiting factor in the hard regimes.
 * The posterior of a generated feature's class, given the ensemble and the conditioning label under symmetric
   generator noise $\rho$, is $t_c \propto \bar p_c(\tilde h)\,[\rho 1\{c=y\} + (1-\rho)/C]$.
 * $\rho$ is estimated label-free. For a calibrated ensemble of confidence $\kappa = \mathbb E\max_c \bar p_c$, the
-  agreement is $a = \mathbb E\,\bar p_y = \rho\kappa + (1-\rho)(1-\kappa)/(C-1)$.
+  agreement is $a = \mathbb E\,\bar p_y = \rho\kappa + (1-\rho)/C$, since a uniformly drawn class has $\mathbb E\,\bar p_y = 1/C$. So $\hat\rho = (a - 1/C)/(\kappa - 1/C)$.
 * There is no β. A perfect generator gives hard labels, and a useless one gives the ensemble.
 * *Prediction.* BCSL ≥ CSL, and the budget pays where CSL's did not (MNIST LT).
 
