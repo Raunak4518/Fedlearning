@@ -114,8 +114,7 @@ limiting factor in the hard regimes.
 **Result for H-B (E18, 3 seeds): falsified, and the failure is informative.**
 * *Accuracy.* Bayesian CSL is significantly worse than CSL: FMNIST IID at $T_s = 10$ gives 83.16 vs 84.22
   ($p = 0.004$), and MNIST LT at $T_s = 10$ gives 87.32 vs 90.51 ($p = 0.002$).
-* *Why: the estimator is circular.* On FMNIST IID, $\hat
-ho$ climbs from 0.91 to 0.999, so the target collapses to
+* *Why: the estimator is circular.* On FMNIST IID, $\hat\rho$ climbs from 0.91 to 0.999, so the target collapses to
   the hard label (82.8 ≈ GeFL-F), although the held-out referee puts generator label fidelity at about 87%. The
   ensemble was trained on this generator's own samples and labels, so it agrees with them by construction.
 * *Fix for any label-free fidelity estimate.* It must use heads that never saw synthetic data: the stage-(i) heads
