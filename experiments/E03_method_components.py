@@ -1194,6 +1194,25 @@ def referee_fidelity(ref, G, n=300):
 
 
 @torch.no_grad()
+def stage1_agreement(ctx, s1, G, n=300):
+    """H-G probe: per-class agreement a_c = E p_ens(c | x~), x~ ~ G(.|c), where the
+    ensemble is the stage-(i) heads - trained on REAL local data only, before any
+    synthetic data exists, and held by the server. A label-free stand-in for the
+    held-out referee's fidelity; recorded next to it to test the proxy."""
+    hs = build_headers(ctx, s1["feats"][0].shape[1])
+    for g in ctx.groups:
+        hs[g].load_state_dict(s1["hd_sd"][g])
+        hs[g].eval()
+    G.eval()
+    out = []
+    for c in range(NUM_CLASSES):
+        x = G.sample(torch.full((n,), c, device=DEV, dtype=torch.long))
+        p = torch.stack([hs[g](x).softmax(1) for g in ctx.groups]).mean(0)
+        out.append(float(p[:, c].mean()))
+    return np.array(out)
+
+
+@torch.no_grad()
 def feature_mnd(ctx, G, fe, n_query=1000, n_ref=600):
     """Paper Eq. (1) in feature space: rho_i = min_V d / min_S d over training
     points; > 1 means training points sit closer to synthetic than to unseen
@@ -1616,11 +1635,12 @@ def run_one(cfg, run, cache, data_cache):
                 g_sd, norms, G2, clients, W = stage_ii(ctx, m["gen"], s1["feats"], s1["ys"], T["T_KA"])
             G2.load_state_dict(g_sd)
             fid = referee_fidelity(s1["ref"], G2) if s1["ref"] is not None else None
+            agree = stage1_agreement(ctx, s1, G2)
             mnd = feature_mnd(ctx, G2, s1["fe"]) if cfg.get("mnd", False) else None
             if m["gen"]["type"] == "gauss":
                 n_gauss = NUM_CLASSES
             cache[k2] = dict(g_sd=g_sd, norms=norms, G=G2, clients=clients, W=W, fid=fid, mnd=mnd,
-                             t=time.time() - t2, n_gauss=n_gauss)
+                             t=time.time() - t2, n_gauss=n_gauss, agree=agree)
         s2 = cache[k2]
         G = s2["G"]
         G.load_state_dict(s2["g_sd"])
@@ -1637,6 +1657,8 @@ def run_one(cfg, run, cache, data_cache):
             res["fidelity"] = s2["fid"].round(3).tolist()
         if s2["mnd"] is not None:
             res["feature_mnd"] = s2["mnd"]
+        if s2.get("agree") is not None:
+            res["stage1_agree"] = s2["agree"].round(4).tolist()
         if m["head"]["gen_update"] and s2["clients"] is not None:
             gen_state = (dict(s2["g_sd"]), s2["clients"], m["gen"], s2["W"])
             import copy
