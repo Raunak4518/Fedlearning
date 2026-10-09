@@ -10,7 +10,10 @@ Interaction hypothesis: (CSL, T_s=3) - (CSL, T_s=1) > (GeFL-F, T_s=3) - (GeFL-F,
 """
 LABELS = [("GeFL-F", "", 1), ("GeFL-F Ts=3", "", 3), ("GeFL-F Ts=5", "", 5),
           ("+CSL", "CSL", 1), ("+CSL Ts=3", "CSL", 3), ("+CSL Ts=5", "CSL", 5), ("+CSL Ts=10", "CSL", 10),
-          ("Ours (HWA+LA+CSL) Ts=5", "HWA+LA+CSL", 5)]
+          ("Ours (HWA+LA+CSL) Ts=5", "HWA+LA+CSL", 5), ("Ours (HWA+LA+CSL) Ts=10", "HWA+LA+CSL", 10)]
+# Long tail: does the larger budget also hold (or hurt) where HWA + LA matter?
+LABELS_LT = [("GeFL-F", "", 1), ("Ours (HWA+LA+CSL)", "HWA+LA+CSL", 1),
+             ("Ours (HWA+LA+CSL) Ts=5", "HWA+LA+CSL", 5), ("Ours (HWA+LA+CSL) Ts=10", "HWA+LA+CSL", 10)]
 EXPERIMENT = dict(
     name="E16_csl_synthetic_budget",
     title="Consensus labels and the synthetic budget T_s",
@@ -18,5 +21,7 @@ EXPERIMENT = dict(
     reference="GeFL-F",
     metrics=["best_mean_acc", "final_bal", "final_ens_acc", "oracle_bal"],
     plan=lambda cfg: [run_spec(lab, ds, s, compose(c, head=dict(ts=ts)))
-                      for ds in ["fmnist", "mnist"] for s in cfg["seeds"] for lab, c, ts in LABELS],
+                      for ds in ["fmnist", "mnist"] for s in cfg["seeds"] for lab, c, ts in LABELS]
+                     + [run_spec(lab, "fmnist", s, compose(c, head=dict(ts=ts)), IF=0.01, alpha=0.5)
+                        for s in cfg["seeds"][:2] for lab, c, ts in LABELS_LT],
 )

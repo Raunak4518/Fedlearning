@@ -442,7 +442,7 @@ def sec_budget():
     if not e16:
         return ""
     rows = []
-    for lab in ["GeFL-F", "GeFL-F Ts=3", "GeFL-F Ts=5", "+CSL", "+CSL Ts=3", "+CSL Ts=5", "+CSL Ts=10", "Ours (HWA+LA+CSL) Ts=5"]:
+    for lab in ["GeFL-F", "GeFL-F Ts=3", "GeFL-F Ts=5", "+CSL", "+CSL Ts=3", "+CSL Ts=5", "+CSL Ts=10", "Ours (HWA+LA+CSL) Ts=5", "Ours (HWA+LA+CSL) Ts=10"]:
         r = [esc(lab)]
         for ds in ["fmnist", "mnist"]:
             v = pick(e16, lab, "best_mean_acc", dataset=ds, IF=1.0)
@@ -450,7 +450,12 @@ def sec_budget():
             r.append(fmt_p(paired_p(v, pick(e16, "GeFL-F", "best_mean_acc", dataset=ds, IF=1.0))) if lab != "GeFL-F" else "ref")
         rows.append(r)
     t = table("Synthetic budget T_s (synthetic epochs per round), paper's IID setting, K = 10 (E16, best_mean_acc)",
-              [("Method", ""), ("FashionMNIST", "num"), ("p", "num"), ("MNIST", "num"), ("p", "num")], rows, hl=(6,))
+              [("Method", ""), ("FashionMNIST", "num"), ("p", "num"), ("MNIST", "num"), ("p", "num")], rows, hl=(6, 8))
+    lt = method_table(e16, [("GeFL-F", "GeFL-F"), ("Ours (HWA+LA+CSL)", "Ours, T_s = 1"), ("Ours (HWA+LA+CSL) Ts=5", "Ours, T_s = 5"),
+                            ("Ours (HWA+LA+CSL) Ts=10", "Ours, T_s = 10")], ["fmnist"],
+                      [("final_bal", "balanced acc."), ("final_tail", "tail"), ("best_mean_acc", "best_mean_acc")],
+                      where=dict(IF=0.01), caption="Same budgets under the long tail (FashionMNIST, IF = 100, Dir 0.5, 2 seeds)",
+                      ours=("Ours (HWA+LA+CSL) Ts=5", "Ours (HWA+LA+CSL) Ts=10")) if pick(e16, "GeFL-F", "final_bal", dataset="fmnist", IF=0.01) else ""
     return f"""
 <section id="s4c"><h2><span class="num">4c</span>Consensus labels make more synthetic data useful</h2>
 <p class="deck">The paper found that 5 synthetic epochs per round are no better than 1. We predicted that this is a hard-label effect, and that CSL removes it.</p>
@@ -466,6 +471,7 @@ FashionMNIST number of any variant (84.28, GeFL&#8209;F with the much costlier f
 paper's GeFL&#8209;F with the same generator (83.14). MNIST is near its ceiling (oracle &asymp; 97.2), and the extra budget does not help there.
 T<sub>s</sub> was not tuned per dataset for the headline claim. With one fixed setting (T<sub>s</sub> = 5) our method gives 84.12 on FashionMNIST
 and 96.5 on MNIST: a tie with, and above, the paper's best respectively.</p>
+{lt}
 </section>"""
 
 
