@@ -7,24 +7,25 @@ New since K01 (docs/diagnostics.md, E20):
         exact federated class mean; decoder models only within-class variation.
   ZP  - ex-post latent prior fitted by exact sums of encoder means.
 E20 seed 0, MNIST long tail: CVAE + HWA 88.8 -> PC + MC 91.7, PC + ZP 92.0.
-Arms (same seeds and splits, generators split across the two GPUs):
-  GeFL-F; Ours (HWA+LA+CSL); Ours+MC; Ours-PC+MC; Ours-PC+ZP+MC; Ours-PC+ZP+MC Ts=10.
+Arms - ONLY the new ones. GeFL-F, Ours (HWA+LA+CSL), +LA, +HWA+LA and FSG on these
+datasets/settings/seeds come from K01 (NB1, NB2): the split is a function of the seed,
+so the new arms pair with those runs and nothing is run twice.
+  Ours+MC (MC on the existing generator); Ours-PC+MC; Ours-PC+ZP+MC; Ours-PC+ZP+MC Ts=10.
 Paper targets (IID, best_mean_acc): SVHN 76.26, CIFAR-10 55.86 (GeFL-F CVAE-F),
 best of any variant 76.26 / 59.36.
 
 Typical use (rough times on T4 x2):
-    python K05.py --datasets svhn --out_dir /kaggle/working/results              # ~3 h
-    python K05.py --datasets cifar10 --IF 0.01 --out_dir /kaggle/working/results # ~6 h
-    python K05.py --datasets cifar10 --IF 1.0 --out_dir /kaggle/working/results  # ~6 h
+    python K05.py --datasets svhn --out_dir /kaggle/working/results              # ~2.5 h
+    python K05.py --datasets cifar10 --IF 0.01 --out_dir /kaggle/working/results # ~4.5 h
+    python K05.py --datasets cifar10 --IF 1.0 --out_dir /kaggle/working/results  # ~4.5 h
 """
-LABELS = [("GeFL-F", "", 1), ("Ours (HWA+LA+CSL)", "HWA+LA+CSL", 1), ("Ours+MC", "HWA+LA+CSL+MC", 1),
-          ("Ours-PC+MC", "PC+LA+CSL+MC", 1), ("Ours-PC+ZP+MC", "PC+ZP+LA+CSL+MC", 1),
-          ("Ours-PC+ZP+MC Ts=10", "PC+ZP+LA+CSL+MC", 10)]
+LABELS = [("Ours+MC", "HWA+LA+CSL+MC", 1), ("Ours-PC+MC", "PC+LA+CSL+MC", 1),
+          ("Ours-PC+ZP+MC", "PC+ZP+LA+CSL+MC", 1), ("Ours-PC+ZP+MC Ts=10", "PC+ZP+LA+CSL+MC", 10)]
 EXPERIMENT = dict(
     name="K05_kaggle_newgen_cifar10_svhn",
     title="New generator stack (PC-VAE, MC, ZP) on SVHN and CIFAR-10",
     hypothesis="Ours-PC+(ZP)+MC >= Ours >= GeFL-F in both regimes; IID beats the published GeFL-F.",
-    reference="GeFL-F",
+    reference="Ours+MC",
     split_by_gen=True,
     metrics=["best_mean_acc", "final_bal", "final_tail", "fidelity_tail", "fidelity_tail_mc", "spread_tail_mc"],
     plan=lambda cfg: [run_spec(lab, ds, s, compose(c, head=dict(ts=ts)), IF=IF, alpha=a)

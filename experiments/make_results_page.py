@@ -786,6 +786,68 @@ objective and labels, so they are orthogonal to augmentation: MixUp/CutMix could
 </section>"""
 
 
+def sec_k02():
+    k02 = load("K02_kaggle_regimes_privacy_ablations")
+    if not k02:
+        return ""
+    reg = method_table(k02, [("GeFL-F", "GeFL-F"), ("+LA", "+LA"), ("Ours", "Ours (HWA+LA+CSL)")], ["fmnist", "mnist"],
+                       [("final_bal", "balanced acc.")], where=dict(IF=1.0, alpha=0.5),
+                       caption="Label skew without a tail (IF = 1, Dir 0.5, K = 10)", ours=("Ours",))
+    reg += method_table(k02, [("GeFL-F", "GeFL-F"), ("+LA", "+LA"), ("Ours", "Ours (HWA+LA+CSL)")], ["fmnist", "mnist"],
+                        [("final_bal", "balanced acc.")], where=dict(IF=0.1),
+                        caption="Mild tail (IF = 10, Dir 0.5, K = 10)", ours=("Ours",))
+    abl_labels = [("Ours", "Ours (HWA + LA + CSL)"), ("no HWA (flat averaging)", "&minus; HWA (flat averaging)"),
+                  ("no LA (plain CE)", "&minus; LA (plain CE)"), ("no CSL", "&minus; CSL"),
+                  ("HWA weights = counts n", "HWA weights: counts n"), ("HWA weights = uniform over holders", "HWA weights: uniform over holders"),
+                  ("LA tau=1.5", "LA &tau; = 1.5"), ("LA tau=2.0", "LA &tau; = 2"),
+                  ("CSL beta=0.25", "CSL &beta; = 0.25"), ("CSL beta=0.75", "CSL &beta; = 0.75")]
+    abl = method_table(k02, abl_labels, ["fmnist", "mnist"], [("final_bal", "balanced acc."), ("final_tail", "tail")],
+                       where=dict(IF=0.01), ref="Ours", caption="Ablations, long tail (IF = 100, Dir 0.5, K = 10; 2 seeds, Ours 3)",
+                       ours=("Ours",))
+    priv = method_table(k02, [("GeFL-F", "GeFL-F"), ("Ours", "Ours (no noise)"), ("Ours, DP eps=10", "Ours, &epsilon; = 10"),
+                              ("Ours, DP eps=1", "Ours, &epsilon; = 1"), ("Ours, DP eps=0.1", "Ours, &epsilon; = 0.1")],
+                        ["fmnist", "mnist"], [("final_bal", "balanced acc."), ("feature_mnd", "MND")],
+                        where=dict(IF=0.01), caption="Laplace-noised class counts (&epsilon;-DP per client histogram) and memorisation",
+                        ours=("Ours, DP eps=1",))
+    return f"""
+<section id="s12"><h2><span class="num">12</span>Regimes, ablations and privacy (Kaggle K02)</h2>
+<p class="deck">Three seeds per setting (two for the ablation variants). Numbers come from the pasted summaries.</p>
+<p><b>The gain grows with imbalance.</b> Over GeFL&#8209;F, ours gains +5 to +6 points with label skew alone, +7 with a mild tail and
++15 to +18 with the 100:1 tail. This is the collapse recursion of &sect;2 at work: Dirichlet(0.5) already leaves some classes on fewer than
+half the clients, so (2m<sub>c</sub>/K &minus; 1) &lt; 0 even without a global tail.</p>
+{reg}
+<p><b>Ablations.</b> Removing HWA costs 7&ndash;8 points, and removing LA costs 5&ndash;8. HWA's exact weighting does not matter (E(n), n and
+uniform-over-holders are within noise). That is predicted: the damage comes from <em>non-holders'</em> decay, so excluding them is what counts.
+CSL matters where the generator's labels are poor (MNIST: &minus;2.5 without it, tail fidelity 0.30) and not where they are decent (FashionMNIST, 0.65).
+The best CSL weight differs by dataset (&beta; = 0.75 on MNIST, &le; 0.5 on FashionMNIST), which is the motivation for estimating it per run
+(Bayesian CSL). LA's temperature behaves the same way: &tau; = 2 helps FashionMNIST (+1.4, tail +4.8) and slightly hurts MNIST, because &tau; = 1
+corrects only the label prior and FashionMNIST's tail classes are also its intrinsically hardest (shirt, coat). The server-side bias calibration
+(BBC) estimates that residual bias per head instead of tuning &tau;.</p>
+{abl}
+<p><b>Privacy.</b> With &epsilon; = 1 Laplace noise on every client's class histogram the method loses 0.2 (FashionMNIST) and 1.3 points (MNIST).
+At &epsilon; = 0.1 it loses about 3.4 and still stays 11&ndash;14 points above GeFL&#8209;F. Feature-space memorisation (MND) is the same as GeFL&#8209;F's
+in every case.</p>
+{priv}
+</section>"""
+
+
+def sec_k04():
+    k04 = load("K04_kaggle_ddpm_cifar10_svhn")
+    if not k04:
+        return ""
+    t = method_table(k04, [("GeFL-F (DDPM-F)", "GeFL-F (DDPM-F)"), ("+CSL (DDPM-F)", "+CSL (DDPM-F)"), ("Ours (DDPM-F)", "Ours (DDPM-F)")],
+                     sorted({r["dataset"] for r in k04}), [("best_mean_acc", "best_mean_acc"), ("fidelity_tail", "tail fidelity")],
+                     where=dict(IF=1.0), ref="GeFL-F (DDPM-F)", caption="Paper's IID setting on the authors' DDPM-F (Kaggle K04)",
+                     ours=("Ours (DDPM-F)",))
+    return f"""
+<section id="s13"><h2><span class="num">13</span>The paper's diffusion generator (Kaggle K04)</h2>
+<p class="deck">The same comparison on the authors' DDPM-F, ported unchanged.</p>
+{t}
+<p>On SVHN our GeFL&#8209;F with DDPM-F scores 69.8, below the published 73.38, and its samples are poor (tail fidelity 0.29). The paper also
+finds DDPM-F worse than CVAE-F on SVHN (73.38 vs 76.26). CSL still gains +0.5 (p = 0.045) on top of it.</p>
+</section>"""
+
+
 def sec_summary():
     f01 = load("F01_main_longtail")
     f09 = load("F09_consensus_paper_setting")
@@ -822,7 +884,8 @@ Augmentation would be orthogonal and would lift every method equally.</p>
 SECTIONS = [("s0", "0", "The result on one page"), ("s1", "1", "Baseline validation"), ("s2", "2", "The collapse mechanism"),
             ("s3", "3", "Long-tail main result"), ("s4", "4", "Paper's IID setting"), ("s4b", "4b", "IID headroom"), ("s4c", "4c", "Synthetic budget"), ("s5", "5", "Combined method"),
             ("s6", "6", "More clients"), ("s7", "7", "SVHN and CIFAR-10"), ("s8", "8", "What did not work"),
-            ("s9", "9", "Privacy and cost"), ("s11", "11", "Against every GeFL variant"), ("s10", "10", "Reproduce")]
+            ("s9", "9", "Privacy and cost"), ("s11", "11", "Against every GeFL variant"), ("s12", "12", "Regimes, ablations, privacy"),
+            ("s13", "13", "Diffusion generator"), ("s10", "10", "Reproduce")]
 
 EXTRA_CSS = """
 .sd{color:var(--muted);font-size:.86em}
@@ -848,7 +911,7 @@ def build():
     stamp = datetime.datetime.now().strftime("%d %b %Y, %H:%M")
     rail = "".join(f'<li><a href="#{i}"><span class="n">{n}</span><span>{esc(t)}</span></a></li>' for i, n, t in SECTIONS)
     body = "".join(f() for f in [sec_summary, sec_validation, sec_diagnosis, sec_main, sec_paper_setting, sec_headroom, sec_budget,
-                                  sec_combined, sec_clients, sec_kaggle, sec_negative, sec_privacy, sec_vs_paper])
+                                  sec_combined, sec_clients, sec_kaggle, sec_negative, sec_privacy, sec_vs_paper, sec_k02, sec_k04])
     body += """
 <section id="s10"><h2><span class="num">10</span>Reproduce</h2>
 <p>Each experiment is one standalone file built from <code>experiments/core.py</code> and a short spec, so it can be pasted into Kaggle.
