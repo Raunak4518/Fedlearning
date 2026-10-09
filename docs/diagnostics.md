@@ -121,6 +121,34 @@ limiting factor in the hard regimes.
 * *Test first.* Check that $a_c$ ranks the generators as the held-out referee does (rank correlation over classes),
   then measure accuracy.
 
+**H-PC: take class identity out of the parameters (PC-VAE; running as E20).**
+* *Problem.* The CVAE-F's only class-specific parameter is one learned row per class, fitted from that class's
+  few samples. It is the object that FedAvg dilutes and decays (§1), and its estimation error does not shrink with
+  more clients (§2).
+* *Model.* Replace it with the exact federated class mean $\mu_c$, from secure-aggregated sums (the same disclosure
+  as FSG). The decoder gets a class-*shared* projection of $\mu_y$, and models only the residual:
+  $	ilde h = \mathrm{ReLU}(\mu_y + \mathrm{dec}(z, \mu_y))$.
+* *Why it should work.*
+  * No class-specific parameter is left to dilute or collapse.
+  * Tail classes borrow within-class variation from all classes (amortisation), instead of learning a lookup row
+    from 24 samples.
+  * A linear decoder recovers FSG, and a nonlinear one can model the non-Gaussian shape that FSG lacks.
+* *Prediction.* Accuracy ≥ max(CVAE + HWA, FSG) in every regime, with no regime-dependent choice of generator.
+* *Add-on ZP.* An ex-post latent prior fitted by exact sums of encoder means closes the VAE prior hole.
+
+**H-MC: moment-calibrated sampling (running as E20).**
+* *Problem.* The new diversity diagnostic shows that both VAE generators under-disperse. The ratio of generated to
+  real within-class spread is 0.1–0.3: decoder means are blurry and too narrow, so heads see classes as 3–10× too
+  tight.
+* *Method.* The server knows each class's exact mean $\mu_c$ and spread $V_c = \mathbb E\|h-\mu_c\|^2$ from
+  secure-aggregated sums ($\sum h$, $\sum\|h\|^2$, $n$ per class). Map each sample by
+  $x' = \mathrm{ReLU}(\mu_c + s_c(x - m_c))$ with $s_c = \sqrt{V_c/	ilde V_c}$. Among affine corrections, this is
+  the $W_2$-optimal one that gives the generator's class distribution the exact first moment and total spread.
+* *Properties.* It works with any generator. It fixes only the first two moments, where the generator is
+  measurably wrong, and keeps the learned shape.
+* *Smoke test (3 % of rounds).* On CVAE + HWA, tail fidelity rose from 0.02 to 0.65, spread from 0.20 to 0.73, and
+  balanced accuracy from 59.0 to 64.4.
+
 **H-S: larger budgets with more clients** (from Proposition 3; running as E17). $w^\star \propto 1/n_r$, so the
 optimal synthetic share is larger at K = 50 (about 120 real images per client) than at K = 10. $T_s = 10$ with CSL
 should gain more there.
