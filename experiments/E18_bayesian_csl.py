@@ -1615,6 +1615,41 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
     return headers
 
 
+class _BiasedHead(nn.Module):
+    def __init__(self, h, b):
+        super().__init__()
+        self.h = h
+        self.register_buffer("b", b)
+
+    def forward(self, x):
+        return self.h(x) + self.b
+
+
+@torch.no_grad()
+def balanced_bias_calibration(ctx, headers, G, feats_te, n=500, iters=50):
+    """BBC diagnostic: per head, the C logit offsets b with which the head predicts
+    every class equally often on class-balanced synthetic features from G
+    (prior correction a la Saerens et al. 2002, fixed point b <- b - log(C q(b))).
+    Uses only what the server holds (heads, generator); evaluated on the test set."""
+    G.eval()
+    y = torch.arange(NUM_CLASSES, device=DEV).repeat_interleave(n)
+    x = torch.cat([G.sample(y[i:i + 4096]) for i in range(0, len(y), 4096)])
+    out = []
+    for g in range(len(headers)):
+        h = headers[g]
+        if g not in ctx.groups:
+            out.append(h)
+            continue
+        h.eval()
+        logits = torch.cat([h(x[i:i + 4096]) for i in range(0, len(x), 4096)])
+        b = torch.zeros(NUM_CLASSES, device=DEV)
+        for _ in range(iters):
+            q = (logits + b).softmax(1).mean(0)
+            b = b - torch.log(q * NUM_CLASSES)
+        out.append(_BiasedHead(h, b - b.mean()))
+    return summarize_eval(eval_headers(ctx, out, feats_te, ctx.data["yte"]))
+
+
 def classifier_oracle(ctx, headers, feats, ys_list, feats_te, steps=300):
     """Diagnostic run on every method: re-fit each header's fc on the pooled
     federation real features with class-balanced sampling. The gap between
@@ -1841,6 +1876,9 @@ def run_one(cfg, run, cache, data_cache):
                 o.load_state_dict(sd)
     orc = classifier_oracle(ctx, headers, s1["feats"], s1["ys"], s1["feats_te"])
     res.update(oracle_bal=orc["bal"], oracle_tail=orc["tail"])
+    if G is not None:
+        bb = balanced_bias_calibration(ctx, headers, G, s1["feats_te"])
+        res.update(bbc_bal=bb["bal"], bbc_tail=bb["tail"], bbc_acc=bb["acc"])
     if s1["ref"] is not None:
         with torch.no_grad():
             res["referee_test_acc"] = float((s1["ref"](s1["feats_te"]).argmax(1) == data["yte"]).float().mean())

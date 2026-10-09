@@ -209,7 +209,7 @@ We follow the paper's appendix exactly.
 * **Data.** Fraction 0.1 (0.5 for CIFAR-10). Client-to-architecture assignment is contiguous.
 * **Long tail.** $n_c \propto \mathrm{IF}^{c/(C-1)}$ with the total data budget fixed, and Dirichlet(0.5) client
   shares. Test sets are balanced.
-* **Metrics.** Balanced accuracy, tail recall (the three rarest classes), worst-class recall, and `best_mean_acc`.
+* **Metrics.** Balanced accuracy, tail recall (the four rarest classes, 6–9), worst-class recall, and `best_mean_acc`.
 * **Statistics.** 3 seeds; each seed fixes the split and the initialisation for every method. p-values come from
   two-sided paired t-tests over seeds.
 

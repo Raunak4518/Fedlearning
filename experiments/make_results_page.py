@@ -406,7 +406,7 @@ def sec_main():
 <p class="deck">The setting GeFL&#8209;F was never tested in, and the one real deployments look like.</p>
 <p>Global class frequencies fall a hundredfold from the most to the least common class (IF = 100). Each class
 is split across clients by Dirichlet(0.5). Test sets stay balanced, so <em>balanced accuracy</em> (mean per-class
-recall) is the honest metric. <em>Tail</em> is the mean recall of the three rarest classes.</p>
+recall) is the honest metric. <em>Tail</em> is the mean recall of the four rarest classes (6&ndash;9).</p>
 {t}
 <figure>{charts[0]}{charts[1]}<figcaption><b>Bars are on one scale, starting at 40%.</b> Blue: ours. Amber: GeFL&#8209;F. Grey: other methods.</figcaption></figure>
 {t2}
