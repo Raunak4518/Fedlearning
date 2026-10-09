@@ -523,7 +523,7 @@ GEN_DEFAULTS = dict(type="cvae", wd=1e-3, agg="flat", lazy=False, beta=0.999, we
                     dp_eps=None, oracle=False, T_KA=None)
 HEAD_DEFAULTS = dict(sampler="uniform", order="syn_first", ts=1, tr=5, mix=None, mix_ratio=0.2,
                      loss="ce", tau=1.0, bcr=0, bcr_lr=0.05, gen_update=False, csl=0.0, csl_mix=False,
-                     sed=0, sed_lr=0.05, sed_beta=0.5, sed_bs=128)
+                     sed=0, sed_lr=0.05, sed_beta=0.5, sed_bs=128, csl_mode="mix")
 
 
 def method(pipeline="gefl_f", fe=None, gen=None, head=None):
@@ -548,6 +548,7 @@ COMPONENTS = {
     "DCGAN": dict(gen=dict(type="dcgan", wd=0.0)),
     "DDPM": dict(gen=dict(type="ddpm", wd=0.0)),   # the authors' DDPM-F (feature diffusion, w = 0)
     "CSL": dict(head=dict(csl=0.5)),            # consensus soft labels for synthetic features
+    "BCSL": dict(head=dict(csl=0.5, csl_mode="bayes")),  # Bayesian CSL: label prior x ensemble, rho estimated
     "CSLM": dict(head=dict(csl=0.5, csl_mix=True)),
     "SED": dict(head=dict(sed=20)),             # server-side ensemble distillation on generated features  # ...interleaved into every real batch (no forgetting)
     "GAUSS": dict(gen=dict(type="gauss", wd=0.0)),   # federated sufficient-statistics Gaussian (FSG)
@@ -1279,7 +1280,23 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
                     headers[g].train()
                 cons /= len(ctx.groups)
             beta = hspec["csl"]
-            pool = (px, py, (1 - beta) * F.one_hot(py, C).float() + beta * cons)
+            if hspec["csl"] and hspec["csl_mode"] == "bayes":
+                # Bayesian CSL: posterior of a generated feature's class given both the
+                # ensemble p(c|x) and the conditioning label y under symmetric generator
+                # label noise q(c|y) = rho 1{c=y} + (1-rho)/C. rho is estimated without
+                # real data: for a calibrated ensemble of confidence kappa = E max_c p(c|x),
+                # the agreement a = E p(y|x) = rho kappa + (1 - rho)(1 - kappa)/(C - 1), so
+                # rho = (a - e) / (kappa - e) with e = (1 - kappa)/(C - 1).
+                a = cons[torch.arange(P, device=DEV), py].mean()
+                kappa = cons.max(1).values.mean()
+                e = (1 - kappa) / (C - 1)
+                rho = ((a - e) / (kappa - e).clamp(min=1e-6)).clamp(0.0, 1.0)
+                tgt = cons * (rho * F.one_hot(py, C).float() + (1 - rho) / C)
+                pool = (px, py, tgt / tgt.sum(1, keepdim=True).clamp(min=1e-12))
+                ctx.__dict__.setdefault("rho_hist", []).append(round(float(rho), 4))
+                ctx.__dict__.setdefault("kappa_hist", []).append(round(float(kappa), 4))
+            else:
+                pool = (px, py, (1 - beta) * F.one_hot(py, C).float() + beta * cons)
         hd_avg = {g: Averager() for g in ctx.groups}
         for k in range(ctx.K):
             g = ctx.arch[k]
@@ -1638,8 +1655,12 @@ def run_one(cfg, run, cache, data_cache):
     # ---- stage (iii)
     t3 = time.time()
     set_seed(seed + 2000)
+    ctx.rho_hist, ctx.kappa_hist = [], []
     headers = stage_iii(ctx, m["head"], s1["fe"], s1["hd_sd"], G, s1["feats"], s1["ys"], s1["feats_te"],
                         T["T_TN"], tracker, ev_every, gen_state)
+    if ctx.rho_hist:
+        res["bcsl_rho"] = [ctx.rho_hist[0], ctx.rho_hist[len(ctx.rho_hist) // 2], ctx.rho_hist[-1]]
+        res["bcsl_kappa"] = [ctx.kappa_hist[0], ctx.kappa_hist[len(ctx.kappa_hist) // 2], ctx.kappa_hist[-1]]
     res["head_time_s"] = time.time() - t3
     if gen_state is not None:
         # leave the cached stage-(ii) generator and optimizer states untouched for later runs
