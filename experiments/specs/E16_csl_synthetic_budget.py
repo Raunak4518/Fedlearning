@@ -22,6 +22,6 @@ EXPERIMENT = dict(
     metrics=["best_mean_acc", "final_bal", "final_ens_acc", "oracle_bal"],
     plan=lambda cfg: [run_spec(lab, ds, s, compose(c, head=dict(ts=ts)))
                       for ds in ["fmnist", "mnist"] for s in cfg["seeds"] for lab, c, ts in LABELS]
-                     + [run_spec(lab, "fmnist", s, compose(c, head=dict(ts=ts)), IF=0.01, alpha=0.5)
-                        for s in cfg["seeds"][:2] for lab, c, ts in LABELS_LT],
+                     + [run_spec(lab, ds, s, compose(c, head=dict(ts=ts)), IF=0.01, alpha=0.5)
+                        for ds in ["fmnist", "mnist"] for s in cfg["seeds"] for lab, c, ts in LABELS_LT],
 )
