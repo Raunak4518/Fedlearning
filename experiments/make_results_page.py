@@ -77,11 +77,49 @@ def load(exp):
     """runs of one experiment, including Kaggle folders renamed <exp>__<part> (later folders win)."""
     import glob
     by = {}
-    for p in [os.path.join(RES, exp, "runs.jsonl")] + sorted(glob.glob(os.path.join(RES, exp + "__*", "runs.jsonl"))):
-        if os.path.exists(p):
-            for r in _read_jsonl(p):
-                by[r.get("run_id", id(r))] = r
+    for d in [os.path.join(RES, exp)] + sorted(glob.glob(os.path.join(RES, exp + "__*"))):
+        p = os.path.join(d, "runs.jsonl")
+        rows = _read_jsonl(p) if os.path.exists(p) else _read_summary(os.path.join(d, "summary.md"))
+        for r in rows:
+            by[r.get("run_id", id(r))] = r
     return list(by.values())
+
+
+def _read_summary(p):
+    """Fallback when only a pasted summary.md came back: one pseudo-run per seed index
+    reproducing each mean and sd exactly (values m - sd, m, m + sd for n = 3). Flagged
+    from_summary, so no paired test is computed on them."""
+    import re as _re
+    if not os.path.exists(p):
+        return []
+    out, setting, cols = [], None, None
+    for line in open(p, encoding="utf-8"):
+        m = _re.match(r"## (\w+)\s+IF=([\d.]+)\s+alpha=(\S+)\s+K=(\d+)", line)
+        if m:
+            setting = (m[1], float(m[2]), None if m[3] == "None" else float(m[3]), int(m[4]))
+            cols = None
+            continue
+        if not line.startswith("|") or setting is None:
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if cells[0] == "label":
+            cols = cells
+            continue
+        if cols is None or set(cells[0]) <= set("-"):
+            continue
+        n = int(cells[1])
+        offs = [0.0] if n == 1 else ([-1.0, 0.0, 1.0] if n == 3 else [(-1) ** i for i in range(n)])
+        for i, off in enumerate(offs):
+            r = dict(label=cells[0], dataset=setting[0], IF=setting[1], alpha=setting[2], K=setting[3], seed=i,
+                     from_summary=True, run_id=f"{cells[0]}|{setting}|{i}")
+            for c, v in zip(cols[2:], cells[2:]):
+                m2 = _re.match(r"([-\d.]+)\s*±\s*([\d.]+)", v)
+                if m2:
+                    mu, sd = float(m2[1]), float(m2[2])
+                    val = mu + off * sd
+                    r[c] = val if c.startswith("cond_norm") else val / 100
+            out.append(r)
+    return out
 
 
 def _read_jsonl(p):
@@ -117,6 +155,7 @@ def kaggle_runs():
 def pick(runs, label, metric, **where):
     """{seed: value in %} for one label and setting."""
     out = {}
+    PICK_FLAGS["summary"] = PICK_FLAGS.get("summary", False)
     for r in runs:
         if r.get("label") != label or r.get(metric) is None:
             continue
@@ -124,10 +163,18 @@ def pick(runs, label, metric, **where):
             continue
         v = r[metric]
         out[r["seed"]] = v * 100 if metric not in ("cond_norm_tail_over_head_end",) else v
+        if r.get("from_summary"):
+            SUMMARY_IDS.add(id(out))
     return out
 
 
+PICK_FLAGS = {}
+SUMMARY_IDS = set()
+
+
 def paired_p(a, b):
+    if id(a) in SUMMARY_IDS or id(b) in SUMMARY_IDS:
+        return None  # per-seed values are not known for pasted summaries
     seeds = sorted(set(a) & set(b))
     if len(seeds) < 2:
         return None
@@ -514,6 +561,16 @@ def sec_clients():
     ts = "".join(method_table(f04, labels, ["mnist"], [("final_bal", "balanced acc."), ("final_tail", "tail")],
                               where=dict(K=K), caption=f"MNIST long tail, K = {K}", ours=("+HWA+LA", "+HWA+LA+CSL"))
                  for K in [50, 100] if any(r["K"] == K for r in f04))
+    k03 = load("K03_kaggle_client_scaling")
+    if k03:
+        labs = [("GeFL-F", "GeFL-F"), ("+LA", "+LA"), ("+HWA+LA", "+HWA+LA"), ("Ours (HWA+LA+CSL)", "Ours (HWA+LA+CSL)"),
+                ("FSG+LA", "FSG+LA"), ("FSG+LA+CSL", "FSG+LA+CSL")]
+        for K in [50, 100]:
+            if pick(k03, "GeFL-F", "final_bal", dataset="fmnist", IF=0.01, K=K):
+                ts += method_table(k03, labs, ["fmnist"], [("final_bal", "balanced acc."), ("final_tail", "tail")],
+                                   where=dict(IF=0.01, K=K), caption=f"FashionMNIST long tail, K = {K} (Kaggle K03)",
+                                   ours=("+HWA+LA", "Ours (HWA+LA+CSL)"))
+        ts += "<p class=\"small\">Kaggle K03 rows come from the pasted summary.md (mean &plusmn; sd); per-seed p-values appear once runs.jsonl is copied back.</p>"
     return f"""
 <section id="s6"><h2><span class="num">6</span>More clients: K = 50 and 100</h2>
 <p class="deck">With more clients each rare class has fewer holders, so flat averaging dilutes its rows further.</p>
