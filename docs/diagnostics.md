@@ -127,7 +127,7 @@ limiting factor in the hard regimes.
   more clients (§2).
 * *Model.* Replace it with the exact federated class mean $\mu_c$, from secure-aggregated sums (the same disclosure
   as FSG). The decoder gets a class-*shared* projection of $\mu_y$, and models only the residual:
-  $	ilde h = \mathrm{ReLU}(\mu_y + \mathrm{dec}(z, \mu_y))$.
+  $\tilde h = \mathrm{ReLU}(\mu_y + \mathrm{dec}(z, \mu_y))$.
 * *Why it should work.*
   * No class-specific parameter is left to dilute or collapse.
   * Tail classes borrow within-class variation from all classes (amortisation), instead of learning a lookup row
@@ -142,7 +142,7 @@ limiting factor in the hard regimes.
   tight.
 * *Method.* The server knows each class's exact mean $\mu_c$ and spread $V_c = \mathbb E\|h-\mu_c\|^2$ from
   secure-aggregated sums ($\sum h$, $\sum\|h\|^2$, $n$ per class). Map each sample by
-  $x' = \mathrm{ReLU}(\mu_c + s_c(x - m_c))$ with $s_c = \sqrt{V_c/	ilde V_c}$. Among affine corrections, this is
+  $x' = \mathrm{ReLU}(\mu_c + s_c(x - m_c))$ with $s_c = \sqrt{V_c/\tilde V_c}$. Among affine corrections, this is
   the $W_2$-optimal one that gives the generator's class distribution the exact first moment and total spread.
 * *Properties.* It works with any generator. It fixes only the first two moments, where the generator is
   measurably wrong, and keeps the learned shape.
