@@ -500,9 +500,9 @@ def sec_budget():
     t = table("Synthetic budget T_s (synthetic epochs per round), paper's IID setting, K = 10 (E16, best_mean_acc)",
               [("Method", ""), ("FashionMNIST", "num"), ("p", "num"), ("MNIST", "num"), ("p", "num")], rows, hl=(6, 8))
     lt = method_table(e16, [("GeFL-F", "GeFL-F"), ("Ours (HWA+LA+CSL)", "Ours, T_s = 1"), ("Ours (HWA+LA+CSL) Ts=5", "Ours, T_s = 5"),
-                            ("Ours (HWA+LA+CSL) Ts=10", "Ours, T_s = 10")], ["fmnist"],
+                            ("Ours (HWA+LA+CSL) Ts=10", "Ours, T_s = 10")], ["fmnist", "mnist"],
                       [("final_bal", "balanced acc."), ("final_tail", "tail"), ("best_mean_acc", "best_mean_acc")],
-                      where=dict(IF=0.01), caption="Same budgets under the long tail (FashionMNIST, IF = 100, Dir 0.5, 2 seeds)",
+                      where=dict(IF=0.01), caption="Same budgets under the long tail (IF = 100, Dir 0.5, K = 10, 3 seeds)",
                       ours=("Ours (HWA+LA+CSL) Ts=5", "Ours (HWA+LA+CSL) Ts=10")) if pick(e16, "GeFL-F", "final_bal", dataset="fmnist", IF=0.01) else ""
     return f"""
 <section id="s4c"><h2><span class="num">4c</span>Consensus labels make more synthetic data useful</h2>
@@ -519,7 +519,9 @@ FashionMNIST number of any variant (84.28, GeFL&#8209;F with the much costlier f
 paper's GeFL&#8209;F with the same generator (83.14). MNIST is near its ceiling (oracle &asymp; 97.2), and the extra budget does not help there.
 T<sub>s</sub> was not tuned per dataset for the headline claim. With one fixed setting (T<sub>s</sub> = 5) our method gives 84.12 on FashionMNIST
 and 96.6 on MNIST. With T<sub>s</sub> = 10 the full method gives 84.34 on FashionMNIST (p = 0.002 against GeFL&#8209;F), a tie with the paper's best.
-Under the long tail the bigger budget helps further: our method goes from 77.0 to 79.3 balanced accuracy, 18 points above GeFL&#8209;F.</p>
+Under the long tail the bigger budget helps further on FashionMNIST: our method goes from 76.9 to 79.2 balanced accuracy
+(p = 0.001), 20 points above GeFL&#8209;F. On MNIST it does not (90.2 vs 90.2), which is Proposition 3's prediction for
+a generator whose tail features are poor (fidelity 27%): the label bias b is large, so the optimal synthetic share stays small.</p>
 {lt}
 </section>"""
 

@@ -1455,12 +1455,12 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
                 # ensemble p(c|x) and the conditioning label y under symmetric generator
                 # label noise q(c|y) = rho 1{c=y} + (1-rho)/C. rho is estimated without
                 # real data: for a calibrated ensemble of confidence kappa = E max_c p(c|x),
-                # the agreement a = E p(y|x) = rho kappa + (1 - rho)(1 - kappa)/(C - 1), so
-                # rho = (a - e) / (kappa - e) with e = (1 - kappa)/(C - 1).
+                # a sample of class y has E p(y|x) = kappa and a uniformly drawn class has
+                # E p(y|x) = 1/C, so the agreement a = E p(y|x) = rho kappa + (1 - rho)/C:
+                # rho = (a - 1/C) / (kappa - 1/C).
                 a = cons[torch.arange(P, device=DEV), py].mean()
                 kappa = cons.max(1).values.mean()
-                e = (1 - kappa) / (C - 1)
-                rho = ((a - e) / (kappa - e).clamp(min=1e-6)).clamp(0.0, 1.0)
+                rho = ((a - 1.0 / C) / (kappa - 1.0 / C).clamp(min=1e-6)).clamp(0.0, 1.0)
                 tgt = cons * (rho * F.one_hot(py, C).float() + (1 - rho) / C)
                 pool = (px, py, tgt / tgt.sum(1, keepdim=True).clamp(min=1e-12))
                 ctx.__dict__.setdefault("rho_hist", []).append(round(float(rho), 4))
