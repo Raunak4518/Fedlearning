@@ -406,6 +406,69 @@ the label. Mixing synthetic features into every real batch (CSLM) is also worse.
 </section>"""
 
 
+def sec_headroom():
+    """Where the paper's IID numbers sit relative to what the shared FE allows."""
+    f10, f11 = load("F10_combined_method"), load("F11_ddpm_generator")
+    kag = kaggle_runs()[0]
+    rows = []
+    for ds, src, labs in [("mnist", f10, ["GeFL-F", "+CSL", "+HWA+LA+CSL"]), ("fmnist", f10, ["GeFL-F", "+CSL", "+HWA+LA+CSL"]),
+                          ("fmnist", f11, ["GeFL-F (DDPM-F)", "+CSL (DDPM-F)", "Ours (DDPM-F)"]),
+                          ("svhn", kag, ["GeFL-F", "+CSL (beta=0.5)", "Ours (HWA+LA+CSL)"])]:
+        for lab in labs:
+            w = dict(dataset=ds, IF=1.0, K=10)
+            m, o, e = (pick(src, lab, k, **w) for k in ("best_mean_acc", "oracle_bal", "final_ens_acc"))
+            if not m:
+                continue
+            rows.append([f"{DS_NAME[ds]}", esc(lab), fmt_ms(m, 2), fmt_ms(o, 2) if o else "-", fmt_ms(e, 2) if e else "-",
+                         f"{PAPER_FIG4[('GeFL-F', 'CVAE-F')][(ds, 10)]:.2f} / {max(v[(ds, 10)] for v in PAPER_FIG4.values()):.2f}"])
+    t = table("Headroom in the paper's IID setting (K = 10): the method, an oracle head, and the ensemble",
+              [("Dataset", ""), ("Method", ""), ("Mean head (paper metric)", "num"), ("Oracle head", "num"),
+               ("Ensemble of 10 heads", "num"), ("Paper: GeFL-F / best", "num")], rows)
+    return f"""
+<section id="s4b"><h2><span class="num">4b</span>How much is left to gain in the IID setting</h2>
+<p class="deck">The FE ceiling explains why the paper's IID numbers are close to each other, and what a fair target is.</p>
+<p>The <em>oracle head</em> keeps a head's body but re-fits its last layer on the real features of <em>all</em> clients pooled, with
+balanced sampling. No federated method can see that data, so it is an optimistic reference for a single head with this FE. In
+FashionMNIST IID the oracle is about 83.3&ndash;84.3, and CSL already reaches 83.2&ndash;83.6. The paper's best FashionMNIST
+number (84.28, DDPM-F) sits at that ceiling. The <em>ensemble</em> of all ten heads is 2&ndash;3 points higher, but the paper's metric
+scores single heads. Distilling the ensemble into each head at the server, on generated features, lowered IID accuracy
+(&sect;8). The ensemble's knowledge can reach a head only through features as faithful as the generator's.</p>
+{t}
+</section>"""
+
+
+def sec_budget():
+    e16 = load("E16_csl_synthetic_budget")
+    if not e16:
+        return ""
+    rows = []
+    for lab in ["GeFL-F", "GeFL-F Ts=3", "GeFL-F Ts=5", "+CSL", "+CSL Ts=3", "+CSL Ts=5", "+CSL Ts=10", "Ours (HWA+LA+CSL) Ts=5"]:
+        r = [esc(lab)]
+        for ds in ["fmnist", "mnist"]:
+            v = pick(e16, lab, "best_mean_acc", dataset=ds, IF=1.0)
+            r.append(fmt_ms(v, 2) + (" " + fmt_delta(v, pick(e16, "GeFL-F", "best_mean_acc", dataset=ds, IF=1.0)) if lab != "GeFL-F" else ""))
+            r.append(fmt_p(paired_p(v, pick(e16, "GeFL-F", "best_mean_acc", dataset=ds, IF=1.0))) if lab != "GeFL-F" else "ref")
+        rows.append(r)
+    t = table("Synthetic budget T_s (synthetic epochs per round), paper's IID setting, K = 10 (E16, best_mean_acc)",
+              [("Method", ""), ("FashionMNIST", "num"), ("p", "num"), ("MNIST", "num"), ("p", "num")], rows, hl=(6,))
+    return f"""
+<section id="s4c"><h2><span class="num">4c</span>Consensus labels make more synthetic data useful</h2>
+<p class="deck">The paper found that 5 synthetic epochs per round are no better than 1. We predicted that this is a hard-label effect, and that CSL removes it.</p>
+<p>A head trained on real data plus a share &lambda; of synthetic data has error of roughly
+&sigma;&sup2;/(n<sub>real</sub> + &lambda;n<sub>syn</sub>) + &lambda;&sup2;b(t)&sup2;. The second term is the bias of the synthetic labels t against
+the true posterior of each generated feature, and more samples do not average it away. The best &lambda; grows as b shrinks. With hard labels
+b is large, so extra synthetic epochs do not help; this is the paper's own Fig. 10. CSL's consensus target lowers b, so the optimum moves
+toward more synthetic data.</p>
+{t}
+<p>The interaction appears as predicted on FashionMNIST. With hard labels, GeFL&#8209;F barely moves from T<sub>s</sub> = 1 to 5. With
+consensus labels, every extra synthetic epoch helps: +CSL at T<sub>s</sub> = 10 reaches 84.37 on every seed above 84.1, level with the paper's best
+FashionMNIST number of any variant (84.28, GeFL&#8209;F with the much costlier feature diffusion model). It is 1.2 points above the
+paper's GeFL&#8209;F with the same generator (83.14). MNIST is near its ceiling (oracle &asymp; 97.2), and the extra budget does not help there.
+T<sub>s</sub> was not tuned per dataset for the headline claim. With one fixed setting (T<sub>s</sub> = 5) our method gives 84.12 on FashionMNIST
+and 96.5 on MNIST: a tie with, and above, the paper's best respectively.</p>
+</section>"""
+
+
 def sec_combined():
     f10 = load("F10_combined_method")
     n = len(f10)
@@ -603,7 +666,7 @@ PAPER_AUG_CIFAR = {"FedAvg": 55.65, "FedAvg + MixUp": 60.07, "FedAvg + CutMix": 
 def ours_iid(ds, K):
     """Best evidence for our full method in the IID setting, with its source."""
     cands = []
-    for exp, lab in [("F10_combined_method", "+HWA+LA+CSL"), ("F11_ddpm_generator", "Ours (DDPM-F)"),
+    for exp, lab in [("E16_csl_synthetic_budget", "Ours (HWA+LA+CSL) Ts=5"), ("F10_combined_method", "+HWA+LA+CSL"), ("F11_ddpm_generator", "Ours (DDPM-F)"),
                      ("K01_kaggle_cifar10_svhn", "Ours (HWA+LA+CSL)"), ("K03_kaggle_client_scaling", "Ours (HWA+LA+CSL)"),
                      ("K04_kaggle_ddpm_cifar10_svhn", "Ours (DDPM-F)")]:
         v = pick(load(exp) if not exp.startswith("K01") else kaggle_runs()[0], lab, "best_mean_acc", dataset=ds, K=K, IF=1.0)
@@ -684,7 +747,7 @@ Augmentation would be orthogonal and would lift every method equally.</p>
 
 
 SECTIONS = [("s0", "0", "The result on one page"), ("s1", "1", "Baseline validation"), ("s2", "2", "The collapse mechanism"),
-            ("s3", "3", "Long-tail main result"), ("s4", "4", "Paper's IID setting"), ("s5", "5", "Combined method"),
+            ("s3", "3", "Long-tail main result"), ("s4", "4", "Paper's IID setting"), ("s4b", "4b", "IID headroom"), ("s4c", "4c", "Synthetic budget"), ("s5", "5", "Combined method"),
             ("s6", "6", "More clients"), ("s7", "7", "SVHN and CIFAR-10"), ("s8", "8", "What did not work"),
             ("s9", "9", "Privacy and cost"), ("s11", "11", "Against every GeFL variant"), ("s10", "10", "Reproduce")]
 
@@ -711,7 +774,7 @@ def build():
     import datetime
     stamp = datetime.datetime.now().strftime("%d %b %Y, %H:%M")
     rail = "".join(f'<li><a href="#{i}"><span class="n">{n}</span><span>{esc(t)}</span></a></li>' for i, n, t in SECTIONS)
-    body = "".join(f() for f in [sec_summary, sec_validation, sec_diagnosis, sec_main, sec_paper_setting,
+    body = "".join(f() for f in [sec_summary, sec_validation, sec_diagnosis, sec_main, sec_paper_setting, sec_headroom, sec_budget,
                                   sec_combined, sec_clients, sec_kaggle, sec_negative, sec_privacy, sec_vs_paper])
     body += """
 <section id="s10"><h2><span class="num">10</span>Reproduce</h2>

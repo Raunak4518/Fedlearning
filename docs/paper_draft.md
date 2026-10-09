@@ -298,6 +298,75 @@ what the working method actually fixes.
 * **A hybrid CVAE/Gaussian generator.** The quick pass favoured it; the full schedule reversed that (87.1 vs 87.9).
   This shows why a quick pass alone is not enough to decide.
 * **Server-side classifier re-calibration, and gap-filling synthetic labels.** Both are weaker than LA.
+* **Server-side ensemble distillation on generated features (SED).**
+  * *Motivation.* The ensemble of the G heads beats the mean head by 3.2 points on FMNIST IID, 4.5 on MNIST LT and
+    7.9 on SVHN IID. SED distils that ensemble into every head at the server on fresh generated features, using
+    CSL's target, with no client cost.
+  * *Result (FMNIST quick pass).* It *lowers* IID accuracy (81.69 → 80.96) and raises the long tail only a little
+    (70.65 → 71.30).
+  * *Why.* The bound $R_{\text{real}} \le R_{\text{syn}} + \ell_{\max}\,\mathrm{TV}(p_{\text{syn}}, p_{\text{real}})$
+    explains it. In IID data the heads are already good, so the generator's infidelity dominates what distillation
+    adds. The ensemble's knowledge can reach the heads only through features as faithful as the generator's.
+  * *Implication.* The remaining IID gap to the paper's best FMNIST number (DDPM-F) is a *generator* gap. §5.9 tests
+    exactly that.
+
+### 5.9 Generator-agnostic: our method on DDPM-F, the paper's best feature generator
+
+The best FMNIST result of any GeFL variant in the paper is 84.28, from GeFL-F with the feature diffusion model
+DDPM-F. Our components do not depend on the generator:
+* HWA averages the class columns of DDPM-F's two context-embedding layers over holders.
+* LA and CSL act on the heads.
+
+We ported the authors' DDPM-F unchanged: the ddpm16 ContextUnet, $n_T = 200$, a linear $eta$ schedule from
+$10^{-4}$ to 0.02, context dropout 0.1, and Adam at $10^{-4}$ decayed linearly to 0 over $T_{KA}$ rounds, then frozen.
+It runs GeFL-F, + CSL and Ours on it. Every round, all clients' synthetic phases draw from one shared pool of fresh
+uniform-label samples. For each head this is exactly the reference's per-client draw in distribution, at 1/K of the
+sampling cost, and it is the same for every method compared.
+
+On seed 0 of FMNIST IID, GeFL-F on DDPM-F scores 83.16, not the published 84.28. + CSL scores 83.04 and Ours 83.10.
+In our hands DDPM-F is only +0.28 over CVAE-F on the same seed, and CSL does not add to it: diffusion samples are
+more diverse but less class-pure, with referee fidelity 0.55 against 0.86. **[PENDING: seeds 1–2, and K04 on
+Kaggle.]**
+
+### 5.9b Consensus labels make a larger synthetic budget useful (E16, FMNIST IID, 3 seeds)
+
+**Prediction.** Train a head on real data plus a share $\lambda$ of synthetic data. Its error is roughly
+$\sigma^2/(n_{\text{real}}+\lambda n_{\text{syn}}) + \lambda^2 b(t)^2$, where $b(t)$ is the bias of the synthetic label
+against the true posterior of a generated feature. The optimal $\lambda$ grows as $b$ shrinks. Hard labels have a large
+$b$, so the paper finds $T_s = 5$ no better than $T_s = 1$ (its Fig. 10). CSL lowers $b$, so with CSL more synthetic
+epochs should help.
+
+| `best_mean_acc` | $T_s=1$ | $T_s=3$ | $T_s=5$ | $T_s=10$ |
+|---|---|---|---|---|
+| GeFL-F (hard labels) | 82.96 | 83.20 | 83.18 | – |
+| + CSL | 83.31 | 83.90 | 84.14 | **84.37** (84.34 / 84.16 / 84.62) |
+| Ours (HWA + LA + CSL) | 83.21 | – | 84.12 | – |
+
+* The interaction appears exactly as predicted.
+* At $T_s = 10$, CSL with the cheap CVAE-F generator reaches the paper's best FMNIST number of *any* variant, 84.28
+  (GeFL-F with feature diffusion). It is +1.23 over the paper's GeFL-F with the same generator.
+* MNIST is near its ceiling (oracle ≈ 97.2), and a larger budget does not help there.
+* With one fixed setting ($T_s = 5$), the full method gives 84.12 on FMNIST and 96.6 on MNIST.
+
+### 5.10 Against every GeFL variant in the paper (IID, `best_mean_acc`)
+
+The paper's Figure 4 has ten methods: FedProx, FedALA, and GeFL and GeFL-F each with DCGAN, CVAE, DDPM w = 0 and
+DDPM w = 2. In each setting, the comparison is with the best of them.
+
+| Setting | GeFL-F CVAE-F | Best in paper (which) | Ours | Ours − best |
+|---|---|---|---|---|
+| MNIST, K=10 | 95.47 | 96.44 (GeFL, image DDPM) | **96.77** | +0.33 |
+| MNIST, K=50 | 95.04 | 95.04 (GeFL-F CVAE-F) | **95.41** (CSL, 1 seed) | +0.37 |
+| MNIST, K=100 | 94.63 | 94.63 (GeFL-F CVAE-F) | 94.72 (CSL, 1 seed) | +0.09 |
+| FMNIST, K=10 | 83.14 | 84.28 (GeFL-F DDPM-F) | **84.12** (Ours, $T_s=5$); 84.37 (CSL, $T_s=10$) | −0.16 / +0.09 (tie) |
+| SVHN, K=10 | 76.26 | 76.26 (GeFL-F CVAE-F) | 76.30 (CSL) | +0.04 (tie) |
+| CIFAR-10, K=10 | 55.86 | 59.36 (GeFL, image DDPM); 62.67 with MixUp | **[PENDING: K01, K04]** | – |
+
+The two strongest CIFAR-10 numbers come from **image-space** GeFL, with an image diffusion model or with DCGAN +
+MixUp. Neither has a shared feature extractor, and the paper notes that GeFL-F on CIFAR-10 is limited by its small FE.
+Our method keeps GeFL-F's FE and privacy model. The fair claims are therefore:
+1. over GeFL-F with the same FE and generator;
+2. over the best of *all* variants wherever the FE is not the bottleneck: MNIST, SVHN, and FMNIST pending DDPM-F.
 
 ### 5.8 Cost
 
