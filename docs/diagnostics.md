@@ -174,3 +174,46 @@ should gain more there.
   Beyond this, gains need a better shared FE, which the GeFL-F protocol fixes.
 * **CIFAR-10 is limited by the FE in the same way** (oracle ≈ 50 under the long tail). The paper's 59–62 come from
   image-space GeFL, which has no shared FE.
+
+## 9. E24 (seed 0): generators trained only from statistics, kernel herding, bias calibration
+
+| | MNIST LT | FMNIST LT | FMNIST IID |
+|---|---|---|---|
+| GeFL-F | 74.2 | 62.0 | 82.9 |
+| Ours (CVAE + HWA + LA + CSL) | 88.8 | 76.5 | 83.6 |
+| PC-VAE + MC | 91.7 | 77.1 | 83.3 |
+| **KME-Gen** (server-trained from exact kernel mean embeddings) | 89.9 | 75.1 | 81.8 |
+| **PC + MC + KH** (kernel herding toward exact embeddings) | **92.9** | **77.5** | 83.5 |
+| PC + MC + KH, **+ BBC** (server-side bias calibration) | **93.7** | **79.3** | 83.3 |
+| Oracle (heads' last layer re-fit on pooled real data) | 94.1 | 80.5 | 84.2 |
+
+**KME-Gen.**
+* *Result.* It beats GeFL-F by 13–16 points under the long tail with no federated generator training at all, using
+  about 1/3000 of the generator communication. But it loses to PC + MC and drops 1.1 points in IID.
+* *Diagnosis.* Its samples have the right spread (0.97–0.99) but are less class-pure (tail fidelity 0.65–0.84
+  against 0.87–0.91 for PC-VAE). An MMD with a Gaussian kernel in 768 dimensions is dominated by global shape and
+  spread, and discriminates fine class structure weakly.
+* *Conclusion.* Exact statistics alone cannot replace a decoder that learned shape from data. KME-Gen is the
+  efficient end of the spectrum, not the most accurate one.
+
+**KH.** Herding the learned generator's samples toward the exact class embedding adds +1.2 (MNIST LT; tail recall
+89.6, the best so far), +0.3 (FMNIST LT) and +0.2 (IID). It is Frank–Wolfe on the MMD term of the head's risk bound,
+and it cannot raise that term.
+
+**BBC.** Fitting C logit offsets per head so that each head predicts every class equally often on balanced,
+calibrated synthetic data adds +0.8 (MNIST LT) and +1.8 (FMNIST LT), and is neutral in IID (−0.2). On FMNIST it
+reproduces the τ = 2 gain of the K02 ablation without tuning: the residual bias that LA's τ = 1 leaves is estimated
+per head instead.
+
+**The unifying principle.** Anchor every stage to exactly aggregated statistics instead of federated-averaged
+parameters:
+
+| Stage | Anchor |
+|---|---|
+| Class identity | Exact class means (PC) |
+| Moments | Exact class mean and spread (MC) |
+| Distribution | Exact class kernel embedding (KH) |
+| Classifier bias | Calibrated on the anchored generator (BBC) |
+
+With all four, MNIST LT reaches 93.7 against an oracle of 94.1, and the oracle sees pooled real data. These are
+single-seed results; E25 (3 seeds) and K08 (CIFAR-10, SVHN, FMNIST K = 50/100) confirm or refute them.
