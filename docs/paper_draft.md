@@ -34,16 +34,19 @@ Under a 100:1 long tail with Dirichlet(0.5) clients:
   parameters to fit from shrinking per-client data;
 * on CIFAR-10 it rises from 33.7 to 46.1, or about 49 with the calibration, ahead of every other method.
 
-The anchor has a precise limit. A generator whose class identity comes from the class mean can separate two classes
-only as far as their means are apart, up to its Lipschitz constant (Proposition 5). SVHN's class means are nearly
-identical, and there the anchored generator loses to the paper's generator repaired with holder-weighted aggregation
-(55.9 vs 62.5).
+The anchor has a precise limit, and the server can see it coming. A generator whose class identity comes from the
+class mean separates two classes only as far as their means are apart, up to its Lipschitz constant (Proposition 5).
+The ratio $F$ of between- to within-class spread of the exact class means, computed from the same sums, flags the
+regime. It is 0.01 on SVHN and 0.14–0.60 on the other datasets. There the final method takes class identity from
+class rows protected by holder-weighted aggregation, and reaches 65.6 under the long tail (GeFL-F 50.5). Correcting
+the anchored generator to the exact class covariance as well (Proposition 6) recovers most of the gap on its own
+(+6.0).
 
 A minimal fix for the paper's own generators, holder-weighted aggregation of the class rows, already gives +12 to +20
 points on MNIST, FashionMNIST, SVHN and CIFAR-10. In GeFL-F's own IID setting the final method reaches 97.62 on
-MNIST and 60.93 on CIFAR-10: +1.2 and +1.6 over the best of all ten methods in the paper (96.44 and 59.36). On
-CIFAR-10 our own GeFL-F run scores 59.10, 3.2 above the paper's, so the margin over GeFL-F there is +1.8. On FashionMNIST and
-SVHN our CVAE-based variant matches the best of all ten (84.34 vs 84.28, and 76.30 vs 76.26). We validated the GeFL-F baseline against the authors' released code. Formal privacy is cheap:
+MNIST, 60.93 on CIFAR-10 and 77.07 on SVHN: +1.2, +1.6 and +0.8 over the best of all ten methods in the paper
+(96.44, 59.36 and 76.26). On CIFAR-10 our own GeFL-F run scores 59.10, 3.2 above the paper's, so the margin over
+GeFL-F there is +1.8. On FashionMNIST our CVAE-based variant matches the best of all ten (84.34 vs 84.28). We validated the GeFL-F baseline against the authors' released code. Formal privacy is cheap:
 ε = 1 on every client's class counts costs at most 1.3 points.
 
 ---
@@ -357,15 +360,21 @@ $\mu_c$, with no federated generator training at all.
 
 ### 4.6 The method in one line
 
-**Ours-A.**
-* *Generator:* PC-VAE trained by FedAvg on the frozen FE's features.
-* *Sampling:* MC, then KH.
+**Ours.**
+* *Where class identity comes from, decided by one released statistic.* The server computes
+  $F = \overline{\|m_c - \bar m\|^2} / \overline{V_c}$ from the sums it already receives.
+  * $F \ge 0.05$: the PC-VAE, conditioned on the exact class mean (no class parameters).
+  * $F < 0.05$: the paper's CVAE-F with HWA-protected class rows.
+
+  Proposition 5 is the reason. The threshold is not tuned: $F$ is 0.01 on SVHN and at least 0.14 on every other
+  dataset, so any value between 0.02 and 0.1 makes the same choice everywhere.
+* *Sampling:* MC, then KH. MC-S (Proposition 6) is the variant for the anchored generator where only second moments
+  carry class identity.
 * *Heads:* LA + CSL with a 10-epoch synthetic budget.
 * *Calibration:* gated BBC.
 
-**Low class separation.** Where the released sums show uninformative class means ($F$ small, as on SVHN), two
-remedies are under test (§5.11). MC-S replaces MC, so that each class gets its exact covariance. The hybrid PCR adds
-HWA-aggregated class rows to the anchored decoder.
+Both gates (generator and BBC) use only exactly aggregated statistics: no labels at the server, no held-out data,
+no extra disclosure.
 
 **The minimal variant** for an existing GeFL-F deployment is HWA + LA + CSL. It keeps the paper's generator
 (CVAE-F or DDPM-F) unchanged apart from aggregation.
@@ -715,9 +724,32 @@ deviations), since the per-seed files have not been copied back yet.
 * *Not beaten.* Image-space GeFL + MixUp (62.67 on CIFAR-10 IID, Table IV) remains above every result here. It uses
   a different pipeline (no shared feature extractor) and data augmentation, which is orthogonal to our method.
 
+**SVHN: MC-S, the hybrid and the gate (Kaggle K10, K11; 3 seeds, same seeds and splits).**
+
+| SVHN, K = 10 | long tail | + gated BBC | IID (`best_mean_acc`) |
+|---|---|---|---|
+| GeFL-F | 50.49 | – | 75.82 |
+| + HWA + LA | 62.45 | – | 75.64 |
+| Ours-A (PC + MC + KH) | 55.76 | 57.27 | 74.38 |
+| Ours-A-S (PC + **MC-S** + KH) | 61.80 | 63.30 | 77.05 |
+| hybrid PCR + MC + KH | 60.86 | ≈ 62 | 76.06 |
+| hybrid PCR + MC-S + KH | 62.89 | 64.57 | **77.39** |
+| **rows (CVAE + HWA) + MC + KH: the final method at $F < 0.05$** | **65.60** | **≈ 67** | 77.07 |
+| paper: GeFL-F / best of all ten methods | – | – | 76.26 / 76.26 |
+
+* *MC-S works where Proposition 5 says the mean cannot.* Against Ours-A it adds +6.0 under the long tail (every seed,
+  +4.5 to +7.0, $p = 0.016$) and +2.7 in IID ($p = 0.026$). The proxy and the QDA measurement predicted the
+  direction.
+* *Rows are better still where means are uninformative.* The CVAE + HWA with MC + KH gives 65.60, ahead of the
+  hybrid with MC-S at 62.89 (Welch $p = 0.07$). The hybrid's anchor leaves its raw samples under-dispersed. On SVHN,
+  MC + KH then lowers its tail fidelity (35 → 32%), while they raise the CVAE's (36 → 42%).
+* *Above the paper's best in IID.* 77.07 for the final method and 77.39 for the best variant, against 76.26.
+* *The gate.* Every SVHN run reports $F = 0.01$ and nearest-class-mean accuracy 12%. The F-gate therefore selects
+  the rows on SVHN and the anchor everywhere else, which is the best choice in every regime measured.
+
 **Pending.**
-* MC-S in the full pipeline: SVHN and CIFAR-10 (Kaggle K11), and MNIST and FashionMNIST (E31).
-* The hybrid PCR on SVHN (Kaggle K10, NB19).
+* Whether MC-S also helps the class rows on SVHN; SVHN and CIFAR-10 at K = 50 / 100 (Kaggle K12).
+* MC-S on MNIST and FashionMNIST (E31). FashionMNIST under the long tail so far: a tie without BBC, −1.4 with it.
 * FashionMNIST at K = 50 / 100 (Kaggle K06, K08); the IID setting at K = 50 / 100 (E27).
 * Formal DP on the anchoring statistics (E26); the component ablation (K09).
 
@@ -845,9 +877,9 @@ consensus is what tracks the generator's per-sample label error, the bias $b$ of
 * **What the statistics reveal.** The exact statistics are federation-level sums, plus counts. Classes held by a
   single client are not hidden by secure aggregation; DP noise (§5.6) is the remedy, at a measured cost.
 
-* **Class means that carry no class information.** On SVHN the anchored generator loses to the CVAE + HWA
-  (Proposition 5). The server can detect the regime from the released sums, at no extra privacy cost, and the hybrid
-  PCR is the candidate fix.
+* **The generator gate is set from four datasets.** $F$ separates them by more than a factor of ten, but a dataset
+  with intermediate separation would need both branches evaluated. Under the gate, the rows branch inherits HWA's
+  cost (aggregated class counts).
 * Results are on small images and on the paper's backbone sizes. Larger FEs could change the generator's failure
   profile.
 * HWA uses aggregated class counts. LCD is the fully local alternative but is weaker.

@@ -774,9 +774,16 @@ OUR_SOURCES = [("E25_anchored_stack", ["Ours-A Ts=10", "Ours-A (PC+MC+KH+LA+CSL)
                ("K03_kaggle_client_scaling", ["Ours (HWA+LA+CSL)", "+CSL (beta=0.5)", "+CSL Ts=10", "Ours (HWA+LA+CSL) Ts=10"]),
                ("K04_kaggle_ddpm_cifar10_svhn", ["Ours (DDPM-F)", "+CSL (DDPM-F)"]),
                ("K05_kaggle_newgen_cifar10_svhn", ["Ours+MC", "Ours-PC+MC", "Ours-PC+ZP+MC", "Ours-PC+ZP+MC Ts=10"]),
-               ("K06_kaggle_newgen_many_clients", ["Ours (HWA+LA+CSL)", "Ours+MC", "Ours-PC+MC", "Ours-PC+ZP+MC"])]
+               ("K06_kaggle_newgen_many_clients", ["Ours (HWA+LA+CSL)", "Ours+MC", "Ours-PC+MC", "Ours-PC+ZP+MC"]),
+               ("K10_kaggle_hybrid_svhn_cifar10", ["Ours+MC+KH (CVAE+HWA)", "Ours-R", "Ours-R Ts=10"]),
+               ("K11_kaggle_covariance_anchoring", ["Ours-A-S (PC+MCS+KH+LA+CSL)", "Ours-R-S (PCR+MCS+KH+LA+CSL)", "Ours-A-S Ts=10"]),
+               ("K12_kaggle_final_gated", ["Ours+MC+KH (CVAE+HWA)", "Ours+MCS+KH (CVAE+HWA)", "Ours+MCS+KH (CVAE+HWA) Ts=10", "Ours-A Ts=10"])]
 FINAL_SOURCES = [("E25_anchored_stack", "Ours-A Ts=10"), ("E22_pc_many_clients", "Ours-A Ts=10"), ("E27_final_iid_many_clients", "Ours-A Ts=10"),
-                 ("K08_kaggle_anchored_stack", "Ours-A Ts=10")]
+                 ("K08_kaggle_anchored_stack", "Ours-A Ts=10"), ("K12_kaggle_final_gated", "Ours-A Ts=10")]
+# The final method is gated by the class-mean separation F (released sums): SVHN (F = 0.01)
+# takes class identity from HWA class rows; every other dataset (F >= 0.14) from the anchor.
+LOW_SEP = {"svhn"}
+FINAL_SOURCES_LOW_SEP = [("K10_kaggle_hybrid_svhn_cifar10", "Ours+MC+KH (CVAE+HWA)"), ("K12_kaggle_final_gated", "Ours+MC+KH (CVAE+HWA)")]
 
 
 def _runs_of(exp):
@@ -786,7 +793,7 @@ def _runs_of(exp):
 def ours_iid(ds, K, final_only=False):
     """IID evidence: the final method alone, or the best of our variants (label shown)."""
     cands = []
-    srcs = [(e, [l]) for e, l in FINAL_SOURCES] if final_only else OUR_SOURCES
+    srcs = ([(e, [l]) for e, l in (FINAL_SOURCES_LOW_SEP if ds in LOW_SEP else FINAL_SOURCES)] if final_only else OUR_SOURCES)
     for exp, labs in srcs:
         runs = _runs_of(exp)
         for lab in labs:
@@ -817,7 +824,7 @@ def sec_vs_paper():
             rows.append([f"{DS_NAME[ds]}, K={K}", f"{gf:.2f}", f"{best[0]:.2f}<span class=\"sd\"> {esc(best[1])} {esc(best[2])}</span>",
                          cell_of(fin), cell_of(o), d, verdict])
     t = table("Paper's IID setting: ours against the best of all ten methods in the paper's Figure 4 (best_mean_acc)",
-              [("Setting", ""), ("GeFL-F CVAE-F", "num"), ("Best in paper (which)", "num"), ("Final method (Ours-A, T_s = 10)", "num"),
+              [("Setting", ""), ("GeFL-F CVAE-F", "num"), ("Best in paper (which)", "num"), ("Final method (gated by F)", "num"),
                ("Best of our variants (which)", "num"), ("Best ours &minus; paper best", "num"), ("", "")], rows)
     aug = [[esc(k), f"{v:.2f}"] for k, v in PAPER_AUG_CIFAR.items()]
     t2 = table("Paper Table IV: data augmentation (image-space GeFL with DCGAN, CIFAR-10, IID, K = 10)", [("Method", ""), ("Acc.", "num")], aug)
@@ -935,16 +942,21 @@ def sec_anchored():
     t_iid = method_table(runs_iid, labels, ["mnist", "fmnist"], [("best_mean_acc", "best_mean_acc")],
                          where=dict(IF=1.0), ref="GeFL-F", caption="Paper's IID setting (K = 10; MNIST GeFL-F / Ours rows from F10, same seeds)",
                          ours=("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A Ts=10"))
-    kg = with_gate(kaggle_runs()[0] + load("K08_kaggle_anchored_stack"))
+    kg = with_gate(kaggle_runs()[0] + load("K08_kaggle_anchored_stack") + load("K10_kaggle_hybrid_svhn_cifar10")
+                   + load("K11_kaggle_covariance_anchoring"))
     klabels = [("GeFL-F", "GeFL-F"), ("+LA", "+LA"), ("+HWA+LA", "+HWA+LA"), ("Ours (HWA+LA+CSL)", "Ours: HWA + LA + CSL"),
                ("FSG+LA", "Gaussian generator (FSG) + LA"), ("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A, T_s = 1 (K08)"),
-               ("Ours-A Ts=10", "Ours-A, T_s = 10 (K08): final")]
+               ("Ours-A Ts=10", "Ours-A, T_s = 10 (K08)"), ("Ours-A-S (PC+MCS+KH+LA+CSL)", "Ours-A-S: PC + MC-S + KH (K11)"),
+               ("Ours-R", "Hybrid PCR + MC + KH (K10)"), ("Ours-R-S (PCR+MCS+KH+LA+CSL)", "Hybrid PCR + MC-S + KH (K11)"),
+               ("Ours+MC+KH (CVAE+HWA)", "Rows (CVAE + HWA) + MC + KH (K10): final when F < 0.05")]
     t_klt = method_table(kg, klabels, ["cifar10", "svhn"], [("final_bal", "balanced acc."), ("method_bal", "with gated BBC")],
                          where=dict(IF=0.01, K=10), ref="GeFL-F",
                          caption="Long tail on CIFAR-10 and SVHN (Kaggle K01 / K08, 3 seeds, same seeds and splits; pasted summaries, so no paired p)",
                          ours=("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A Ts=10"))
     kilabels = [("GeFL-F", "GeFL-F"), ("+CSL (beta=0.5)", "+CSL"), ("+HWA+LA", "+HWA+LA"), ("Ours (HWA+LA+CSL)", "Ours: HWA + LA + CSL"),
-                ("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A, T_s = 1 (K08)"), ("Ours-A Ts=10", "Ours-A, T_s = 10 (K08): final")]
+                ("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A, T_s = 1 (K08)"), ("Ours-A Ts=10", "Ours-A, T_s = 10 (K08): final when F ≥ 0.05"),
+                ("Ours-A-S (PC+MCS+KH+LA+CSL)", "Ours-A-S: PC + MC-S + KH (K11)"), ("Ours-R-S (PCR+MCS+KH+LA+CSL)", "Hybrid PCR + MC-S + KH (K11)"),
+                ("Ours+MC+KH (CVAE+HWA)", "Rows (CVAE + HWA) + MC + KH (K10): final when F < 0.05")]
     t_kiid = method_table(kg, kilabels, ["cifar10", "svhn"], [("best_mean_acc", "best_mean_acc")], where=dict(IF=1.0, K=10), ref="GeFL-F",
                           caption="Paper's IID setting on CIFAR-10 and SVHN (paper's GeFL-F: 55.86 / 76.26; best of all ten methods: 59.36 / 76.26)",
                           ours=("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A Ts=10"))
@@ -959,9 +971,17 @@ methods in the paper and +5.1 over the paper's GeFL&#8209;F. Unpaired tests from
 p &le; 0.02, and the gain with BBC over the Gaussian generator has p = 0.003. The IID gains are within noise without the per-seed files (p &asymp; 0.1).
 This contradicts the prediction registered before these runs (a tie or a small loss, from CIFAR-10's weak pixel-space class means). What decides is the anchored
 generator's fidelity <em>relative to the CVAE's</em>. On CIFAR-10 the CVAE itself is poor, so even weakly informative exact statistics win.</p>
-<p><b>SVHN: the one regime where it fails.</b> SVHN's class means carry essentially no class information (nearest-class-mean accuracy 13 %, chance 10 %), so a generator
-whose class identity comes from the mean cannot separate the classes. The tail fidelity is 24 %, against 36 % for the CVAE + HWA. The hybrid generator, with HWA class rows
-plus the exact-mean anchor, is under test (Kaggle NB19, local E29).</p>
+<p><b>SVHN, and how the final method handles it.</b> SVHN's class means carry essentially no class information (nearest-class-mean accuracy 12 % in the shared
+feature space, chance 10 %), so a generator whose class identity comes from the mean cannot separate the classes (Proposition 5): Ours-A gives 55.8 under the long tail.
+Two fixes were tested on the same seeds.</p>
+<ul><li><b>MC-S</b> corrects each class to its exact covariance as well as its mean (Proposition 6). SVHN's identity lives there: QDA from the class
+covariances reaches 54 % in pixel space, against 21 % for LDA. It adds <b>+6.0</b> under the long tail (every seed, p = 0.016) and <b>+2.7</b> in IID (p = 0.026).</li>
+<li><b>Class rows protected by HWA</b> are better still. The paper's CVAE generator with HWA, MC and KH gives <b>65.6</b> under the long tail (GeFL&#8209;F 50.5) and 77.07 in IID,
+above the paper's best (76.26). The hybrid (rows plus anchor) falls between the two: its anchor leaves raw samples under-dispersed, and on SVHN MC + KH then lowers its tail
+fidelity (35 &rarr; 32 %), while it raises the CVAE's (36 &rarr; 42 %).</li></ul>
+<p><b>The final method is therefore gated, by the same statistic.</b> The server computes F, the between- to within-class variance ratio of the exact class means, from the sums it
+already receives. F is 0.01 on SVHN, against 0.14&ndash;0.60 on the other datasets, so any threshold between 0.02 and 0.1 makes the same choice everywhere. At F &ge; 0.05 class
+identity comes from the anchor (Ours-A); below it, from HWA-protected class rows. Whether MC-S also helps the rows is being tested (Kaggle K12).</p>
 <p><b>The synthetic budget on hard data.</b> On CIFAR-10 and SVHN, T<sub>s</sub> = 10 raises the paper's best-round metric in all four settings but lowers the final
 balanced accuracy (CIFAR-10 long tail: 44.4 against 46.1, p = 0.03). Proposition 3 predicts this. The optimal synthetic share w<sup>&star;</sup> = &sigma;<sup>2</sup>/(2 n<sub>r</sub> b<sup>2</sup>)
 falls with the generator's error b, and there tail fidelity after KH (24&ndash;46 %) is far below real-data accuracy. On MNIST and FashionMNIST, where fidelity matches real data,
@@ -1016,17 +1036,17 @@ def sec_summary():
                  f'<p>MNIST / FashionMNIST, IF = 100, final method over GeFL&#8209;F, 3 seeds, p &le; {pv:.3f}. '
                  f'Tail recall {tm[1]:.0f} &rarr; {tm[0]:.0f} and {tf[1]:.0f} &rarr; {tf[0]:.0f}. On MNIST it reaches its own pooled-real-data oracle. '
                  f'CIFAR-10: 33.7 &rarr; 46.1 (about 49 with the gated BBC), ahead of every other method. With 100 clients: 94.3 on MNIST. '
-                 f'The exception is SVHN, whose class means carry no class information (&sect;14).</p>')
+                 f'SVHN, whose class means carry no class information, is detected from the same sums: there class identity comes from HWA-protected rows, 50.5 &rarr; 65.6 (&sect;14).</p>')
     else:
         card1 = "<div class=\"t2\">pending</div>"
     return f"""
 <section id="s0"><h2><span class="num">0</span>The result on one page</h2>
 <div class="verdict">
   <div class="v g"><div class="k">Long-tailed clients</div>{card1}</div>
-  <div class="v a"><div class="k">Paper's own IID setting</div><div class="t2">Above the paper's best variant on MNIST (+1.2) and CIFAR-10 (+1.6), level on FMNIST and SVHN</div>
+  <div class="v a"><div class="k">Paper's own IID setting</div><div class="t2">Above the paper's best variant on MNIST (+1.2), CIFAR-10 (+1.6) and SVHN (+0.8), level on FMNIST</div>
     <p>MNIST 97.62 with the final method (paper's best of all ten methods: 96.44; GeFL&#8209;F 95.47). CIFAR-10 60.93 (best: 59.36; GeFL&#8209;F 55.86;
-    our GeFL&#8209;F reproduction scores 59.10 there). FashionMNIST 84.34 with the CVAE
-    variant at T<sub>s</sub> = 10 (best: 84.28, a diffusion generator; the final method gives {iid:.2f}, p = 0.18 between them). SVHN 76.30 (76.26).</p></div>
+    our GeFL&#8209;F reproduction scores 59.10 there). SVHN 77.07 (best: 76.26; 77.39 with the hybrid and MC-S). FashionMNIST 84.34 with the CVAE
+    variant at T<sub>s</sub> = 10 (best: 84.28, a diffusion generator; the final method gives {iid:.2f}, p = 0.18 between them).</p></div>
   <div class="v t"><div class="k">Baseline validated</div><div class="t2">Our GeFL&#8209;F = the paper = the authors' code</div>
     <p>Within half a point at K = 10, 50, 100. Our baseline is slightly <em>weaker</em> than theirs under the long tail.</p></div>
 </div>

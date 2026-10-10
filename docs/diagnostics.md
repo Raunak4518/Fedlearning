@@ -351,3 +351,26 @@ corrected synthetic samples; balanced / long tail):
 **Next.** MC-S in the full pipeline: K11 (NB22–NB24: SVHN, CIFAR-10) and E31 (MNIST, FashionMNIST, local). In the
 shared FE's feature space SVHN's class means are as uninformative as in pixel space: in the E30 smoke run,
 nearest-class-mean accuracy was 11.5% and $F$ was 0.025.
+
+## 13. SVHN in the full pipeline: MC-S works, rows work better, and the gate (K10 NB19, K11 NB22; 3 seeds)
+
+| SVHN, K = 10 | LT final_bal | LT + BBC | IID best_mean_acc |
+|---|---|---|---|
+| Ours-A (PC + MC + KH) | 55.76 | 57.27 | 74.38 |
+| Ours-A-S (PC + MC-S + KH) | 61.80 | 63.30 | 77.05 |
+| hybrid PCR + MC + KH | 60.86 | ≈ 62 | 76.06 |
+| hybrid PCR + MC-S + KH | 62.89 | 64.57 | 77.39 |
+| rows (CVAE + HWA) + MC + KH | **65.60** | ≈ 67 | 77.07 |
+
+* *MC-S, paired against Ours-A.* +6.03 under the long tail (seeds +4.53 / +7.03 / +6.54, $p = 0.016$) and
+  +2.66 in IID ($p = 0.026$). The covariance correction does what the QDA measurement (§12) said it could.
+* *Why the hybrid trails the rows.* Fidelity of the raw samples is similar (35% vs 36%). After MC + KH it is 32% for
+  the hybrid and 42% for the CVAE. The anchor keeps the hybrid's raw samples under-dispersed, as for the PC-VAE, so
+  MC scales them up isotropically, and on SVHN the scaled-up directions carry no class information. MC-S scales
+  anisotropically and recovers +2.0 of it (62.89).
+* *Feature-space separation, every SVHN run.* $F = 0.01$ and nearest-class-mean accuracy 12% (18% in IID). On the
+  other datasets $F$ is 0.29 (MNIST), 0.53–0.60 (FashionMNIST) and about 0.14 (CIFAR-10, from the smoke run).
+* *Decision.* The final method takes class identity from the anchor when $F \ge 0.05$ and from HWA rows otherwise.
+  On the four datasets this is the best choice in every regime measured, and the threshold is not critical (any
+  value in 0.02–0.1).
+* *Open.* Does MC-S help the rows (K12 NB25)? It helped the anchored generator by +6 and the hybrid by +2.
