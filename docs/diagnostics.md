@@ -307,3 +307,47 @@ $\tilde h = \mathrm{ReLU}\big(m_y + \mathrm{dec}(\mathrm{ReLU}(W_z z + W_p m_y +
 * *Ours-A.* CIFAR-10's class means are weakly informative (27 %), so Ours-A should *not* show its MNIST-size
   advantage over CVAE + HWA there. A tie or a small loss is expected.
 * *PCR.* It should match or beat both on SVHN and CIFAR-10.
+
+## 12. CIFAR-10 outcome, and what exact second moments add (K08 NB14 / NB15; pixel-space measurements)
+
+**The registered CIFAR-10 prediction failed.** §11 predicted a tie or a small loss for Ours-A on CIFAR-10. It won in
+both regimes:
+* *Long tail.* 46.06 at $T_s = 1$ and about 49 with the gated BBC, against 44.17 for FSG + LA, 42.10 for the minimal
+  variant and 33.74 for GeFL-F.
+* *IID.* 60.93 at $T_s = 10$, against 60.02 for the minimal variant, 59.10 for our GeFL-F and the paper's best of
+  59.36.
+
+What decides is the anchored generator's fidelity *relative to the CVAE's*. On CIFAR-10 that is 41% against 23%. On
+SVHN it is 24% against 36%. Pixel-space class-mean separation (27% nearest-mean accuracy) predicted the order of the
+datasets, but not where the crossover falls.
+
+**$T_s = 10$ on hard data.** On CIFAR-10 and SVHN the larger synthetic budget raises the paper's best-round metric in
+all four settings but lowers the final balanced accuracy (CIFAR-10 long tail 44.38 vs 46.06, $p = 0.03$). This is
+Proposition 3: $w^\star$ falls with the generator's error, and tail fidelity there is far below real-data accuracy.
+
+**Exact statistics as classifiers** (balanced accuracy; 20k training images, 10k test images):
+
+| | nearest class mean | LDA (shared covariance; FSG's model) | QDA (class covariances, shrunk) |
+|---|---|---|---|
+| MNIST | 80.4 | 87.2 | 79.8 |
+| FashionMNIST | 67.8 | 81.3 | 74.7 |
+| CIFAR-10 | 28.2 | 39.3 | 51.4 (PCA-256) |
+| SVHN | 10.3 | 20.6 | 54.4 (PCA-256) |
+
+* *SVHN.* The class identity sits in the second moments: the means are at chance and LDA is weak, but QDA reaches
+  54%. This also explains why FSG fails on SVHN (44.2, below GeFL-F's 50.5). A Gaussian generator with a shared
+  covariance can teach heads at most the LDA rule.
+* *CIFAR-10.* The covariances help too (QDA 51.4 against LDA 39.3).
+
+**Proxy for MC-S** (a class-agnostic generator simulated by the pooled data; a 2-layer MLP trained only on the
+corrected synthetic samples; balanced / long tail):
+
+| | MC (mean + spread) | MC-S (mean + covariance) | real data |
+|---|---|---|---|
+| MNIST | 65.2 / 63.4 | 89.7 / 78.1 | 95.1 / 87.1 |
+| CIFAR-10 | 22.6 / 23.0 | 35.2 / 30.5 | 43.7 / 33.7 |
+| SVHN | 10.6 / 12.2 | 43.9 / 28.6 | 69.6 / 51.9 |
+
+**Next.** MC-S in the full pipeline: K11 (NB22–NB24: SVHN, CIFAR-10) and E31 (MNIST, FashionMNIST, local). In the
+shared FE's feature space SVHN's class means are as uninformative as in pixel space: in the E30 smoke run,
+nearest-class-mean accuracy was 11.5% and $F$ was 0.025.

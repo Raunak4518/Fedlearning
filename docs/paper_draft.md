@@ -274,6 +274,60 @@ $Y - m_c = \sqrt{V_c/\tilde V_c}\,(X - \tilde m_c)$. $\square$
 MC therefore fixes exactly the two moments the generator is measurably wrong about, and changes the samples as little
 as possible. The ReLU projects onto the non-negative orthant where FE features live.
 
+**MC-S: the same correction with the exact class covariance.** Second moments are also sums.
+* *Release.* The pooled within-class covariance (the release FSG already uses) defines a top-$k$ principal basis
+  $B$, which the server broadcasts. Clients then upload class sums of $z = B^\top h$ and of $z z^\top$
+  ($C k^2$ numbers; $k = 256$).
+* *Target.* For each class this gives the exact class covariance $\Sigma_c$ in that subspace. For tail classes it is
+  shrunk toward the pooled covariance with prior strength $k$ (an inverse-Wishart prior), and rescaled to keep the
+  class's exact in-subspace variance. Only the *shape* is borrowed.
+* *Map.* Let $\tilde\Sigma_c$ be the generator's class-$c$ covariance in the subspace. MC-S maps
+  $x \mapsto \mathrm{ReLU}\big(m_c + B A_c B^\top (x - \tilde m_c) + s_c (I - BB^\top)(x - \tilde m_c)\big)$, with
+  $A_c = \tilde\Sigma_c^{-1/2}\big(\tilde\Sigma_c^{1/2}\Sigma_c\tilde\Sigma_c^{1/2}\big)^{1/2}\tilde\Sigma_c^{-1/2}$.
+  The scalar $s_c$ restores the exact spread outside the subspace, as in MC.
+
+*Proposition 6.* Among all maps $T$ with $\mathbb E\,T(X) = m_c$ and $\mathrm{Cov}\,T(X) = \Sigma_c$ (with $X$ the
+generator's class-$c$ sample, $\tilde\Sigma_c \succ 0$), the map $T^\star(x) = m_c + A_c(x - \tilde m_c)$ minimises
+$\mathbb E\|T(X) - X\|^2$. The minimum is the squared Gelbrich distance
+$\|m_c - \tilde m_c\|^2 + \mathrm{tr}\,\Sigma_c + \mathrm{tr}\,\tilde\Sigma_c - 2\,\mathrm{tr}\big(\tilde\Sigma_c^{1/2}\Sigma_c\tilde\Sigma_c^{1/2}\big)^{1/2}$.
+
+*Proof.* Let $Y = T(X)$ and $K = \mathbb E[(Y - m_c)(X - \tilde m_c)^\top]$. Then
+$\mathbb E\|Y - X\|^2 = \|m_c - \tilde m_c\|^2 + \mathrm{tr}\,\Sigma_c + \mathrm{tr}\,\tilde\Sigma_c - 2\,\mathrm{tr}\,K$.
+The joint covariance $\left[\begin{smallmatrix}\Sigma_c & K\\ K^\top & \tilde\Sigma_c\end{smallmatrix}\right]$ is
+positive semi-definite, so $K = \Sigma_c^{1/2} R\, \tilde\Sigma_c^{1/2}$ with $\|R\|_2 \le 1$. Hence
+$\mathrm{tr}\,K \le \|\tilde\Sigma_c^{1/2}\Sigma_c^{1/2}\|_* = \mathrm{tr}\big(\tilde\Sigma_c^{1/2}\Sigma_c\tilde\Sigma_c^{1/2}\big)^{1/2}$.
+$T^\star$ attains the bound. It gives $K = A_c\tilde\Sigma_c$, whose trace is exactly this value, and
+$\mathrm{Cov}\,T^\star(X) = A_c\tilde\Sigma_cA_c = \Sigma_c$. $\square$
+
+In the subspace-plus-complement form, the displacement splits orthogonally. The in-subspace part is bounded by
+Proposition 6 and the complement part by Proposition 4, and the MC-S map attains both bounds at once. MC-S is
+therefore the minimum-displacement map that achieves the exact class mean, the exact class covariance in the
+principal subspace and the exact spread outside it. The bound itself is classical (Gelbrich, 1990; Olkin and
+Pukelsheim, 1982). What is new is using exact federated second moments to correct a federated generator.
+
+*Why it matters.* By Proposition 5, a mean-anchored generator cannot tell classes apart when their means coincide.
+MC-S gives each class its exact covariance, so it can, wherever the covariances differ.
+* *Information in exact statistics* (pixel space, balanced accuracy, classifiers built only from the statistics):
+
+  | | nearest class mean | LDA (FSG's model) | QDA (class covariances) |
+  |---|---|---|---|
+  | MNIST | 80.4 | **87.2** | 79.8 |
+  | FashionMNIST | 67.8 | **81.3** | 74.7 |
+  | CIFAR-10 | 28.2 | 39.3 | **51.4** |
+  | SVHN | 10.3 | 20.6 | **54.4** |
+
+* *Proxy test.* A class-agnostic generator (the SVHN failure mode, simulated by drawing from the pooled data) is
+  corrected per class. A head is trained only on the corrected samples and tested on real data:
+
+  | balanced / long tail | MC (mean + spread) | **MC-S (mean + covariance)** | real data, same counts |
+  |---|---|---|---|
+  | MNIST | 65.2 / 63.4 | **89.7 / 78.1** | 95.1 / 87.1 |
+  | CIFAR-10 | 22.6 / 23.0 | **35.2 / 30.5** | 43.7 / 33.7 |
+  | SVHN | 10.6 / 12.2 | **43.9 / 28.6** | 69.6 / 51.9 |
+
+  MC transfers nothing on SVHN. MC-S transfers 63% of real-data accuracy in the balanced case and 55% under the
+  long tail. The full-pipeline test is K11 (§5.11).
+
 **KH: kernel herding toward the exact class embedding.**
 * *Embedding.* With bounded random Fourier features $\phi$, the server receives the exact class mean embeddings
   $\mu_c = \sum_k \sum_{i \in k, y_i = c}\phi(h_i) / n_c$ in one upload.
@@ -309,8 +363,9 @@ $\mu_c$, with no federated generator training at all.
 * *Heads:* LA + CSL with a 10-epoch synthetic budget.
 * *Calibration:* gated BBC.
 
-**Low class separation.** Where the released sums show uninformative class means ($F$ small, as on SVHN), the
-hybrid PCR adds HWA-aggregated class rows to the anchored decoder (under test, §5.11).
+**Low class separation.** Where the released sums show uninformative class means ($F$ small, as on SVHN), two
+remedies are under test (§5.11). MC-S replaces MC, so that each class gets its exact covariance. The hybrid PCR adds
+HWA-aggregated class rows to the anchored decoder.
 
 **The minimal variant** for an existing GeFL-F deployment is HWA + LA + CSL. It keeps the paper's generator
 (CVAE-F or DDPM-F) unchanged apart from aggregation.
@@ -643,6 +698,7 @@ deviations), since the per-seed files have not been copied back yet.
   a different pipeline (no shared feature extractor) and data augmentation, which is orthogonal to our method.
 
 **Pending.**
+* MC-S in the full pipeline: SVHN and CIFAR-10 (Kaggle K11), and MNIST and FashionMNIST (E31).
 * The hybrid PCR on MNIST and FashionMNIST, including K = 100 (E29), and on SVHN and CIFAR-10 (Kaggle K10).
 * FashionMNIST at K = 50 / 100 (Kaggle K06, K08); the IID setting at K = 50 / 100 (E27).
 * Formal DP on the anchoring statistics (E26); the component ablation (K09).
@@ -782,6 +838,11 @@ consensus is what tracks the generator's per-sample label error, the bias $b$ of
   future work.
 
 ## References
+
+* M. Gelbrich. On a formula for the L2 Wasserstein metric between measures on Euclidean and Hilbert spaces.
+  *Mathematische Nachrichten*, 147:185–203, 1990.
+* I. Olkin and F. Pukelsheim. The distance between two random vectors with given dispersion matrices. *Linear
+  Algebra and its Applications*, 48:257–263, 1982.
 
 [1] H. Kang, S. Cha, J. Kang. "GeFL: Model-Agnostic Federated Learning with Generative Models." IEEE Transactions on
 Mobile Computing, 2025 (arXiv:2412.18460). https://arxiv.org/abs/2412.18460
