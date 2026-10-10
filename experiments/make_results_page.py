@@ -736,20 +736,36 @@ PAPER_AUG_CIFAR = {"FedAvg": 55.65, "FedAvg + MixUp": 60.07, "FedAvg + CutMix": 
                    "GeFL + MixUp": 62.67, "GeFL + CutMix": 61.66, "GeFL + AugMix": 56.47, "GeFL + AutoAugment": 59.97}
 
 
-def ours_iid(ds, K):
-    """Best evidence for our full method in the IID setting, with its source."""
+# Our methods (every variant that is ours), and the final method alone.
+OUR_SOURCES = [("E25_anchored_stack", ["Ours-A Ts=10", "Ours-A (PC+MC+KH+LA+CSL)"]),
+               ("E27_final_iid_many_clients", ["Ours-A Ts=10"]),
+               ("K08_kaggle_anchored_stack", ["Ours-A Ts=10", "Ours-A (PC+MC+KH+LA+CSL)"]),
+               ("E16_csl_synthetic_budget", ["Ours (HWA+LA+CSL) Ts=10", "+CSL Ts=10"]),
+               ("F10_combined_method", ["+HWA+LA+CSL", "+CSL"]),
+               ("F09_consensus_paper_setting", ["+CSL (beta=0.5)"]),
+               ("K01", ["Ours (HWA+LA+CSL)", "+CSL (beta=0.5)"]),
+               ("K03_kaggle_client_scaling", ["Ours (HWA+LA+CSL)", "+CSL (beta=0.5)", "+CSL Ts=10", "Ours (HWA+LA+CSL) Ts=10"]),
+               ("K04_kaggle_ddpm_cifar10_svhn", ["Ours (DDPM-F)", "+CSL (DDPM-F)"]),
+               ("K05_kaggle_newgen_cifar10_svhn", ["Ours+MC", "Ours-PC+MC", "Ours-PC+ZP+MC", "Ours-PC+ZP+MC Ts=10"]),
+               ("K06_kaggle_newgen_many_clients", ["Ours (HWA+LA+CSL)", "Ours+MC", "Ours-PC+MC", "Ours-PC+ZP+MC"])]
+FINAL_SOURCES = [("E25_anchored_stack", "Ours-A Ts=10"), ("E22_pc_many_clients", "Ours-A Ts=10"), ("E27_final_iid_many_clients", "Ours-A Ts=10"),
+                 ("K08_kaggle_anchored_stack", "Ours-A Ts=10")]
+
+
+def _runs_of(exp):
+    return kaggle_runs()[0] if exp == "K01" else load(exp)
+
+
+def ours_iid(ds, K, final_only=False):
+    """IID evidence: the final method alone, or the best of our variants (label shown)."""
     cands = []
-    for exp, lab in [("E16_csl_synthetic_budget", "Ours (HWA+LA+CSL) Ts=10"), ("F10_combined_method", "+HWA+LA+CSL"), ("F11_ddpm_generator", "Ours (DDPM-F)"),
-                     ("K01_kaggle_cifar10_svhn", "Ours (HWA+LA+CSL)"), ("K03_kaggle_client_scaling", "Ours (HWA+LA+CSL)"),
-                     ("K04_kaggle_ddpm_cifar10_svhn", "Ours (DDPM-F)")]:
-        v = pick(load(exp) if not exp.startswith("K01") else kaggle_runs()[0], lab, "best_mean_acc", dataset=ds, K=K, IF=1.0)
-        if v:
-            cands.append((mean(v), len(v), exp.split("_")[0], lab))
-    if not cands:
-        v = pick(load("F09_consensus_paper_setting"), "+CSL (beta=0.5)", "best_mean_acc", dataset=ds, K=K, IF=1.0)
-        v = v or pick(kaggle_runs()[0], "+CSL (beta=0.5)", "best_mean_acc", dataset=ds, K=K, IF=1.0)
-        if v:
-            cands.append((mean(v), len(v), "F09/K01", "+CSL"))
+    srcs = [(e, [l]) for e, l in FINAL_SOURCES] if final_only else OUR_SOURCES
+    for exp, labs in srcs:
+        runs = _runs_of(exp)
+        for lab in labs:
+            v = pick(runs, lab, "best_mean_acc", dataset=ds, K=K, IF=1.0)
+            if v:
+                cands.append((mean(v), len(v), exp.split("_")[0], lab))
     return max(cands) if cands else None
 
 
@@ -759,18 +775,23 @@ def sec_vs_paper():
         for K in [10, 50, 100]:
             best = max(((v[(ds, K)], m, g) for (m, g), v in PAPER_FIG4.items() if (ds, K) in v))
             gf = PAPER_FIG4[("GeFL-F", "CVAE-F")][(ds, K)]
-            o = ours_iid(ds, K)
+            fin, o = ours_iid(ds, K, final_only=True), ours_iid(ds, K)
+
+            def cell_of(x):
+                return (f"{x[0]:.2f}<span class=\"sd\"> n={x[1]}, {esc(x[2])} {esc(x[3])}</span>" if x
+                        else '<span class="pend">pending</span>')
             if o:
-                val, n, src, lab = o
+                val = o[0]
                 verdict = ('<span class="pill g">above best</span>' if val > best[0] + 0.3 else
                            ('<span class="pill t">tie (&plusmn;0.3)</span>' if val >= best[0] - 0.3 else '<span class="pill b">below</span>'))
-                cell = f"{val:.2f}<span class=\"sd\"> n={n}, {esc(src)} {esc(lab)}</span>"
                 d = f"{val - best[0]:+.2f}"
             else:
-                cell, d, verdict = '<span class="pend">pending</span>', "", ""
-            rows.append([f"{DS_NAME[ds]}, K={K}", f"{gf:.2f}", f"{best[0]:.2f}<span class=\"sd\"> {esc(best[1])} {esc(best[2])}</span>", cell, d, verdict])
-    t = table("Paper's IID setting: our full method against the best of all ten methods in the paper's Figure 4 (best_mean_acc)",
-              [("Setting", ""), ("GeFL-F CVAE-F", "num"), ("Best in paper (which)", "num"), ("Ours", "num"), ("Ours &minus; best", "num"), ("", "")], rows)
+                d, verdict = "", ""
+            rows.append([f"{DS_NAME[ds]}, K={K}", f"{gf:.2f}", f"{best[0]:.2f}<span class=\"sd\"> {esc(best[1])} {esc(best[2])}</span>",
+                         cell_of(fin), cell_of(o), d, verdict])
+    t = table("Paper's IID setting: ours against the best of all ten methods in the paper's Figure 4 (best_mean_acc)",
+              [("Setting", ""), ("GeFL-F CVAE-F", "num"), ("Best in paper (which)", "num"), ("Final method (Ours-A, T_s = 10)", "num"),
+               ("Best of our variants (which)", "num"), ("Best ours &minus; paper best", "num"), ("", "")], rows)
     aug = [[esc(k), f"{v:.2f}"] for k, v in PAPER_AUG_CIFAR.items()]
     t2 = table("Paper Table IV: data augmentation (image-space GeFL with DCGAN, CIFAR-10, IID, K = 10)", [("Method", ""), ("Acc.", "num")], aug)
     return f"""
@@ -778,6 +799,9 @@ def sec_vs_paper():
 <p class="deck">Figure 4 of the paper evaluates ten methods: GeFL and GeFL&#8209;F with DCGAN, CVAE and DDPM (w = 0, 2), plus FedProx and FedALA.
 For each setting we compare against the best of them, whichever it is.</p>
 {t}
+<p>Rows for K = 50 and 100 come from the first Kaggle client-scaling run (K03), whose consensus-label arms predate the per-client
+synthetic-slice fix (&sect;6). The fix restores per-client synthetic diversity and can only raise them; the anchored method at K = 50/100 runs in
+NB17 and E22.</p>
 <p>Two of the paper's strongest numbers come from different pipelines, so it matters what they are. On CIFAR&#8209;10 the best is image-space GeFL with
 an image diffusion model (59.36), with no shared feature extractor. The augmentation results (Table IV, best 62.67) are image-space GeFL with DCGAN
 plus MixUp or CutMix. The paper never combines GeFL&#8209;F with augmentation. Our changes act on the generator's aggregation and on the heads'
@@ -873,8 +897,12 @@ def sec_anchored():
     t_lt = method_table(runs, labels, ["mnist", "fmnist"], [("final_bal", "balanced acc."), ("method_bal", "with gated BBC")],
                         where=dict(IF=0.01), ref="GeFL-F", caption="Long tail (IF = 100, Dir 0.5, K = 10): the anchored stack",
                         ours=("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A Ts=10"))
-    t_iid = method_table(runs, labels, ["fmnist"], [("best_mean_acc", "best_mean_acc"), ("final_bal", "final balanced")],
-                         where=dict(IF=1.0), ref="GeFL-F", caption="Paper's IID setting (FashionMNIST, K = 10)",
+    f10 = load("F10_combined_method")
+    runs_iid = runs + [r for r in f10 if r["dataset"] == "mnist" and r["IF"] == 1.0 and r["label"] in ("GeFL-F", "+HWA+LA+CSL")]
+    runs_iid = [dict(r, label="Ours (HWA+LA+CSL)") if r.get("exp") == "F10_combined_method" and r["label"] == "+HWA+LA+CSL" else r
+                for r in runs_iid]
+    t_iid = method_table(runs_iid, labels, ["mnist", "fmnist"], [("best_mean_acc", "best_mean_acc")],
+                         where=dict(IF=1.0), ref="GeFL-F", caption="Paper's IID setting (K = 10; MNIST GeFL-F / Ours rows from F10, same seeds)",
                          ours=("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A Ts=10"))
     return f"""
 <section id="s14"><h2><span class="num">14</span>Final method: anchoring every stage to exact statistics</h2>
@@ -893,8 +921,9 @@ on pooled real data. KH helped in all nine paired comparisons (sign test p = 0.0
 anchored decoder's raw samples are under-dispersed (0.39&ndash;0.49 of the real spread) and, on FashionMNIST, purer than real data. After KH,
 spread is 0.93&ndash;0.98 and IID fidelity equals the referee's own accuracy on real data (0.837 vs 0.839). With the anchored generator, the
 10-epoch synthetic budget adds +1.7 on MNIST, where it added nothing to the CVAE. This is the interaction Proposition 3 predicts once the
-generator's label bias is low. In balanced (IID) data the CVAE + HWA variant remains marginally better (84.34 vs 83.96, p = 0.18): FedAvg does
-not collapse class rows when every client holds every class.</p>
+generator's label bias is low. In the paper's IID setting the final method gives 97.62 on MNIST: +1.6 over GeFL&#8209;F (p = 0.001), +0.85 over the
+CVAE variant, and +1.18 over the best of all ten methods in the paper. On FashionMNIST IID the CVAE + HWA variant remains marginally better
+(84.34 vs 83.96, p = 0.18): FedAvg does not collapse class rows when every client holds every class.</p>
 {t_lt}
 {t_iid}
 </section>"""
@@ -927,10 +956,9 @@ def sec_summary():
 <section id="s0"><h2><span class="num">0</span>The result on one page</h2>
 <div class="verdict">
   <div class="v g"><div class="k">Long-tailed clients</div>{card1}</div>
-  <div class="v a"><div class="k">Paper's own IID setting</div><div class="t2">Above or level with the paper's best variant</div>
-    <p>Our CVAE-based variant (HWA + LA + CSL): MNIST 96.77 (paper's best of all ten methods: 96.44), FashionMNIST 84.34 at T<sub>s</sub> = 10
-    (best: 84.28, a diffusion generator), SVHN 76.30 (76.26). The anchored final method gives {iid:.2f} on FashionMNIST IID
-    (&minus;0.4 against the CVAE variant, p = 0.18).</p></div>
+  <div class="v a"><div class="k">Paper's own IID setting</div><div class="t2">Above the paper's best variant on MNIST (+1.2), level on FMNIST and SVHN</div>
+    <p>MNIST 97.62 with the final method (paper's best of all ten methods: 96.44; GeFL&#8209;F 95.47). FashionMNIST 84.34 with the CVAE
+    variant at T<sub>s</sub> = 10 (best: 84.28, a diffusion generator; the final method gives {iid:.2f}, p = 0.18 between them). SVHN 76.30 (76.26).</p></div>
   <div class="v t"><div class="k">Baseline validated</div><div class="t2">Our GeFL&#8209;F = the paper = the authors' code</div>
     <p>Within half a point at K = 10, 50, 100. Our baseline is slightly <em>weaker</em> than theirs under the long tail.</p></div>
 </div>

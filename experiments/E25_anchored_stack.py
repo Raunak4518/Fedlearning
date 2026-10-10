@@ -1113,15 +1113,67 @@ def cond_row_norms(G):
     return out.sqrt().cpu().numpy()
 
 
+# Differential privacy for the anchoring statistics (E26). None = exact release.
+# When set: dict(clip, sig1, seed). Features are clipped to L2 norm <= clip; the
+# four releases - class counts (sensitivity 1), class sums of h (clip), class sums
+# of ||h||^2 (clip^2) and class sums of phi(h) (sqrt 2) - each receive Gaussian
+# noise sig1 * sensitivity, with sig1 = sqrt(2 / rho) for a total rho-zCDP budget
+# split equally (rho / 4 each), rho from the target (eps, delta).
+_STAT_DP = None
+SNR_GATE = 0.5  # DP mode: MC / KH used for a class only if noise norm <= SNR_GATE x signal scale
+
+
+def zcdp_rho(eps, delta):
+    L = math.log(1.0 / delta)
+    return (math.sqrt(L + eps) - math.sqrt(L)) ** 2
+
+
+def anchor_stats(feats, ys_list):
+    """Per-class count n_c, sum of h and sum of ||h||^2 over all clients - what
+    secure aggregation returns - exact, or clipped and Gaussian-noised under _STAT_DP.
+    Deterministic given the DP seed, so every consumer sees the same release."""
+    X, Y = torch.cat(feats).flatten(1), torch.cat(ys_list)
+    dp = _STAT_DP
+    if dp:
+        X = X * (dp["clip"] / X.norm(dim=1, keepdim=True).clamp(min=1e-12)).clamp(max=1.0)
+    S1 = torch.zeros(NUM_CLASSES, X.shape[1], device=DEV).index_add_(0, Y, X)
+    S2 = torch.zeros(NUM_CLASSES, device=DEV).index_add_(0, Y, X.pow(2).sum(1))
+    n = torch.bincount(Y, minlength=NUM_CLASSES).float()
+    if dp:
+        g = torch.Generator(device=DEV).manual_seed(dp["seed"])
+        sg = dp["sig1"]
+        n = n + sg * torch.randn(NUM_CLASSES, device=DEV, generator=g)
+        S1 = S1 + sg * dp["clip"] * torch.randn(S1.shape, device=DEV, generator=g)
+        S2 = S2 + sg * dp["clip"] ** 2 * torch.randn(NUM_CLASSES, device=DEV, generator=g)
+    return n.clamp(min=1.0), S1, S2
+
+
+def anchor_rff(feats, ys_list, phi):
+    """Class sums of the bounded random features phi(h) (||phi|| <= sqrt 2)."""
+    K_ = torch.zeros(NUM_CLASSES, phi.W.shape[0], device=DEV)
+    for X_k, Y_k in zip(feats, ys_list):
+        for i in range(0, len(Y_k), 4096):
+            K_.index_add_(0, Y_k[i:i + 4096], phi(X_k[i:i + 4096]))
+    if _STAT_DP:
+        g = torch.Generator(device=DEV).manual_seed(_STAT_DP["seed"] + 1)
+        K_ = K_ + _STAT_DP["sig1"] * math.sqrt(2.0) * torch.randn(K_.shape, device=DEV, generator=g)
+    return K_
+
+
+def dp_class_gate(n, dim, scale_norm):
+    """Post-processing rule: a class's noisy statistic is used only if its expected
+    noise norm sig1 * sens * sqrt(dim) / n_c is at most SNR_GATE x the signal scale
+    (sens / scale_norm cancel to the ratio used here). All classes when not DP."""
+    if not _STAT_DP:
+        return torch.ones(NUM_CLASSES, dtype=torch.bool, device=DEV)
+    return (_STAT_DP["sig1"] * math.sqrt(dim) * scale_norm / n) <= SNR_GATE
+
+
 def class_prototypes(feats, ys_list):
-    """Exact federated class means of FE features: sums and counts per client,
-    added (what secure aggregation returns), then divided."""
-    S = torch.zeros((NUM_CLASSES,) + tuple(feats[0].shape[1:]), device=DEV)
-    n = torch.zeros(NUM_CLASSES, device=DEV)
-    for X, Y in zip(feats, ys_list):
-        S.index_add_(0, Y, X)
-        n += torch.bincount(Y, minlength=NUM_CLASSES).float()
-    return S / n.clamp(min=1).view(-1, *([1] * (S.dim() - 1)))
+    """Federated class means of FE features from the per-class sums and counts
+    secure aggregation returns (exact, or DP under _STAT_DP)."""
+    n, S1, _ = anchor_stats(feats, ys_list)
+    return (S1 / n[:, None]).view((NUM_CLASSES,) + tuple(feats[0].shape[1:]))
 
 
 # ----- KME-Gen (new): a federated generator that is never trained federatedly
@@ -1191,19 +1243,14 @@ def stage_ii_kme(ctx, gspec, feats, ys_list):
     """One upload per client (class sums of phi and of h, counts; secure-aggregated,
     optionally Gaussian-noised for (eps, delta)-DP), then server-side training."""
     in_ch = feats[0].shape[1]
-    X, Y = torch.cat(feats), torch.cat(ys_list)
-    d = X[0].numel()
-    proto = class_prototypes(feats, ys_list)
-    # bandwidth from exact statistics: within-class spread V_c = E||h - mu_c||^2 (sums)
-    S2 = torch.zeros(NUM_CLASSES, device=DEV).index_add_(0, Y, X.flatten(1).pow(2).sum(1))
-    cnt = torch.bincount(Y, minlength=NUM_CLASSES).float().clamp(min=1)
+    d = feats[0][0].numel()
+    cnt, S1, S2 = anchor_stats(feats, ys_list)
+    proto = (S1 / cnt[:, None]).view((NUM_CLASSES,) + tuple(feats[0].shape[1:]))
+    # bandwidth from the released statistics: within-class spread V_c = E||h - mu_c||^2
     V = (S2 / cnt - proto.flatten(1).pow(2).sum(1)).clamp(min=1e-6)
     s0 = float(torch.sqrt(2 * V.mean()))
     phi = RFFMap(d, gspec.get("kme_D", 6144), s0, seed=1234 + ctx.seed).to(DEV)
-    K_ = torch.zeros(NUM_CLASSES, phi.W.shape[0], device=DEV)
-    for X_k, Y_k in zip(feats, ys_list):          # each client: its class sums of phi
-        for i in range(0, len(Y_k), 4096):
-            K_.index_add_(0, Y_k[i:i + 4096], phi(X_k[i:i + 4096]))
+    K_ = anchor_rff(feats, ys_list, phi)          # each client: its class sums of phi
     if gspec.get("kme_dp_eps"):
         eps, delta = gspec["kme_dp_eps"], 1e-5
         sig = math.sqrt(2.0) * math.sqrt(2 * math.log(1.25 / delta)) / eps
@@ -1411,17 +1458,12 @@ def referee_fidelity(ref, G, n=300):
 def federated_kme(ctx, feats, ys_list, D=6144):
     """Exact pooled class kernel mean embeddings (one secure-aggregation upload of
     per-class phi sums and counts) and the RFF map that defines them."""
-    X, Y = torch.cat(feats), torch.cat(ys_list)
-    proto = class_prototypes(feats, ys_list)
-    S2 = torch.zeros(NUM_CLASSES, device=DEV).index_add_(0, Y, X.flatten(1).pow(2).sum(1))
-    cnt = torch.bincount(Y, minlength=NUM_CLASSES).float().clamp(min=1)
-    V = (S2 / cnt - proto.flatten(1).pow(2).sum(1)).clamp(min=1e-6)
-    phi = RFFMap(X[0].numel(), D, float(torch.sqrt(2 * V.mean())), seed=1234 + ctx.seed).to(DEV)
-    K_ = torch.zeros(NUM_CLASSES, phi.W.shape[0], device=DEV)
-    for X_k, Y_k in zip(feats, ys_list):
-        for i in range(0, len(Y_k), 4096):
-            K_.index_add_(0, Y_k[i:i + 4096], phi(X_k[i:i + 4096]))
-    return phi, K_ / cnt[:, None]
+    cnt, S1, S2 = anchor_stats(feats, ys_list)
+    V = (S2 / cnt - (S1 / cnt[:, None]).pow(2).sum(1)).clamp(min=1e-6)
+    phi = RFFMap(feats[0][0].numel(), D, float(torch.sqrt(2 * V.mean())), seed=1234 + ctx.seed).to(DEV)
+    K_ = anchor_rff(feats, ys_list, phi)
+    # relative noise of mu_c: sig1 * sqrt(2) * sqrt(D) / n_c over the bound sqrt(2) on ||mu_c||
+    return phi, K_ / cnt[:, None], dp_class_gate(cnt, phi.W.shape[0], 1.0)
 
 
 class HerdedGen(nn.Module):
@@ -1432,10 +1474,11 @@ class HerdedGen(nn.Module):
     (without replacement). Lowers the MMD term of the head's risk bound for ANY
     generator; uses only the federated statistics already uploaded."""
 
-    def __init__(self, G, phi, mu, mult=4):
+    def __init__(self, G, phi, mu, mult=4, use=None):
         super().__init__()
         self.G, self.kind, self.phi, self.mult = G, G.kind, phi, mult
         self.register_buffer("mu", mu)
+        self.register_buffer("use", torch.ones(NUM_CLASSES, dtype=torch.bool, device=mu.device) if use is None else use)
 
     @torch.no_grad()
     def sample(self, y):
@@ -1443,6 +1486,12 @@ class HerdedGen(nn.Module):
         for c in torch.unique(y):
             idx = (y == c).nonzero().flatten()
             n = len(idx)
+            if not bool(self.use[c]):  # DP gate: release too noisy for this class
+                sel = self.G.sample(y[idx])
+                if out is None:
+                    out = torch.empty((len(y),) + tuple(sel.shape[1:]), device=y.device)
+                out[idx] = sel
+                continue
             cand = torch.cat([self.G.sample(torch.full((min(4096, self.mult * n - i),), int(c), device=y.device,
                                                        dtype=torch.long)) for i in range(0, self.mult * n, 4096)])
             P = self.phi(cand)
@@ -1474,13 +1523,12 @@ class MomentCalibratedGen(nn.Module):
     def __init__(self, G, feats, ys_list, n=500):
         super().__init__()
         self.G, self.kind = G, G.kind
-        X, Y = torch.cat(feats).flatten(1), torch.cat(ys_list)
-        D = X.shape[1]
-        S1 = torch.zeros(NUM_CLASSES, D, device=DEV).index_add_(0, Y, X)
-        S2 = torch.zeros(NUM_CLASSES, device=DEV).index_add_(0, Y, X.pow(2).sum(1))
-        cnt = torch.bincount(Y, minlength=NUM_CLASSES).float().clamp(min=1)
+        cnt, S1, S2 = anchor_stats(feats, ys_list)
+        D = S1.shape[1]
         mu = S1 / cnt[:, None]
         V = S2 / cnt - mu.pow(2).sum(1)
+        # DP gate: relative noise of mu_c is sig1 * clip * sqrt(D) / n_c over the feature scale clip
+        self.use = dp_class_gate(cnt, D, 1.0)
         G.eval()
         m, Vg = [], []
         with torch.no_grad():
@@ -1489,9 +1537,12 @@ class MomentCalibratedGen(nn.Module):
                 m.append(g.mean(0))
                 Vg.append((g - g.mean(0)).pow(2).sum(1).mean())
         m, Vg = torch.stack(m), torch.stack(Vg)
+        scale = (V.clamp(min=0) / Vg.clamp(min=1e-8)).sqrt().clamp(0.1, 10.0)
+        mu = torch.where(self.use[:, None], mu, m)            # gated classes: identity map
+        scale = torch.where(self.use, scale, torch.ones_like(scale))
         self.register_buffer("mu", mu)
         self.register_buffer("m", m)
-        self.register_buffer("scale", (V.clamp(min=0) / Vg.clamp(min=1e-8)).sqrt().clamp(0.1, 10.0))
+        self.register_buffer("scale", scale)
         self.shape = None
 
     @torch.no_grad()
@@ -1977,6 +2028,16 @@ def run_one(cfg, run, cache, data_cache):
         cache[k1] = dict(fe=fe, hd_sd=hd_sd, feats=feats, ys=ys_list, feats_te=feats_te, tr=tr1, ref=ref,
                          t=time.time() - t0)
     s1 = cache[k1]
+    global _STAT_DP
+    _STAT_DP = None
+    if m["gen"] is not None and m["gen"].get("stat_dp_eps"):
+        # clipping bound from the held-out pool (public data: no client holds it)
+        with torch.no_grad():
+            hold = compute_features(s1["fe"], ctx.data["xtr"][ctx.part["heldout"]]).flatten(1)
+        clip = float(torch.quantile(hold.norm(dim=1), 0.9))
+        eps_, delta_ = m["gen"]["stat_dp_eps"], m["gen"].get("stat_dp_delta", 1e-5)
+        _STAT_DP = dict(clip=clip, sig1=math.sqrt(2.0 / zcdp_rho(eps_, delta_)), seed=9001 + 97 * seed + int(eps_ * 1000))
+        res.update(stat_dp_eps=eps_, stat_dp_delta=delta_, stat_dp_clip=clip, stat_dp_sigma_mult=_STAT_DP["sig1"])
     tracker.best = dict(s1["tr"].best)
     tracker.hist = list(s1["tr"].hist)
     res["fe_time_s"] = s1["t"]
@@ -2070,13 +2131,17 @@ def run_one(cfg, run, cache, data_cache):
             res["fidelity_tail_mc"], res["fidelity_mc"] = float(fmc[6:].mean()), fmc.round(3).tolist()
         smc = sample_spread(G, s1["feats"], s1["ys"])
         res["spread_tail_mc"], res["mc_scale"] = float(np.nanmean(smc[6:])), G.scale.cpu().numpy().round(3).tolist()
+        res["mc_classes_used"] = int(G.use.sum())
     if G is not None and m["head"].get("kh"):
-        phi_, mu_ = federated_kme(ctx, s1["feats"], s1["ys"])
-        G = HerdedGen(G, phi_, mu_)
+        phi_, mu_, use_ = federated_kme(ctx, s1["feats"], s1["ys"])
+        G = HerdedGen(G, phi_, mu_, use=use_)
+        res["kh_classes_used"] = int(use_.sum())
         if s1["ref"] is not None:
             fkh = referee_fidelity(s1["ref"], G)
             res["fidelity_tail_kh"] = float(fkh[6:].mean())
         res["spread_tail_kh"] = float(np.nanmean(sample_spread(G, s1["feats"], s1["ys"])[6:]))
+    if G is not None and cfg.get("mnd", False) and (m["head"].get("mc") or m["head"].get("kh")):
+        res["feature_mnd_final"] = feature_mnd(ctx, G, s1["fe"])  # memorisation of the sampler heads train on
     set_seed(seed + 2000)
     ctx.rho_hist, ctx.kappa_hist = [], []
     headers = stage_iii(ctx, m["head"], s1["fe"], s1["hd_sd"], G, s1["feats"], s1["ys"], s1["feats_te"],

@@ -32,9 +32,9 @@ Under a 100:1 long tail with Dirichlet(0.5) clients:
 * on MNIST the method reaches the accuracy of its own heads re-fit on pooled real data.
 
 A minimal fix for the paper's own generators, holder-weighted aggregation of the class rows, already gives +12 to +20
-points on MNIST, FashionMNIST, SVHN and CIFAR-10. In GeFL-F's own IID setting, our CVAE-based variant matches or
-exceeds the best of all ten methods in the paper on MNIST (96.77 vs 96.44), FashionMNIST (84.34 vs 84.28) and SVHN
-(76.30 vs 76.26). We validated the GeFL-F baseline against the authors' released code. Formal privacy is cheap:
+points on MNIST, FashionMNIST, SVHN and CIFAR-10. In GeFL-F's own IID setting the final method reaches 97.62 on
+MNIST, +1.2 over the best of all ten methods in the paper (96.44) and +2.2 over GeFL-F (95.47). On FashionMNIST and
+SVHN our CVAE-based variant matches the best of all ten (84.34 vs 84.28, and 76.30 vs 76.26). We validated the GeFL-F baseline against the authors' released code. Formal privacy is cheap:
 ε = 1 on every client's class counts costs at most 1.3 points.
 
 ---
@@ -522,21 +522,26 @@ Our method keeps GeFL-F's FE and privacy model. The fair claims are therefore:
 
 ### 5.11 The anchored method (E20, E24, E25; K = 10, 3 seeds unless marked)
 
-| | MNIST LT | FMNIST LT | FMNIST IID (`best_mean_acc`) |
-|---|---|---|---|
-| GeFL-F | 75.25 | 58.47 | 82.76 |
-| minimal variant, CVAE + HWA + LA + CSL, $T_s = 10$ | 90.15 | 79.23 | **84.34** |
-| PC-VAE + MC | 92.31 | 77.56 | 82.92 |
-| KME-Gen, server-only generator (1 seed) | 89.88 | 75.11 | 81.82 |
-| Ours-A: PC + MC + KH + LA + CSL, $T_s = 1$ | 93.11 | 78.22 | 83.35 |
-| **Ours-A, $T_s = 10$** | **94.82** | **79.67** | 83.96 |
-| **Ours-A, $T_s = 10$, + gated BBC** | **95.17** | **80.55** | 83.81 (BBC off) |
-| oracle: its heads, last layer re-fit on pooled real data | 94.93 | 81.55 | 84.09 |
+| | MNIST LT | FMNIST LT | MNIST IID | FMNIST IID |
+|---|---|---|---|---|
+| GeFL-F | 75.25 | 58.47 | 96.01 | 82.76 |
+| minimal variant, CVAE + HWA + LA + CSL | 90.40 | 76.60 | 96.77 | 83.19 |
+| minimal variant, $T_s = 10$ | 90.15 | 79.23 | – | **84.34** |
+| PC-VAE + MC | 92.31 | 77.56 | – | 82.92 |
+| KME-Gen, server-only generator (1 seed) | 89.88 | 75.11 | – | 81.82 |
+| Ours-A: PC + MC + KH + LA + CSL, $T_s = 1$ | 93.11 | 78.22 | 96.67 | 83.35 |
+| **Ours-A, $T_s = 10$** | **94.82** | **79.67** | **97.62** | 83.96 |
+| **Ours-A, $T_s = 10$, + gated BBC** | **95.17** | **80.55** | (BBC off) | (BBC off) |
+| oracle: its heads, last layer re-fit on pooled real data | 94.93 | 81.55 | 97.78 | 84.09 |
+
+Long-tail columns report final balanced accuracy and IID columns report `best_mean_acc` (the paper's metric).
+The MNIST IID GeFL-F and minimal-variant numbers come from F10 (same seeds).
 
 **Against GeFL-F and the minimal variant.**
-* Over GeFL-F: +19.6 ($p = 0.002$) and +21.2 ($p = 0.011$) under the long tail, and +1.2 in IID ($p = 0.021$).
-* Over the minimal variant: +4.7 and +0.5 under the long tail (positive on every seed), and −0.4 in IID
-  ($p = 0.18$).
+* Over GeFL-F: +19.6 ($p = 0.002$) and +21.2 ($p = 0.011$) under the long tail. In IID: +1.6 on MNIST
+  ($p = 0.001$; 97.62, +1.18 over the best of all ten methods in the paper) and +1.2 on FashionMNIST ($p = 0.021$).
+* Over the minimal variant: +4.7 and +0.5 under the long tail (positive on every seed). In IID: +0.85 on MNIST
+  ($p = 0.001$) and −0.4 on FashionMNIST ($p = 0.18$).
 * *Why the IID gap.* In balanced data FedAvg does not collapse class rows, so the CVAE's class-specific parameters
   cost nothing and add detail.
 
@@ -548,9 +553,15 @@ Our method keeps GeFL-F's FE and privacy model. The fair claims are therefore:
   0.839).
 * *KH.* It helps in all 9 paired comparisons: +0.80, +0.66 and +0.43, sign test $p = 0.004$.
 * *Proposition 3.* With the anchored generator, $T_s = 10$ adds +1.70 on MNIST LT ($p = 0.04$), where it added −0.05
-  to the CVAE (tail fidelity 0.28). The interaction is +1.75, positive on every seed.
+  to the CVAE (tail fidelity 0.28). The interaction is +1.75, positive on every seed. The same holds on MNIST IID:
+  +0.95 for the anchored generator, against −0.18 for consensus labels on the CVAE.
 
-**Pending.** CIFAR-10, SVHN and FashionMNIST at K = 50 / 100 (Kaggle K05, K06, K08), and MNIST at K = 100 (E22).
+**Pending.**
+* CIFAR-10, SVHN and FashionMNIST at K = 50 / 100 (Kaggle K05, K06, K08).
+* MNIST at K = 100 under the long tail (E22).
+* The IID setting at K = 50 / 100 (E27).
+* Formal DP on the anchoring statistics (E26).
+* The component ablation (K09).
 
 ### 5.12 Cost
 
