@@ -374,3 +374,27 @@ nearest-class-mean accuracy was 11.5% and $F$ was 0.025.
   On the four datasets this is the best choice in every regime measured, and the threshold is not critical (any
   value in 0.02–0.1).
 * *Open.* Does MC-S help the rows (K12 NB25)? It helped the anchored generator by +6 and the hybrid by +2.
+
+## 14. Formal DP on the anchoring statistics (E26), and VCT, a method aimed at beating MixUp
+
+**E26** (long tail, K = 10, 3 seeds; final method at $T_s = 10$; balanced accuracy):
+
+| | exact | $\varepsilon = 8$ | $\varepsilon = 2$ | GeFL-F |
+|---|---|---|---|---|
+| MNIST | 94.82 | 90.36 (−4.46, $p = 0.006$) | 85.06 (−9.76, $p = 0.002$) | 75.25 |
+| FashionMNIST | 79.67 | 72.77 (−6.90, $p = 0.022$) | 65.59 (−14.09, $p = 0.002$) | 58.47 |
+
+* *Where the cost falls.* Mostly on the rarest classes. The release noise relative to a class mean scales as
+  $\sigma\sqrt{D}/n_c$, so at 24 samples the tail classes' statistics are gated out of MC (7/10 classes used at
+  $\varepsilon = 8$, 5/10 at $\varepsilon = 2$). The PC-VAE still conditions on their noisy prototypes.
+* *BBC under DP.* It hurts (FashionMNIST at $\varepsilon = 2$: 62.86 with BBC against 65.59 without). Its gate and
+  its synthetic calibration both see the noisy tail.
+* *Memorisation.* MND of the raw generator is 1.04–1.14 and of the final sampler 0.99–1.07, unchanged by DP (the
+  generator itself is not DP).
+
+**VCT** (§4.5 of the draft; Kaggle K13 NB30 / NB31):
+* *Headroom.* On CIFAR-10 IID the ensemble of the ten heads reaches 69.8% against 60% for the average head. On
+  FashionMNIST it is 86.4% against 84%, and on MNIST 98.3% against 97.6%.
+* *The theory it rests on.* Proposition 7, with the numerical check above.
+* *Implementation check* (MNIST long tail, quick mode): the long-tail path with the interpolated LA prior runs end to
+  end.

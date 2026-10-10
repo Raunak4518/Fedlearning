@@ -719,16 +719,40 @@ def sec_privacy():
              "+K&middot;C numbers per round (C = 10 classes)"],
             ["LA", "Nothing", "Local: uses only the client's own label prior, never sent", "none"],
             ["CSL", "Nothing new", "Server-side or client-side on synthetic features only; no real data touched", "one forward pass of each header per synthetic batch"],
-            ["LCD (alternative to HWA)", "Nothing", "Fully local; the option when even aggregated counts are disallowed", "none"]]
+            ["LCD (alternative to HWA)", "Nothing", "Fully local; the option when even aggregated counts are disallowed", "none"],
+            ["Anchoring statistics (PC, MC, KH, BBC gate)", "Class counts, class sums of h and of ||h||<sup>2</sup>, class sums of bounded random features &phi;(h)",
+             "Secure-aggregated sums, one upload; formal (&epsilon;, &delta;)-DP option (clipped Gaussian releases, zCDP accounting), measured below",
+             "one upload of about 0.3 MB per client"],
+            ["MC-S (low-separation data)", "Class sums of z z<sup>T</sup> in a broadcast 256-dimensional basis, and the pooled second moment",
+             "Secure-aggregated sums, one upload (the pooled second moment is the release FSG already uses)", "C&middot;k<sup>2</sup> numbers once"]]
     t = table("Privacy footprint of each component", [("Component", ""), ("Extra information shared", "why"), ("Compatibility", "why"), ("Extra cost", "why")], rows)
     cost = (f"<p>Measured cost, MNIST long tail, full schedule, one laptop GPU (sum of the three stages, mean of 3 seeds): GeFL&#8209;F {t_g:.0f} s, "
             f"ours {t_o:.0f} s ({(t_o / t_g - 1) * 100:+.1f}%). Generator stage alone: {g_g:.0f} s vs {g_o:.0f} s. HWA only changes how the server averages, "
             f"and LA is one subtraction in the loss.</p>") if t_g and t_o else ""
+    e20, e25, e26 = load("E20_proto_generator"), with_gate(load("E25_anchored_stack")), load("E26_private_anchoring")
+    dp_rows = []
+    for lab, src, shown in [("GeFL-F", e20, "GeFL&#8209;F (no formal privacy)"), ("Ours-A Ts=10", e25, "Final method, exact statistics"),
+                            ("Ours-A Ts=10, DP eps=8", e26, "Final method, (8, 10<sup>&minus;5</sup>)-DP statistics"),
+                            ("Ours-A Ts=10, DP eps=2", e26, "Final method, (2, 10<sup>&minus;5</sup>)-DP statistics")]:
+        cells = [shown]
+        for ds in ["mnist", "fmnist"]:
+            cells.append(fmt_ms(pick(src, lab, "final_bal", dataset=ds, IF=0.01, K=10)))
+        dp_rows.append(cells)
+    t_dp = table("Formal DP on every statistic the method adds (E26; long tail, K = 10, 3 seeds; balanced accuracy)",
+                 [("", ""), ("MNIST", "num"), ("FashionMNIST", "num")], dp_rows, [2, 3]) if e26 else ""
+    dp_txt = ("<p>Features are clipped to the 90th-percentile norm of the public held-out pool. Each release (counts, sums of h, sums of ||h||<sup>2</sup>, "
+              "sums of &phi;(h)) receives Gaussian noise, and the budget is split equally under zCDP. Where a class's noisy statistic would be too noisy to help, "
+              "MC and KH fall back to the plain generator for that class, which is post-processing with no extra cost (at &epsilon; = 8 MC is applied to 7 of "
+              "10 classes, at &epsilon; = 2 to 5). Privacy costs 4&ndash;7 points at &epsilon; = 8 and 10&ndash;14 at &epsilon; = 2, almost all on the rarest "
+              "classes, whose 24 samples cannot be both private and accurate. Even at &epsilon; = 2 the method stays 7&ndash;10 points above GeFL&#8209;F, "
+              "which gives no formal guarantee at all. The generator's own FedAvg training is not DP, as in GeFL&#8209;F.</p>") if e26 else ""
     return f"""
 <section id="s9"><h2><span class="num">9</span>Privacy and federated cost</h2>
 <p class="deck">The improvement must not buy accuracy with privacy or bandwidth.</p>
 {t}
 {cost}
+{t_dp}
+{dp_txt}
 <p>None of the components share raw data, real features, or per-client label histograms in the clear. GeFL&#8209;F's own threat model
 (sharing a feature generator rather than an image generator) is unchanged.</p>
 </section>"""

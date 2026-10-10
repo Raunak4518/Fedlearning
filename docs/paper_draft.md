@@ -349,6 +349,39 @@ MC-S gives each class its exact covariance, so it can, wherever the covariances 
 * *Role.* It corrects the residual bias that LA's prior correction leaves when tail classes are also intrinsically
   hard (FashionMNIST's shirt and coat), without tuning LA's temperature.
 
+**VCT: vicinal consensus transfer (heads).** The federation already knows more than any of its heads. On CIFAR-10
+the ten heterogeneous heads *together* reach 69.8% while the average head reaches 60%. Consensus labels on synthetic
+features (CSL) transfer little of that gap (+0.75), because synthetic features sit off the real data. Image-space
+augmentation helps for a different reason, regularising each model on its own data (GeFL + MixUp: 62.67).
+* *Rule.* In its real-data epochs, client $k$ mixes every real feature with a partner from the round's synthetic
+  pool: $\tilde x = \lambda x + (1 - \lambda) x_s$, with $\lambda = \max(u, 1 - u)$ and $u \sim \mathrm{Beta}(1, 1)$.
+* *Target.* $\lambda\,e_y + (1 - \lambda)\,q(x_s)$, where $q(x_s)$ is the partner's consensus soft label from all
+  architectures.
+* *Long tail.* LA uses the mixed sample's own label distribution, $\lambda\,\pi_k + (1 - \lambda)\,u_C$.
+* *Disclosure.* Nothing new is disclosed. The pool and its consensus labels are the CSL release, and the real
+  features never leave the client.
+
+*Proposition 7 (MixUp is determined by class moments to second order).* Let the cross-entropy MixUp objective use
+partners $(x', y') \sim Q$. Expand it to second order in $\delta = (1 - \lambda)(x' - x)$. It then depends on $Q$
+only through the class prior $\pi_c$, the class means $\mu_c$ and the class covariances $\Sigma_c$.
+
+*Proof.* Cross-entropy is linear in the target, so the objective is
+$\mathbb E[\lambda\,\ell(f(\tilde x), y) + (1 - \lambda)\sum_c y'_c\,\ell(f(\tilde x), e_c)]$. Expand
+$\ell(f(x + \delta), t) = \ell(f(x), t) + \nabla_t^\top\delta + \tfrac12\delta^\top H_t\delta + O(\|\delta\|^3)$. Given
+$\lambda$, the expectation over $Q$ needs $\mathbb E[y'_c] = \pi_c$,
+$\mathbb E[y'_c\,\delta] = (1 - \lambda)\,\pi_c(\mu_c - x)$ and
+$\mathbb E[y'_c\,\delta\delta^\top] = (1 - \lambda)^2\,\pi_c\,[\Sigma_c + (\mu_c - x)(\mu_c - x)^\top]$. The first term's
+moments are the $\pi$-mixtures of these. $\square$
+
+* *Numerical check.* With skewed, non-Gaussian classes, the MixUp loss with real partners and with Gaussian partners
+  that match only $(\pi_c, \mu_c, \Sigma_c)$ agree to within 0.0003–0.0010 (losses near 2.2). Partners that match only
+  the means are off by up to 0.069.
+* *Consequence.* Partners from the MC-S-corrected generator, which match the exact class means and covariances,
+  give each client the MixUp regulariser of the *whole federation's* data. No client sees another's data. Under the
+  long tail this matters most: a client cannot mix toward classes it does not hold, but the synthetic partners cover
+  every class. The consensus part of the target is not moment-determined. It is the distillation of the ensemble along
+  the path from the client's real data into the federation's knowledge.
+
 **KME-Gen: the extreme case.** Train the generator *at the server only*, by MMD against the exact class embeddings
 $\mu_c$, with no federated generator training at all.
 * *Partition invariance.* $\mu_c$ equals the centralised embedding for every partition, so collapse, dilution and
@@ -370,7 +403,7 @@ $\mu_c$, with no federated generator training at all.
   dataset, so any value between 0.02 and 0.1 makes the same choice everywhere.
 * *Sampling:* MC, then KH. MC-S (Proposition 6) is the variant for the anchored generator where only second moments
   carry class identity.
-* *Heads:* LA + CSL with a 10-epoch synthetic budget.
+* *Heads:* LA + CSL with a 10-epoch synthetic budget; VCT in the real-data epochs (under test against MixUp, §5.11).
 * *Calibration:* gated BBC.
 
 Both gates (generator and BBC) use only exactly aggregated statistics: no labels at the server, no held-out data,
@@ -514,6 +547,26 @@ without a global tail.
 * *DP on class counts.* Laplace noise at ε = 1 on every client's class histogram costs 0.2 (FashionMNIST) and 1.3
   points (MNIST). At ε = 0.1 the method is still 11–14 points above GeFL-F.
 * *Memorisation.* Feature-space MND equals GeFL-F's.
+
+**Formal DP on every statistic the anchored method adds (E26; long tail, K = 10, 3 seeds; balanced accuracy).**
+
+| | MNIST | FashionMNIST |
+|---|---|---|
+| GeFL-F (no formal privacy) | 75.25 | 58.47 |
+| final method, exact statistics | 94.82 | 79.67 |
+| final method, $(8, 10^{-5})$-DP statistics | 90.36 | 72.77 |
+| final method, $(2, 10^{-5})$-DP statistics | 85.06 | 65.59 |
+
+* *Mechanism.* Features are clipped to the 90th-percentile norm of the public held-out pool. Each of the four
+  releases (counts, sums of $h$, sums of $\|h\|^2$, sums of $\phi(h)$) gets Gaussian noise, and the budget is split
+  equally under zCDP. Prototypes, MC and KH targets, and the BBC gate are post-processing.
+* *Gating noisy classes.* Where a class's noisy statistic would be too noisy to help, MC and KH fall back to the plain
+  generator for that class. This is decided from the noisy counts, at no extra cost. MC is applied to 7 of 10 classes
+  at $\varepsilon = 8$ and to 5 at $\varepsilon = 2$.
+* *Cost.* 4.5–6.9 points at $\varepsilon = 8$ and 9.8–14.1 at $\varepsilon = 2$, almost all on the rarest classes,
+  whose 24 samples cannot be both private and accurate. BBC no longer helps under DP.
+* *Still ahead.* Even at $\varepsilon = 2$ the method is 7–10 points above GeFL-F, which carries no formal guarantee.
+  The generator's FedAvg training is not DP, in either method.
 
 ### 5.7 What did not work
 
@@ -748,6 +801,8 @@ deviations), since the per-seed files have not been copied back yet.
   the rows on SVHN and the anchor everywhere else, which is the best choice in every regime measured.
 
 **Pending.**
+* VCT against MixUp inside the final method, CIFAR-10 IID and long tail (Kaggle K13). The target is image-space GeFL
+  + MixUp, 62.67.
 * Whether MC-S also helps the class rows on SVHN; SVHN and CIFAR-10 at K = 50 / 100 (Kaggle K12).
 * MC-S on MNIST and FashionMNIST (E31). FashionMNIST under the long tail so far: a tie without BBC, −1.4 with it.
 * FashionMNIST at K = 50 / 100 (Kaggle K06, K08); the IID setting at K = 50 / 100 (E27).
