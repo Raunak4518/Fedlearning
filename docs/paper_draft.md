@@ -29,7 +29,9 @@ Under a 100:1 long tail with Dirichlet(0.5) clients:
 * balanced accuracy rises from 75.3 to 95.2 on MNIST and from 58.5 to 80.6 on FashionMNIST (3 seeds,
   p ≤ 0.011);
 * tail recall rises from 52 to 91 and from 35 to 74;
-* on MNIST the method reaches the accuracy of its own heads re-fit on pooled real data.
+* on MNIST the method reaches the accuracy of its own heads re-fit on pooled real data;
+* with 100 clients it does not degrade (94.3, against GeFL-F's 76.0), because its generator has no class-specific
+  parameters to fit from shrinking per-client data.
 
 A minimal fix for the paper's own generators, holder-weighted aggregation of the class rows, already gives +12 to +20
 points on MNIST, FashionMNIST, SVHN and CIFAR-10. In GeFL-F's own IID setting the final method reaches 97.62 on
@@ -556,9 +558,36 @@ The MNIST IID GeFL-F and minimal-variant numbers come from F10 (same seeds).
   to the CVAE (tail fidelity 0.28). The interaction is +1.75, positive on every seed. The same holds on MNIST IID:
   +0.95 for the anchored generator, against −0.18 for consensus labels on the CVAE.
 
+**More clients (E22, MNIST long tail, K = 100, 3 seeds).**
+
+| | GeFL-F | CVAE + HWA + LA | FSG + LA | Ours-A, $T_s = 1$ | **Ours-A, $T_s = 10$** |
+|---|---|---|---|---|---|
+| balanced accuracy | 75.98 | 83.07 | 86.05 | 90.41 | **94.30** |
+| tail recall | 50.3 | 66.6 | 76.0 | 83.4 | **90.5** |
+
+* *Robust to K.* Ours-A loses only 0.5 points from K = 10 to K = 100, while the CVAE + HWA loses 4.7.
+* *Margins.* +18.3 over GeFL-F ($p = 0.0004$) and +8.3 over the Gaussian generator ($p = 0.001$).
+* *Proposition 3 again.* The synthetic budget is worth +3.9 at K = 100 against +1.7 at K = 10: the optimal synthetic
+  share $w^\star \propto 1/n_{	ext{real}}$ grows as each client holds fewer real samples (about 60 here).
+
+**Where anchoring fails: SVHN (K08, 3 seeds).**
+* *Result.* Ours-A gives 55.9 under the long tail against 62.5 for CVAE + HWA + LA, and 73.9 in IID against 75.8
+  for GeFL-F.
+* *Cause.* SVHN's class means carry no class information: nearest-class-mean accuracy is 13% in pixel space, at
+  chance 10%, against 80% (MNIST) and 69% (FashionMNIST). A generator whose class identity comes from the mean
+  cannot separate SVHN's classes.
+* *Fix under test.* The hybrid generator (PCR) adds HWA-aggregated class rows to the exact-mean anchor (E29, K10).
+
+**CIFAR-10 (K01, 3 seeds).**
+* *Long tail.* The Gaussian sufficient-statistics generator is best (44.2), ahead of CVAE + HWA + LA + CSL (42.1) and
+  GeFL-F (33.7).
+* *IID.* Ours (CVAE + HWA + LA + CSL) gives 60.02 against our GeFL-F's 59.10 (+0.92, $p = 0.015$).
+* *Caveat.* Our GeFL-F reproduction on CIFAR-10 IID is +3.2 above the paper's 55.86.
+* *Not beaten.* Image-space GeFL + MixUp (62.67, Table IV) remains above every result here. It uses a different
+  pipeline (no shared feature extractor) and data augmentation, which is orthogonal to our method.
+
 **Pending.**
-* CIFAR-10, SVHN and FashionMNIST at K = 50 / 100 (Kaggle K05, K06, K08).
-* MNIST at K = 100 under the long tail (E22).
+* CIFAR-10 with Ours-A and the hybrid (Kaggle K08, K10); FashionMNIST at K = 50 / 100 (K06, K08).
 * The IID setting at K = 50 / 100 (E27).
 * Formal DP on the anchoring statistics (E26).
 * The component ablation (K09).

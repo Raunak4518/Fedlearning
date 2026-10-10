@@ -559,11 +559,21 @@ def sec_clients():
 {note("flag", "Queued", "<p>F04 (K = 50 and K = 100 under the long tail, 3 seeds) starts automatically after F10.</p>")}
 {quick_clients()}
 </section>"""
+    f04 = f04 + with_gate(load("E22_pc_many_clients"))
     labels = [("GeFL-F", "GeFL-F"), ("+LA", "+LA"), ("+HWA+LA", "+HWA+LA"), ("+HWA+LA+CSL", "Ours (HWA+LA+CSL)"),
-              ("FSG+LA", "FSG+LA"), ("FSG+LA+CSL", "FSG+LA+CSL"), ("MIX+HWA+LA+CSL", "MIX+HWA+LA+CSL")]
+              ("FSG+LA", "FSG+LA"), ("FSG+LA+CSL", "FSG+LA+CSL"), ("MIX+HWA+LA+CSL", "MIX+HWA+LA+CSL"),
+              ("Ours-PC+MC", "PC-VAE + MC (E22)"), ("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A, T_s = 1 (E22)"),
+              ("Ours-A Ts=10", "Ours-A, T_s = 10 (E22): final")]
     ts = "".join(method_table(f04, labels, ["mnist"], [("final_bal", "balanced acc."), ("final_tail", "tail")],
-                              where=dict(K=K), caption=f"MNIST long tail, K = {K}", ours=("+HWA+LA", "+HWA+LA+CSL"))
+                              where=dict(K=K), caption=f"MNIST long tail, K = {K}", ours=("Ours-A Ts=10",))
                  for K in [50, 100] if any(r["K"] == K for r in f04))
+    ts += ("<p><b>The final method does not degrade with the number of clients.</b> Ours-A (T<sub>s</sub> = 10) scores 94.82 at K = 10 and "
+           "94.30 at K = 100, where the CVAE + HWA falls from 87.8 to 83.1. Its generator has no class-specific parameters, so nothing is "
+           "fitted from the shrinking per-client data. At K = 100 it is +18.3 over GeFL&#8209;F (p = 0.0004) and +8.3 over the Gaussian generator "
+           "(p = 0.001), positive on every seed. The 10-epoch synthetic budget is worth +3.9 at K = 100, against +1.7 at K = 10. This is "
+           "Proposition 3's w<sup>&star;</sup> &prop; 1/n<sub>real</sub>, with about 60 real images per client.</p>"
+           "<p class=\"small\">Rows for +HWA+LA+CSL, FSG+LA+CSL and MIX+HWA+LA+CSL at K = 50/100 are pending a rerun with the per-client "
+           "synthetic-slice fix (F04 queue).</p>")
     k03 = load("K03_kaggle_client_scaling")
     if k03:
         labs = [("GeFL-F", "GeFL-F"), ("+LA", "+LA"), ("+HWA+LA", "+HWA+LA"), ("Ours (HWA+LA+CSL)", "Ours (HWA+LA+CSL)"),
