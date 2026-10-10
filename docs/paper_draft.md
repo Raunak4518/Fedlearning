@@ -661,6 +661,24 @@ The MNIST IID GeFL-F and minimal-variant numbers come from F10 (same seeds).
 * *Proposition 3 again.* The synthetic budget is worth +3.9 at K = 100 against +1.7 at K = 10: the optimal synthetic
   share $w^\star \propto 1/n_{\text{real}}$ grows as each client holds fewer real samples (about 60 here).
 
+**The hybrid generator where the anchor works (E29, same seeds as E25 / E22).** PCR adds HWA-aggregated class
+rows to the anchored decoder. Paired against Ours-A at $T_s = 10$, it changes nothing measurable:
+
+| | Ours-A | hybrid PCR | difference |
+|---|---|---|---|
+| MNIST LT, K = 10 | 94.82 | 95.03 (BBC 95.34) | +0.22 ($p = 0.29$) |
+| MNIST LT, K = 100 (2 seeds) | 94.25 | 94.36 | +0.10 |
+| FashionMNIST LT | 79.67 | 79.60 (BBC 80.46) | −0.07 ($p = 0.51$) |
+| FashionMNIST IID (`best_mean_acc`) | 83.96 | 84.11 | +0.15 ($p = 0.28$) |
+
+* *No cost.* The rows cost nothing where the anchor is informative. At K = 100 they do not bring back the CVAE's
+  degradation with the number of clients: HWA keeps them from collapsing, and the anchor carries the location.
+* *Feature space.* The shared FE's feature space confirms the pixel-space ordering of class-mean separation. $F$ is
+  0.29 (MNIST) and 0.53–0.60 (FashionMNIST), and nearest-class-mean accuracy is 81–82% and 68–69%. The E30 smoke run
+  gives $F = 0.025$ and 11.5% on SVHN.
+* *What it means.* If PCR or MC-S also closes the SVHN gap (Kaggle K10, K11), a single generator serves every
+  dataset.
+
 **CIFAR-10 and SVHN (Kaggle K01, K08; 3 seeds, same seeds and splits).**
 
 | | CIFAR-10 LT | SVHN LT | CIFAR-10 IID | SVHN IID |
@@ -699,7 +717,7 @@ deviations), since the per-seed files have not been copied back yet.
 
 **Pending.**
 * MC-S in the full pipeline: SVHN and CIFAR-10 (Kaggle K11), and MNIST and FashionMNIST (E31).
-* The hybrid PCR on MNIST and FashionMNIST, including K = 100 (E29), and on SVHN and CIFAR-10 (Kaggle K10).
+* The hybrid PCR on SVHN (Kaggle K10, NB19).
 * FashionMNIST at K = 50 / 100 (Kaggle K06, K08); the IID setting at K = 50 / 100 (E27).
 * Formal DP on the anchoring statistics (E26); the component ablation (K09).
 

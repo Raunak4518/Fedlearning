@@ -576,11 +576,11 @@ def sec_clients():
 {note("flag", "Queued", "<p>F04 (K = 50 and K = 100 under the long tail, 3 seeds) starts automatically after F10.</p>")}
 {quick_clients()}
 </section>"""
-    f04 = f04 + with_gate(load("E22_pc_many_clients"))
+    f04 = f04 + with_gate(load("E22_pc_many_clients")) + [r for r in with_gate(load("E29_hybrid_generator")) if r["K"] > 10]
     labels = [("GeFL-F", "GeFL-F"), ("+LA", "+LA"), ("+HWA+LA", "+HWA+LA"), ("+HWA+LA+CSL", "Ours (HWA+LA+CSL)"),
               ("FSG+LA", "FSG+LA"), ("FSG+LA+CSL", "FSG+LA+CSL"), ("MIX+HWA+LA+CSL", "MIX+HWA+LA+CSL"),
               ("Ours-PC+MC", "PC-VAE + MC (E22)"), ("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A, T_s = 1 (E22)"),
-              ("Ours-A Ts=10", "Ours-A, T_s = 10 (E22): final")]
+              ("Ours-A Ts=10", "Ours-A, T_s = 10 (E22): final"), ("Ours-R Ts=10", "Hybrid PCR, T_s = 10 (E29)")]
     ts = "".join(method_table(f04, labels, ["mnist"], [("final_bal", "balanced acc."), ("final_tail", "tail")],
                               where=dict(K=K), caption=f"MNIST long tail, K = {K}", ours=("Ours-A Ts=10",))
                  for K in [50, 100] if any(r["K"] == K for r in f04))
@@ -916,14 +916,15 @@ def with_gate(runs):
 
 
 def sec_anchored():
-    e20, e24, e25 = (with_gate(load(x)) for x in ["E20_proto_generator", "E24_kme_generator", "E25_anchored_stack"])
-    runs = e20 + e24 + e25
+    e20, e24, e25, e29 = (with_gate(load(x)) for x in ["E20_proto_generator", "E24_kme_generator", "E25_anchored_stack",
+                                                       "E29_hybrid_generator"])
+    runs = e20 + e24 + e25 + [r for r in e29 if r["K"] == 10]
     if not e20:
         return ""
     labels = [("GeFL-F", "GeFL-F"), ("Ours (HWA+LA+CSL)", "Ours: HWA + LA + CSL"), ("Ours+MC", "+ MC"),
               ("Ours-PC+MC", "PC-VAE + MC"), ("Ours-KME (KME+LA+CSL)", "KME-Gen (no federated generator training)"),
               ("Ours-PC+MC+KH", "PC-VAE + MC + KH (E24)"), ("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A: PC + MC + KH (E25)"),
-              ("Ours-A Ts=10", "Ours-A, T_s = 10 (E25): final")]
+              ("Ours-A Ts=10", "Ours-A, T_s = 10 (E25): final"), ("Ours-R Ts=10", "Hybrid PCR (rows + anchor), T_s = 10 (E29)")]
     t_lt = method_table(runs, labels, ["mnist", "fmnist"], [("final_bal", "balanced acc."), ("method_bal", "with gated BBC")],
                         where=dict(IF=0.01), ref="GeFL-F", caption="Long tail (IF = 100, Dir 0.5, K = 10): the anchored stack",
                         ours=("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A Ts=10"))
@@ -947,7 +948,11 @@ def sec_anchored():
     t_kiid = method_table(kg, kilabels, ["cifar10", "svhn"], [("best_mean_acc", "best_mean_acc")], where=dict(IF=1.0, K=10), ref="GeFL-F",
                           caption="Paper's IID setting on CIFAR-10 and SVHN (paper's GeFL-F: 55.86 / 76.26; best of all ten methods: 59.36 / 76.26)",
                           ours=("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A Ts=10"))
-    kprose = """<p><b>CIFAR-10: the anchored method wins in both regimes.</b> Under the long tail Ours-A gives 46.1 at T<sub>s</sub> = 1 and about 49 with the gated BBC,
+    kprose = """<p><b>The hybrid generator costs nothing where the anchor works (E29, same seeds).</b> Adding HWA-aggregated class rows to the
+anchored decoder (PCR) leaves every MNIST and FashionMNIST result unchanged within noise: long tail +0.22 (MNIST, p = 0.29) and &minus;0.07 (FashionMNIST,
+p = 0.51); FashionMNIST IID +0.15 (p = 0.28); MNIST at K = 100 +0.10 (2 seeds; 94.36, so the rows do not bring back the CVAE's degradation with K).
+If it also fixes SVHN (Kaggle NB19, NB22), it becomes the single final method.</p>
+<p><b>CIFAR-10: the anchored method wins in both regimes.</b> Under the long tail Ours-A gives 46.1 at T<sub>s</sub> = 1 and about 49 with the gated BBC,
 against 44.2 for the best earlier method (the Gaussian generator) and 33.7 for GeFL&#8209;F (+12.3, +15 with BBC). Its tail fidelity after KH is 41 %, against 23 % for the
 CVAE + HWA. In the paper's IID setting it reaches 60.93 (T<sub>s</sub> = 10), the highest CIFAR-10 number here: +1.8 over our GeFL&#8209;F, +1.6 over the best of all ten
 methods in the paper and +5.1 over the paper's GeFL&#8209;F. Unpaired tests from the pasted means: the long-tail gains over everything but the Gaussian generator have
