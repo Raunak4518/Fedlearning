@@ -848,6 +848,50 @@ finds DDPM-F worse than CVAE-F on SVHN (73.38 vs 76.26). CSL still gains +0.5 (p
 </section>"""
 
 
+def with_gate(runs):
+    """Method output: BBC applied iff the federation's global label distribution is
+    imbalanced (exact aggregated counts; IF < 1 here). Adds 'method_bal'."""
+    out = []
+    for r in runs:
+        r = dict(r)
+        if r.get("bbc_bal") is not None:
+            applied = r.get("bbc_applied", r.get("IF", 1.0) < 1.0)
+            r["method_bal"] = r["bbc_bal"] if applied else r["final_bal"]
+        out.append(r)
+    return out
+
+
+def sec_anchored():
+    e20, e24, e25 = (with_gate(load(x)) for x in ["E20_proto_generator", "E24_kme_generator", "E25_anchored_stack"])
+    runs = e20 + e24 + e25
+    if not e20:
+        return ""
+    labels = [("GeFL-F", "GeFL-F"), ("Ours (HWA+LA+CSL)", "Ours: HWA + LA + CSL"), ("Ours+MC", "+ MC"),
+              ("Ours-PC+MC", "PC-VAE + MC"), ("Ours-KME (KME+LA+CSL)", "KME-Gen (no federated generator training)"),
+              ("Ours-PC+MC+KH", "PC-VAE + MC + KH (E24)"), ("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A: PC + MC + KH (E25)"),
+              ("Ours-A Ts=10", "Ours-A, T_s = 10 (E25)")]
+    t_lt = method_table(runs, labels, ["mnist", "fmnist"], [("final_bal", "balanced acc."), ("method_bal", "with gated BBC")],
+                        where=dict(IF=0.01), ref="GeFL-F", caption="Long tail (IF = 100, Dir 0.5, K = 10): the anchored stack",
+                        ours=("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A Ts=10"))
+    t_iid = method_table(runs, labels, ["fmnist"], [("best_mean_acc", "best_mean_acc"), ("final_bal", "final balanced")],
+                         where=dict(IF=1.0), ref="GeFL-F", caption="Paper's IID setting (FashionMNIST, K = 10)",
+                         ours=("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A Ts=10"))
+    return f"""
+<section id="s14"><h2><span class="num">14</span>Anchoring every stage to exact statistics</h2>
+<p class="deck">The method that emerged from the diagnostics: replace federated-averaged parameters by exactly aggregated statistics wherever they decide the result.</p>
+<p><b>PC-VAE</b> conditions the generator on the exact federated class mean, so it has no class-specific parameters to dilute or collapse.
+<b>MC</b> moves each generated class onto its exact mean and spread: among affine maps, the W<sub>2</sub>-optimal correction.
+<b>KH</b> herds the samples toward the exact class kernel embedding, a Frank&ndash;Wolfe step on the MMD term of the head's risk bound.
+<b>BBC</b> fits per-head logit offsets so each head predicts every class equally often on balanced, calibrated synthetic data. It is
+applied only when the exact global class counts are imbalanced: across 18 runs per regime it added +0.9 (MNIST) and +1.5 (FashionMNIST)
+under the long tail, and never helped in IID.
+<b>KME-Gen</b> is the extreme of the same idea, a generator trained only from exact kernel embeddings at the server with no federated training.
+It is far above GeFL&#8209;F at 1/3000 of the generator communication, but below the learned-decoder variants.</p>
+{t_lt}
+{t_iid}
+</section>"""
+
+
 def sec_summary():
     f01 = load("F01_main_longtail")
     f09 = load("F09_consensus_paper_setting")
@@ -885,7 +929,7 @@ SECTIONS = [("s0", "0", "The result on one page"), ("s1", "1", "Baseline validat
             ("s3", "3", "Long-tail main result"), ("s4", "4", "Paper's IID setting"), ("s4b", "4b", "IID headroom"), ("s4c", "4c", "Synthetic budget"), ("s5", "5", "Combined method"),
             ("s6", "6", "More clients"), ("s7", "7", "SVHN and CIFAR-10"), ("s8", "8", "What did not work"),
             ("s9", "9", "Privacy and cost"), ("s11", "11", "Against every GeFL variant"), ("s12", "12", "Regimes, ablations, privacy"),
-            ("s13", "13", "Diffusion generator"), ("s10", "10", "Reproduce")]
+            ("s13", "13", "Diffusion generator"), ("s14", "14", "Exact-statistics anchoring"), ("s10", "10", "Reproduce")]
 
 EXTRA_CSS = """
 .sd{color:var(--muted);font-size:.86em}
@@ -911,7 +955,7 @@ def build():
     stamp = datetime.datetime.now().strftime("%d %b %Y, %H:%M")
     rail = "".join(f'<li><a href="#{i}"><span class="n">{n}</span><span>{esc(t)}</span></a></li>' for i, n, t in SECTIONS)
     body = "".join(f() for f in [sec_summary, sec_validation, sec_diagnosis, sec_main, sec_paper_setting, sec_headroom, sec_budget,
-                                  sec_combined, sec_clients, sec_kaggle, sec_negative, sec_privacy, sec_vs_paper, sec_k02, sec_k04])
+                                  sec_combined, sec_clients, sec_kaggle, sec_negative, sec_privacy, sec_vs_paper, sec_k02, sec_k04, sec_anchored])
     body += """
 <section id="s10"><h2><span class="num">10</span>Reproduce</h2>
 <p>Each experiment is one standalone file built from <code>experiments/core.py</code> and a short spec, so it can be pasted into Kaggle.
