@@ -2090,6 +2090,11 @@ def run_one(cfg, run, cache, data_cache):
     if G is not None:
         bb = balanced_bias_calibration(ctx, headers, G, s1["feats_te"])
         res.update(bbc_bal=bb["bal"], bbc_tail=bb["tail"], bbc_acc=bb["acc"])
+        # gate (no test data): apply BBC only when the federation's GLOBAL label
+        # distribution is imbalanced, read off the exact aggregated class counts
+        glob_n = ctx.part["counts"].sum(0)
+        res["global_imbalance"] = float(glob_n.max() / max(glob_n.min(), 1))
+        res["bbc_applied"] = bool(res["global_imbalance"] > 2.0)
         gh, gu = synreal_gap(ctx, headers, G, s1["feats_te"])
         res.update(gap_held=gh, gap_unheld=gu)
     if s1["ref"] is not None:
