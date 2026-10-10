@@ -217,3 +217,45 @@ parameters:
 
 With all four, MNIST LT reaches 93.7 against an oracle of 94.1, and the oracle sees pooled real data. These are
 single-seed results; E25 (3 seeds) and K08 (CIFAR-10, SVHN, FMNIST K = 50/100) confirm or refute them.
+
+## 10. E25 (3 seeds): the anchored stack is the best method under the long tail
+
+| K = 10 | MNIST LT | FMNIST LT | FMNIST IID (`best_mean_acc`) |
+|---|---|---|---|
+| GeFL-F | 75.25 | 58.47 | 82.76 |
+| Ours: CVAE + HWA + LA + CSL, $T_s = 10$ (E16) | 90.15 | 79.23 | **84.34** |
+| PC-VAE + MC (E20) | 92.31 | 77.56 | 82.92 |
+| **Ours-A**: PC + MC + KH + LA + CSL | 93.11 | 78.22 | 83.35 |
+| **Ours-A, $T_s = 10$** | **94.82** | **79.67** | 83.96 |
+| Ours-A, $T_s = 10$, with gated BBC | **95.17** | **80.55** | 83.81 (BBC off: balanced counts) |
+| its oracle (last layer re-fit on pooled real data) | 94.93 | 81.55 | 84.09 |
+
+**Versus GeFL-F.**
+* +19.6 points on MNIST LT ($p = 0.002$) and +21.2 on FMNIST LT ($p = 0.011$).
+* +1.2 in the paper's IID setting ($p = 0.021$).
+* Tail recall rises from 51.9 to 91.1 (MNIST) and from 35.4 to 73.6 (FMNIST).
+
+**Versus the strongest earlier variant (CVAE + HWA, $T_s = 10$).**
+* +4.66 on MNIST LT and +0.45 on FMNIST LT, positive on every seed ($p = 0.05$ and $0.07$).
+* −0.38 on FMNIST IID ($p = 0.18$, not significant).
+* With balanced data, FedAvg does not collapse the CVAE's class rows, so the class-specific parameters cost nothing
+  there and add a little detail. Under imbalance they are exactly what fails.
+
+**Near-oracle under the long tail.** On MNIST LT the method (94.82; 95.17 with BBC) reaches the accuracy of its own
+heads with the last layer re-fit on *pooled real data* (94.93). The 10-head ensemble reaches 96.1 under a 100:1 tail,
+GeFL-F's level on *balanced* MNIST.
+
+**KH helps in all 9 paired comparisons** (3 settings × 3 seeds): +0.80 (MNIST LT), +0.66 (FMNIST LT), +0.43 (IID).
+The two-sided sign test over the 9 comparisons gives $p = 0.004$.
+
+*Mechanism.* The prototype-anchored decoder's raw samples are under-dispersed: tail spread is 0.39–0.49 of real. On
+FashionMNIST they are also *purer than real data* (referee fidelity 0.89–0.91, against the referee's 0.84 accuracy on
+real test data). MC and KH restore the spread (0.93–0.98) and move fidelity down to real-data difficulty (IID: 0.837
+vs 0.839), and accuracy rises. Heads gain from realistic, boundary-near samples, not from clean prototypes.
+
+**Proposition 3, confirmed where it bites.**
+* *MNIST.* With the anchored generator, $T_s = 10$ adds +1.70 on MNIST LT ($p = 0.04$). With the CVAE (tail
+  fidelity 0.28) it adds −0.05. The interaction is +1.75, positive on every seed: once the generator's label bias is
+  low, the larger synthetic budget pays, exactly as $w^\star = \sigma^2/(2 n_r b^2)$ predicts.
+* *FMNIST.* Both generators already gain from the budget, and the CVAE gains slightly more (+2.28 vs +1.46). The
+  proposition predicts the sign of $w^\star$'s change, not the size of the realised gain.

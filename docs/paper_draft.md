@@ -1,4 +1,4 @@
-# Rare Classes Vanish from Federated Feature Generators: Holder-Weighted Aggregation, Prior-Adjusted Headers and Consensus Labels for GeFL-F
+# Rare Classes Vanish from Federated Feature Generators — and How Exact Statistics Bring Them Back
 
 *Working draft. Every number below comes from `experiments/results/*/runs.jsonl` and is reproduced by
 `experiments/make_results_page.py`. Entries marked **[PENDING: …]** are filled when the named run finishes.*
@@ -7,25 +7,35 @@
 
 ## Abstract
 
-GeFL-F lets clients with different model architectures learn from each other. They share a feature extractor and a
-conditional feature generator, and train only their own classifier heads on real and generated features. We show that
-GeFL-F fails under long-tailed client data, for a reason that can be stated exactly. Under flat federated averaging
-with Adam's coupled weight decay, the generator's per-class conditioning rows of rare classes shrink every round
-whenever fewer than half the clients hold the class. The generator then emits class-agnostic features under rare
-labels. We measured this collapse on MNIST, FashionMNIST and SVHN: the tail-to-head row-norm ratio falls to 0.03–0.72.
+GeFL-F lets clients with different model architectures learn from each other. They share a small feature extractor
+and a conditional feature generator, and each trains its own classifier head on real and generated features. We
+show that GeFL-F fails under long-tailed client data, for a reason that can be stated exactly. Under federated
+averaging with Adam's coupled weight decay, the generator's class-conditioning rows shrink every round for every class
+held by fewer than half the clients. Rare classes vanish from the generator, and every head is then taught from
+class-agnostic features.
 
-We propose three changes, each derived from a specific failure.
-1. **Holder-weighted aggregation (HWA)** averages each conditioning row only over the clients that hold its class.
-2. **Prior-adjusted headers (LA)** train each head with logit adjustment by its client's own label prior.
-3. **Consensus soft labels (CSL)** label synthetic features with a mix of the one-hot label and the mean prediction of
-   all architectures' heads.
+The diagnosis suggests a principle: **anchor every stage of generator-based heterogeneous FL to exactly aggregated
+statistics** (sums that secure aggregation delivers) instead of to federated-averaged parameters. We instantiate it
+at every point where the data decides the result:
+* **class identity:** a generator conditioned on the exact federated class mean, with no class-specific parameters;
+* **moments:** the minimum-displacement correction of generated samples to the exact class mean and spread;
+* **distribution:** kernel herding of samples toward the exact class kernel mean embedding;
+* **classifier bias:** server-side calibration on the anchored generator.
 
-None of the three shares raw data, real features, or per-client histograms in the clear. HWA and LA together add
-under 2% compute. Under a 100:1 long tail with Dirichlet(0.5) clients, balanced accuracy rises by +13.3 points on MNIST
-(p = 0.004) and +17.4 on FashionMNIST (p = 0.015) with HWA + LA. The full method adds CSL and reaches +15.6 and
-+17.6 (F10). Tail recall rises by 30 or more points. On SVHN the gain is +12.0. In GeFL-F's own IID setting, CSL improves on every
-seed: +0.69 on MNIST, +0.49 on FashionMNIST and +0.48 on SVHN. We validated the GeFL-F baseline against the
-authors' released code and the published numbers; it is within 0.6 points of both.
+On the heads we use logit adjustment by each client's own prior and cross-architecture consensus soft labels. With
+these labels, a larger synthetic budget pays off once the generator is faithful (Proposition 3, confirmed).
+
+Under a 100:1 long tail with Dirichlet(0.5) clients:
+* balanced accuracy rises from 75.3 to 95.2 on MNIST and from 58.5 to 80.6 on FashionMNIST (3 seeds,
+  p ≤ 0.011);
+* tail recall rises from 52 to 91 and from 35 to 74;
+* on MNIST the method reaches the accuracy of its own heads re-fit on pooled real data.
+
+A minimal fix for the paper's own generators, holder-weighted aggregation of the class rows, already gives +12 to +20
+points on MNIST, FashionMNIST, SVHN and CIFAR-10. In GeFL-F's own IID setting, our CVAE-based variant matches or
+exceeds the best of all ten methods in the paper on MNIST (96.77 vs 96.44), FashionMNIST (84.34 vs 84.28) and SVHN
+(76.30 vs 76.26). We validated the GeFL-F baseline against the authors' released code. Formal privacy is cheap:
+ε = 1 on every client's class counts costs at most 1.3 points.
 
 ---
 
@@ -45,12 +55,18 @@ number of clients grows and as the tail lengthens.
 1. **Diagnosis (§3).** An exact recursion for a conditioning row under flat averaging with coupled weight decay. It
    predicts collapse whenever $m_c < K/2$, where $m_c$ is the number of clients holding class $c$. We confirm it with
    row norms and with generator fidelity measured by an independent referee classifier.
-2. **Method (§4).** HWA, LA and CSL. Each fixes one measured failure. Each reduces to GeFL-F when its failure is absent.
-   All three are compatible with secure aggregation.
-3. **Validation of the baseline (§5.2).** We ran the authors' code next to ours, so the improvement is measured from a
+2. **A minimal fix (§4.1–4.3).** HWA, LA and CSL. Each fixes one measured failure and each reduces to GeFL-F when
+   its failure is absent. All three are compatible with secure aggregation.
+3. **A principle and its instantiation (§4.5).** Anchoring to exact statistics:
+   * PC-VAE: the generator has no class-specific parameters;
+   * MC: the minimum-displacement moment correction (Proposition 4);
+   * KH: kernel herding on the MMD term of the head's risk bound;
+   * BBC: server-side bias calibration, gated by exact global counts;
+   * KME-Gen, the extreme case: a generator trained only from exact kernel embeddings, with no federated training.
+4. **Validation of the baseline (§5.2).** We ran the authors' code next to ours, so the improvement is measured from a
    faithful baseline.
-4. **Evidence (§5).** Paired-seed experiments in the long-tail and IID settings, more clients, SVHN and CIFAR-10,
-   ablations, a DP-noised variant, and a record of the ideas that did not work.
+5. **Evidence (§5).** Paired-seed experiments in the long-tail and IID settings, more clients, SVHN and CIFAR-10,
+   ablations, a DP-noised variant, and a record of the ideas that did not work and why (§5.7).
 
 ---
 
@@ -161,7 +177,7 @@ approximate the Bayes posterior is due to Menon et al. (ICML 2021); CSL applies 
 cross-architecture ensemble. CSL uses no real data and no client message beyond GeFL-F's. The server broadcasts the pool
 seed and the $P \times C$ soft labels (about 24 KB per round here).
 
-### 4.3b Why consensus labels make more synthetic data useful (Proposition 3)
+### 4.4 Why consensus labels make more synthetic data useful (Proposition 3)
 
 **Stylised model.** A head estimates a parameter $\theta^\star$ from $n_r$ real samples and $n_s$ synthetic samples,
 weighting the synthetic part by $\lambda \in [0, 1]$. Real samples are unbiased with per-sample variance $\sigma^2$.
@@ -191,12 +207,75 @@ epochs should be larger with CSL than without it. That is exactly what E16 measu
 to 5 without CSL, +0.83 with it). It also explains why the budget helps more under the long tail once HWA has made
 tail features faithful, since a lower generator error is a lower $b$ as well.
 
-### 4.4 The method in one line
+### 4.5 Anchoring every stage to exact statistics
 
-GeFL-F with HWA in stage (ii), and LA and CSL in stage (iii). F10 (§5.5) confirmed that the three parts add. In IID
-data the method reduces to GeFL-F + CSL.
+HWA repairs a FedAvg-trained generator. The diagnosis of §3, together with the measurements of §5, points to a
+cleaner design. Wherever the data decides the result, use a statistic that secure aggregation computes **exactly** —
+sums over clients of per-class quantities — instead of a parameter that FedAvg *estimates*. Every statistic below
+costs one upload per client and reveals only federation-level sums.
 
----
+**PC-VAE: class identity from the exact class mean.**
+* *Prototypes.* The server computes $m_c = \sum_k \sum_{i \in k, y_i = c} h_i \,/\, \sum_k n_{kc}$.
+* *Decoder.* It models only the within-class residual, $\tilde h = \mathrm{ReLU}(m_y + \mathrm{dec}(z, m_y))$, and
+  receives $m_y$ through a class-*shared* projection.
+* *Encoder.* It sees $m_y$ as an extra channel.
+* *Consequence.* There is no class-specific parameter, so the collapse recursion of §3 has nothing to act on.
+  Tail classes borrow within-class variation from every class through the shared decoder. A linear decoder recovers
+  a Gaussian class-conditional model.
+
+**MC: the minimum-displacement moment correction.** The server also knows each class's exact spread
+$V_c = \mathbb E\|h - m_c\|^2$, from the sums of $\|h\|^2$. Let $\tilde m_c$ and $\tilde V_c$ be the mean and spread
+of the generator's class-$c$ samples. MC maps $x \mapsto \mathrm{ReLU}\!\big(m_c + \sqrt{V_c/\tilde V_c}\,(x - \tilde m_c)\big)$.
+
+*Proposition 4.* Among **all** maps $T$ with $\mathbb E\,T(X) = m_c$ and $\mathbb E\|T(X) - m_c\|^2 = V_c$ (with
+$X$ the generator's class-$c$ sample), the map $T^\star(x) = m_c + \sqrt{V_c/\tilde V_c}\,(x - \tilde m_c)$ minimises
+the expected displacement $\mathbb E\|T(X) - X\|^2$.
+
+*Proof.* Let $Y = T(X)$. Since $\mathbb E[Y - m_c] = \mathbb E[X - \tilde m_c] = 0$,
+$\mathbb E\|Y - X\|^2 = V_c + \tilde V_c + \|m_c - \tilde m_c\|^2 - 2\,\mathbb E\langle Y - m_c,\, X - \tilde m_c\rangle$.
+By Cauchy–Schwarz, the last expectation is at most $\sqrt{V_c\tilde V_c}$, with equality iff
+$Y - m_c = \sqrt{V_c/\tilde V_c}\,(X - \tilde m_c)$. $\square$
+
+MC therefore fixes exactly the two moments the generator is measurably wrong about, and changes the samples as little
+as possible. The ReLU projects onto the non-negative orthant where FE features live.
+
+**KH: kernel herding toward the exact class embedding.**
+* *Embedding.* With bounded random Fourier features $\phi$, the server receives the exact class mean embeddings
+  $\mu_c = \sum_k \sum_{i \in k, y_i = c}\phi(h_i) / n_c$ in one upload.
+* *Selection.* For each class, from $4n$ calibrated candidates, KH greedily selects $n$ by Frank–Wolfe on
+  $\|\frac1n\sum_t \phi(x_t) - \mu_c\|$ (kernel herding).
+* *Why this target.* For a head whose loss lies in the RKHS with norm at most $B$,
+  $|\mathbb E_{G_c}\ell - \mathbb E_{P_c}\ell| \le B\,\mathrm{MMD}(G_c, P_c)$. KH lowers exactly the term of the
+  head's risk bound that limits all knowledge transfer (§5.7, SED).
+
+**BBC: balanced bias calibration on the anchored generator.**
+* *Fit.* After training, the server fits $C$ logit offsets $b_g$ per head $g$ so that the head predicts every class
+  equally often on class-balanced synthetic data. This is the prior-correction fixed point
+  $b \leftarrow b - \log(C\,\bar q(b))$ of Saerens et al. (2002) in logit form.
+* *Gate.* It is switched on only when the exact global class counts are imbalanced (max/min > 2; any threshold
+  between 1 and 10 gives the same decisions on our regimes). It uses no test or held-out data.
+* *Role.* It corrects the residual bias that LA's prior correction leaves when tail classes are also intrinsically
+  hard (FashionMNIST's shirt and coat), without tuning LA's temperature.
+
+**KME-Gen: the extreme case.** Train the generator *at the server only*, by MMD against the exact class embeddings
+$\mu_c$, with no federated generator training at all.
+* *Partition invariance.* $\mu_c$ equals the centralised embedding for every partition, so collapse, dilution and
+  client drift cannot occur.
+* *Formal privacy.* Since $\|\phi\| \le \sqrt2$, Gaussian-mechanism DP on the single release covers the whole
+  synthetic channel by post-processing.
+* *Cost.* One upload of about 0.3 MB replaces 100 rounds of generator FedAvg.
+* *Result.* It beats GeFL-F by 13–16 points, but a learned decoder anchored by PC + MC + KH is better (§5.11).
+
+### 4.6 The method in one line
+
+**Ours-A.**
+* *Generator:* PC-VAE trained by FedAvg on the frozen FE's features.
+* *Sampling:* MC, then KH.
+* *Heads:* LA + CSL with a 10-epoch synthetic budget.
+* *Calibration:* gated BBC.
+
+**The minimal variant** for an existing GeFL-F deployment is HWA + LA + CSL. It keeps the paper's generator
+(CVAE-F or DDPM-F) unchanged apart from aggregation.
 
 ## 5. Experiments
 
@@ -307,13 +386,32 @@ Matched seeds and splits, 3 seeds.
   has made the tail features faithful, as §4.3 predicts: relabelling class-agnostic features cannot help.
 * **IID.** The full method is within 0.05 of + CSL. HWA + LA neither helps nor hurts there.
 
-### 5.6 Regimes, privacy and ablations (K02)
+### 5.6 Regimes, privacy and ablations (K02, Kaggle; minimal variant HWA + LA + CSL)
 
-**[PENDING:]**
-* label skew without a tail (IF = 1, Dir 0.5) and a mild tail (IF = 10);
-* Laplace-noised counts at $\varepsilon \in \{10, 1, 0.1\}$, and feature-space memorisation (MND);
-* ablations: each component removed, HWA weighting ($E(n)$ vs $n$ vs uniform), $\tau \in \{1, 1.5, 2\}$, and
-  CSL $\beta \in \{0.25, 0.5, 0.75\}$.
+**The gain grows with imbalance** (balanced accuracy, K = 10, 3 seeds):
+
+| | MNIST: GeFL-F → ours | FashionMNIST: GeFL-F → ours |
+|---|---|---|
+| label skew only (IF = 1, Dir 0.5) | 89.8 → 95.6 (+5.8) | 74.1 → 79.2 (+5.1) |
+| mild tail (IF = 10) | 86.9 → 94.3 (+7.4) | 72.6 → 79.4 (+6.8) |
+| heavy tail (IF = 100) | 75.3 → 90.2 (+14.8) | 58.9 → 76.5 (+17.6) |
+
+Dirichlet(0.5) already leaves some classes on fewer than half the clients, so the collapse term of §3 is active even
+without a global tail.
+
+**Ablations** (IF = 100):
+* *Necessary components.* Removing HWA costs 7–8 points, and removing LA 5–8.
+* *HWA's weighting rule is irrelevant.* Effective number, raw counts and uniform weighting over holders are within
+  0.4 points of each other. This is predicted: the damage comes from *non-holders'* decay.
+* *CSL.* It matters where the generator's labels are poor (MNIST: −2.5 without it) and not where they are decent
+  (FashionMNIST).
+* *LA temperature.* τ = 2 helps FashionMNIST (+1.4) and slightly hurts MNIST. BBC captures this residual bias
+  without tuning.
+
+**Privacy.**
+* *DP on class counts.* Laplace noise at ε = 1 on every client's class histogram costs 0.2 (FashionMNIST) and 1.3
+  points (MNIST). At ε = 0.1 the method is still 11–14 points above GeFL-F.
+* *Memorisation.* Feature-space MND equals GeFL-F's.
 
 ### 5.7 What did not work
 
@@ -339,17 +437,27 @@ what the working method actually fixes.
   * *Why.* The bound $R_{\text{real}} \le R_{\text{syn}} + \ell_{\max}\,\mathrm{TV}(p_{\text{syn}}, p_{\text{real}})$
     explains it. In IID data the heads are already good, so the generator's infidelity dominates what distillation
     adds. The ensemble's knowledge can reach the heads only through features as faithful as the generator's.
-  * *Implication.* The remaining IID gap to the paper's best FMNIST number (DDPM-F) is a *generator* gap. §5.9 tests
+  * *Implication.* The remaining IID gap to the paper's best FMNIST number (DDPM-F) is a *generator* gap. §5.8 tests
     exactly that.
 
-### 5.9 Generator-agnostic: our method on DDPM-F, the paper's best feature generator
+* **Bayesian consensus labels.**
+  * *Idea.* Replace CSL's fixed mixture by the Bayes posterior under symmetric generator noise, with the generator's
+    fidelity estimated without labels from ensemble agreement.
+  * *Result.* Worse than CSL: 83.16 vs 84.22 on FashionMNIST IID ($p = 0.004$), and 87.3 vs 90.5 on MNIST LT.
+  * *Why.* The estimate is circular. The ensemble was trained on the generator's own samples, so it agrees with
+    their labels ($\hat\rho \to 0.999$), and the target collapses to the hard label.
+  * *Lesson.* CSL works as *distillation* of the ensemble's class-similarity structure, not as label correction.
+* **Held-class real–synthetic alignment.** Aligning each head's embedding of synthetic features to that of real
+  features on the classes a client holds *increased* the synthetic–real gap on unheld classes. Dropped.
+
+### 5.8 Generator-agnostic: our method on DDPM-F, the paper's best feature generator
 
 The best FMNIST result of any GeFL variant in the paper is 84.28, from GeFL-F with the feature diffusion model
 DDPM-F. Our components do not depend on the generator:
 * HWA averages the class columns of DDPM-F's two context-embedding layers over holders.
 * LA and CSL act on the heads.
 
-We ported the authors' DDPM-F unchanged: the ddpm16 ContextUnet, $n_T = 200$, a linear $eta$ schedule from
+We ported the authors' DDPM-F unchanged: the ddpm16 ContextUnet, $n_T = 200$, a linear $\beta$ schedule from
 $10^{-4}$ to 0.02, context dropout 0.1, and Adam at $10^{-4}$ decayed linearly to 0 over $T_{KA}$ rounds, then frozen.
 It runs GeFL-F, + CSL and Ours on it. Every round, all clients' synthetic phases draw from one shared pool of fresh
 uniform-label samples. For each head this is exactly the reference's per-client draw in distribution, at 1/K of the
@@ -360,7 +468,7 @@ In our hands DDPM-F is only +0.28 over CVAE-F on the same seed, and CSL does not
 more diverse but less class-pure, with referee fidelity 0.55 against 0.86. **[PENDING: seeds 1–2, and K04 on
 Kaggle.]**
 
-### 5.9b Consensus labels make a larger synthetic budget useful (E16, FMNIST IID, 3 seeds)
+### 5.9 Consensus labels make a larger synthetic budget useful (E16, FMNIST IID, 3 seeds)
 
 **Prediction.** Train a head on real data plus a share $\lambda$ of synthetic data. Its error is roughly
 $\sigma^2/(n_{\text{real}}+\lambda n_{\text{syn}}) + \lambda^2 b(t)^2$, where $b(t)$ is the bias of the synthetic label
@@ -412,7 +520,39 @@ Our method keeps GeFL-F's FE and privacy model. The fair claims are therefore:
 1. over GeFL-F with the same FE and generator;
 2. over the best of *all* variants wherever the FE is not the bottleneck: MNIST, SVHN, and FMNIST pending DDPM-F.
 
-### 5.8 Cost
+### 5.11 The anchored method (E20, E24, E25; K = 10, 3 seeds unless marked)
+
+| | MNIST LT | FMNIST LT | FMNIST IID (`best_mean_acc`) |
+|---|---|---|---|
+| GeFL-F | 75.25 | 58.47 | 82.76 |
+| minimal variant, CVAE + HWA + LA + CSL, $T_s = 10$ | 90.15 | 79.23 | **84.34** |
+| PC-VAE + MC | 92.31 | 77.56 | 82.92 |
+| KME-Gen, server-only generator (1 seed) | 89.88 | 75.11 | 81.82 |
+| Ours-A: PC + MC + KH + LA + CSL, $T_s = 1$ | 93.11 | 78.22 | 83.35 |
+| **Ours-A, $T_s = 10$** | **94.82** | **79.67** | 83.96 |
+| **Ours-A, $T_s = 10$, + gated BBC** | **95.17** | **80.55** | 83.81 (BBC off) |
+| oracle: its heads, last layer re-fit on pooled real data | 94.93 | 81.55 | 84.09 |
+
+**Against GeFL-F and the minimal variant.**
+* Over GeFL-F: +19.6 ($p = 0.002$) and +21.2 ($p = 0.011$) under the long tail, and +1.2 in IID ($p = 0.021$).
+* Over the minimal variant: +4.7 and +0.5 under the long tail (positive on every seed), and −0.4 in IID
+  ($p = 0.18$).
+* *Why the IID gap.* In balanced data FedAvg does not collapse class rows, so the CVAE's class-specific parameters
+  cost nothing and add detail.
+
+**Mechanism, measured.**
+* *Raw samples.* The anchored decoder's raw samples are under-dispersed (tail spread 0.39–0.49 of real). On
+  FashionMNIST they are also *purer than real data*: referee fidelity 0.89–0.91, against the referee's 0.84 accuracy
+  on real test data.
+* *After MC and KH.* Spread is restored to 0.93–0.98, and fidelity moves to real-data difficulty (IID: 0.837 vs
+  0.839).
+* *KH.* It helps in all 9 paired comparisons: +0.80, +0.66 and +0.43, sign test $p = 0.004$.
+* *Proposition 3.* With the anchored generator, $T_s = 10$ adds +1.70 on MNIST LT ($p = 0.04$), where it added −0.05
+  to the CVAE (tail fidelity 0.28). The interaction is +1.75, positive on every seed.
+
+**Pending.** CIFAR-10, SVHN and FashionMNIST at K = 50 / 100 (Kaggle K05, K06, K08), and MNIST at K = 100 (E22).
+
+### 5.12 Cost
 
 Summed over all stages, our method takes 373 s per run against GeFL-F's 366 s (+1.9%), measured on MNIST under the
 long tail, averaged over 3 seeds. Communication adds $C$ numbers per client per round for HWA, and one broadcast of
@@ -528,6 +668,13 @@ consensus is what tracks the generator's per-sample label error, the bias $b$ of
 ---
 
 ## 7. Limitations
+
+* **Balanced data.** In exactly balanced (IID) data the anchored generator is marginally below the CVAE + HWA
+  variant (−0.4, not significant). Under any label skew it is better.
+* **Upper bound.** Every method is bounded by the frozen shared feature extractor, which GeFL-F's protocol fixes. On
+  CIFAR-10 this bound (oracle ≈ 50 under the long tail) is far below the image-space GeFL numbers in the paper.
+* **What the statistics reveal.** The exact statistics are federation-level sums, plus counts. Classes held by a
+  single client are not hidden by secure aggregation; DP noise (§5.6) is the remedy, at a measured cost.
 
 * Results so far are on small images and on the paper's backbone sizes. Larger FEs could change the generator's
   failure profile. SVHN and CIFAR-10 are under way.

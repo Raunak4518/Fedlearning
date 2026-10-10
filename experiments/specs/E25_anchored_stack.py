@@ -12,7 +12,7 @@ generator lowers the label bias, so the larger budget should now pay on MNIST).
 E24 seed 0: MNIST LT 92.9 (BBC 93.7), FMNIST LT 77.5 (79.3), FMNIST IID 83.5.
 """
 LABELS = [("Ours-A (PC+MC+KH+LA+CSL)", "PC+LA+CSL+MC+KH", 1), ("Ours-A Ts=10", "PC+LA+CSL+MC+KH", 10)]
-SETTINGS = [("mnist", 0.01, 0.5), ("fmnist", 0.01, 0.5), ("fmnist", 1.0, None)]
+SETTINGS = [("mnist", 0.01, 0.5), ("fmnist", 0.01, 0.5), ("fmnist", 1.0, None), ("mnist", 1.0, None)]
 EXPERIMENT = dict(
     name="E25_anchored_stack",
     title="Exact-statistics-anchored stack (PC + MC + KH + BBC) with LA + CSL",

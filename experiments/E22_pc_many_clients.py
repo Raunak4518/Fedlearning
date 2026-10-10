@@ -2335,15 +2335,16 @@ def main(exp):
 # ======================================================================
 #  Experiment definition
 # ======================================================================
-LABELS = [("Ours-PC+MC", "PC+LA+CSL+MC"), ("Ours-A (PC+MC+KH+LA+CSL)", "PC+LA+CSL+MC+KH")]
+LABELS = [("Ours-PC+MC", "PC+LA+CSL+MC", 1), ("Ours-A (PC+MC+KH+LA+CSL)", "PC+LA+CSL+MC+KH", 1),
+          ("Ours-A Ts=10", "PC+LA+CSL+MC+KH", 10)]
 EXPERIMENT = dict(
     name="E22_pc_many_clients",
-    title="PC-VAE + MC at K = 100 clients (MNIST long tail)",
+    title="Anchored stack at K = 100 clients (MNIST long tail)",
     hypothesis="PC + MC does not degrade with K: >= FSG (86.1) at K = 100.",
     reference="Ours-PC+MC",
     metrics=["final_bal", "final_tail", "best_mean_acc", "fidelity_tail_mc", "spread_tail_mc"],
-    plan=lambda cfg: [run_spec(lab, "mnist", s, compose(c), IF=0.01, alpha=0.5, K=100)
-                      for s in cfg["seeds"] for lab, c in LABELS],
+    plan=lambda cfg: [run_spec(lab, "mnist", s, compose(c, head=dict(ts=ts)), IF=0.01, alpha=0.5, K=100)
+                      for s in cfg["seeds"] for lab, c, ts in LABELS],
 )
 
 

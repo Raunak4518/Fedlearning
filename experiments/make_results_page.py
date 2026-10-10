@@ -869,7 +869,7 @@ def sec_anchored():
     labels = [("GeFL-F", "GeFL-F"), ("Ours (HWA+LA+CSL)", "Ours: HWA + LA + CSL"), ("Ours+MC", "+ MC"),
               ("Ours-PC+MC", "PC-VAE + MC"), ("Ours-KME (KME+LA+CSL)", "KME-Gen (no federated generator training)"),
               ("Ours-PC+MC+KH", "PC-VAE + MC + KH (E24)"), ("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A: PC + MC + KH (E25)"),
-              ("Ours-A Ts=10", "Ours-A, T_s = 10 (E25)")]
+              ("Ours-A Ts=10", "Ours-A, T_s = 10 (E25): final")]
     t_lt = method_table(runs, labels, ["mnist", "fmnist"], [("final_bal", "balanced acc."), ("method_bal", "with gated BBC")],
                         where=dict(IF=0.01), ref="GeFL-F", caption="Long tail (IF = 100, Dir 0.5, K = 10): the anchored stack",
                         ours=("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A Ts=10"))
@@ -877,7 +877,7 @@ def sec_anchored():
                          where=dict(IF=1.0), ref="GeFL-F", caption="Paper's IID setting (FashionMNIST, K = 10)",
                          ours=("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A Ts=10"))
     return f"""
-<section id="s14"><h2><span class="num">14</span>Anchoring every stage to exact statistics</h2>
+<section id="s14"><h2><span class="num">14</span>Final method: anchoring every stage to exact statistics</h2>
 <p class="deck">The method that emerged from the diagnostics: replace federated-averaged parameters by exactly aggregated statistics wherever they decide the result.</p>
 <p><b>PC-VAE</b> conditions the generator on the exact federated class mean, so it has no class-specific parameters to dilute or collapse.
 <b>MC</b> moves each generated class onto its exact mean and spread: among affine maps, the W<sub>2</sub>-optimal correction.
@@ -887,49 +887,77 @@ applied only when the exact global class counts are imbalanced: across 18 runs p
 under the long tail, and never helped in IID.
 <b>KME-Gen</b> is the extreme of the same idea, a generator trained only from exact kernel embeddings at the server with no federated training.
 It is far above GeFL&#8209;F at 1/3000 of the generator communication, but below the learned-decoder variants.</p>
+<p><b>What the three seeds show.</b> At T<sub>s</sub> = 10 the full stack is +19.6 (MNIST) and +21.2 (FashionMNIST) points over GeFL&#8209;F,
+and +4.7 / +0.5 over the best earlier variant, positive on every seed. On MNIST it reaches the accuracy of its own heads with the last layer re-fit
+on pooled real data. KH helped in all nine paired comparisons (sign test p = 0.004). It works by restoring spread and realistic difficulty: the
+anchored decoder's raw samples are under-dispersed (0.39&ndash;0.49 of the real spread) and, on FashionMNIST, purer than real data. After KH,
+spread is 0.93&ndash;0.98 and IID fidelity equals the referee's own accuracy on real data (0.837 vs 0.839). With the anchored generator, the
+10-epoch synthetic budget adds +1.7 on MNIST, where it added nothing to the CVAE. This is the interaction Proposition 3 predicts once the
+generator's label bias is low. In balanced (IID) data the CVAE + HWA variant remains marginally better (84.34 vs 83.96, p = 0.18): FedAvg does
+not collapse class rows when every client holds every class.</p>
 {t_lt}
 {t_iid}
 </section>"""
 
 
 def sec_summary():
-    f01 = load("F01_main_longtail")
+    e20, e25 = with_gate(load("E20_proto_generator")), with_gate(load("E25_anchored_stack"))
     f09 = load("F09_consensus_paper_setting")
-    f10 = load("F10_combined_method")
-    lt10 = all(len(pick(f10, l, "final_bal", dataset=d, IF=0.01)) == 3 for l in ["GeFL-F", "+HWA+LA+CSL"] for d in ["mnist", "fmnist"])
-    src, lab = (f10, "+HWA+LA+CSL") if lt10 else (f01, "+HWA+LA")
-    w = dict(IF=0.01)
-    gain = lambda ds: mean(pick(src, lab, "final_bal", dataset=ds, **w)) - mean(pick(src, "GeFL-F", "final_bal", dataset=ds, **w))
-    tail = lambda ds: mean(pick(src, lab, "final_tail", dataset=ds, **w)) - mean(pick(src, "GeFL-F", "final_tail", dataset=ds, **w))
-    pv = max(paired_p(pick(src, lab, "final_bal", dataset=d, **w), pick(src, "GeFL-F", "final_bal", dataset=d, **w)) or 1 for d in ["mnist", "fmnist"])
+    fin = "Ours-A Ts=10"
+    have = bool(pick(e25, fin, "final_bal", dataset="mnist", IF=0.01))
+    w = dict(IF=0.01, K=10)
+
+    def g(ds, m="method_bal"):
+        return mean(pick(e25, fin, m, dataset=ds, **w)) - mean(pick(e20, "GeFL-F", "final_bal", dataset=ds, **w))
+
+    def tl(ds):
+        return mean(pick(e25, fin, "final_tail", dataset=ds, **w)), mean(pick(e20, "GeFL-F", "final_tail", dataset=ds, **w))
+    pv = max((paired_p(pick(e25, fin, "final_bal", dataset=d, **w), pick(e20, "GeFL-F", "final_bal", dataset=d, **w)) or 1)
+             for d in ["mnist", "fmnist"]) if have else 1
+    iid = mean(pick(e25, fin, "best_mean_acc", dataset="fmnist", IF=1.0, K=10)) if have else None
     csl = lambda ds: (mean(pick(f09, "+CSL (beta=0.5)", "best_mean_acc", dataset=ds, K=10, IF=1.0)) - mean(pick(f09, "GeFL-F", "best_mean_acc", dataset=ds, K=10, IF=1.0)))
+    if have:
+        tm, tf = tl("mnist"), tl("fmnist")
+        card1 = (f'<div class="t2">+{g("mnist"):.1f} / +{g("fmnist"):.1f} points balanced accuracy</div>'
+                 f'<p>MNIST / FashionMNIST, IF = 100, final method over GeFL&#8209;F, 3 seeds, p &le; {pv:.3f}. '
+                 f'Tail recall {tm[1]:.0f} &rarr; {tm[0]:.0f} and {tf[1]:.0f} &rarr; {tf[0]:.0f}. On MNIST it reaches its own pooled-real-data oracle.</p>')
+    else:
+        card1 = "<div class=\"t2\">pending</div>"
     return f"""
 <section id="s0"><h2><span class="num">0</span>The result on one page</h2>
 <div class="verdict">
-  <div class="v g"><div class="k">Long-tailed clients</div><div class="t2">+{gain('mnist'):.1f} / +{gain('fmnist'):.1f} points balanced accuracy</div>
-    <p>MNIST / FashionMNIST, {"final method (F10)" if lt10 else "HWA + LA (F01)"} over GeFL&#8209;F, 3 seeds, p &le; {pv:.3f}. Tail recall +{tail('mnist'):.0f} / +{tail('fmnist'):.0f}. SVHN +12.0 (3 seeds).</p></div>
-  <div class="v a"><div class="k">Paper's own IID setting</div><div class="t2">+{csl('mnist'):.2f} / +{csl('fmnist'):.2f} points best_mean_acc</div>
-    <p>Consensus soft labels win on every seed, on MNIST, FashionMNIST and SVHN (+0.48). They are 1.2 points above the paper's published MNIST number, tie it on FashionMNIST, and match it on SVHN (76.30 vs 76.26).</p></div>
+  <div class="v g"><div class="k">Long-tailed clients</div>{card1}</div>
+  <div class="v a"><div class="k">Paper's own IID setting</div><div class="t2">Above or level with the paper's best variant</div>
+    <p>Our CVAE-based variant (HWA + LA + CSL): MNIST 96.77 (paper's best of all ten methods: 96.44), FashionMNIST 84.34 at T<sub>s</sub> = 10
+    (best: 84.28, a diffusion generator), SVHN 76.30 (76.26). The anchored final method gives {iid:.2f} on FashionMNIST IID
+    (&minus;0.4 against the CVAE variant, p = 0.18).</p></div>
   <div class="v t"><div class="k">Baseline validated</div><div class="t2">Our GeFL&#8209;F = the paper = the authors' code</div>
     <p>Within half a point at K = 10, 50, 100. Our baseline is slightly <em>weaker</em> than theirs under the long tail.</p></div>
 </div>
-<p><b>Our method.</b> GeFL&#8209;F with three changes. Each one follows from a specific failure we derived and then measured:</p>
+<p><b>Diagnosis (&sect;2).</b> Under flat FedAvg with Adam's coupled weight decay, the class-conditioning rows of GeFL&#8209;F's generator
+provably shrink for every class held by fewer than half the clients. Rare classes vanish from the generator, and every head is taught from
+class-agnostic features.</p>
+<p><b>The final method (&sect;14): anchor every stage to exactly aggregated statistics</b>, sums that secure aggregation delivers,
+instead of federated-averaged parameters.</p>
 <ol>
-<li><b>HWA</b>, holder-weighted aggregation of the generator's class-conditioning rows, fixes rare-class collapse (&sect;2).</li>
-<li><b>LA</b>, training-time logit adjustment by each client's own label prior, stops real-data training from re-learning the skew.</li>
-<li><b>CSL</b>, consensus soft labels for synthetic features, helps when the data is IID (&sect;4).</li>
+<li><b>PC-VAE.</b> The generator is conditioned on the exact federated class mean, so it has no class-specific parameters to collapse.</li>
+<li><b>MC.</b> Each generated class is moved onto its exact mean and spread: the W<sub>2</sub>-optimal affine correction.</li>
+<li><b>KH.</b> Kernel herding selects the samples whose kernel mean embedding is closest to the class's exact federated embedding.</li>
+<li><b>Heads.</b> Logit adjustment by each client's own prior (LA), cross-architecture consensus soft labels (CSL), and a 10-epoch synthetic
+budget, which Proposition 3 shows pays off only once the generator is faithful.</li>
+<li><b>BBC.</b> Server-side balanced bias calibration of each head, switched on by the exact global class counts.</li>
 </ol>
-<p>All three keep GeFL&#8209;F's privacy model, add no image-level sharing, and cost almost nothing. We did not add data augmentation:
-the paper uses augmentation only for image-space GeFL on CIFAR&#8209;10 (Table IV; best result {PAPER_BEST_AUG_CIFAR}), never for GeFL&#8209;F.
-Augmentation would be orthogonal and would lift every method equally.</p>
+<p>The minimal fix for the paper's own generators is <b>HWA</b>: holder-weighted aggregation of the class rows, which removes the collapse
+from CVAE&#8209;F and DDPM&#8209;F (&sect;3). All components keep GeFL&#8209;F's privacy model, and the method needs no data augmentation.
+The paper uses augmentation only for image-space GeFL on CIFAR&#8209;10 (Table IV; best {PAPER_BEST_AUG_CIFAR}), never for GeFL&#8209;F.</p>
 </section>"""
 
 
 SECTIONS = [("s0", "0", "The result on one page"), ("s1", "1", "Baseline validation"), ("s2", "2", "The collapse mechanism"),
-            ("s3", "3", "Long-tail main result"), ("s4", "4", "Paper's IID setting"), ("s4b", "4b", "IID headroom"), ("s4c", "4c", "Synthetic budget"), ("s5", "5", "Combined method"),
+            ("s3", "3", "Long-tail main result"), ("s14", "14", "Final method: exact-statistics anchoring"), ("s4", "4", "Paper's IID setting"), ("s4b", "4b", "IID headroom"), ("s4c", "4c", "Synthetic budget"), ("s5", "5", "Combined method"),
             ("s6", "6", "More clients"), ("s7", "7", "SVHN and CIFAR-10"), ("s8", "8", "What did not work"),
             ("s9", "9", "Privacy and cost"), ("s11", "11", "Against every GeFL variant"), ("s12", "12", "Regimes, ablations, privacy"),
-            ("s13", "13", "Diffusion generator"), ("s14", "14", "Exact-statistics anchoring"), ("s10", "10", "Reproduce")]
+            ("s13", "13", "Diffusion generator"), ("s10", "10", "Reproduce")]
 
 EXTRA_CSS = """
 .sd{color:var(--muted);font-size:.86em}
@@ -954,8 +982,8 @@ def build():
     import datetime
     stamp = datetime.datetime.now().strftime("%d %b %Y, %H:%M")
     rail = "".join(f'<li><a href="#{i}"><span class="n">{n}</span><span>{esc(t)}</span></a></li>' for i, n, t in SECTIONS)
-    body = "".join(f() for f in [sec_summary, sec_validation, sec_diagnosis, sec_main, sec_paper_setting, sec_headroom, sec_budget,
-                                  sec_combined, sec_clients, sec_kaggle, sec_negative, sec_privacy, sec_vs_paper, sec_k02, sec_k04, sec_anchored])
+    body = "".join(f() for f in [sec_summary, sec_validation, sec_diagnosis, sec_main, sec_anchored, sec_paper_setting, sec_headroom, sec_budget,
+                                  sec_combined, sec_clients, sec_kaggle, sec_negative, sec_privacy, sec_vs_paper, sec_k02, sec_k04])
     body += """
 <section id="s10"><h2><span class="num">10</span>Reproduce</h2>
 <p>Each experiment is one standalone file built from <code>experiments/core.py</code> and a short spec, so it can be pasted into Kaggle.
