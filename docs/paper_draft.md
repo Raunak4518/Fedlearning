@@ -568,7 +568,7 @@ The MNIST IID GeFL-F and minimal-variant numbers come from F10 (same seeds).
 * *Robust to K.* Ours-A loses only 0.5 points from K = 10 to K = 100, while the CVAE + HWA loses 4.7.
 * *Margins.* +18.3 over GeFL-F ($p = 0.0004$) and +8.3 over the Gaussian generator ($p = 0.001$).
 * *Proposition 3 again.* The synthetic budget is worth +3.9 at K = 100 against +1.7 at K = 10: the optimal synthetic
-  share $w^\star \propto 1/n_{	ext{real}}$ grows as each client holds fewer real samples (about 60 here).
+  share $w^\star \propto 1/n_{\text{real}}$ grows as each client holds fewer real samples (about 60 here).
 
 **Where anchoring fails: SVHN (K08, 3 seeds).**
 * *Result.* Ours-A gives 55.9 under the long tail against 62.5 for CVAE + HWA + LA, and 73.9 in IID against 75.8
