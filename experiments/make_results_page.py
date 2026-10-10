@@ -602,7 +602,7 @@ def quick_clients():
 def sec_kaggle():
     runs, from_file = kaggle_runs()
     labels = [("GeFL-F", "GeFL-F"), ("+LA", "+LA"), ("+HWA+LA", "+HWA+LA"), ("Ours (HWA+LA+CSL)", "Ours (HWA+LA+CSL)"),
-              ("FSG+LA", "FSG+LA"), ("+HWA+LA+CSLM", "+HWA+LA+CSLM")]
+              ("FSG+LA", "FSG+LA"), ("FSG+LA+CSL", "FSG+LA+CSL"), ("+HWA+LA+CSLM", "+HWA+LA+CSLM")]
     out = []
     for ds in ["svhn", "cifar10"]:
         if not any(r["dataset"] == ds and r["IF"] < 1 for r in runs):
@@ -799,6 +799,9 @@ def sec_vs_paper():
 <p class="deck">Figure 4 of the paper evaluates ten methods: GeFL and GeFL&#8209;F with DCGAN, CVAE and DDPM (w = 0, 2), plus FedProx and FedALA.
 For each setting we compare against the best of them, whichever it is.</p>
 {t}
+<p><b>CIFAR-10 caveat.</b> Our reproduction of GeFL&#8209;F scores 59.10 on CIFAR-10 IID, 3.2 points above the paper's 55.86, so comparisons
+with the paper's CIFAR-10 numbers flatter every one of our variants for reasons unrelated to them. The fair comparison is paired, on the same seeds:
+ours (HWA + LA + CSL) is +0.92 over our GeFL&#8209;F (p = 0.015). On MNIST and FashionMNIST our GeFL&#8209;F is within 0.6 of the paper.</p>
 <p>Rows for K = 50 and 100 come from the first Kaggle client-scaling run (K03), whose consensus-label arms predate the per-client
 synthetic-slice fix (&sect;6). The fix restores per-client synthetic diversity and can only raise them; the anchored method at K = 50/100 runs in
 NB17 and E22.</p>
