@@ -383,7 +383,7 @@ class ProtoCVAE(nn.Module):
     kind = "cvae"
     cond = {}
 
-    def __init__(self, in_ch, latent, proto, S=16):
+    def __init__(self, in_ch, latent, proto, S=16, rows=False):
         super().__init__()
         n = int(round(math.log2(S)))
         widths = [min(64 * 2 ** i, 512) for i in range(n)]
@@ -406,10 +406,21 @@ class ProtoCVAE(nn.Module):
         self.register_buffer("proto", proto.clone())
         self.register_buffer("zm", torch.zeros(latent))
         self.register_buffer("zL", torch.eye(latent))
+        # PCR (hybrid): learned class rows as in CVAE-F, aggregated with HWA, in addition
+        # to the exact-mean anchor. Rows carry class identity where class means do not
+        # (SVHN: nearest-class-mean accuracy at chance); the mean anchors where it does.
+        self.rows = rows
+        if rows:
+            self.label_proj = nn.Parameter(torch.empty(NUM_CLASSES, self.flat))
+            nn.init.uniform_(self.label_proj, -1.0 / math.sqrt(latent + NUM_CLASSES), 1.0 / math.sqrt(latent + NUM_CLASSES))
+            self.cond = {"label_proj": 0}
 
     def decode(self, z, y):
         p = self.proto[y]
-        h = F.relu(self.dec_z(z) + self.proto_proj(p.flatten(1))).view(-1, self.flat, 1, 1)
+        a = self.dec_z(z) + self.proto_proj(p.flatten(1))
+        if self.rows:
+            a = a + self.label_proj[y]
+        h = F.relu(a).view(-1, self.flat, 1, 1)
         return F.relu(p + self.dec(h))
 
     def encode(self, x, y):
@@ -615,6 +626,7 @@ COMPONENTS = {
     "DCGAN": dict(gen=dict(type="dcgan", wd=0.0)),
     "DDPM": dict(gen=dict(type="ddpm", wd=0.0)),   # the authors' DDPM-F (feature diffusion, w = 0)
     "PC": dict(gen=dict(type="pcvae")),              # prototype-conditioned residual CVAE (no class rows)
+    "PCR": dict(gen=dict(type="pcvae", rows=True, agg="A")),  # hybrid: exact-mean anchor + HWA-aggregated class rows
     "ZP": dict(gen=dict(zpost=True)),                # ex-post latent prior from exact sums
     "MC": dict(head=dict(mc=True)),                  # moment-calibrated sampling (exact mean + spread)
     "KME": dict(gen=dict(type="kme")),               # server-trained generator from exact kernel mean embeddings
@@ -999,7 +1011,7 @@ class PaperDDPMF(nn.Module):
 # ----- stage (ii): feature-generator training
 def make_gen(ctx, gspec, in_ch, shape=None, proto=None):
     if gspec["type"] == "pcvae":
-        G = ProtoCVAE(in_ch, ctx.spec["latent"], proto).to(DEV)
+        G = ProtoCVAE(in_ch, ctx.spec["latent"], proto, rows=gspec.get("rows", False)).to(DEV)
     elif gspec["type"] == "ddpm":
         G = PaperDDPMF(in_ch, shape).to(DEV)
     else:
@@ -2033,6 +2045,21 @@ def run_one(cfg, run, cache, data_cache):
     s1 = cache[k1]
     global _STAT_DP
     _STAT_DP = None
+    if "sep" not in s1:
+        # How much the class MEAN identifies the class in the shared feature space:
+        # F = between-class variance of the exact class means / mean within-class
+        # spread (computable at the server from the released sums), and the
+        # nearest-class-mean accuracy on the test set (diagnostic only).
+        with torch.no_grad():
+            n_, S1_, S2_ = anchor_stats(s1["feats"], s1["ys"])
+            mu_ = S1_ / n_[:, None]
+            Vw = (S2_ / n_ - mu_.pow(2).sum(1)).clamp(min=1e-12)
+            Fsep = float((mu_ - mu_.mean(0)).pow(2).sum(1).mean() / Vw.mean())
+            Xt = s1["feats_te"].flatten(1)
+            dist = Xt.pow(2).sum(1, keepdim=True) - 2 * Xt @ mu_.T + mu_.pow(2).sum(1)[None]
+            ncm = float((dist.argmin(1) == ctx.data["yte"]).float().mean())
+        s1["sep"] = (Fsep, ncm)
+    res["class_sep_F"], res["ncm_acc"] = s1["sep"]
     if m["gen"] is not None and m["gen"].get("stat_dp_eps"):
         # clipping bound from the held-out pool (public data: no client holds it)
         with torch.no_grad():

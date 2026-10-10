@@ -259,3 +259,51 @@ vs 0.839), and accuracy rises. Heads gain from realistic, boundary-near samples,
   low, the larger synthetic budget pays, exactly as $w^\star = \sigma^2/(2 n_r b^2)$ predicts.
 * *FMNIST.* Both generators already gain from the budget, and the CVAE gains slightly more (+2.28 vs +1.46). The
   proposition predicts the sign of $w^\star$'s change, not the size of the realised gain.
+
+## 11. SVHN: where anchoring to the class mean fails, and why (K08 / NB16, 3 seeds)
+
+| SVHN, K = 10 | long tail, balanced acc. | IID, `best_mean_acc` |
+|---|---|---|
+| GeFL-F | 50.49 | 75.82 |
+| CVAE + HWA + LA | **62.45** | 75.64 |
+| CVAE + consensus labels | – | **76.30** |
+| Ours-A (PC + MC + KH + LA + CSL) | 55.89 (BBC 57.0) | 73.86 |
+| Ours-A, $T_s = 10$ | 54.41 | 74.38 |
+| FSG + LA (Gaussian around exact class means) | 44.23 | – |
+
+The anchored stack loses by 6.6 points under the long tail, and falls 2.0 below GeFL-F in IID. The Gaussian
+generator, also built on class means, fails the same way.
+
+**Cause.** PC takes class identity from the exact class mean. That only identifies the class if classes differ in
+their mean relative to their within-class spread. In pixel space (a proxy for the shallow shared FE):
+
+| | between/within variance ratio F | nearest-class-mean accuracy |
+|---|---|---|
+| FashionMNIST | 0.480 | 68.5 % |
+| MNIST | 0.135 | 80.2 % |
+| CIFAR-10 | 0.067 | 27.3 % |
+| **SVHN** | **0.0015** | **13.0 %** (chance 10 %) |
+
+SVHN's class means are indistinguishable. Its class identity lives in fine structure (the digit shape), while the
+mean is dominated by background, colour and neighbouring digits. A decoder conditioned only on the class mean
+therefore receives no class signal. The encoder pushes class information into $z$, and samples drawn from the
+prior come out class-agnostic: tail fidelity after KH is 24 %.
+
+**What follows.**
+* *Scope.* The anchoring principle is not universal. It helps exactly where the anchored statistic is
+  class-informative.
+* *Detectable from the released statistics.* The server can measure this itself, at no extra privacy cost:
+  $F = \overline{\|m_c - \bar m\|^2} / \overline{V_c}$ uses only the released sums. Every run now records F and the
+  nearest-class-mean accuracy in the shared feature space.
+
+**Fix: the hybrid generator PCR.** Keep the CVAE-F's learned class rows, aggregated with HWA so they cannot
+collapse, and add the exact-mean anchor:
+$\tilde h = \mathrm{ReLU}\big(m_y + \mathrm{dec}(\mathrm{ReLU}(W_z z + W_p m_y + r_y))\big)$.
+* The rows $r_y$ carry class identity where means do not.
+* The mean anchors location where it is informative.
+* It needs no regime switch. E29 (MNIST / FMNIST) and K10 (SVHN / CIFAR-10) test it.
+
+**Prediction registered before the CIFAR-10 results (NB14 / NB15) arrive.**
+* *Ours-A.* CIFAR-10's class means are weakly informative (27 %), so Ours-A should *not* show its MNIST-size
+  advantage over CVAE + HWA there. A tie or a small loss is expected.
+* *PCR.* It should match or beat both on SVHN and CIFAR-10.
