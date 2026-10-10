@@ -93,7 +93,7 @@ def _read_summary(p):
     import re as _re
     if not os.path.exists(p):
         return []
-    out, setting, cols = [], None, None
+    out, setting, cols, exact = [], None, None, {}
     for line in open(p, encoding="utf-8"):
         m = _re.match(r"## (\w+)\s+IF=([\d.]+)\s+alpha=(\S+)\s+K=(\d+)", line)
         if m:
@@ -108,6 +108,16 @@ def _read_summary(p):
             continue
         if cols is None or set(cells[0]) <= set("-"):
             continue
+        if cols[1] == "seed":  # per-seed table: exact values (rounded to 0.01), paired tests allowed
+            r = dict(label=cells[0], dataset=setting[0], IF=setting[1], alpha=setting[2], K=setting[3],
+                     seed=int(cells[1]), run_id=f"{cells[0]}|{setting}|seed{cells[1]}")
+            for c, v in zip(cols[2:], cells[2:]):
+                try:
+                    r[c] = float(v) if c.startswith("cond_norm") or not _is_pct(c) else float(v) / 100
+                except ValueError:
+                    pass
+            exact.setdefault((cells[0], setting), []).append(r)
+            continue
         n = int(cells[1])
         offs = [0.0] if n == 1 else ([-1.0, 0.0, 1.0] if n == 3 else [(-1) ** i for i in range(n)])
         for i, off in enumerate(offs):
@@ -118,9 +128,16 @@ def _read_summary(p):
                 if m2:
                     mu, sd = float(m2[1]), float(m2[2])
                     val = mu + off * sd
-                    r[c] = val if c.startswith("cond_norm") else val / 100
+                    r[c] = val if c.startswith("cond_norm") or not _is_pct(c) else val / 100
             out.append(r)
-    return out
+    # where per-seed values exist they replace the mean +/- sd pseudo-runs
+    out = [r for r in out if (r["label"], (r["dataset"], r["IF"], r["alpha"], r["K"])) not in exact]
+    return out + [r for rs in exact.values() for r in rs]
+
+
+def _is_pct(col):
+    """Columns printed in % by write_summary (the rest: counts, ratios, F)."""
+    return col.startswith(("final", "best", "oracle", "fidelity", "referee", "bbc", "method", "ncm"))
 
 
 def _read_jsonl(p):
@@ -917,6 +934,33 @@ def sec_anchored():
     t_iid = method_table(runs_iid, labels, ["mnist", "fmnist"], [("best_mean_acc", "best_mean_acc")],
                          where=dict(IF=1.0), ref="GeFL-F", caption="Paper's IID setting (K = 10; MNIST GeFL-F / Ours rows from F10, same seeds)",
                          ours=("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A Ts=10"))
+    kg = with_gate(kaggle_runs()[0] + load("K08_kaggle_anchored_stack"))
+    klabels = [("GeFL-F", "GeFL-F"), ("+LA", "+LA"), ("+HWA+LA", "+HWA+LA"), ("Ours (HWA+LA+CSL)", "Ours: HWA + LA + CSL"),
+               ("FSG+LA", "Gaussian generator (FSG) + LA"), ("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A, T_s = 1 (K08)"),
+               ("Ours-A Ts=10", "Ours-A, T_s = 10 (K08): final")]
+    t_klt = method_table(kg, klabels, ["cifar10", "svhn"], [("final_bal", "balanced acc."), ("method_bal", "with gated BBC")],
+                         where=dict(IF=0.01, K=10), ref="GeFL-F",
+                         caption="Long tail on CIFAR-10 and SVHN (Kaggle K01 / K08, 3 seeds, same seeds and splits; pasted summaries, so no paired p)",
+                         ours=("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A Ts=10"))
+    kilabels = [("GeFL-F", "GeFL-F"), ("+CSL (beta=0.5)", "+CSL"), ("+HWA+LA", "+HWA+LA"), ("Ours (HWA+LA+CSL)", "Ours: HWA + LA + CSL"),
+                ("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A, T_s = 1 (K08)"), ("Ours-A Ts=10", "Ours-A, T_s = 10 (K08): final")]
+    t_kiid = method_table(kg, kilabels, ["cifar10", "svhn"], [("best_mean_acc", "best_mean_acc")], where=dict(IF=1.0, K=10), ref="GeFL-F",
+                          caption="Paper's IID setting on CIFAR-10 and SVHN (paper's GeFL-F: 55.86 / 76.26; best of all ten methods: 59.36 / 76.26)",
+                          ours=("Ours-A (PC+MC+KH+LA+CSL)", "Ours-A Ts=10"))
+    kprose = """<p><b>CIFAR-10: the anchored method wins in both regimes.</b> Under the long tail Ours-A gives 46.1 at T<sub>s</sub> = 1 and about 49 with the gated BBC,
+against 44.2 for the best earlier method (the Gaussian generator) and 33.7 for GeFL&#8209;F (+12.3, +15 with BBC). Its tail fidelity after KH is 41 %, against 23 % for the
+CVAE + HWA. In the paper's IID setting it reaches 60.93 (T<sub>s</sub> = 10), the highest CIFAR-10 number here: +1.8 over our GeFL&#8209;F, +1.6 over the best of all ten
+methods in the paper and +5.1 over the paper's GeFL&#8209;F. Unpaired tests from the pasted means: the long-tail gains over everything but the Gaussian generator have
+p &le; 0.02, and the gain with BBC over the Gaussian generator has p = 0.003. The IID gains are within noise without the per-seed files (p &asymp; 0.1).
+This contradicts the prediction registered before these runs (a tie or a small loss, from CIFAR-10's weak pixel-space class means). What decides is the anchored
+generator's fidelity <em>relative to the CVAE's</em>. On CIFAR-10 the CVAE itself is poor, so even weakly informative exact statistics win.</p>
+<p><b>SVHN: the one regime where it fails.</b> SVHN's class means carry essentially no class information (nearest-class-mean accuracy 13 %, chance 10 %), so a generator
+whose class identity comes from the mean cannot separate the classes. The tail fidelity is 24 %, against 36 % for the CVAE + HWA. The hybrid generator, with HWA class rows
+plus the exact-mean anchor, is under test (Kaggle NB19, local E29).</p>
+<p><b>The synthetic budget on hard data.</b> On CIFAR-10 and SVHN, T<sub>s</sub> = 10 raises the paper's best-round metric in all four settings but lowers the final
+balanced accuracy (CIFAR-10 long tail: 44.4 against 46.1, p = 0.03). Proposition 3 predicts this. The optimal synthetic share w<sup>&star;</sup> = &sigma;<sup>2</sup>/(2 n<sub>r</sub> b<sup>2</sup>)
+falls with the generator's error b, and there tail fidelity after KH (24&ndash;46 %) is far below real-data accuracy. On MNIST and FashionMNIST, where fidelity matches real data,
+T<sub>s</sub> = 10 is better on both metrics.</p>"""
     return f"""
 <section id="s14"><h2><span class="num">14</span>Final method: anchoring every stage to exact statistics</h2>
 <p class="deck">The method that emerged from the diagnostics: replace federated-averaged parameters by exactly aggregated statistics wherever they decide the result.</p>
@@ -939,6 +983,9 @@ CVAE variant, and +1.18 over the best of all ten methods in the paper. On Fashio
 (84.34 vs 83.96, p = 0.18): FedAvg does not collapse class rows when every client holds every class.</p>
 {t_lt}
 {t_iid}
+{kprose}
+{t_klt}
+{t_kiid}
 </section>"""
 
 
@@ -962,15 +1009,18 @@ def sec_summary():
         tm, tf = tl("mnist"), tl("fmnist")
         card1 = (f'<div class="t2">+{g("mnist"):.1f} / +{g("fmnist"):.1f} points balanced accuracy</div>'
                  f'<p>MNIST / FashionMNIST, IF = 100, final method over GeFL&#8209;F, 3 seeds, p &le; {pv:.3f}. '
-                 f'Tail recall {tm[1]:.0f} &rarr; {tm[0]:.0f} and {tf[1]:.0f} &rarr; {tf[0]:.0f}. On MNIST it reaches its own pooled-real-data oracle.</p>')
+                 f'Tail recall {tm[1]:.0f} &rarr; {tm[0]:.0f} and {tf[1]:.0f} &rarr; {tf[0]:.0f}. On MNIST it reaches its own pooled-real-data oracle. '
+                 f'CIFAR-10: 33.7 &rarr; 46.1 (about 49 with the gated BBC), ahead of every other method. With 100 clients: 94.3 on MNIST. '
+                 f'The exception is SVHN, whose class means carry no class information (&sect;14).</p>')
     else:
         card1 = "<div class=\"t2\">pending</div>"
     return f"""
 <section id="s0"><h2><span class="num">0</span>The result on one page</h2>
 <div class="verdict">
   <div class="v g"><div class="k">Long-tailed clients</div>{card1}</div>
-  <div class="v a"><div class="k">Paper's own IID setting</div><div class="t2">Above the paper's best variant on MNIST (+1.2), level on FMNIST and SVHN</div>
-    <p>MNIST 97.62 with the final method (paper's best of all ten methods: 96.44; GeFL&#8209;F 95.47). FashionMNIST 84.34 with the CVAE
+  <div class="v a"><div class="k">Paper's own IID setting</div><div class="t2">Above the paper's best variant on MNIST (+1.2) and CIFAR-10 (+1.6), level on FMNIST and SVHN</div>
+    <p>MNIST 97.62 with the final method (paper's best of all ten methods: 96.44; GeFL&#8209;F 95.47). CIFAR-10 60.93 (best: 59.36; GeFL&#8209;F 55.86;
+    our GeFL&#8209;F reproduction scores 59.10 there). FashionMNIST 84.34 with the CVAE
     variant at T<sub>s</sub> = 10 (best: 84.28, a diffusion generator; the final method gives {iid:.2f}, p = 0.18 between them). SVHN 76.30 (76.26).</p></div>
   <div class="v t"><div class="k">Baseline validated</div><div class="t2">Our GeFL&#8209;F = the paper = the authors' code</div>
     <p>Within half a point at K = 10, 50, 100. Our baseline is slightly <em>weaker</em> than theirs under the long tail.</p></div>

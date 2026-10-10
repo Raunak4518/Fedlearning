@@ -2245,6 +2245,11 @@ def paired_t(a, b):
         return float("nan")
 
 
+def _pct_scale(mtr):
+    """Metrics stored as fractions are printed in %; counts, ratios and F as they are."""
+    return 100.0 if mtr.startswith(("final", "best", "oracle", "fidelity", "referee", "bbc", "method", "ncm")) else 1.0
+
+
 def write_summary(exp, rows, out_dir, cfg):
     """Mean +/- std over seeds per (setting, label); paired t-test (by seed)
     against the experiment's reference label within each setting."""
@@ -2271,8 +2276,7 @@ def write_summary(exp, rows, out_dir, cfg):
                 if not xs:
                     vals.append("-")
                     continue
-                scale = 100.0 if mtr.startswith(("final", "best", "oracle", "fidelity", "referee")) else 1.0
-                xs = np.array(xs) * scale
+                xs = np.array(xs) * _pct_scale(mtr)
                 vals.append(f"{xs.mean():.2f} ± {xs.std(ddof=1) if len(xs) > 1 else 0:.2f}")
             pcol = ""
             if ref:
@@ -2283,6 +2287,17 @@ def write_summary(exp, rows, out_dir, cfg):
                     p = paired_t([seeds[s][metrics[0]] for s in common], [labels[ref][s][metrics[0]] for s in common])
                     pcol = f" | {p:.3g}" if p == p else " | n<2"
             lines.append(f"| {lab} | {len(seeds)} | " + " | ".join(vals) + pcol + " |")
+        lines.append("")
+        # per-seed values, so a pasted summary still allows paired tests
+        lines.append("| label | seed | " + " | ".join(metrics) + " |")
+        lines.append("|" + "---|" * (len(metrics) + 2))
+        for lab, seeds in labels.items():
+            for sd in sorted(seeds):
+                cells = []
+                for mtr in metrics:
+                    v = seeds[sd].get(mtr)
+                    cells.append("-" if v is None or v != v else f"{v * _pct_scale(mtr):.2f}")
+                lines.append(f"| {lab} | {sd} | " + " | ".join(cells) + " |")
         lines.append("")
     path = os.path.join(out_dir, "summary.md")
     with open(path, "w", encoding="utf-8") as f:
