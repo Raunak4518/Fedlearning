@@ -398,3 +398,32 @@ nearest-class-mean accuracy was 11.5% and $F$ was 0.025.
 * *The theory it rests on.* Proposition 7, with the numerical check above.
 * *Implementation check* (MNIST long tail, quick mode): the long-tail path with the interpolated LA prior runs end to
   end.
+
+## 15. MC-S where means are informative (E31), and one operator for both moment corrections (MC-B, E32)
+
+**E31** (final method at $T_s = 10$, MC replaced by MC-S, same seeds as E25):
+
+| | MC-S − MC | common classes (0–5) | rare classes (6–9) | worst class |
+|---|---|---|---|---|
+| MNIST LT | −1.56 ($p = 0.056$, every seed) | +0.2 | **−4.2** | −8.9 |
+| FashionMNIST LT | −0.03 | **+1.4** | −2.2 | +2.2 |
+| FashionMNIST IID (`best_mean_acc`) | **+1.29** ($p = 0.013$, every seed; 85.25) | | | |
+
+**Cause.**
+* *Tail classes.* A rare class has 24 samples in a 256-dimensional subspace. Its covariance shrinks toward the
+  *pooled* one with weight $k/(n_c + k) \approx 0.91$, which overwrites the class-specific shape the anchored
+  generator had already learned. Where the generator learned nothing class-specific (SVHN), the same operation helps
+  (+6.0).
+* *Common classes.* They have enough samples for the exact covariance to beat the generator's, hence the gains on
+  common classes and in IID.
+
+**MC-B.** Shrink toward the *generator's own* class covariance, rescaled to the exact class variance. This is
+empirical Bayes with the generator as the prior, weights $n_c$ and $k$.
+* *Rare classes:* the target becomes a scalar multiple of the generator's covariance, and the Gelbrich map reduces
+  exactly to MC's scalar map.
+* *Common classes:* the target becomes the exact covariance.
+
+So one operator interpolates between MC and MC-S by how much data each class has. Unit check: for a 6-sample class
+the map's anisotropy drops from 1.50 (MC-S) to 0.71, while a common class keeps its exact-covariance map. E32 tests it
+on MNIST LT, FashionMNIST LT and FashionMNIST IID (3 seeds). The additive estimate from E31's per-class split is
+94.9 / 80.5 / about 85.
