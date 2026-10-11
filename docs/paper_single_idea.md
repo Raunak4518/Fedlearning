@@ -28,8 +28,8 @@ the term of each head's risk bound that limits transfer.
 
 Under a 100:1 long tail, ESA raises balanced accuracy over GeFL-F from 75.3 to 95.2 on MNIST, 58.5 to 80.6 on
 FashionMNIST, 33.7 to about 47 on CIFAR-10 and 50.5 to about 67 on SVHN. With 100 clients it holds 94.3 on MNIST. In
-GeFL-F's own balanced setting it exceeds the best of the ten methods in the original paper on MNIST, CIFAR-10 and SVHN,
-and is level on FashionMNIST. Every released statistic can be made formally $(\varepsilon, \delta)$-differentially
+GeFL-F's own balanced setting it exceeds the best of the ten methods in the original paper on MNIST (at 10, 50 and 100
+clients), CIFAR-10 and SVHN, and is level on FashionMNIST. Every released statistic can be made formally $(\varepsilon, \delta)$-differentially
 private. At $\varepsilon = 2$ the method stays 7–10 points above GeFL-F, which offers no formal guarantee.
 
 ---
@@ -291,7 +291,17 @@ plus FedProx and FedALA).
 * *Against our own GeFL-F.* +1.6 on MNIST ($p = 0.001$) and +1.2 on FashionMNIST ($p = 0.021$).
 * *Gains are smaller than under the long tail,* as they should be: with balanced clients FedAvg has no rare class to
   lose.
-* *K = 50 / 100.* The paper's other two columns are PENDING (local E27; Kaggle NB17, NB26–NB29).
+**Table 2b.** The same setting with more clients (`best_mean_acc`, IID).
+
+| | MNIST, K=50 | MNIST, K=100 | FMNIST, K=50 | FMNIST, K=100 | SVHN, K=50 / 100 | CIFAR-10, K=50 / 100 |
+|---|---|---|---|---|---|---|
+| GeFL-F (paper) | 95.04 | 94.63 | 82.21 | 81.65 | 73.64 / 76.00 | 53.19 / 51.46 |
+| best of the ten methods in [1] | 95.04 | 94.63 | 82.96 | 81.65 | 73.64 / 76.00 | 56.31 / 53.95 |
+| GeFL-F (ours) | 95.43 | 94.88 | 81.50 | 81.11 | PENDING | PENDING |
+| **ESA** | **96.93** | **96.77** | **82.96** | PENDING (NB17) | PENDING (NB26, NB27) | PENDING (NB28, NB29) |
+
+* *MNIST.* With 50 and 100 clients ESA is +1.9 and +2.1 above the paper's best.
+* *FashionMNIST, K = 50.* Level with the paper's best, a diffusion generator, and +1.5 above our GeFL-F.
 
 Image-space GeFL with data augmentation (Table IV of [1]) reaches 62.67 (MixUp) and 61.66 (CutMix) on CIFAR-10. It
 trains full models on raw images without a frozen FE, and augmentation is orthogonal to ESA (Appendix C).
