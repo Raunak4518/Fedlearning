@@ -132,16 +132,16 @@ C.push(...img("f01_overview.png", 640, "Figure 1. GeFL-F system view: what is lo
 C.push(H2("1.2 Model architectures and tensor shapes"));
 C.push(...img("f03_architectures.png", 640, "Figure 2. Architectures. The CVAE-F's label projection W (C × 512) holds the only class-specific parameters; this matters in Part 2."));
 C.push(...table(["Model", "Input", "Output", "Parameters", "Shared?"], [
-  ["Feature extractor φ (Table XIV)", "image 1×28×28 (MNIST) / 3×32×32", "feature h: 3×14×14 = 588; SVHN 3×16×16 = 768; CIFAR-10 10×16×16 = 2,560", "36 / 90 / 390", "yes (FedAvg in Stage I, then frozen)"],
+  ["Feature extractor φ (Table XIV)", "image resized to 1×32×32 (MNIST, FMNIST) / 3×32×32", "feature h: 3×16×16 = 768 (MNIST, FMNIST, SVHN); CIFAR-10 10×16×16 = 2,560", "36 / 90 / 390", "yes (FedAvg in Stage I, then frozen)"],
   ["Generator G, CVAE-F (Table XX)", "h (+ label map) → z (l = 16; 50 for CIFAR-10)", "ĥ, same shape as h", "≈ 5.5 M", "yes (FedAvg in Stage II, then frozen)"],
-  ["Heads CNN-1 … CNN-10 (Tables XXI–XXIII)", "feature h", "10 logits", "3.9 k – 108.8 k", "no (averaged only within an architecture group)"],
+  ["Heads CNN-1 … CNN-10 (Tables XXI–XXIII)", "feature h", "10 logits", "5.3 k – 109.8 k", "no (averaged only within an architecture group)"],
 ], [2.2, 2.0, 3.0, 1.2, 2.0]));
 C.push(H2("1.3 Lifecycle: three sequential stages"));
 C.push(...img("f02_timeline.png", 640, "Figure 3. The three stages, with rounds, local epochs, data, optimiser and loss of each."));
 C.push(H3("Stage I: feature-extractor warm-up (T_FE = 20 rounds; 50 for SVHN and CIFAR-10)"));
 C.push(B("**Local data:** the client's real images x with labels y."));
 C.push(B("**Local training:** 5 epochs per round; φ and the client's head trained jointly; SGD, learning rate 0.1, batch 64 (128 for CIFAR-10); loss = cross-entropy CE(h_k(φ(x)), y)."));
-C.push(B("**Uplink:** φ's weights (36–390 numbers) and the head's weights (3.9 k–109 k numbers)."));
+C.push(B("**Uplink:** φ's weights (36–390 numbers) and the head's weights (5.3 k–110 k numbers)."));
 C.push(B("**Aggregation:** φ is averaged over all clients (FedAvg, equation below); heads are averaged within each architecture group."));
 C.push(eq("eq_fedavg", "1"));
 C.push(B("**Downlink:** the averaged φ and heads. At the end of Stage I, φ is frozen for the rest of training."));
@@ -159,7 +159,7 @@ C.push(B("**Uplink and aggregation:** head weights, averaged within an architect
 C.push(...img("f04_round.png", 620, "Figure 4. One Stage-III round. Classes a client does not hold reach its head only through the generator."));
 C.push(H2("1.4 Communication summary"));
 C.push(...table(["Stage", "Uplink per client per round", "Server operation", "Downlink"], [
-  ["I", "φ (36–390) + head (3.9 k–109 k numbers)", "FedAvg(φ); heads within groups", "averaged φ, heads"],
+  ["I", "φ (36–390) + head (5.3 k–110 k numbers)", "FedAvg(φ); heads within groups", "averaged φ, heads"],
   ["II", "all generator weights, ≈ 5.5 M numbers (≈ 22 MB)", "FedAvg(G)", "averaged G"],
   ["III", "head weights (only if an architecture has several clients)", "average within architecture groups", "averaged heads"],
 ], [0.6, 3.2, 2.6, 1.6]));
@@ -416,8 +416,8 @@ C.push(P("**Proposition 6 (MixUp, used for VCT).** Cross-entropy is linear in th
 C.push(eq("eq_mixup", "17"));
 C.push(H1("Appendix B. Hyperparameters and experiment inventory"));
 C.push(...table(["Dataset", "Fraction / train size", "Batch", "T_FE / T_KA / T_TN", "Latent l", "Feature h"], [
-  ["MNIST", "0.1 / 6,000", "64", "20 / 100 / 50", "16", "3×14×14"],
-  ["FashionMNIST", "0.1 / 6,000", "64", "20 / 100 / 50", "16", "3×14×14"],
+  ["MNIST", "0.1 / 6,000", "64", "20 / 100 / 50", "16", "3×16×16"],
+  ["FashionMNIST", "0.1 / 6,000", "64", "20 / 100 / 50", "16", "3×16×16"],
   ["SVHN", "0.1 / 7,326", "64", "50 / 100 / 100", "16", "3×16×16"],
   ["CIFAR-10", "0.5 / 25,000", "128", "50 / 200 / 100", "50", "10×16×16"],
 ], [1.6, 2.0, 0.9, 2.0, 1.1, 1.6]));

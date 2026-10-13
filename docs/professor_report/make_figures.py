@@ -71,7 +71,7 @@ def fig_overview():
     arrow(ax, 0.38, 0.41, 0.48, 0.72, color=E_GEN, rad=-0.05)
     arrow(ax, 0.86, 0.41, 0.68, 0.72, color=E_HEAD, rad=0.1)
     arrow(ax, 0.70, 0.70, 0.62, 0.41, color=E_SERVER, ls="--", rad=0.1)
-    ax.text(0.015, 0.58, "UPLINK (each round, per client)\n• Stage I: φ weights + head weights\n   (36–390 + 3.9k–109k numbers)\n"
+    ax.text(0.015, 0.58, "UPLINK (each round, per client)\n• Stage I: φ weights + head weights\n   (36–390 + 5.3k–110k numbers)\n"
             "• Stage II: all CVAE-F weights\n   ≈ 5.5 M numbers ≈ 22 MB (fp32)\n• Stage III: head weights (only if\n   several clients share an architecture)",
             fontsize=7.6, color=INK, va="center", bbox=dict(boxstyle="round,pad=0.4", fc="#fafafa", ec="#ced4da"))
     ax.text(0.80, 0.58, "DOWNLINK (each round)\n• averaged φ (Stage I)\n• averaged G (Stage II)\n• after Stage II: G frozen and\n   kept by every client; each client\n   samples synthetic features\n   locally to train its head",
@@ -115,12 +115,12 @@ def fig_timeline():
 # ---------------------------------------------------------------- Fig 3: architectures
 def fig_arch():
     fig, ax = canvas(10, 5.4)
-    ax.text(0.5, 0.975, "Model architectures and tensor shapes (MNIST shown; SVHN and CIFAR-10 in brackets)", ha="center",
+    ax.text(0.5, 0.975, "Model architectures and tensor shapes (MNIST shown; CIFAR-10 in brackets)", ha="center",
             va="top", fontsize=11.5, fontweight="bold")
     # FE
-    box(ax, 0.02, 0.72, 0.13, 0.16, "image x\n1×28×28\n[3×32×32]", fc="white", ec=MUTED, fs=8)
+    box(ax, 0.02, 0.72, 0.13, 0.16, "image x\n1×32×32 (resized)\n[3×32×32]", fc="white", ec=MUTED, fs=8)
     box(ax, 0.18, 0.70, 0.17, 0.20, "Feature extractor φ\nConv3×3 → BN → ReLU\n(+ Conv3×3 → BN → ReLU, CIFAR)\n→ MaxPool 2\n36 params [90; 390]", fc=C_FE, ec=E_FE, fs=7.6)
-    box(ax, 0.38, 0.72, 0.13, 0.16, "feature h\n3×14×14 = 588\n[3×16×16 = 768;\n10×16×16 = 2560]", fc="white", ec=E_FE, fs=7.6)
+    box(ax, 0.38, 0.72, 0.13, 0.16, "feature h\n3×16×16 = 768\n[CIFAR-10:\n10×16×16 = 2560]", fc="white", ec=E_FE, fs=7.6)
     arrow(ax, 0.15, 0.80, 0.18, 0.80)
     arrow(ax, 0.35, 0.80, 0.38, 0.80)
     # CVAE
@@ -137,7 +137,7 @@ def fig_arch():
     ax.text(0.5, 0.44, "Heterogeneous heads CNN-1 … CNN-10 (Tables XXI–XXIII): input = feature h; each block = Conv3×3 → (BN) → ReLU → MaxPool 2; then Linear → 10 classes",
             ha="center", fontsize=8, fontweight="bold", color=E_HEAD)
     widths = [(16,), (16, 32), (20, 40), (10, 20), (16, 32, 64), (20, 40, 80), (10, 20, 40), (16, 32, 64, 128), (20, 40, 80, 100), (10, 20, 40, 80)]
-    params = [8298, 7978, 11410, 3910, 24234, 37490, 9750, 97450, 108790, 38230]
+    params = [10698, 10218, 14210, 5310, 26154, 39890, 10950, 98730, 109790, 39030]
     for i, (w, p) in enumerate(zip(widths, params)):
         x = 0.035 + i * 0.094
         hgt = 0.06 + 0.06 * len(w)

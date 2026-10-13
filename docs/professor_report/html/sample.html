@@ -1,0 +1,133 @@
+<!doctype html><html><head><meta charset="utf-8"><title>sample</title><link rel="stylesheet" href="style.css">
+<style>
+.enc-step { color: var(--purple); } .dec-step { color: var(--teal); }
+</style></head><body>
+
+<!-- ============ PAGE: generator spec ============ -->
+<section class="slide">
+  <div class="kicker">GeFL-F · Shared model 2</div>
+  <h1>The feature generator (CVAE-F)</h1>
+  <div class="sub">Learns to make fake features of any class. All clients train it together in Stage II, then it is frozen.</div>
+
+  <div class="row" style="margin-top:22px">
+    <!-- training path -->
+    <div class="card" style="flex:1.55; padding:16px 18px 14px">
+      <h3><span class="pill blue">TRAINING · Stage II · on every client</span></h3>
+      <div class="flow" style="margin-top:6px">
+        <div class="col" style="gap:8px">
+          <div class="tensor c-muted"><b>3×16×16</b><span>real feature h</span></div>
+          <div class="tensor c-muted"><b>1×16×16</b><span>label map (value = y)</span></div>
+        </div>
+        <div class="arrow c-muted"></div>
+        <div class="tensor c-muted"><b>4×16×16</b><span>joined</span></div>
+        <div class="arrow c-purple"></div>
+        <div class="card tint-purple" style="padding:10px 12px; box-shadow:none">
+          <div class="lbl c-purple" style="margin-bottom:8px">Encoder · 4 × (Conv 4×4 /2 → BN → ReLU)</div>
+          <div class="flow enc-step">
+            <div class="tensor"><b>64×8×8</b></div><div class="arrow"></div>
+            <div class="tensor"><b>128×4×4</b></div><div class="arrow"></div>
+            <div class="tensor"><b>256×2×2</b></div><div class="arrow"></div>
+            <div class="tensor"><b>512×1×1</b></div>
+          </div>
+          <div class="note" style="margin-top:8px; color:var(--purple)">flatten 512 → Linear → mean μ (16) and log-variance (16)</div>
+        </div>
+      </div>
+    </div>
+    <!-- latent -->
+    <div class="card tint-orange" style="flex:0.42; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px">
+      <div class="lbl c-orange">Latent code</div>
+      <div class="tensor c-orange"><b>z : 16</b><span>z = μ + σ · noise</span></div>
+      <div class="note" style="text-align:center">CIFAR-10: 50 numbers</div>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top:16px">
+    <!-- decoder -->
+    <div class="card tint-teal" style="flex:1.55">
+      <div class="lbl c-teal" style="margin-bottom:10px">Decoder · makes the feature back</div>
+      <div class="flow dec-step">
+        <div class="tensor"><b>Linear 16→512</b><span>from z</span></div>
+        <div style="font-size:26px; font-weight:800; color:var(--red)">+</div>
+        <div class="tensor hot" style="color:var(--red); background:var(--red-l)"><b style="color:var(--red)">row w<sub>y</sub> (512)</b><span>table W: 10 rows × 512</span></div>
+        <div class="arrow"></div>
+        <div class="tensor"><b>512×1×1</b><span>ReLU, reshape</span></div>
+        <div class="arrow"></div>
+        <div class="tensor"><b>256×2×2</b></div><div class="arrow"></div>
+        <div class="tensor"><b>128×4×4</b></div><div class="arrow"></div>
+        <div class="tensor"><b>64×8×8</b></div><div class="arrow"></div>
+        <div class="tensor" style="border-width:3px"><b>3×16×16</b><span>fake feature ĥ</span></div>
+      </div>
+      <div class="note" style="margin-top:10px; color:var(--teal)">each step = Transposed Conv 4×4 /2 (size doubles) · output has the same shape as a real feature</div>
+    </div>
+    <!-- generation path -->
+    <div class="card tint-orange" style="flex:0.42">
+      <h3 class="c-orange" style="margin-bottom:6px">GENERATION · Stage III</h3>
+      <p style="font-size:14px; line-height:1.4">Pick class <b>y</b>, draw <b>z ~ N(0,1)</b>, run the <b>decoder only</b>. No real data needed.</p>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top:16px">
+    <div class="card" style="flex:1.55">
+      <div class="kv">
+        <div class="k">Loss</div><div>‖ĥ − h‖² + KL( N(μ, σ) ‖ N(0, 1) )   <span class="note">— rebuild well + keep z simple</span></div>
+        <div class="k">Optimiser</div><div>Adam · lr 0.001 · weight decay 0.001 · 5 local epochs · batch 64</div>
+        <div class="k">Size</div><div><b>5.55 M</b> numbers ≈ <b>22 MB</b></div>
+        <div class="k">Sent to server</div><div>all weights, every round · 100 rounds (CIFAR-10: 200)</div>
+      </div>
+    </div>
+    <div class="card tint-red" style="flex:0.42">
+      <h3 class="c-red">Why this matters</h3>
+      <p style="font-size:14.5px; line-height:1.4">Row <b>w<sub>y</sub></b> is the <b>only</b> part that knows the class — and FedAvg averages it like everything else.</p>
+    </div>
+  </div>
+  <div class="num">5</div>
+</section>
+
+<!-- ============ PAGE: method card ============ -->
+<section class="slide">
+  <div class="kicker">What we tried · Method card</div>
+  <h1>HWA — average each class row only over clients that have the class</h1>
+  <div class="row" style="margin-top:12px; align-items:center; gap:12px">
+    <div class="stage c-purple" style="border-color:var(--purple); background:var(--purple-l); width:200px">Stage I<small>feature extractor</small></div>
+    <div class="arrow c-muted"></div>
+    <div class="stage c-orange hot" style="background:var(--orange-l); width:200px">Stage II<small>generator · server averaging</small></div>
+    <div class="arrow c-muted"></div>
+    <div class="stage c-teal" style="border-color:var(--teal); background:var(--teal-l); width:200px">Stage III<small>client heads</small></div>
+    <span class="pill green" style="margin-left:auto; font-size:14px; padding:7px 16px">✔ KEPT IN FINAL METHOD</span>
+  </div>
+
+  <div class="row" style="margin-top:20px">
+    <div class="col" style="flex:1.05; gap:16px">
+      <div class="field"><div class="ic" style="background:var(--red)">!</div><div class="tx"><b class="c-red">Problem</b>
+        <p>A client without class c still sends its row w<sub>c</sub>. That copy only shrinks (weight decay), so the average pulls the real row toward zero.</p></div></div>
+      <div class="field"><div class="ic" style="background:var(--orange)">⌖</div><div class="tx"><b class="c-orange">Where</b>
+        <p>Server, Stage II, every round. Only the 10 label rows change; all other weights are averaged as before.</p></div></div>
+      <div class="field"><div class="ic" style="background:var(--blue)">↻</div><div class="tx"><b class="c-blue">Change</b>
+        <p>Average row c only over clients that <b>have</b> class c, weighted by how many samples they hold.</p>
+        <div class="eq" style="margin-top:8px">w<sub>c</sub> ← <span class="frac"><span>Σ<sub>k</sub> E(n<sub>kc</sub>) · w<sub>c</sub><sup>(k)</sup></span><span>Σ<sub>k</sub> E(n<sub>kc</sub>)</span></span>
+          <span class="note" style="font-family:'Segoe UI'; font-size:13px">&nbsp; E(n) = effective sample count, E(0) = 0</span></div></div></div>
+      <div class="field"><div class="ic" style="background:var(--green)">✓</div><div class="tx"><b class="c-green">Why it helps</b>
+        <p>A client that never saw class c can no longer pull its row down. Cost: only per-class counts, sent as sums.</p></div></div>
+    </div>
+    <div class="col" style="flex:0.95">
+      <div class="card">
+        <h3>Result <span class="note" style="font-weight:500">long tail · 3 seeds · balanced accuracy %</span></h3>
+        <table class="t">
+          <tr><th></th><th>MNIST</th><th>FMNIST</th><th>CIFAR-10</th><th>SVHN</th></tr>
+          <tr><td>before (GeFL-F + LA)</td><td>78.9</td><td>64.8</td><td>37.3</td><td>56.4</td></tr>
+          <tr class="hl"><td>after (+ HWA)</td><td>87.9</td><td>76.0</td><td>40.7</td><td>62.5</td></tr>
+          <tr class="gain"><td>gain</td><td>+9.0</td><td>+11.2</td><td>+3.4</td><td>+6.1</td></tr>
+        </table>
+      </div>
+      <div class="card tint-green">
+        <h3 class="c-green">Evidence it fixes the cause</h3>
+        <div class="row" style="gap:28px; align-items:flex-end">
+          <div><div class="note">rare / common row size, MNIST</div><div class="big c-green">0.33 → 0.80</div></div>
+          <div><div class="note">FMNIST</div><div class="big c-green">0.22 → 1.01</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="num">12</div>
+</section>
+</body></html>
