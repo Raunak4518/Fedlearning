@@ -23,8 +23,8 @@ function runs(text, base = {}) {
 }
 const P = (t, o = {}) => new Paragraph({ children: runs(t, o.run || {}), spacing: { after: 120, line: 276 }, alignment: o.align || AlignmentType.JUSTIFIED, ...o.para });
 const H1 = (t) => new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun(t)], pageBreakBefore: true, spacing: { after: 200 } });
-const H2 = (t) => new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun(t)], spacing: { before: 240, after: 120 } });
-const H3 = (t) => new Paragraph({ heading: HeadingLevel.HEADING_3, children: [new TextRun(t)], spacing: { before: 180, after: 80 } });
+const H2 = (t) => new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun(t)], keepNext: true, spacing: { before: 240, after: 120 } });
+const H3 = (t) => new Paragraph({ heading: HeadingLevel.HEADING_3, children: [new TextRun(t)], keepNext: true, spacing: { before: 180, after: 80 } });
 const B = (t, lvl = 0) => new Paragraph({ numbering: { reference: "bul", level: lvl }, children: runs(t), spacing: { after: 60, line: 264 } });
 const N = (t, ref = "num") => new Paragraph({ numbering: { reference: ref, level: 0 }, children: runs(t), spacing: { after: 60, line: 264 } });
 const caption = (t) => new Paragraph({ children: runs(t, { size: 18, color: GREY, italics: true }), alignment: AlignmentType.CENTER, spacing: { after: 220 } });
@@ -63,7 +63,7 @@ function table(head, rows, fr, opts = {}) {
     borders, width: { size: widths[i], type: WidthType.DXA },
     shading: { fill: hdr ? BLUE : (shade || "FFFFFF"), type: ShadingType.CLEAR, color: "auto" },
     margins: { top: 60, bottom: 60, left: 90, right: 90 },
-    children: [new Paragraph({ alignment: i === 0 ? AlignmentType.LEFT : AlignmentType.CENTER,
+    children: [new Paragraph({ alignment: (i === 0 || opts.left) ? AlignmentType.LEFT : AlignmentType.CENTER,
       children: runs(String(t), hdr ? { bold: true, color: "FFFFFF", size: 18 } : { size: 18 }) })],
   });
   const trs = [new TableRow({ tableHeader: true, children: head.map((t, i) => cell(t, i, true)) })];
@@ -237,8 +237,124 @@ C.push(P("**MC (kept in Ours-A).** Moves each fake class onto its exact mean and
 C.push(P("**Covariance version (MC-S / MC-B): future scope.** Helps FMNIST and SVHN but not yet complete on every dataset (Part 7)."));
 
 // ---------------- PART 4
+const card = (a, b, rows) => table([a, b], rows, [1.5, 8.1], { left: true });
 C.push(H1("4. The final architecture: Ours-A"));
-C.push(H2("4.1 Where each part comes from"));
+C.push(...callout("The single idea", ["FedAvg *estimates* class information and, under a long tail, the estimate collapses.",
+  "Secure aggregation *adds up* class sums exactly. Ours-A takes class information from these exact sums."]));
+
+C.push(H2("4.1 Ours-A at a glance"));
+C.push(...img("f07_esa.png", 640, "Figure 7. Ours-A inside GeFL-F. Blue: what changes."));
+C.push(...table(["#", "Component", "Stage", "Runs on", "Input → output", "Learned?"], [
+  ["0", "Feature extractor (FE), same as GeFL-F", "I", "every client", "image 1×32×32 → h 3×16×16 = 768", "yes, then frozen"],
+  ["1", "Class statistics", "after I", "client → server", "own features → 4 sums per class (0.3 MB)", "no (exact sums)"],
+  ["2", "PC-VAE generator", "II", "every client, FedAvg", "z (16) + m_y (768) → h̃ (768)", "yes, then frozen"],
+  ["3", "MC: moment fix", "before III", "server", "fake h̃ → fake with exact mean and spread", "no"],
+  ["4", "KH: fingerprint selection", "before III", "server", "4n candidates → best n per class", "no"],
+  ["5", "CSL: consensus labels", "III", "server (sums)", "fake h̃ → soft target t (10)", "no"],
+  ["6", "LA: client-prior loss", "III", "every client", "real h, y → loss with offset log π_k", "no"],
+  ["7", "Private head (10 architectures)", "III", "every client", "h (768) → 10 logits", "yes"],
+], [0.4, 2.6, 0.9, 1.6, 3.2, 1.3], { highlight: [1, 2, 3, 4, 5, 6] }));
+C.push(P("Everything in rows 1–6 is new. Rows 3–6 have no trainable weights: they only use the exact sums."));
+
+C.push(H2("4.2 Step 1: class statistics (one upload, after Stage I)"));
+C.push(...card("Step 1", "Class statistics", [
+  ["**What**", "Each client sends, for each of the 10 classes, four sums of its own frozen features."],
+  ["**When**", "Once, right after Stage I (the FE is frozen, so features never change again)."],
+  ["**How**", "Secure aggregation (Bonawitz et al., CCS 2017): the server receives only the total over all clients."],
+  ["**Why**", "These totals are exact. Nothing is learned and nothing is averaged, so FedAvg cannot shrink them."],
+]));
+C.push(...table(["Sum sent by client k for class c", "Size", "Server computes", "Meaning"], [
+  ["n_kc: number of samples", "1", "n_c = Σ_k n_kc", "class size"],
+  ["S_kc = Σ h", "768", "m_c = S_c / n_c", "class mean (used by PC-VAE and MC)"],
+  ["Q_kc = Σ ‖h‖²", "1", "V_c = Q_c / n_c − ‖m_c‖²", "class spread (used by MC)"],
+  ["Φ_kc = Σ φ(h), φ = random Fourier features", "6,144", "μ_c = Φ_c / n_c", "class fingerprint (used by KH)"],
+], [3.4, 0.8, 2.6, 3.0]));
+C.push(eq("eq_stats", "9"));
+C.push(P("Total: 10 × (1 + 768 + 1 + 6,144) ≈ 69,000 numbers ≈ **0.3 MB per client, once**. GeFL-F already sends 22 MB per round."));
+
+C.push(H2("4.3 Step 2: the generator PC-VAE (replaces CVAE-F in Stage II)"));
+C.push(...img("f13_pcvae.png", 640, "Figure 8. PC-VAE with every shape. Blue boxes: where the exact class mean enters."));
+C.push(...card("Step 2", "PC-VAE", [
+  ["**Problem it fixes**", "In CVAE-F the class enters only through a learned row w_y. A client without class c only shrinks w_c (weight decay), so rows of rare classes collapse (Proposition 1)."],
+  ["**What changes**", "The class enters through the exact mean m_y. It goes in twice: as 3 extra input channels of the encoder, and through a linear layer A (768 → 512) added to the decoder input."],
+  ["**Output**", "h̃ = ReLU(m_y + decoder output). The network learns only how a sample *differs* from its class mean."],
+  ["**Why it works**", "There is no class-specific weight, so there is nothing for FedAvg to shrink. The shape of 'difference from the mean' is shared by all classes, so every client trains it, rare classes included."],
+  ["**Source**", "Class prototypes as shared knowledge: FedProto (Tan et al., AAAI 2022)."],
+  ["**Cost**", "5.94 M parameters (CVAE-F: 5.55 M). Same training as GeFL-F: loss ‖h̃ − h‖² + KL, Adam lr 0.001, wd 0.001, batch 64, 5 local epochs, 100 rounds (CIFAR-10: 200)."],
+]));
+C.push(eq("eq_pc", "10"));
+C.push(...table(["Layer", "MNIST / FMNIST / SVHN", "CIFAR-10"], [
+  ["Encoder input [h ; m_y]", "6×16×16", "20×16×16"],
+  ["Conv 4×4 stride 2 → BN → ReLU (×4)", "64×8×8 → 128×4×4 → 256×2×2 → 512×1×1", "same"],
+  ["Linear → μ, log σ²", "16 + 16", "50 + 50"],
+  ["Decoder input: Linear(z) + A m_y → ReLU", "512×1×1", "512×1×1"],
+  ["Transposed Conv 4×4 stride 2 (×4)", "256×2×2 → 128×4×4 → 64×8×8 → 3×16×16", "… → 10×16×16"],
+  ["Output ReLU(m_y + ·)", "3×16×16 = 768", "10×16×16 = 2560"],
+], [3.4, 4.0, 2.2]));
+
+C.push(H2("4.4 Step 3: moment fix (MC)"));
+C.push(...card("Step 3", "MC", [
+  ["**Problem it fixes**", "A VAE's samples are too narrow (under-dispersed), and the mean of a rare class can be slightly off."],
+  ["**What**", "For each class, measure the fake mean m̃_c and spread Ṽ_c (from 500 generator samples), then move every fake sample x:  x′ = ReLU( m_c + √(V_c / Ṽ_c) · (x − m̃_c) )."],
+  ["**Result**", "The fake class now has the *exact* real mean m_c and spread V_c."],
+  ["**Why this map (Proposition 3)**", "Of all maps that give the exact mean and spread, this one moves the samples the least. It corrects the class but keeps the shape the generator learned."],
+  ["**Source**", "Optimal transport between distributions, scalar case (Olkin and Pukelsheim, 1982)."],
+  ["**Cost**", "No training. Two numbers per class (a shift and a scale), computed by the server."],
+]));
+C.push(eq("eq_mc", "11"));
+
+C.push(H2("4.5 Step 4: fingerprint selection (kernel herding, KH)"));
+C.push(...card("Step 4", "KH", [
+  ["**Problem it fixes**", "Mean and spread can be right while the *shape* is still wrong (e.g. a fake sub-cluster that real data does not have)."],
+  ["**What**", "Draw 4n corrected candidates of class c and keep the n whose average fingerprint is closest to the real fingerprint μ_c."],
+  ["**Why it works (Lemma 1)**", "A head's error on real data differs from its error on fake data by at most B · MMD(fake, real). KH directly lowers this MMD."],
+  ["**Source**", "Kernel herding (Chen, Welling and Smola, UAI 2010); MMD (Gretton et al., JMLR 2012)."],
+  ["**Cost**", "No training. One matrix product per selected sample; uses only μ_c, already uploaded."],
+]));
+C.push(P("**Algorithm** (greedy, without replacement):"));
+C.push(N("compute fingerprints φ(x_i) of the 4n candidates (6,144 numbers each); set w = μ_c;"));
+C.push(N("pick the candidate with the largest ⟨φ(x_i), w⟩;"));
+C.push(N("update w ← w + μ_c − φ(x_picked); repeat step 2 until n samples are picked."));
+C.push(eq("eq_kh", "12"));
+C.push(...img("f15_mc_kh.png", 640, "Figure 9. One class in 2-D: the generator's output, after MC (right mean and spread) and after KH (right shape). The MMD to the real class falls 0.44 → 0.25 → 0.03."));
+
+C.push(H2("4.6 Step 5: training the heads (Stage III)"));
+C.push(...img("f14_round3.png", 640, "Figure 10. One Stage III round. The fake pool is made fresh every round."));
+C.push(H3("(a) 10 epochs on the fake pool, with consensus soft labels (CSL)"));
+C.push(...card("Step 5a", "CSL", [
+  ["**What**", "Target t = ½ · one-hot(y) + ½ · (average of softmax predictions of the 10 architectures' heads on the same fake sample)."],
+  ["**How**", "All clients use one shared fake pool per round. Clients upload only *sums* of predictions (≈ 24 KB per fake epoch), never their heads' outputs on real data."],
+  ["**Why it works**", "Different architectures make different errors. Their average is a softer and more reliable label than the generator's label alone. β = 0.5 was better than β = 1."],
+  ["**Source**", "FedMD (Li and Wang, 2019); FedDF (Lin et al., NeurIPS 2020)."],
+]));
+C.push(eq("eq_csl", "6"));
+C.push(H3("(b) 5 epochs on the client's own real features, with logit adjustment (LA)"));
+C.push(...card("Step 5b", "LA", [
+  ["**What**", "Loss = CE( head(h) + τ · log π_k , y ), τ = 1, where π_k is the client's own label distribution."],
+  ["**Why it works**", "A client with 90 % of one class learns to predict that class. Adding log π_k during training removes this bias; at test time the offset is dropped."],
+  ["**Privacy**", "π_k never leaves the client."],
+  ["**Source**", "Logit adjustment (Menon et al., ICLR 2021); FedLC (Zhang et al., ICML 2022)."],
+]));
+C.push(eq("eq_la", "5"));
+C.push(H3("(c) Why 10 fake epochs instead of GeFL-F's 1"));
+C.push(P("**Proposition 5:** more fake training helps only when the generator is faithful. Measured on MNIST (long tail): +1.7 with PC-VAE + MC + KH, +3.9 at 100 clients, but −0.05 with the original generator."));
+C.push(H3("(d) Aggregation and test time"));
+C.push(B("Heads are averaged only with heads of the **same architecture**, as in GeFL-F."));
+C.push(B("Test: image → frozen FE → 3×16×16 → the client's own head → 10 logits. No generator is needed."));
+
+C.push(H2("4.7 How each step adds up (same seeds, long tail, balanced accuracy %)"));
+C.push(...table(["Step", "MNIST", "FMNIST", "What it fixes"], [
+  ["GeFL-F", "75.25", "58.47", "—"],
+  ["+ LA", "78.92", "64.78", "client's own class skew"],
+  ["+ HWA (class rows averaged over holders)", "87.89", "76.02", "rare rows no longer pulled down"],
+  ["+ CSL", "90.40", "76.60", "better labels on fake features"],
+  ["PC-VAE replaces HWA", "90.75", "75.96", "no class rows at all"],
+  ["+ MC", "92.31", "77.56", "exact mean and spread"],
+  ["+ KH", "93.11", "78.22", "fake ≈ real (low MMD)"],
+  ["+ T_s = 10  = **Ours-A**", "**94.82**", "**79.67**", "uses the now-faithful generator more"],
+], [3.6, 1.2, 1.2, 3.6], { highlight: [7] }));
+
+C.push(H2("4.8 Where each part comes from"));
 C.push(...table(["Part of Ours-A", "Source (research paper)", "What we use from it"], [
   ["Class sums sent safely", "Bonawitz et al., Practical Secure Aggregation, ACM CCS 2017", "server gets only the total over clients"],
   ["Class mean as class identity", "Tan et al., FedProto, AAAI 2022", "class prototypes (means) as shared knowledge"],
@@ -247,30 +363,14 @@ C.push(...table(["Part of Ours-A", "Source (research paper)", "What we use from 
   ["Client-prior loss (LA)", "Menon et al., Logit Adjustment, ICLR 2021; Zhang et al., FedLC, ICML 2022", "loss that undoes a client's own class skew"],
   ["Consensus labels (CSL)", "Li and Wang, FedMD, 2019; Lin et al., FedDF, NeurIPS 2020", "average prediction of different models as soft label"],
 ], [2.4, 3.8, 3.4]));
-C.push(...callout("The single idea", ["FedAvg *estimates* class information and, under a long tail, the estimate collapses.",
-  "Secure aggregation *adds up* class sums exactly. Ours-A takes class information from these exact sums."]));
-C.push(H2("4.2 Architecture"));
-C.push(...img("f07_esa.png", 640, "Figure 7. Ours-A inside GeFL-F. Blue: what changes. Everything new comes from class sums added up by secure aggregation."));
-C.push(H2("4.3 Mathematical model"));
-C.push(H3("Step 1: class statistics (one upload per client, after Stage I)"));
-C.push(P("Each client sends per-class counts, feature sums, sums of squared norms and sums of 6,144 random features. The server adds them:"));
-C.push(eq("eq_stats", "9"));
-C.push(H3("Step 2: class identity from the exact class mean (PC-VAE)"));
-C.push(P("The generator learns only the difference from the class mean; it has no class-specific weight that FedAvg could shrink:"));
-C.push(eq("eq_pc", "10"));
-C.push(H3("Step 3: moment fix (MC)"));
-C.push(P("**Proposition 3.** Of all maps that give class c its exact mean and spread, this one changes the samples the least:"));
-C.push(eq("eq_mc", "11"));
-C.push(H3("Step 4: fingerprint selection (kernel herding)"));
-C.push(P("Draw 4n candidates per class, keep the n whose average fingerprint best matches μ_c. **Lemma 1:** the head's real-vs-fake error gap is bounded by this mismatch (MMD):"));
-C.push(eq("eq_kh", "12"));
-C.push(H3("Step 5: heads"));
-C.push(P("10 epochs on the corrected fake features with consensus labels (eq. 6), then 5 epochs on real features with the client-prior loss (eq. 5)."));
-C.push(H2("4.4 What Ours-A adds to communication"));
+C.push(P("**What is new in Ours-A:** taking class information from exact secure-aggregation sums instead of from FedAvg-trained weights, and using it in three places (generator input, moment fix, sample selection)."));
+
+C.push(H2("4.9 Communication and privacy"));
 C.push(...table(["Release", "Size", "When", "Protection"], [
   ["Class counts, sums of h and of ‖h‖², sums of random features", "≈ 0.3 MB per client", "once, after Stage I", "secure aggregation; optional (ε, δ)-DP"],
   ["Consensus labels: prediction sums on a shared fake pool", "≈ 24 KB per fake epoch", "each Stage-III round", "sums only; no real data"],
-  ["Generator, extractor, heads", "as in GeFL-F", "as in GeFL-F", "unchanged"],
+  ["Generator", "5.94 M params ≈ 23.7 MB (GeFL-F: 22 MB)", "each Stage-II round", "same as GeFL-F"],
+  ["Feature extractor, heads", "as in GeFL-F", "as in GeFL-F", "unchanged"],
 ], [3.6, 2.6, 1.6, 1.8]));
 C.push(P("For formal privacy, features are clipped and each release gets Gaussian noise (zero-concentrated DP):"));
 C.push(eq("eq_dp", "13"));
@@ -290,7 +390,7 @@ C.push(...table(["Method (IF = 100, Dir 0.5, K = 10; balanced accuracy)", "MNIST
   ["oracle: Ours-A's heads, last layer re-fit on pooled real data", "94.93", "81.55", "50.64", "59.13"],
 ], [4.6, 1.2, 1.4, 1.2, 1.2], { highlight: [5] }));
 C.push(P("Tail recall: 51.9 → 91.1 (MNIST), 35.4 → 73.6 (FashionMNIST). SVHN is the weak case (Part 5.7)."));
-C.push(...img("f08_longtail.png", 640, "Figure 8. Long-tailed clients: Ours-A against GeFL-F and the strongest alternatives."));
+C.push(...img("f08_longtail.png", 640, "Figure 11. Long-tailed clients: Ours-A against GeFL-F and the strongest alternatives."));
 C.push(H2("5.3 The paper's own balanced setting, against all ten of its methods"));
 C.push(...table(["best_mean_acc, IID", "GeFL-F (paper)", "Best of the paper's ten methods", "Our GeFL-F", "**Ours-A**", "Ours-A − best"], [
   ["MNIST, K = 10", "95.47", "96.44 (GeFL, DDPM)", "96.01", "**97.62**", "+1.18"],
@@ -302,7 +402,7 @@ C.push(...table(["best_mean_acc, IID", "GeFL-F (paper)", "Best of the paper's te
   ["SVHN, K = 10", "76.26", "76.26 (GeFL-F, CVAE-F)", "75.82", "74.38", "−1.88"],
 ], [2.0, 1.2, 2.2, 1.2, 1.0, 1.1], { highlight: [0, 1, 2, 5] }));
 C.push(P("Above the best of the paper's 10 methods on MNIST (all client counts) and CIFAR-10; level on FashionMNIST; below on SVHN."));
-C.push(...img("f09_iid.png", 640, "Figure 9. The paper's balanced setting: Ours-A against the paper's GeFL-F and the best of its ten methods."));
+C.push(...img("f09_iid.png", 640, "Figure 12. The paper's balanced setting: Ours-A against the paper's GeFL-F and the best of its ten methods."));
 C.push(H2("5.4 Data augmentation (paper's Table IV), and why MixUp does not transfer"));
 C.push(...table(["CIFAR-10, IID, K = 10", "Accuracy"], [
   ["FedAvg / + MixUp / + CutMix / + AugMix / + AutoAugment (paper)", "55.65 / 60.07 / 58.95 / 53.96 / 56.99"],
@@ -313,7 +413,7 @@ C.push(...table(["CIFAR-10, IID, K = 10", "Accuracy"], [
 ], [6, 3]));
 C.push(P("Ours-A beats 7 of 9 without augmentation. The two higher ones train full models on raw images; in GeFL-F the extractor is frozen, and feature-space MixUp lowered our accuracy (59.98 vs 60.93)."));
 C.push(H2("5.5 More clients, and formal privacy"));
-C.push(...img("f11_scaling_privacy.png", 640, "Figure 10. (a) 100 clients, MNIST long tail. (b) Ours-A with every statistic made (ε, 10⁻⁵)-differentially private."));
+C.push(...img("f11_scaling_privacy.png", 640, "Figure 13. (a) 100 clients, MNIST long tail. (b) Ours-A with every statistic made (ε, 10⁻⁵)-differentially private."));
 C.push(...table(["Setting", "GeFL-F", "HWA + LA", "FSG + LA", "**Ours-A**"], [
   ["MNIST long tail, K = 100", "75.98", "83.07", "86.05", "**94.30**"],
 ], [3.6, 1.4, 1.4, 1.4, 1.4], { highlight: [0] }));
@@ -324,7 +424,7 @@ C.push(...table(["Long tail, K = 10", "GeFL-F (no formal guarantee)", "Ours-A ex
 ], [2.2, 2.4, 1.4, 1.4, 1.4]));
 C.push(P("Privacy costs 4.5–6.9 points at ε = 8 and 9.8–14.1 at ε = 2, mostly on the rarest classes; still +7 to +15 over GeFL-F."));
 C.push(H2("5.6 What each component contributes"));
-C.push(...img("f10_ablation.png", 640, "Figure 11. Adding components one at a time on the same seeds (long tail)."));
+C.push(...img("f10_ablation.png", 640, "Figure 14. Adding components one at a time on the same seeds (long tail)."));
 C.push(P("Each step adds on the same seeds. Kernel herding helped in all 9 paired tests (p = 0.004)."));
 C.push(H2("5.7 The weak case: SVHN"));
 C.push(...table(["SVHN", "GeFL-F", "+ HWA + LA", "Ours-A"], [
