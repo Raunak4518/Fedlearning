@@ -222,22 +222,23 @@ def fig_journey():
     for t, x in cols:
         box(ax, x, 0.86, 0.18, 0.07, t, fc="#f1f3f5", ec="#adb5bd", fs=7.8, bold=True)
     items = {
-        0.02: [("HWA: holder-weighted rows", 1), ("LCD: lazy row decay", 0), ("DP-noised counts for HWA", 1)],
-        0.215: [("PC-VAE: class mean anchor", 1), ("F-gate: rows when means fail", 1), ("FSG: Gaussian from statistics", 0),
+        0.02: [("HWA: holder-weighted rows", 3), ("LCD: lazy row decay", 0), ("DP-noised counts for HWA", 3)],
+        0.215: [("PC-VAE: class mean anchor", 1), ("F-gate: rows when means fail", 2), ("FSG: Gaussian from statistics", 0),
                 ("Hybrid CVAE / Gaussian", 0), ("PCR: rows + anchor", 0), ("KME-Gen: server-only MMD", 0), ("DDPM-F generator", 0), ("ZP: latent prior", 0)],
-        0.41: [("MC: exact mean + spread", 1), ("MC-S: + covariance (pooled)", 0), ("MC-B: + covariance (Bayes)", 1), ("KH: kernel herding", 1),
+        0.41: [("MC: exact mean + spread", 1), ("MC-S: + covariance (pooled)", 0), ("MC-B: + covariance (Bayes)", 2), ("KH: kernel herding", 1),
                ("DP on all statistics", 1)],
         0.605: [("LA: client-prior logit adj.", 1), ("CSL: consensus soft labels", 1), ("T_s = 10 synthetic budget", 1), ("Bayesian CSL", 0),
                 ("CSLM: interleaved batches", 0), ("PCM: prior-completing", 0), ("RSA: alignment loss", 0), ("VCT / MixUp", 0)],
-        0.80: [("BBC: gated bias calibration", 1), ("SED: server distillation", 0), ("BCR: classifier re-train", 0), ("GF: gradient filtering", 0)],
+        0.80: [("BBC: bias calibration", 2), ("SED: server distillation", 0), ("BCR: classifier re-train", 0), ("GF: gradient filtering", 0)],
     }
     for x, lst in items.items():
         y = 0.79
         for name, ok in lst:
-            box(ax, x, y, 0.18, 0.06, ("✔  " if ok else "✘  ") + name, fc="#ebfbee" if ok else "#fff5f5",
-                ec=GOOD if ok else BAD, fs=7.2, color=INK)
+            mark, fc, ec = {0: ("✘  ", "#fff5f5", BAD), 1: ("✔  ", "#ebfbee", GOOD),
+                            2: ("◷  ", "#fff9db", "#e0a800"), 3: ("➜  ", "#e7f5ff", "#4dabf7")}[ok]
+            box(ax, x, y, 0.18, 0.06, mark + name, fc=fc, ec=ec, fs=7.2, color=INK)
             y -= 0.075
-    ax.text(0.5, 0.215, "✔ kept in the final method (green)      ✘ tested and dropped on the evidence (red); see Part 3 for each one",
+    ax.text(0.5, 0.215, "✔ in Ours-A     ➜ worked, then replaced by the mean anchor     ◷ future scope (not yet verified everywhere)     ✘ dropped",
             ha="center", fontsize=8, color=MUTED)
     fig.savefig(os.path.join(OUT, "f06_journey.png"), dpi=200, facecolor="white", bbox_inches="tight")
     plt.close(fig)
@@ -245,43 +246,32 @@ def fig_journey():
 
 # ---------------------------------------------------------------- Fig 7: ESA architecture
 def fig_esa():
-    fig, ax = canvas(10, 7.2)
-    ax.text(0.5, 0.985, "ESA: Exact-Statistics Anchoring inside GeFL-F (what changes is outlined in blue)", ha="center",
+    fig, ax = canvas(10, 6.6)
+    ax.text(0.5, 0.985, "Ours-A inside GeFL-F (what changes is outlined in blue)", ha="center",
             va="top", fontsize=12, fontweight="bold")
-    # clients upload
-    box(ax, 0.02, 0.76, 0.27, 0.17, "Each client k, ONCE after Stage I\nuploads per-class sums of its features:\n"
-        "n_kc,  Σ h,  Σ ‖h‖²,  Σ φ_RFF(h)  (D = 6144),\nΣ h hᵀ (pooled), Σ z zᵀ in basis B (256-d)\n≈ 0.3 MB + C·k² numbers",
-        fc=C_CLIENT, ec=E_CLIENT, fs=7.4)
-    box(ax, 0.35, 0.765, 0.30, 0.19, "Secure aggregation  →  server sees only totals\n\n"
-        "m_c = S_c / n_c          (class mean)\nV_c = Q_c / n_c − ‖m_c‖²   (class spread)\nΣ_c  (class covariance, top-256 basis)\n"
-        "μ_c = Φ_c / n_c          (kernel embedding)\nF = mean‖m_c − m̄‖² / mean V_c", fc=C_SERVER, ec=OURS, fs=7.4, lw=1.8)
-    arrow(ax, 0.29, 0.845, 0.35, 0.845, color=OURS)
-    box(ax, 0.71, 0.76, 0.27, 0.17, "Separation gate (Proposition 2)\nF ≥ 0.05: class means identify classes\n→ mean-anchored generator\n"
-        "F < 0.05 (e.g. SVHN, F = 0.01)\n→ class rows aggregated with exact counts (HWA)", fc="#fff9db", ec=OURS, fs=7.4, lw=1.8)
-    arrow(ax, 0.65, 0.845, 0.71, 0.845, color=OURS)
-    # generator
-    box(ax, 0.02, 0.45, 0.30, 0.23, "Stage II generator (FedAvg)\n\nPC-VAE:  h̃ = ReLU( m_y + dec(z, A m_y) )\n"
-        "no class-specific parameter → no collapse\n\nor (F < 0.05) CVAE-F with HWA rows:\nw_c ← Σ_k E(n_kc) w_c^(k) / Σ_k E(n_kc)", fc=C_GEN, ec=OURS, fs=7.4, lw=1.8)
-    arrow(ax, 0.72, 0.765, 0.30, 0.68, color=OURS)
-    box(ax, 0.36, 0.45, 0.30, 0.23, "Moment anchor MC-B (Propositions 3–4)\n\nx' = m_c + B A_c Bᵀ(x − m̃_c) + s_c (I − BBᵀ)(x − m̃_c)\n"
-        "A_c = Gelbrich map  Σ̃_c → Σ̂_c\nΣ̂_c = (n_c Σ_c + k Σ̃_c·τ_c) / (n_c + k)\nrare class → scalar map (MC); common → exact Σ_c",
-        fc="white", ec=OURS, fs=7.2, lw=1.8)
-    box(ax, 0.70, 0.45, 0.28, 0.23, "Distribution anchor KH (Lemma 1)\n\ndraw 4n candidates per class, keep n by\nFrank–Wolfe herding on\n"
-        "‖ (1/n) Σ_t φ(x_t) − μ_c ‖\nlowers the MMD term of every head's\nrisk bound", fc="white", ec=OURS, fs=7.4, lw=1.8)
-    arrow(ax, 0.32, 0.565, 0.36, 0.565, color=OURS)
-    arrow(ax, 0.66, 0.565, 0.70, 0.565, color=OURS)
-    # stage III
-    box(ax, 0.02, 0.12, 0.47, 0.26, "Stage III on client k  (T_TN rounds)\n\n1) T_s = 10 epochs on the anchored pool, target\n"
-        "    t = ½ e_y + ½ · mean_g softmax h_g(h̃)   (consensus soft label)\n2) T_r = 5 epochs on real features with logit adjustment:\n"
-        "    CE( h_k(h) + τ log π_k , y ),  π_k = client's own label prior",
-        fc=C_HEAD, ec=E_HEAD, fs=7.5, lw=1.5)
-    arrow(ax, 0.80, 0.45, 0.30, 0.38, color=OURS, text="anchored synthetic pool (+ consensus labels: prediction sums only)", tx=0.50, ty=0.415)
-    box(ax, 0.53, 0.12, 0.45, 0.26, "After training: gated balanced bias calibration (BBC)\n\nif max_c n_c / min_c n_c > 2 (exact counts):\n"
-        "fit offsets b so each head predicts every class equally\noften on balanced anchored synthetic features\n"
-        "b ← b − log( C · q̄(b) )   (Saerens et al., 2002)", fc="white", ec=OURS, fs=7.5, lw=1.8)
-    arrow(ax, 0.49, 0.25, 0.53, 0.25, color=OURS)
-    ax.text(0.5, 0.04, "Everything new is computed from sums that secure aggregation returns exactly. No raw data, real features or individual\n"
-            "client statistics are disclosed; every release can be made (ε, δ)-differentially private (Part 4.7).",
+    box(ax, 0.02, 0.74, 0.40, 0.19, "Each client k, ONCE after Stage I, uploads per-class sums:\n\n"
+        "n_kc,   Σ h,   Σ ‖h‖²,   Σ φ_RFF(h)  (D = 6144)\nh = 3×16×16 = 768 numbers (CIFAR-10: 2560)\n≈ 0.3 MB per client",
+        fc=C_CLIENT, ec=E_CLIENT, fs=7.8)
+    box(ax, 0.50, 0.74, 0.48, 0.19, "Secure aggregation → server sees only totals\n\n"
+        "m_c = S_c / n_c   (class mean)          V_c = Q_c / n_c − ‖m_c‖²   (spread)\n"
+        "μ_c = Φ_c / n_c   (kernel embedding: class fingerprint)", fc=C_SERVER, ec=OURS, fs=7.8, lw=1.8)
+    arrow(ax, 0.42, 0.835, 0.50, 0.835, color=OURS)
+    box(ax, 0.02, 0.40, 0.30, 0.26, "1) Stage II generator PC-VAE (FedAvg)\n\n"
+        "h̃ = ReLU( m_y + dec(z, A m_y) )\nz ~ N(0, I), 16-d\n\nclass enters only through exact m_y\n→ no class row to shrink", fc=C_GEN, ec=OURS, fs=7.8, lw=1.8)
+    box(ax, 0.36, 0.40, 0.29, 0.26, "2) Moment fix MC (Proposition 3)\n\n"
+        "x' = m_c + √(V_c / Ṽ_c) · (x − m̃_c)\n\nexact class mean and spread\nwith the smallest change",
+        fc="white", ec=OURS, fs=7.8, lw=1.8)
+    box(ax, 0.69, 0.40, 0.29, 0.26, "3) Fingerprint selection KH (Lemma 1)\n\ndraw 4n per class, keep n by\nkernel herding on\n"
+        "‖ (1/n) Σ_t φ(x_t) − μ_c ‖\n→ fake ≈ real (low MMD)", fc="white", ec=OURS, fs=7.8, lw=1.8)
+    arrow(ax, 0.62, 0.74, 0.20, 0.66, color=OURS)
+    arrow(ax, 0.32, 0.53, 0.36, 0.53, color=OURS)
+    arrow(ax, 0.65, 0.53, 0.69, 0.53, color=OURS)
+    box(ax, 0.02, 0.09, 0.96, 0.23, "4) Stage III on client k  (T_TN rounds, private head of any architecture)\n\n"
+        "a) T_s = 10 epochs on the corrected fake pool, target  t = ½ e_y + ½ · mean_g softmax h_g(h̃)   (consensus soft label, CSL)\n"
+        "b) T_r = 5 epochs on own real features with logit adjustment:  CE( h_k(h) + τ log π_k , y ),  π_k = client's private label prior (LA)",
+        fc=C_HEAD, ec=E_HEAD, fs=7.8, lw=1.5)
+    arrow(ax, 0.83, 0.40, 0.60, 0.32, color=OURS, text="corrected fake pool", tx=0.80, ty=0.355)
+    ax.text(0.5, 0.025, "Only sums leave the clients; no raw data, features or single-client statistics. Optional (ε, δ)-DP on every release.",
             ha="center", fontsize=7.8, color=MUTED, style="italic")
     save(fig, "f07_esa.png")
 
@@ -325,20 +315,20 @@ def fig_results():
           ("GeFL-F + LA", [78.92, 64.78, 37.30, 56.44], "#adb5bd"),
           ("+ HWA + LA", [87.89, 76.02, 40.73, 62.45], "#74c0fc"),
           ("Gaussian from statistics (FSG) + LA", [87.04, 73.60, 44.17, 44.23], "#ffc078"),
-          ("ESA (ours)", [94.99, 81.96, 47.0, 67.0], OURS)], (0, 105))
+          ("Ours-A", [94.82, 79.67, 44.38, 54.41], OURS)], (0, 105))
     bars("f09_iid.png", "Paper's own balanced setting: best_mean_acc vs the best of the paper's ten methods",
          ["MNIST K=10", "MNIST K=50", "MNIST K=100", "FMNIST K=10", "FMNIST K=50", "CIFAR-10 K=10", "SVHN K=10"],
          [("GeFL-F (paper)", [95.47, 95.04, 94.63, 83.14, 82.21, 55.86, 76.26], NEUT),
           ("best of 10 methods in paper", [96.44, 95.04, 94.63, 84.28, 82.96, 59.36, 76.26], "#ffa8a8"),
-          ("ESA (ours)", [97.62, 96.93, 96.77, 85.75, 82.96, 60.93, 77.07], OURS)], (50, 102), ylabel="best_mean_acc (%)")
+          ("Ours-A", [97.62, 96.93, 96.77, 83.96, 82.96, 60.93, 74.38], OURS)], (50, 102), ylabel="best_mean_acc (%)")
     bars("f10_ablation.png", "Building the method on the same seeds (MNIST / FashionMNIST, long tail)",
-         ["GeFL-F", "+LA", "+HWA", "+CSL", "mean anchor\n(PC-VAE)", "+MC", "+KH", "+T_s=10", "+BBC", "MC → MC-B"],
-         [("MNIST", [75.25, 78.92, 87.89, 90.40, 90.75, 92.31, 93.11, 94.82, 95.17, 94.99], OURS),
-          ("FashionMNIST", [58.47, 64.78, 76.02, 76.60, 75.96, 77.56, 78.22, 79.67, 80.55, 81.96], "#e8590c")], (50, 100), h=3.4)
-    bars("f11_scaling_privacy.png", "(a) More clients: MNIST long tail, K = 100       (b) Formal privacy on every ESA statistic, long tail, K = 10",
+         ["GeFL-F", "+LA", "+HWA", "+CSL", "mean anchor\n(replaces HWA)", "+MC", "+KH", "+T_s=10\n= Ours-A"],
+         [("MNIST", [75.25, 78.92, 87.89, 90.40, 90.75, 92.31, 93.11, 94.82], OURS),
+          ("FashionMNIST", [58.47, 64.78, 76.02, 76.60, 75.96, 77.56, 78.22, 79.67], "#e8590c")], (50, 100), h=3.4)
+    bars("f11_scaling_privacy.png", "(a) More clients: MNIST long tail, K = 100       (b) Formal privacy on every Ours-A statistic, long tail, K = 10",
          ["K=100\nMNIST", "exact\nMNIST", "ε = 8\nMNIST", "ε = 2\nMNIST", "exact\nFMNIST", "ε = 8\nFMNIST", "ε = 2\nFMNIST"],
          [("GeFL-F (no formal privacy)", [75.98, 75.25, 75.25, 75.25, 58.47, 58.47, 58.47], NEUT),
-          ("ESA", [94.30, 94.82, 90.36, 85.06, 79.67, 72.77, 65.59], OURS)], (40, 102), h=3.3)
+          ("Ours-A", [94.30, 94.82, 90.36, 85.06, 79.67, 72.77, 65.59], OURS)], (40, 102), h=3.3)
     bars("f12_svhn.png", "SVHN: where class means carry no class information (F = 0.01)",
          ["long tail (balanced acc.)", "IID (best_mean_acc)"],
          [("GeFL-F", [50.49, 75.82], NEUT), ("mean anchor + MC (Ours-A)", [55.76, 74.38], "#ffa8a8"),
@@ -354,7 +344,7 @@ EQ = {
     "eq_hwa": r"$w_c \leftarrow \frac{\sum_k E(n_{kc})\, w_c^{(k)}}{\sum_k E(n_{kc})},\qquad E(n)=\frac{1-\beta^{\,n}}{1-\beta},\ \ \beta = 0.999$",
     "eq_la": r"$\ell_{LA}(h,y) = -\log \frac{\exp(f_y(h)+\tau\log\pi_{k,y})}{\sum_{j}\exp(f_j(h)+\tau\log\pi_{k,j})}$",
     "eq_csl": r"$t(\tilde h) = (1-\beta)\,e_y + \beta\,\frac{1}{G}\sum_{g=1}^{G}\mathrm{softmax}\left(h_g(\tilde h)\right),\qquad \beta = 0.5$",
-    "eq_stats": r"$m_c=\frac{S_c}{n_c},\quad V_c=\frac{Q_c}{n_c}-\|m_c\|^2,\quad \mu_c=\frac{\Phi_c}{n_c},\quad F=\frac{\overline{\|m_c-\bar m\|^2}}{\overline{V_c}}$",
+    "eq_stats": r"$m_c=\frac{S_c}{n_c},\quad V_c=\frac{Q_c}{n_c}-\|m_c\|^2,\quad \mu_c=\frac{\Phi_c}{n_c}$",
     "eq_pc": r"$\tilde h = \mathrm{ReLU}\left(m_y + \mathrm{dec}(z,\ A\,m_y)\right),\qquad z\sim\mathcal{N}(0,I)$",
     "eq_sep": r"$W_1(G_c, G_{c'})\ \leq\ (1+L\,\|A\|_2)\ \|m_c-m_{c'}\|$",
     "eq_mc": r"$T^\star(x) = m_c + \sqrt{V_c/\tilde V_c}\,(x-\tilde m_c)\ \ =\ \ \arg\min_{T}\ \mathbb{E}\|T(X)-X\|^2\ \ \mathrm{s.t.}\ \ \mathbb{E}T=m_c,\ \mathbb{E}\|T-m_c\|^2=V_c$",
