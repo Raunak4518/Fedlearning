@@ -187,8 +187,11 @@ def run(ds, seed, root, out_dir, stage3, smoke=False, sep_only=False):
             real["spread"].append(float((xc - xc.mean(0)).pow(2).sum(1).mean() / V[c]))
             real["mean_err"].append(float((xc.mean(0) - m[c]).norm() / V[c].sqrt()))
             # MMD between two halves of the real test class: the sampling-noise floor
+            # random halves (MNIST's test set is ordered by writer group, so first/second half differ)
+            g = torch.Generator(device="cpu").manual_seed(seed * 10 + c)
+            pm = torch.randperm(len(xc), generator=g).to(xc.device)
             h = len(xc) // 2
-            real["mmd"].append(float((phi_eval(xc[:h]).mean(0) - phi_eval(xc[h:]).mean(0)).norm()))
+            real["mmd"].append(float((phi_eval(xc[pm[:h]]).mean(0) - phi_eval(xc[pm[h:]]).mean(0)).norm()))
     res["metrics"] = {"real (test)": {k: np.round(v, 5).tolist() for k, v in real.items()}}
     for name, G in samplers.items():
         C.set_seed(seed + 3000)

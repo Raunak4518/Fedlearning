@@ -118,8 +118,8 @@ def fig_collapse(runs):
                 xs += list(np.array(r["holders"]) / 10)
                 ys += list(N[-1] / N[0])
             ax.scatter(xs, ys, marker=mk, s=22, color=COL[nm], label=LAB[nm], edgecolor="white", lw=0.4)
-        ax.axvline(0.5, color=BAD, ls="--", lw=1)
-        ax.text(0.27, ax.get_ylim()[1] * 0.92, "Prop. 1: shrinks\nwhen m_c/K < ½", color=BAD, fontsize=7, ha="center", va="top")
+        ax.text(0.03, 0.97, "below 1 = the row shrank\n(even with 70–90 % holders)", color=BAD, fontsize=7, ha="left",
+                va="top", transform=ax.transAxes)
         ax.axhline(1, color=MUTED, lw=0.6, ls=":")
         style(ax, "final / initial row norm", f"{DSN[ds]}: end of Stage II vs share of holders ({seeds_note(runs[ds])})")
         ax.set_xlabel("share of clients holding the class, m_c / K")
@@ -157,14 +157,14 @@ def fig_moments(runs):
     if not dss:
         return
     fig, axs = plt.subplots(len(dss), 2, figsize=(10, 2.8 * len(dss)), squeeze=False)
-    names = ["CVAE-F", "PC-VAE", "PC-VAE+MC", "real (test)"]
+    names = ["CVAE-F", "PC-VAE", "PC-VAE+MC", "PC-VAE+MC+KH", "real (test)"]
     for i, ds in enumerate(dss):
         grouped(axs[i, 0], runs[ds], names, "spread", "spread / real spread", f"{DSN[ds]}: spread (1 = real)")
         axs[i, 0].axhline(1, color=INK, lw=0.8, ls=":")
         grouped(axs[i, 1], runs[ds], names, "mean_err", "‖fake mean − m_c‖ / class std",
                 f"{DSN[ds]}: error of the class mean (0 = exact)")
     axs[0, 0].legend(fontsize=7, frameon=False, ncol=4, loc="lower left", bbox_to_anchor=(0, 1.13))
-    fig.suptitle("Claim: the VAE's samples are too narrow and their means are off; MC gives the exact mean and spread",
+    fig.suptitle("Claim: PC-VAE's samples are too narrow (spread ≈ 0.5 of real); MC fixes the mean and most of the spread\n(ReLU after the map cuts a little), KH brings the spread closest to real",
                  x=0.01, ha="left", fontweight="bold", fontsize=9.5, y=1.05)
     fig.tight_layout()
     save(fig, "ev03_moments.png")
@@ -181,9 +181,6 @@ def fig_mmd(runs):
     for i, ds in enumerate(dss):
         ax = axs[i, 0]
         grouped(ax, runs[ds], names, "mmd", "MMD to real test features", f"{DSN[ds]}: distance fake ↔ real, per class")
-        floor = np.mean([np.mean(r["metrics"]["real (test)"]["mmd"]) for r in runs[ds]])
-        ax.axhline(floor, color=GOOD, ls="--", lw=1)
-        ax.text(9.6, floor, " real vs real\n (noise floor)", color=GOOD, fontsize=6.5, va="center")
         ax = axs[i, 1]
         for nm in ["CVAE-F", "CVAE-F+HWA", "PC-VAE", "PC-VAE+MC", "PC-VAE+MC+KH"]:
             xs, ys = [], []
@@ -276,8 +273,8 @@ def fig_separability(runs):
                    edgecolor="black", lw=0.8)
         ax.set_xticks([]); ax.set_yticks([])
         ax.set_title(f"{DSN[d]}: real test features\n(X = exact class means)", fontsize=8, loc="left")
-    fig.suptitle("Claim: the exact class mean identifies the class on MNIST, FMNIST and CIFAR-10, but not on SVHN "
-                 f"(why Ours-A is weak there). 2-D LDA view, {seeds_note(runs[dss[0]])}",
+    fig.suptitle("Claim: the exact class mean identifies the class well on MNIST and FMNIST, partly on CIFAR-10, almost not at all on SVHN "
+                 f"(why Ours-A is weak there). {seeds_note(runs[dss[0]])}",
                  x=0.01, ha="left", fontweight="bold", fontsize=9.5)
     fig.tight_layout()
     save(fig, "ev06_separability.png")
@@ -325,7 +322,7 @@ def fig_heads(runs):
         ax.axhline(10, color=GOOD, ls="--", lw=1)
         ax.set_xticks(CLS)
         ax.set_xlabel("predicted class")
-        style(ax, "share of test predictions (%)", f"{DSN[ds]}: what the heads predict (balanced test: 10% each)")
+        style(ax, "share of test predictions (%)", f"{DSN[ds]}: share of predictions per class")
         tailband(ax)
         ax.legend(fontsize=6.8, frameon=False, loc="upper right")
         ax = axs[i, 1]
@@ -334,7 +331,7 @@ def fig_heads(runs):
             sh = np.array([p["pred_share"] for p in st["per_client"]]).ravel() * 100
             rho = np.corrcoef(pr, sh)[0, 1]
             ax.scatter(pr, sh, s=9, color=colr, alpha=0.75, label=f"{nm}: r = {rho:.2f}", edgecolor="white", lw=0.3)
-        style(ax, "head's prediction share (%)", "each client: own data vs predictions")
+        style(ax, "head's prediction share (%)", "per client: own data vs predictions")
         ax.set_xlabel("class share in the client's own data (%)")
         ax.legend(fontsize=6.8, frameon=False)
         ax = axs[i, 2]
@@ -343,13 +340,42 @@ def fig_heads(runs):
         ax.bar(CLS + 0.2, tc, 0.4, color=OURS, label=f"consensus soft label (mean {tc.mean():.3f})")
         ax.set_xticks(CLS)
         ax.set_xlabel("class of the fake sample")
-        style(ax, "distance to the real-data\nreferee's belief (TV)", "CSL: training target vs what real data says")
+        style(ax, "distance to the real-data\nreferee's belief (TV)", "CSL: target vs real-data referee")
         ax.legend(fontsize=6.8, frameon=False, loc="upper left")
         tailband(ax)
     fig.suptitle("Claims: LA removes each client's own class skew; consensus labels are closer to the truth than the generator's one-hot label "
                  "(seed 0, final heads of Ours-A)", x=0.01, ha="left", fontweight="bold", fontsize=9.3, y=1.02)
     fig.tight_layout()
     save(fig, "ev08_la_csl.png")
+
+
+# ------------------------------------------------ E11: are fake classes as separable as real ones?
+def fig_fake_sep(runs):
+    dss = [d for d in ("mnist", "fmnist") if d in runs]
+    if not dss:
+        return
+    names = ["CVAE-F", "CVAE-F+HWA", "PC-VAE", "PC-VAE+MC", "PC-VAE+MC+KH"]
+    short = ["CVAE-F\n(GeFL-F)", "CVAE-F\n+ HWA", "PC-VAE", "PC-VAE\n+ MC", "PC-VAE + MC\n+ KH (Ours-A)"]
+    fig, axs = plt.subplots(1, len(dss), figsize=(10, 3.0), squeeze=False)
+    for j, ds in enumerate(dss):
+        ax = axs[0, j]
+        v = [np.array([r["metrics"][nm]["fisher_F"] for r in runs[ds]]) for nm in names]
+        ax.bar(range(len(names)), [a.mean() for a in v], yerr=[a.std() for a in v], color=[COL[n] for n in names],
+               error_kw=dict(lw=0.7, capsize=2))
+        for i, a in enumerate(v):
+            ax.text(i, a.mean() + a.std() + 0.02, f"{a.mean():.2f}", ha="center", fontsize=7)
+        real = np.array([r["real_F"] for r in runs[ds]])
+        ax.axhspan(real.mean() - real.std(), real.mean() + real.std(), color=GOOD, alpha=0.15)
+        ax.axhline(real.mean(), color=GOOD, ls="--", lw=1)
+        ax.text(len(names) - 0.45, real.mean(), f" real\n F = {real.mean():.2f}", color=GOOD, fontsize=7, va="center")
+        ax.set_xticks(range(len(names)), short, fontsize=7)
+        ax.set_xlim(-0.6, len(names) + 0.3)
+        style(ax, "F of fake features", f"{DSN[ds]} ({seeds_note(runs[ds])})")
+    fig.suptitle("Claim: GeFL-F's fake classes overlap (F too low); PC-VAE's are too far apart (too clean, F too high);\n"
+                 "MC + KH make them about as separable as real classes  (F = spread of class means / spread within a class)",
+                 x=0.01, ha="left", fontweight="bold", fontsize=9.3, y=1.08)
+    fig.tight_layout()
+    save(fig, "ev11_fake_separability.png")
 
 
 # ------------------------------------------------ E9: T_s interaction (existing 3-seed runs)
@@ -430,4 +456,4 @@ if __name__ == "__main__":
     runs = load()
     print("D01 runs:", {k: len(v) for k, v in runs.items()})
     fig_collapse(runs); fig_fidelity(runs); fig_moments(runs); fig_mmd(runs); fig_tstr(runs)
-    fig_separability(runs); fig_lda_steps(runs); fig_heads(runs); fig_ts(); fig_ablation()
+    fig_separability(runs); fig_lda_steps(runs); fig_fake_sep(runs); fig_heads(runs); fig_ts(); fig_ablation()

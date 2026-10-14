@@ -316,7 +316,7 @@ C.push(N("compute fingerprints φ(x_i) of the 4n candidates (6,144 numbers each)
 C.push(N("pick the candidate with the largest ⟨φ(x_i), w⟩;"));
 C.push(N("update w ← w + μ_c − φ(x_picked); repeat step 2 until n samples are picked."));
 C.push(eq("eq_kh", "12"));
-C.push(...img("f15_mc_kh.png", 640, "Figure 9. One class in 2-D: the generator's output, after MC (right mean and spread) and after KH (right shape). The MMD to the real class falls 0.44 → 0.25 → 0.03."));
+C.push(...img("ev07_rare_class_mnist.png", 640, "Figure 9. Real data, MNIST's rarest class (24 samples): the generator's output, after MC (right centre and width) and after KH (right shape). Details in Part 5.9."));
 
 C.push(H2("4.6 Step 5: training the heads (Stage III)"));
 C.push(...img("f14_round3.png", 640, "Figure 10. One Stage III round. The fake pool is made fresh every round."));
@@ -439,6 +439,19 @@ C.push(...table(["Quantity (long tail)", "GeFL-F", "Ours-A"], [
   ["IID fidelity vs the referee's accuracy on real data (FMNIST)", "–", "0.837 vs 0.839"],
 ], [5, 2, 2]));
 C.push(P("After the fixes, fake features are as hard as real ones, not artificially clean."));
+
+C.push(H2("5.9 Proof on real data: what each component does"));
+C.push(P("Measured on real features: MNIST and FashionMNIST, long tail, 3 seeds, the same splits as every run. The *referee* is a head trained on held-out real features; it never takes part in training. Code: experiments/D01_component_evidence.py."));
+C.push(...img("ev01_collapse.png", 640, "Rows of rare classes under FedAvg end at 0.33 (MNIST) and 0.43 (FMNIST) of their start value; with HWA they grow (×1.7, ×2.4). They shrink even when 70–90 % of clients hold the class."));
+C.push(...img("ev02_fidelity.png", 640, "Rare-class fake samples recognised as their class: GeFL-F 11 % / 21 %, + HWA 33 % / 67 %, PC-VAE 93 % / 90 %, Ours-A 89 % / 80 % (real test features: 96 % / 84 %)."));
+C.push(...img("ev03_moments.png", 640, "Spread of fake features (1 = real): PC-VAE 0.50 / 0.45, + MC 0.86 / 0.89, + KH 0.95 / 0.98. Rare-class mean error: 0.19 → 0.09 → 0.05 class std (MNIST)."));
+C.push(...img("ev11_fake_separability.png", 600, "Class separability F of fake features: GeFL-F 0.10 / 0.28 (classes overlap), PC-VAE 0.78 / 1.36 (too clean), Ours-A 0.35 / 0.62, real 0.33 / 0.61."));
+C.push(...img("ev04_mmd.png", 640, "Distance to real test features (MMD, all classes): GeFL-F 0.22 / 0.25 → PC-VAE 0.18 / 0.19 → + MC 0.086 / 0.092 → + KH 0.069 / 0.074. Lower MMD goes with higher real accuracy (r = −0.75 / −0.51), as Lemma 1 says."));
+C.push(...img("ev05_tstr.png", 640, "Head trained only on fake features, tested on real data (balanced accuracy): GeFL-F 59 / 47, + HWA 81 / 74, PC-VAE 92 / 77, + MC 94 / 78, + KH 94 / 78. Rare classes on MNIST: 32 → 91. KH adds little in this test; its gain shows inside the full pipeline (+0.8 / +0.7)."));
+C.push(...img("ev07_rare_class_mnist.png", 640, "MNIST's rarest class (24 real samples): GeFL-F's fake class 9 lies on other classes; PC-VAE is on the class but too narrow; MC and KH spread it over the real class."));
+C.push(...img("ev08_la_csl.png", 640, "LA (seed 0): balanced accuracy 92.3 → 95.5 (MNIST), 74.0 → 79.2 (FMNIST); correlation between a client's own class shares and its predictions 0.61 → 0.42, 0.67 → 0.54. CSL: the soft target is closer to the real-data referee than the one-hot label (TV 0.098 → 0.088, 0.192 → 0.179)."));
+C.push(...img("ev09_ts.png", 520, "More fake training helps more with the better generator (MNIST: −0.05 vs +1.71)."));
+C.push(...img("ev06_separability.png", 640, "How well the exact class mean identifies the class (3 seeds): F = 0.33 / 0.61 / 0.07 / 0.013 and nearest-mean accuracy 81 / 69 / 40 / 13 % on MNIST / FMNIST / CIFAR-10 / SVHN (chance 10 %). SVHN's means carry almost no class information: the reason Ours-A is weak there."));
 
 // ---------------- PART 6
 C.push(H1("6. Why it works, and its limits"));
