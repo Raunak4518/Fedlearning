@@ -117,6 +117,84 @@ misspecified): ER below the CE-refit oracle. (ii) Representation-limited regimes
 representation gap 9.6): ER cannot help. (iii) Under DP, tail-class embedding means carry noise of order
 $\sqrt{d_g}/(n_c\varepsilon)$, which grows with $d_g$.
 
-## 5-14. Results, interpretation and decision
+## 5. Relationship to ESA
 
-*(filled in from T03 below)*
+ESA's thesis is "anchor every stage to exact statistics instead of FedAvg-estimated parameters". Until now it was
+applied to the **generator** (prototypes, moments, kernel embeddings) and to a **prior offset** (BBC, fitted on
+synthetic features). The readout analysis shows the remaining error of the final method under the long tail sits in
+the **classifier's last layer**, on classes a client does not hold, and that offsets cannot reach it (Lemma R1, BBC <
+oracle in every run). ER applies the same thesis to that last stage: the readout of every architecture is set from
+exact federated statistics of *real* embeddings. It is not another generator component; it removes a failure the
+generator components can only shrink indirectly.
+
+## 6. Related-work comparison
+
+| Dimension | CCVR (NeurIPS 2021) | CReFF (IJCAI 2022) | Fed3R (ICML 2024) | ER (this report) |
+|---|---|---|---|---|
+| Setting | one global model, non-IID | one global model, long tail | frozen pretrained body, non-IID | heterogeneous heads (G architectures), generator-based FL, long tail |
+| Statistic | per-class feature mean + covariance (global model) | gradients of real features (federated features learned by gradient matching) | ridge sufficient statistics $\sum ee^\top$, $\sum e y^\top$ | per-architecture class sums, counts, $\sum ee^\top$ — every client embeds with **every** architecture |
+| Classifier | CE on Gaussian virtual features | CE on learned federated features | closed-form ridge | closed-form uniform-prior LDA |
+| Main claim | the classifier is the most biased layer | the biased classifier is the main cause in FL-LT | closed form is immune to heterogeneity | same diagnosis holds in generator-based heterogeneous FL; offsets (LA/BBC) cannot fix it; the bias sits on unheld classes |
+| Equivalence | ER = CCVR with the Gaussian solved in closed form, if G = 1 | different estimator | ER ≈ Fed3R with LDA instead of ridge, if G = 1 and the body frozen | — |
+
+**Novelty assessment.** The *principle* (re-fit the classifier from federated feature statistics) is known. What is
+new as far as this search found: (i) the cross-architecture statistics that heterogeneous heads require; (ii) the
+measured decomposition of GeFL-F's residual into a K-invariant readout gap and a representation gap that vanishes as
+clients per architecture grow; (iii) the finding that classifier recalibration on plain GeFL-F (the CCVR/CReFF upper
+bound) nearly matches the full ESA method on FMNIST and SVHN — a baseline the paper currently omits. Claim (ii)-(iii)
+as analysis; claim ER only as "the known classifier-recalibration principle, extended to heterogeneous heads".
+
+## 7. Theoretical status
+
+* **Proved.** Lemma R1 (offsets reach only common shifts; numerically checked). Eq. (1)-(2) are exact under the
+  stated Gaussian/LDA model.
+* **Falsified (pre-registered P3).** That the per-class readout gap is explained by the synthetic class-mean
+  mismatch $\Delta_c$ in embedding space: $\rho(\|\Delta\|)$ = 0.10-0.33, and $B = (1-\alpha)\|\Delta\|$ never beats
+  $(1-\alpha)$ alone.
+* **Supported (post hoc, not pre-registered).** The gap concentrates on classes the client does not hold and grows
+  with the client's lack of real evidence for the class, also within a class (ρ 0.37-0.79).
+* **Under test (pre-registered T03b).** H-R′: the unheld-class readout error is a *scale* (weight-norm) error.
+
+## 8. Algorithm (ER)
+
+```
+after training (or every R rounds):
+  server broadcasts the bodies e_1 .. e_G of all architectures            # heads are small (5k-110k params)
+  every client k, for every architecture g:
+      E = e_g(h) for its real features h
+      upload  S_gc = sum_{i: y_i = c} E_i,  n_c,  M_g = sum_i E_i E_i^T     # secure aggregation
+  server, per g:  mu_c = S_gc / n_c ;  Sigma = (M_g - sum_c n_c mu_c mu_c^T) / (N - C)
+                  Sigma <- (1 - 0.1) Sigma + 0.1 tr(Sigma)/d I
+                  W_g = Sigma^-1 [mu_1 .. mu_C] ;  b_gc = -1/2 mu_c^T Sigma^-1 mu_c
+  heads keep their bodies; readout replaced by (W_g, b_g); prediction unchanged in form
+```
+Cost: one round; G forward passes per client; upload $\sum_g (C d_g + d_g^2)$ numbers. In `core.py` as
+`exact_readout()` (diagnostic `er_bal`, logged by every run from now on).
+
+## 9. Experimental protocol and results (T03)
+
+FMNIST / MNIST, IF = 100, Dirichlet(0.5), K = 10, seed 0, schedule × 0.4 (CPU), methods GeFL-F, + HWA + LA,
+Ours-A (T_s = 1). Balanced accuracy:
+
+| run | head | oracle (pooled-real CE refit) | **ER-LDA** (exact sums) | BBC | ρ(B) | ρ(1−α) | ρ(‖Δ‖) |
+|---|---|---|---|---|---|---|---|
+| FMNIST GeFL-F | 61.2 | 78.7 | **79.1** | 65.1 | 0.64 | 0.77 | 0.33 |
+| FMNIST + HWA + LA | 73.0 | 79.4 | **79.9** | 73.6 | 0.43 | 0.57 | 0.16 |
+| FMNIST Ours-A | 75.7 | 80.7 | **80.3** | 77.9 | 0.41 | 0.57 | 0.10 |
+| MNIST GeFL-F | 72.4 | 91.0 | **90.8** | 75.5 | 0.82 | 0.90 | 0.32 |
+| MNIST + HWA + LA | 82.1 | 91.8 | **91.3** | 82.0 | 0.65 | 0.74 | 0.23 |
+| MNIST Ours-A | 91.1 | 93.6 | **92.8** | 92.2 | 0.29 | 0.33 | 0.14 |
+
+Pre-registered criteria: **P1 pass** (ER ≥ head in all runs, within 0.8 of the oracle), **P2 pass** (+17.9, +18.4 on
+GeFL-F), **P4 pass** (BBC < oracle in all LA runs), **P3 fail** (see §7).
+
+Recall lost by the head relative to the oracle, by the client's count of the class (post hoc):
+
+| run | unheld (n = 0) | held, 1-20 | held, > 20 |
+|---|---|---|---|
+| FMNIST GeFL-F / HWA+LA / Ours-A | 74.4 / 28.2 / 17.4 | 19.8 / 7.7 / 7.2 | −2.2 / −1.4 / −1.4 |
+| MNIST GeFL-F / HWA+LA / Ours-A | 76.7 / 44.3 / 8.2 | 22.1 / 10.2 / 3.1 | −1.8 / 0.1 / 0.1 |
+
+Caveats: one seed, reduced schedule (larger gaps than the full schedule; there the oracle gap of Ours-A is 0.1
+MNIST, 1.9 FMNIST, 6.2 CIFAR-10 LT). The ER gains above are therefore upper-end; the full-schedule estimate is the
+oracle gap in §2.

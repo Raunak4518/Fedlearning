@@ -81,12 +81,14 @@ def mechanism(ctx, headers, aux, G, head_ev, orc_ev, T_s):
         h = headers[g]
         h.eval()
         n_k = counts[k].sum()
+        wn = h.fc.weight.norm(dim=1)
+        wmed = float(wn.median())
         for c in range(C):
             alpha = 5 * counts[k, c] / (5 * counts[k, c] + T_s * n_k / C)
             delta = _embed_all(h, syn[c]).mean(0) - aux[g]["mu"][c]
             dist = float(torch.sqrt(delta @ aux[g]["P"] @ delta))
             rows.append(dict(client=k, g=int(g), c=c, n_kc=int(counts[k, c]), alpha=float(alpha), delta=dist,
-                             B=float((1 - alpha) * dist),
+                             B=float((1 - alpha) * dist), wdef=float(1 - float(wn[c]) / wmed),
                              dR=float(orc_ev[g]["recall"][c] - head_ev[g]["recall"][c])))
         if ctx.K > 10 and k >= 9:
             break
@@ -114,6 +116,7 @@ def main():
     ap.add_argument("--quick_scale", type=float, default=0.4)
     ap.add_argument("--out_dir", default="results/T03_exact_readout")
     ap.add_argument("--data_root", default="./data")
+    ap.add_argument("--out_name", default="runs.jsonl")
     a = ap.parse_args()
     os.makedirs(a.out_dir, exist_ok=True)
     E.classifier_oracle = _hook_oracle(E.classifier_oracle)
@@ -152,25 +155,34 @@ def main():
                 hs[g] = hh
             orc_ev = E.eval_headers(st["ctx"], hs, st["feats_te"], st["ctx"].data["yte"])
             er_ev, aux = er_lda(st["ctx"], st["headers"], st["feats"], st["ys"], st["feats_te"])
+            tn = {}
+            for g in st["ctx"].groups:                 # tau-normalisation (Kang et al. 2020), tau = 1
+                hh = copy.deepcopy(st["headers"][g])
+                with torch.no_grad():
+                    hh.fc.weight.div_(hh.fc.weight.norm(dim=1, keepdim=True).clamp(min=1e-12))
+                tn[g] = hh
+            tn_ev = E.eval_headers(st["ctx"], tn, st["feats_te"], st["ctx"].data["yte"])
             T_s = m["head"]["ts"]
             rows = mechanism(st["ctx"], st["headers"], aux, st["G"], head_ev, orc_ev, T_s) if st.get("G") else []
-            summ = {k: E.summarize_eval(v) for k, v in [("head", head_ev), ("oracle", orc_ev), ("er_lda", er_ev)]}
+            summ = {k: E.summarize_eval(v) for k, v in [("head", head_ev), ("oracle", orc_ev), ("er_lda", er_ev), ("tnorm", tn_ev)]}
             rec = dict(label=lab, dataset=ds, seed=a.seed, quick_scale=a.quick_scale,
                        head_bal=summ["head"]["bal"], oracle_bal=summ["oracle"]["bal"], er_lda_bal=summ["er_lda"]["bal"],
-                       head_tail=summ["head"]["tail"], oracle_tail=summ["oracle"]["tail"], er_lda_tail=summ["er_lda"]["tail"],
+                       tnorm_bal=summ["tnorm"]["bal"], head_tail=summ["head"]["tail"], oracle_tail=summ["oracle"]["tail"], er_lda_tail=summ["er_lda"]["tail"],
                        ens_bal=summ["head"].get("ens_bal"), bbc_bal=res.get("bbc_bal"),
                        pipeline_final_bal=res.get("final_bal"), pipeline_oracle_bal=res.get("oracle_bal"),
                        time_s=time.time() - t0, mechanism=rows)
             if rows:
                 B = np.array([r["B"] for r in rows]); dR = np.array([r["dR"] for r in rows])
                 one_a = np.array([1 - r["alpha"] for r in rows]); dl = np.array([r["delta"] for r in rows])
-                rec.update(spearman_B=float(stats.spearmanr(B, dR).correlation),
+                wd = np.array([r["wdef"] for r in rows])
+                rec.update(spearman_wdef=float(stats.spearmanr(wd, dR).correlation),
+                           spearman_B=float(stats.spearmanr(B, dR).correlation),
                            spearman_1ma=float(stats.spearmanr(one_a, dR).correlation),
                            spearman_delta=float(stats.spearmanr(dl, dR).correlation))
-            with open(os.path.join(a.out_dir, "runs.jsonl"), "a") as f:
+            with open(os.path.join(a.out_dir, a.out_name), "a") as f:
                 f.write(json.dumps(rec) + "\n")
             E.log(f"[T03] {ds} {lab}: head {rec['head_bal']*100:.2f} | oracle {rec['oracle_bal']*100:.2f} | "
-                  f"ER-LDA {rec['er_lda_bal']*100:.2f} | bbc {100*(rec['bbc_bal'] or float('nan')):.2f} | "
+                  f"ER-LDA {rec['er_lda_bal']*100:.2f} | tau-norm {rec['tnorm_bal']*100:.2f} | rho(wdef)={rec.get('spearman_wdef', float('nan')):.2f} | bbc {100*(rec['bbc_bal'] or float('nan')):.2f} | "
                   f"rho(B)={rec.get('spearman_B', float('nan')):.2f} rho(1-a)={rec.get('spearman_1ma', float('nan')):.2f} "
                   f"rho(D)={rec.get('spearman_delta', float('nan')):.2f}")
             _STASH.clear()
