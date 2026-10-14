@@ -336,7 +336,52 @@ def build():
                 "the cheapest fix is AdamW, and the paper's contribution is the diagnosis plus the anchored "
                 "generator, not HWA. Either outcome is publishable; we will not know which until it runs.")]
 
-    story += [P("9. Limits of what we have shown", "h1"),
+    t02 = json.load(open(os.path.join(RES, "T02_dilution_rates", "rates.json")))
+    v = t02["validation_T01_wd0"]
+    rt = [["Classes 7, 8, 9 (rarest)", "holders m<sub>c</sub>/K", "rate, flat FedAvg (class 0 = 1)",
+           "rate, HWA (class 0 = 1)", "HWA speed-up"]]
+    for key, name in [("mnist_K10", "MNIST, K = 10"), ("mnist_K100", "MNIST, K = 100"),
+                      ("fmnist_K10", "FMNIST, K = 10"), ("fmnist_K100", "FMNIST, K = 100")]:
+        d = t02[key]
+        f2 = lambda xs: ", ".join(f"{x:.2f}" for x in xs[7:])  # noqa: E731
+        rt.append([name, f2(d["holders"]), f2(d["flat"]), f2(d["hwa"]), ", ".join(f"×{x:.1f}" for x in d["hwa_over_flat"][7:])])
+    story += [P("9. What about the paper's other generators (DCGAN-F, DDPM-F)?", "h1"),
+              P("The paper's GAN and diffusion feature generators are trained with Adam but <b>without weight "
+                "decay</b>. The mathematics then gives three clear answers and leaves one number to measure."),
+              *bullets(["<b>No collapse.</b> With λ = 0 a non-holder's gradient on class c's parameters is exactly "
+                        "zero, Adam's moments stay zero, and the parameters are returned unchanged (D = 0). The "
+                        "server update becomes exactly r<sub>c</sub><super>+</super> − r<sub>c</sub> = "
+                        "(m<sub>c</sub>/K) × (average holder update): the row is diluted, never shrunk. Checked on "
+                        f"the real model (T01, λ = 0): the largest change any non-holder made in 40 rounds is "
+                        f"{v['max_nonholder_change']:.1f}.",
+                        "<b>Rare classes still learn slowly, mostly not because of averaging.</b> Under Adam a holder "
+                        "moves the row by about one learning rate per step <i>whose batch contains the class</i>. "
+                        "A rare class is in few batches, so its row learns at a fraction of a head class's speed. The "
+                        "table gives the predicted speed per round from our real splits; on T01 it matches the "
+                        f"measured growth of each class's row (Spearman {v['rounds_0_10']['spearman']:.2f}, "
+                        f"p = {v['rounds_0_10']['p']:.3f}).",
+                        "<b>The shared parameters see rare classes almost never.</b> Everything except the class rows "
+                        "is trained on the pooled loss, where the rarest class is 0.4 % of the data. That is the same "
+                        "as centralised training, and it is already known to break both families: diffusion models "
+                        "(Class-Balancing Diffusion Models, CVPR 2023) and conditional GANs (Group Spectral "
+                        "Regularization, ECCV 2022) both lose diversity and collapse on tail classes when trained on "
+                        "long-tailed data, without any federation."]),
+              table(rt, [3.4, 2.6, 3.6, 3.6, 3.8]),
+              P("Speed of the rarest rows relative to the most common class (T02, seed-0 splits). At K = 10 HWA "
+                "changes almost nothing (most clients hold every class); at K = 100 it speeds the rarest classes up "
+                "about 2-3 times.", "cap"),
+              P("<b>Predictions for DCGAN-F and DDPM-F under the long tail</b> (written before any run): (1) no "
+                "collapse of class parameters at any K; (2) the tail is still badly generated, because of slow tail "
+                "rows and the 0.4 % loss share, so GeFL-F still fails under the long tail, but by less than CVAE-F "
+                "with coupled decay; (3) HWA gives little at K = 10 and helps at K ≥ 50; (4) LA, CSL, MC, KH and "
+                "BBC help with any generator, because they act on the heads or correct samples to the exact class "
+                "statistics, which use all n<sub>c</sub> samples whatever the generator."),
+              P("<b>What the mathematics cannot tell us:</b> how many accuracy points (2) costs. That depends on how "
+                "bad the tail samples are and on how much LA already compensates. It needs one cheap run: GeFL-F, "
+                "+ LA, + HWA + LA and + MC + KH + LA + CSL on DCGAN-F (MNIST and FashionMNIST long tail, 3 seeds, "
+                "about 2-3 GPU-hours). DDPM-F costs about an hour per run and can follow if DCGAN-F shows a gap.")]
+
+    story += [P("10. Limits of what we have shown", "h1"),
               *bullets(["The round-by-round check (T01) is one dataset, one seed, 40 of the usual 100 rounds. The "
                         "inequality cannot fail (it is exact); the measured values of G, D and θ could differ on "
                         "other datasets.",

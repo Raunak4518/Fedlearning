@@ -170,6 +170,17 @@ Dir 0.5, $K = 10$, 40 generator rounds, seed 0; `experiments/T01_collapse_thresh
   in 1–6 of 40 rounds instead of 35–40. The final tail/head ratio is 0.72, against 0.15, because head rows grow
   faster still.
 
+**Other generators.** The paper's DCGAN-F and DDPM-F are trained without weight decay. Then $\bar D_c = 0$
+exactly (a non-holder's gradient on class $c$'s parameters is zero; checked on T01 at $\lambda = 0$: largest
+non-holder change 0.0 in 40 rounds), and flat averaging gives $r_c^+ - r_c = p_c \times$ (mean holder update): dilution,
+not contraction. Rare classes still learn slowly, mainly because a holder moves the row only on steps whose batch
+contains the class; the predicted per-class rate $\frac1K\sum_k S_k\,[1-(1-\pi_{k,c})^B]$ matches the measured row
+growth on T01 (Spearman 0.85, $p = 0.002$; `experiments/T02_dilution_rates.py`). HWA speeds the rarest rows up by
+about 1× at $K = 10$ and 2–3× at $K = 100$. The shared parameters see the rarest class in 0.4% of the loss, the same
+imbalance under which centralised diffusion models and conditional GANs already lose their tail classes [CBDM,
+CVPR 2023; gSR, ECCV 2022]. The size of the resulting accuracy loss for DCGAN-F / DDPM-F under the long tail is not
+yet measured.
+
 ### 3.3 Measurement across seeds and datasets
 
 The setting is IF = 100 with Dirichlet(0.5), $K = 10$, full schedule and 3 seeds (F01). *Fidelity* is the accuracy of
