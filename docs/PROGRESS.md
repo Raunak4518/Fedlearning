@@ -25,7 +25,7 @@ significant. **FIX DRAFT** = data exist but the draft quotes a different number.
 
 | # | Claim (paper §) | Evidence (table / figure) | Source runs | Status |
 |---|---|---|---|---|
-| 1 | Under FedAvg + Adam coupled decay, class rows contract by an exact bound; tail rows collapse even when held by ≥ K/2 clients (§3) | F01_collapse; T01 analysis | T01_collapse_threshold (local CPU, MNIST LT, 40 rounds, 1 seed) | DONE for 1 seed (theorem holds in every round); see §4 |
+| 1 | Under FedAvg + Adam coupled decay, class rows contract by an exact bound; tail rows collapse even when held by ≥ K/2 clients; HWA prevents it (§3) | F01_collapse; `experiments/results/T01_collapse_threshold/summary.md` | T01_collapse_threshold (local CPU, MNIST LT, 40 rounds, 1 seed, 4 arms) | DONE for 1 seed: 0 violations in 1,200 row-rounds; λ = 1e-4 ≡ 1e-3, none at 0; HWA tail rows grow 1.17–1.25× vs 0.04–0.10 |
 | 2 | Our GeFL-F reproduces the paper's GeFL-F (§5.2) | T01_parity | F09, F10, reference_check | DONE |
 | 3 | HWA + LA repairs GeFL-F under the long tail: +13 / +17 (§5.3) | T02_longtail_minimal, F02_longtail | F01 | DONE |
 | 4 | Gain holds at K = 50 / 100 (MNIST LT) (§5.3) | T03_clients_minimal, F07_clients | F04 | FIX DRAFT: K = 50 rows for +CSL, FSG+CSL, MIX have **no run** (draft quotes 86.8 / 87.2 / 87.9 with no source); K = 100 +CSL n = 2 |

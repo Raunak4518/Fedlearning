@@ -656,14 +656,18 @@ def collapse_figure():
                     title="(b) Theorem 1 holds in every round")
         m = (counts > 0).sum(0)
         rel = g[-1] / g[0]
-        axes[2].scatter(m, rel, color=BAD, zorder=3)
+        axes[2].scatter(m, rel, color=BAD, zorder=3, label="flat FedAvg")
+        if "HWA wd=1e-3" in runs:
+            gh = runs["HWA wd=1e-3"][1]["glob"]
+            axes[2].scatter(m + 0.12, gh[-1] / gh[0], color=OURS, zorder=3, marker="s", s=22, label="HWA")
+        axes[2].legend(frameon=False, fontsize=7.5, loc="center left")
         for c in range(len(m)):
             axes[2].annotate(str(c), (m[c], rel[c]), textcoords="offset points", xytext=(4, 2), fontsize=7)
         axes[2].axvline(meta["K"] / 2, color=MUTED, ls="--", lw=0.8)
         axes[2].text(meta["K"] / 2, rel.max(), " old rule: K/2", fontsize=7, color=MUTED, va="top")
         axes[2].axhline(1, color=MUTED, lw=0.6, ls=":")
         axes[2].set(xlabel="holders m_c of class c", ylabel="row norm end / start",
-                    title="(c) Rows shrink with m_c >= K/2 (labels = class)")
+                    title="(c) Tail rows shrink although m_c > K/2")
     save(fig, "F01_collapse", "3", "The conditioning-row contraction theorem checked on the paper's CVAE-F (T01, MNIST LT, K = 10).",
          ["T01_collapse_threshold"])
 

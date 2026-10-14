@@ -165,7 +165,10 @@ Dir 0.5, $K = 10$, 40 generator rounds, seed 0; `experiments/T01_collapse_thresh
 * *Only the presence of decay matters.* $\lambda = 10^{-4}$ and $\lambda = 10^{-3}$ give the same trajectories (final
   tail/head ratio 0.155 vs 0.152; non-holder loss $1.49\times10^{-2}$ per step in both). At $\lambda = 0$ the ratio
   stays at 0.85 and only 2 of 400 row-rounds contract.
-* *HWA.* HWA_RESULT_PLACEHOLDER
+* *HWA removes the contraction.* With the same decay ($\lambda = 10^{-3}$), aggregating the rows over holders only
+  makes the tail rows *grow* to 1.17–1.25× their initial norm (against 0.04–0.10 under flat averaging); they shrink
+  in 1–6 of 40 rounds instead of 35–40. The final tail/head ratio is 0.72, against 0.15, because head rows grow
+  faster still.
 
 ### 3.3 Measurement across seeds and datasets
 
