@@ -1,1 +1,2 @@
 21:32:08 loading fmnist
+21:51:45 [T03] fmnist GeFL-F: head 61.20 | oracle 78.65 | ER-LDA 79.12 | bbc 65.11 | rho(B)=0.64 rho(1-a)=0.77 rho(D)=0.33
