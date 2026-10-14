@@ -609,7 +609,7 @@ def opt_to(opt, device):
 FE_DEFAULTS = dict(la=False, T_FE=None, oracle=False)
 GEN_DEFAULTS = dict(type="cvae", wd=1e-3, agg="flat", lazy=False, beta=0.999, weight="en",
                     dp_eps=None, oracle=False, T_KA=None)
-HEAD_DEFAULTS = dict(sampler="uniform", order="syn_first", ts=1, tr=5, mix=None, mix_ratio=0.2,
+HEAD_DEFAULTS = dict(sampler="uniform", order="syn_first", ts=1, tr=5, mix=None, mix_ratio=0.2, vct=0.0, mixup=0.0,
                      loss="ce", tau=1.0, bcr=0, bcr_lr=0.05, gen_update=False, csl=0.0, csl_mix=False,
                      sed=0, sed_lr=0.05, sed_beta=0.5, sed_bs=128, csl_mode="mix", mc=False, rsa=0.0, kh=False)
 
@@ -638,6 +638,10 @@ COMPONENTS = {
     "PC": dict(gen=dict(type="pcvae")),              # prototype-conditioned residual CVAE (no class rows)
     "PCR": dict(gen=dict(type="pcvae", rows=True, agg="A")),  # hybrid: exact-mean anchor + HWA-aggregated class rows
     "MCS": dict(head=dict(mcs=True)),                # MC-S: exact class mean + class covariance (Gelbrich map)
+    "MCB": dict(head=dict(mcs=True, mcs_prior="gen")),  # MC-B: exact covariance where the class's sample size determines it,
+                                                     # the generator's own shape where it does not (empirical Bayes)
+    "VCT": dict(head=dict(vct=1.0)),                 # vicinal consensus transfer: real x consensus-labelled synthetic partners
+    "MIXUP": dict(head=dict(mixup=1.0)),             # control: standard MixUp on the client's own real features
     "ZP": dict(gen=dict(zpost=True)),                # ex-post latent prior from exact sums
     "MC": dict(head=dict(mc=True)),                  # moment-calibrated sampling (exact mean + spread)
     "KME": dict(gen=dict(type="kme")),               # server-trained generator from exact kernel mean embeddings
@@ -1586,7 +1590,7 @@ def _psd_pow(S, p, floor=1e-10):
 
 
 @torch.no_grad()
-def anchor_cov(feats, ys_list, k=256):
+def anchor_cov(feats, ys_list, k=256, raw=False):
     """Exact federated class second moments for MC-S, in the top-k principal subspace
     of the pooled within-class covariance. Releases, each a secure-aggregated sum:
     the MC statistics (class counts, class sums of h and of ||h||^2), the pooled
@@ -1627,10 +1631,16 @@ def anchor_cov(feats, ys_list, k=256):
         Sc = (Szz[c] - n[c] * torch.outer(mz[c], mz[c])) / max(float(n[c]) - 1, 1.0)
         Sc = (Sc + Sc.T) / 2
         tin = torch.trace(Sc).clamp(min=1e-8)
+        if raw:  # unshrunk: the caller chooses the prior (MC-B: the generator's own covariance)
+            Sig.append(Sc)
+            Vperp.append((V[c] - tin).clamp(min=1e-6 * float(V[c])))
+            continue
         Sh = (n[c] * Sc + k * Spk) / (n[c] + k)
         Sh = Sh * (tin / torch.trace(Sh).clamp(min=1e-12))
         Sig.append(Sh)
         Vperp.append((V[c] - tin).clamp(min=1e-6 * float(V[c])))
+    if raw:
+        return mu, B, torch.stack(Sig), torch.stack(Vperp), n
     return mu, B, torch.stack(Sig), torch.stack(Vperp)
 
 
@@ -1646,10 +1656,19 @@ class CovCalibratedGen(nn.Module):
     where the class MEANS carry none but the covariances do (SVHN: QDA 54 %,
     nearest-mean 10 %). Eigenvalues of A_c are clipped to [0.1, 10] as MC's scale."""
 
-    def __init__(self, G, feats, ys_list, k=256, n=2048):
+    def __init__(self, G, feats, ys_list, k=256, n=2048, prior="pooled"):
         super().__init__()
         self.G, self.kind = G, G.kind
-        mu, B, Sig, Vperp = anchor_cov(feats, ys_list, k)
+        # prior = "pooled": tail-class covariances shrink toward the pooled one (MC-S).
+        # prior = "gen" (MC-B): they shrink toward the GENERATOR's own class covariance,
+        # rescaled to the class's exact variance - empirical Bayes with the generator as the
+        # prior, weights n_c and k. A class with few samples keeps the generator's learned
+        # shape (the Gelbrich map then reduces to MC's scalar map); a class with many gets
+        # its exact covariance. One operator interpolating MC and MC-S by sample size.
+        if prior == "gen":
+            mu, B, Sig, Vperp, ncnt = anchor_cov(feats, ys_list, k, raw=True)
+        else:
+            mu, B, Sig, Vperp = anchor_cov(feats, ys_list, k)
         k = B.shape[1]
         G.eval()
         m, A, s = [], [], []
@@ -1663,7 +1682,12 @@ class CovCalibratedGen(nn.Module):
                 Sg = z.T @ z / max(len(g) - 1, 1)
                 Sg = (Sg + Sg.T) / 2 + 1e-4 * float(torch.trace(Sg)) / k * torch.eye(k, device=DEV, dtype=torch.float64)
                 Sg_h, Sg_ih = _psd_pow(Sg, 0.5), _psd_pow(Sg, -0.5)
-                Ac = Sg_ih @ _psd_pow(Sg_h @ Sig[c] @ Sg_h, 0.5) @ Sg_ih
+                target = Sig[c]
+                if prior == "gen":
+                    tin = torch.trace(Sig[c]).clamp(min=1e-12)
+                    nc = float(ncnt[c])
+                    target = (nc * Sig[c] + k * Sg * (tin / torch.trace(Sg).clamp(min=1e-12))) / (nc + k)
+                Ac = Sg_ih @ _psd_pow(Sg_h @ target @ Sg_h, 0.5) @ Sg_ih
                 e, Vv = torch.linalg.eigh((Ac + Ac.T) / 2)
                 Ac = (Vv * e.clamp(0.1, 10.0)) @ Vv.T
                 vperp_g = (r.pow(2).sum(1).mean() - z.pow(2).sum(1).mean()).clamp(min=1e-10)
@@ -1836,6 +1860,7 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
                 p_syn = waterfill(hspec["tr"] * n * glob / glob.sum(), hspec["ts"] * nb * bs)
             else:
                 p_syn = np.full(C, 1.0 / C)
+            nsyn_k = hspec["ts"] * nb * bs
             # LA prior = the client's actual training mixture
             prior = None
             if la:
@@ -1877,6 +1902,52 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
                         if b.numel() < 2:
                             continue
                         x, y = Xk[b], Yk[b]
+                        if hspec["vct"] and pool is not None:
+                            # VCT (new): vicinal consensus transfer. Every real feature is mixed
+                            # with a partner from this round's synthetic pool (the client's own
+                            # slice, exact-moment-corrected generator), and the partner's share
+                            # of the target is its CONSENSUS soft label (all architectures).
+                            # lambda = max(l, 1 - l), l ~ Beta(a, a): each sample stays mostly real.
+                            # To second order, MixUp depends on its partners only through the class
+                            # prior, means and covariances (Proposition 7), so these partners give
+                            # the global-data MixUp regulariser; the consensus labels add ensemble
+                            # distillation along the path from real data into the federation's
+                            # knowledge. No real feature or head leaves the client.
+                            ab = torch.full((len(y),), float(hspec["vct"]), device=DEV)
+                            lam = torch.distributions.Beta(ab, ab).sample()
+                            lam = torch.maximum(lam, 1 - lam)
+                            j = int(pool_off[k]) + torch.randint(0, max(1, nsyn_k), (len(y),), device=DEV)
+                            lv = lam.view(-1, *([1] * (x.dim() - 1)))
+                            xm = lv * x + (1 - lv) * pool[0][j]
+                            tgt = lam[:, None] * F.one_hot(y, C).float() + (1 - lam)[:, None] * pool[2][j]
+                            logits = fwd(g, xm)
+                            if prior is not None and hspec["tau"]:
+                                # LA with the mixed sample's own label distribution:
+                                # lambda * client prior + (1 - lambda) * uniform (the pool's)
+                                pk = prior.exp() / prior.exp().sum()
+                                logits = logits + hspec["tau"] * torch.log(lam[:, None] * pk + (1 - lam)[:, None] / C)
+                            loss = -(tgt * logits.log_softmax(1)).sum(1).mean()
+                            opt.zero_grad(set_to_none=True)
+                            loss.backward()
+                            opt.step()
+                            continue
+                        if hspec["mixup"]:
+                            # Control: standard MixUp (Zhang et al., 2018) on the client's own
+                            # real features, l ~ Beta(a, a) per sample, partner = shuffled batch.
+                            ab = torch.full((len(y),), float(hspec["mixup"]), device=DEV)
+                            lam = torch.distributions.Beta(ab, ab).sample()
+                            perm = torch.randperm(len(y), device=DEV)
+                            lv = lam.view(-1, *([1] * (x.dim() - 1)))
+                            xm = lv * x + (1 - lv) * x[perm]
+                            tgt = lam[:, None] * F.one_hot(y, C).float() + (1 - lam)[:, None] * F.one_hot(y[perm], C).float()
+                            logits = fwd(g, xm)
+                            if prior is not None and hspec["tau"]:
+                                logits = logits + hspec["tau"] * prior
+                            loss = -(tgt * logits.log_softmax(1)).sum(1).mean()
+                            opt.zero_grad(set_to_none=True)
+                            loss.backward()
+                            opt.step()
+                            continue
                         if pool is not None and hspec["csl_mix"]:
                             # CSLM: a budget-matched share of consensus-labelled synthetic
                             # features in every real batch: L = CE(real) + soft-CE(synthetic)
@@ -2278,7 +2349,7 @@ def run_one(cfg, run, cache, data_cache):
     # ---- stage (iii)
     t3 = time.time()
     if G is not None and m["head"].get("mcs") and not _STAT_DP:
-        G = CovCalibratedGen(G, s1["feats"], s1["ys"], k=m["head"].get("mcs_k", 256))
+        G = CovCalibratedGen(G, s1["feats"], s1["ys"], k=m["head"].get("mcs_k", 256), prior=m["head"].get("mcs_prior", "pooled"))
         res["mcs_k"] = G.k
         if s1["ref"] is not None:
             fmc = referee_fidelity(s1["ref"], G)

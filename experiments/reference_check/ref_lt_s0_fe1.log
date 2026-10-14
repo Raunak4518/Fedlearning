@@ -1,0 +1,263 @@
+Namespace(num_users=10, frac=1, partial_data=0.1, models='cnn', output_channel=3, img_size=16, orig_img_size=32, dataset='mnist', noniid=False, dir_param=0.3, num_classes=10, bs=128, local_bs=64, momentum=0, weight_decay=0, rs=0, num_experiment=1, device_id='0', wu_epochs=20, freeze_FE=True, gen_wu_epochs=100, epochs=50, local_ep=5, local_ep_gen=1, gen_local_ep=5, aid_by_gen=1, freeze_gen=1, avg_FE=1, only_gen=0, sample_test=10, save_imgs=False, wandb=0, wandb_proj_name='gefl', name='gefl', gen_model='vaef', latent_size=16, b1=0.5, b2=0.999, gan_lr=0.0002, latent_dim=100, n_feat=128, n_T=500, guide_w=0.0, lr=0.1, fedprox=False, mu=0.01, avgKD=False, device='cuda:0', save_dir='imgs/FedCVAEF/', img_shape=(3, 16, 16), num_models=10)
+Warm-up Target Net Round   1, Avg loss 1.277
+Testing accuracy 0: 32.47
+Testing accuracy 1: 18.73
+Testing accuracy 2: 24.15
+Testing accuracy 3: 25.32
+Testing accuracy 4: 17.18
+Testing accuracy 5: 27.16
+Testing accuracy 6: 9.80
+Testing accuracy 7: 10.32
+Testing accuracy 8: 9.82
+Testing accuracy 9: 9.80
+Warm-up Target Net Round   2, Avg loss 0.844
+Warm-up Target Net Round   3, Avg loss 0.555
+Warm-up Target Net Round   4, Avg loss 0.367
+Warm-up Target Net Round   5, Avg loss 0.205
+Warm-up Target Net Round   6, Avg loss 0.111
+Warm-up Target Net Round   7, Avg loss 0.103
+Warm-up Target Net Round   8, Avg loss 0.085
+Warm-up Target Net Round   9, Avg loss 0.037
+Warm-up Target Net Round  10, Avg loss 0.022
+Testing accuracy 0: 52.63
+Testing accuracy 1: 64.49
+Testing accuracy 2: 69.97
+Testing accuracy 3: 58.23
+Testing accuracy 4: 67.62
+Testing accuracy 5: 68.82
+Testing accuracy 6: 71.02
+Testing accuracy 7: 76.26
+Testing accuracy 8: 47.66
+Testing accuracy 9: 55.84
+Warm-up Target Net Round  11, Avg loss 0.015
+Warm-up Target Net Round  12, Avg loss 0.008
+Warm-up Target Net Round  13, Avg loss 0.004
+Warm-up Target Net Round  14, Avg loss 0.003
+Warm-up Target Net Round  15, Avg loss 0.002
+Warm-up Target Net Round  16, Avg loss 0.001
+Warm-up Target Net Round  17, Avg loss 0.001
+Warm-up Target Net Round  18, Avg loss 0.001
+Warm-up Target Net Round  19, Avg loss 0.001
+Warm-up Target Net Round  20, Avg loss 0.001
+Testing accuracy 0: 53.47
+Testing accuracy 1: 65.17
+Testing accuracy 2: 69.87
+Testing accuracy 3: 58.62
+Testing accuracy 4: 68.25
+Testing accuracy 5: 69.37
+Testing accuracy 6: 70.88
+Testing accuracy 7: 83.22
+Testing accuracy 8: 59.97
+Testing accuracy 9: 55.19
+Warm-up Gen Round   1, CVAE Average loss 1056.007
+Warm-up Gen Round   2, CVAE Average loss 666.749
+Warm-up Gen Round   3, CVAE Average loss 447.332
+Warm-up Gen Round   4, CVAE Average loss 349.373
+Warm-up Gen Round   5, CVAE Average loss 296.846
+Warm-up Gen Round   6, CVAE Average loss 262.579
+Warm-up Gen Round   7, CVAE Average loss 248.211
+Warm-up Gen Round   8, CVAE Average loss 233.138
+Warm-up Gen Round   9, CVAE Average loss 222.689
+Warm-up Gen Round  10, CVAE Average loss 212.539
+Warm-up Gen Round  11, CVAE Average loss 208.500
+Warm-up Gen Round  12, CVAE Average loss 199.774
+Warm-up Gen Round  13, CVAE Average loss 194.208
+Warm-up Gen Round  14, CVAE Average loss 189.852
+Warm-up Gen Round  15, CVAE Average loss 187.649
+Warm-up Gen Round  16, CVAE Average loss 181.626
+Warm-up Gen Round  17, CVAE Average loss 178.036
+Warm-up Gen Round  18, CVAE Average loss 175.421
+Warm-up Gen Round  19, CVAE Average loss 172.319
+Warm-up Gen Round  20, CVAE Average loss 168.420
+Warm-up Gen Round  21, CVAE Average loss 165.753
+Warm-up Gen Round  22, CVAE Average loss 164.867
+Warm-up Gen Round  23, CVAE Average loss 162.760
+Warm-up Gen Round  24, CVAE Average loss 160.147
+Warm-up Gen Round  25, CVAE Average loss 156.040
+Warm-up Gen Round  26, CVAE Average loss 155.019
+Warm-up Gen Round  27, CVAE Average loss 153.244
+Warm-up Gen Round  28, CVAE Average loss 151.361
+Warm-up Gen Round  29, CVAE Average loss 149.213
+Warm-up Gen Round  30, CVAE Average loss 146.447
+Warm-up Gen Round  31, CVAE Average loss 147.666
+Warm-up Gen Round  32, CVAE Average loss 143.943
+Warm-up Gen Round  33, CVAE Average loss 143.951
+Warm-up Gen Round  34, CVAE Average loss 141.659
+Warm-up Gen Round  35, CVAE Average loss 140.634
+Warm-up Gen Round  36, CVAE Average loss 139.675
+Warm-up Gen Round  37, CVAE Average loss 139.131
+Warm-up Gen Round  38, CVAE Average loss 137.415
+Warm-up Gen Round  39, CVAE Average loss 134.838
+Warm-up Gen Round  40, CVAE Average loss 133.158
+Warm-up Gen Round  41, CVAE Average loss 131.771
+Warm-up Gen Round  42, CVAE Average loss 134.280
+Warm-up Gen Round  43, CVAE Average loss 129.958
+Warm-up Gen Round  44, CVAE Average loss 129.107
+Warm-up Gen Round  45, CVAE Average loss 129.192
+Warm-up Gen Round  46, CVAE Average loss 129.104
+Warm-up Gen Round  47, CVAE Average loss 127.043
+Warm-up Gen Round  48, CVAE Average loss 126.005
+Warm-up Gen Round  49, CVAE Average loss 124.670
+Warm-up Gen Round  50, CVAE Average loss 124.753
+Warm-up Gen Round  51, CVAE Average loss 123.062
+Warm-up Gen Round  52, CVAE Average loss 122.435
+Warm-up Gen Round  53, CVAE Average loss 122.707
+Warm-up Gen Round  54, CVAE Average loss 120.861
+Warm-up Gen Round  55, CVAE Average loss 120.616
+Warm-up Gen Round  56, CVAE Average loss 119.298
+Warm-up Gen Round  57, CVAE Average loss 118.359
+Warm-up Gen Round  58, CVAE Average loss 117.703
+Warm-up Gen Round  59, CVAE Average loss 117.603
+Warm-up Gen Round  60, CVAE Average loss 115.909
+Warm-up Gen Round  61, CVAE Average loss 114.496
+Warm-up Gen Round  62, CVAE Average loss 115.560
+Warm-up Gen Round  63, CVAE Average loss 115.425
+Warm-up Gen Round  64, CVAE Average loss 114.699
+Warm-up Gen Round  65, CVAE Average loss 113.309
+Warm-up Gen Round  66, CVAE Average loss 112.501
+Warm-up Gen Round  67, CVAE Average loss 111.563
+Warm-up Gen Round  68, CVAE Average loss 111.119
+Warm-up Gen Round  69, CVAE Average loss 110.161
+Warm-up Gen Round  70, CVAE Average loss 110.840
+Warm-up Gen Round  71, CVAE Average loss 109.766
+Warm-up Gen Round  72, CVAE Average loss 109.539
+Warm-up Gen Round  73, CVAE Average loss 108.672
+Warm-up Gen Round  74, CVAE Average loss 108.485
+Warm-up Gen Round  75, CVAE Average loss 107.679
+Warm-up Gen Round  76, CVAE Average loss 106.374
+Warm-up Gen Round  77, CVAE Average loss 107.514
+Warm-up Gen Round  78, CVAE Average loss 108.130
+Warm-up Gen Round  79, CVAE Average loss 105.973
+Warm-up Gen Round  80, CVAE Average loss 105.440
+Warm-up Gen Round  81, CVAE Average loss 105.507
+Warm-up Gen Round  82, CVAE Average loss 104.872
+Warm-up Gen Round  83, CVAE Average loss 104.116
+Warm-up Gen Round  84, CVAE Average loss 103.802
+Warm-up Gen Round  85, CVAE Average loss 103.636
+Warm-up Gen Round  86, CVAE Average loss 103.597
+Warm-up Gen Round  87, CVAE Average loss 102.747
+Warm-up Gen Round  88, CVAE Average loss 103.002
+Warm-up Gen Round  89, CVAE Average loss 101.356
+Warm-up Gen Round  90, CVAE Average loss 101.076
+Warm-up Gen Round  91, CVAE Average loss 101.379
+Warm-up Gen Round  92, CVAE Average loss 100.929
+Warm-up Gen Round  93, CVAE Average loss 101.031
+Warm-up Gen Round  94, CVAE Average loss 100.644
+Warm-up Gen Round  95, CVAE Average loss 100.130
+Warm-up Gen Round  96, CVAE Average loss 99.766
+Warm-up Gen Round  97, CVAE Average loss 99.746
+Warm-up Gen Round  98, CVAE Average loss 97.824
+Warm-up Gen Round  99, CVAE Average loss 97.943
+Warm-up Gen Round 100, CVAE Average loss 97.814
+Round   1, Average loss 1.020, Average loss by Gen 5.102
+Testing accuracy 0: 56.78
+Testing accuracy 1: 53.75
+Testing accuracy 2: 54.38
+Testing accuracy 3: 34.68
+Testing accuracy 4: 59.95
+Testing accuracy 5: 45.88
+Testing accuracy 6: 36.29
+Testing accuracy 7: 38.83
+Testing accuracy 8: 18.65
+Testing accuracy 9: 9.80
+Round   2, Average loss 0.366, Average loss by Gen 2.296
+Round   3, Average loss 0.205, Average loss by Gen 2.334
+Round   4, Average loss 0.138, Average loss by Gen 2.264
+Round   5, Average loss 0.145, Average loss by Gen 2.242
+Round   6, Average loss 0.091, Average loss by Gen 2.163
+Round   7, Average loss 0.066, Average loss by Gen 2.064
+Round   8, Average loss 0.095, Average loss by Gen 2.176
+Round   9, Average loss 0.058, Average loss by Gen 2.027
+Round  10, Average loss 0.059, Average loss by Gen 2.004
+Testing accuracy 0: 62.31
+Testing accuracy 1: 72.25
+Testing accuracy 2: 71.07
+Testing accuracy 3: 60.21
+Testing accuracy 4: 78.56
+Testing accuracy 5: 74.81
+Testing accuracy 6: 72.90
+Testing accuracy 7: 86.57
+Testing accuracy 8: 52.72
+Testing accuracy 9: 59.03
+Round  11, Average loss 0.050, Average loss by Gen 1.974
+Round  12, Average loss 0.056, Average loss by Gen 1.974
+Round  13, Average loss 0.043, Average loss by Gen 1.956
+Round  14, Average loss 0.037, Average loss by Gen 1.866
+Round  15, Average loss 0.051, Average loss by Gen 1.933
+Round  16, Average loss 0.032, Average loss by Gen 1.834
+Round  17, Average loss 0.031, Average loss by Gen 1.815
+Round  18, Average loss 0.026, Average loss by Gen 1.782
+Round  19, Average loss 0.027, Average loss by Gen 1.807
+Round  20, Average loss 0.027, Average loss by Gen 1.821
+Testing accuracy 0: 64.05
+Testing accuracy 1: 74.90
+Testing accuracy 2: 72.19
+Testing accuracy 3: 63.76
+Testing accuracy 4: 80.51
+Testing accuracy 5: 76.07
+Testing accuracy 6: 74.12
+Testing accuracy 7: 88.68
+Testing accuracy 8: 69.28
+Testing accuracy 9: 66.18
+Round  21, Average loss 0.023, Average loss by Gen 1.725
+Round  22, Average loss 0.023, Average loss by Gen 1.747
+Round  23, Average loss 0.023, Average loss by Gen 1.769
+Round  24, Average loss 0.022, Average loss by Gen 1.699
+Round  25, Average loss 0.019, Average loss by Gen 1.667
+Round  26, Average loss 0.020, Average loss by Gen 1.732
+Round  27, Average loss 0.019, Average loss by Gen 1.642
+Round  28, Average loss 0.018, Average loss by Gen 1.643
+Round  29, Average loss 0.016, Average loss by Gen 1.614
+Round  30, Average loss 0.017, Average loss by Gen 1.636
+Testing accuracy 0: 64.37
+Testing accuracy 1: 76.66
+Testing accuracy 2: 72.69
+Testing accuracy 3: 66.22
+Testing accuracy 4: 80.74
+Testing accuracy 5: 76.94
+Testing accuracy 6: 75.35
+Testing accuracy 7: 88.73
+Testing accuracy 8: 72.46
+Testing accuracy 9: 68.92
+Round  31, Average loss 0.019, Average loss by Gen 1.669
+Round  32, Average loss 0.016, Average loss by Gen 1.653
+Round  33, Average loss 0.018, Average loss by Gen 1.630
+Round  34, Average loss 0.016, Average loss by Gen 1.645
+Round  35, Average loss 0.017, Average loss by Gen 1.628
+Round  36, Average loss 0.015, Average loss by Gen 1.593
+Round  37, Average loss 0.014, Average loss by Gen 1.588
+Round  38, Average loss 0.014, Average loss by Gen 1.624
+Round  39, Average loss 0.016, Average loss by Gen 1.643
+Round  40, Average loss 0.016, Average loss by Gen 1.661
+Testing accuracy 0: 64.69
+Testing accuracy 1: 78.14
+Testing accuracy 2: 72.65
+Testing accuracy 3: 67.33
+Testing accuracy 4: 81.43
+Testing accuracy 5: 78.62
+Testing accuracy 6: 75.65
+Testing accuracy 7: 87.78
+Testing accuracy 8: 74.51
+Testing accuracy 9: 71.20
+Round  41, Average loss 0.015, Average loss by Gen 1.621
+Round  42, Average loss 0.014, Average loss by Gen 1.584
+Round  43, Average loss 0.014, Average loss by Gen 1.608
+Round  44, Average loss 0.012, Average loss by Gen 1.595
+Round  45, Average loss 0.014, Average loss by Gen 1.547
+Round  46, Average loss 0.013, Average loss by Gen 1.585
+Round  47, Average loss 0.013, Average loss by Gen 1.572
+Round  48, Average loss 0.013, Average loss by Gen 1.557
+Round  49, Average loss 0.012, Average loss by Gen 1.596
+Round  50, Average loss 0.011, Average loss by Gen 1.485
+Testing accuracy 0: 64.21
+Testing accuracy 1: 79.41
+Testing accuracy 2: 73.19
+Testing accuracy 3: 69.69
+Testing accuracy 4: 81.13
+Testing accuracy 5: 77.53
+Testing accuracy 6: 76.23
+Testing accuracy 7: 88.93
+Testing accuracy 8: 77.48
+Testing accuracy 9: 72.62
+[64.69000244140625, 79.41000366210938, 73.19000244140625, 69.69000244140625, 81.43000030517578, 78.62000274658203, 76.2300033569336, 88.93000030517578, 77.4800033569336, 72.62000274658203] AVG0 76.2290023803711
+REFERENCE RESULT {"setting": "lt", "seed": 0, "avg_FE": 1, "best_mean_acc": 0.762290023803711, "final_acc": 0.7604200065135955, "final_bal": 0.7584327459335327, "final_tail": 0.5045813918113708, "time_s": 3290}

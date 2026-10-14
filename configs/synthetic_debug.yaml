@@ -4,10 +4,11 @@
 # Not a real benchmark; use configs/cifar10_lt.yaml for that.
 
 dataset: synthetic
-img_size: 20
+img_size: 32   # LPIPS (AlexNet) in the MND metric needs >= 32x32
 num_users: 4
 num_models: 2
 target_models: cnn_small,mobilenet_lite
+header_models: header_small,header_deep   # GeFL-F: one per num_models
 frac: 1.0
 
 noniid: true
