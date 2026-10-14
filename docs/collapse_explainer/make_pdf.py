@@ -213,7 +213,8 @@ def build():
                 "steps × 0.001 × 0.001 of the row, roughly 1000 times less.")]
 
     rows = [["Check (T01: real CVAE-F, MNIST long tail, K = 10, 40 rounds, seed 0)", "Result"],
-            ["Is the inequality ever violated?", "0 violations in 1,200 class-rounds (3 flat-averaging runs)"],
+            ["Is the inequality ever violated? (consistency check only: the bound is built from the same measured norms)",
+             "0 violations in 1,200 class-rounds (3 flat-averaging runs)"],
             ["How many clients hold each tail class?", f"classes 5-9: {', '.join(str(int(x)) for x in m[5:])} of 10 (all above K/2)"],
             ["Tail rows after 40 rounds, flat FedAvg, λ = 0.001",
              "classes 7, 8, 9: " + ", ".join(f"{x:.2f}" for x in rel(flat)[7:]) + " of their start; head rows grow ×1.4"],
@@ -254,8 +255,13 @@ def build():
                       "the same fix as our LCD. Not analysed, not federated."],
                      ["When each embedding row is updated by only some clients, aggregate it over the clients that "
                       "updated it, weighted by their data.", "Federated recommendation, e.g. Federated Neural "
-                      "Collaborative Filtering; sparse aggregation (AAAI 2025)", "This is essentially HWA, in "
-                      "another domain. We must cite it."],
+                      "Collaborative Filtering; sparse aggregation (AAAI 2025)", "Closely related to HWA (aggregate "
+                      "a row only over the clients that updated it), in another domain; aggregation equations differ "
+                      "in detail. We must cite it."],
+                     ["Class conditioning itself can cause mode collapse in class-conditional GANs trained on "
+                      "limited data.", "Shahbazi et al., \"Collapse by Conditioning\", ICLR 2022",
+                      "So \"collapse in a class-conditional generator\" is not new by itself; our claim is the "
+                      "federated optimiser + averaging mechanism."],
                      ["Local training corrupts the classifier weights of classes a client does not have; restrict "
                       "or calibrate those classes.", "FedRS (KDD 2021), FedLC (ICML 2022)", "Same family of "
                       "problem (absent classes), but in the classifier, and without weight decay."],
@@ -266,7 +272,7 @@ def build():
                       "standard FedAvg analysis", "Still present after any decay fix; HWA removes it too."]],
                     [5.4, 4.2, 7.4]),
               P("6. What is new (ours)", "h1"),
-              *bullets(["That this failure happens <b>inside a federated conditional generator</b> (GeFL-F and any "
+              *bullets(["To our knowledge: that this specific failure, an interaction of coupled Adam decay and FedAvg, happens <b>inside a federated conditional generator</b> (GeFL-F and any "
                         "generator with per-class parameters trained by FedAvg), and is the reason GeFL-F breaks "
                         "under long-tailed clients. We found no paper reporting it.",
                         "The <b>bound with two measurable numbers</b> (G and D) and the threshold θ = D/(G+D); the "
@@ -274,7 +280,11 @@ def build():
                         "The consequence of Lemma 2 for this setting: tuning the decay coefficient cannot fix it; "
                         "only removing coupled decay or removing non-holders from the average can.",
                         "A <b>round-by-round check on the real model</b> (every client's row logged every round), "
-                        "plus the link to accuracy: GeFL-F's tail recall and generator fidelity fall with the rows."]),
+                        "plus the link to accuracy: GeFL-F's tail recall and generator fidelity fall with the rows. "
+                        "Theorem 1 itself is a per-round certificate built from measured quantities; the "
+                        "<i>predictive</i> content is Lemma 2 and T02 (same collapse at λ = 10<super>-4</super> and "
+                        "10<super>-3</super>, exactly zero non-holder change at λ = 0, per-class learning rates "
+                        "predicted with Spearman 0.85), all confirmed."]),
               P("<b>What is not new and should not be claimed:</b> the triangle inequality itself; that Adam treats "
                 "coupled decay differently; the idea of averaging a parameter only over the clients that trained it. "
                 "The contribution is the diagnosis, the measurable condition and the evidence, not new mathematics.")]

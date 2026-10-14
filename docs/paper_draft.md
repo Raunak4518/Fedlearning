@@ -70,7 +70,8 @@ number of clients grows and as the tail lengthens.
    what Adam's coupled decay does to it (Lemma 2). The row contracts whenever the share of holders $m_c/K$ is below
    $\theta_c = \bar D_c/(\bar G_c + \bar D_c)$; the half-the-clients rule is the special case $\bar G_c = \bar D_c$
    and is too optimistic. We verify the bound round by round on the real generator (0 violations in 1,200
-   row-rounds), and confirm the collapse with row norms and an independent referee classifier.
+   row-rounds, a consistency check), and test its predictive part, Lemma 2, by changing only the decay or only the
+   aggregation; we confirm the collapse with row norms and an independent referee classifier.
 2. **A minimal fix (§4.1–4.3).** HWA, LA and CSL. Each fixes one measured failure and each reduces to GeFL-F when
    its failure is absent. All three are compatible with secure aggregation.
 3. **A principle and its instantiation (§4.5).** Anchoring to exact statistics:
@@ -154,8 +155,9 @@ from row $c$'s average (HWA) removes the $\bar D_c$ term and prevents the contra
 We instrumented the paper's CVAE-F and logged every client's row norms after every local round (MNIST, IF = 100,
 Dir 0.5, $K = 10$, 40 generator rounds, seed 0; `experiments/T01_collapse_threshold.py`, figure F01_collapse).
 
-* *The bound holds.* Theorem 1 is satisfied in all 1,200 row-rounds of the three flat-averaging arms (0 violations;
-  mean $\|r_c^+\|$/bound $= 0.983$).
+* *Consistency check.* Theorem 1 is satisfied in all 1,200 row-rounds of the three flat-averaging arms (mean
+  $\|r_c^+\|$/bound $= 0.983$). Since the bound is computed from the same measured norms, this only confirms the
+  instrumentation; the evidence for the mechanism is the next three points.
 * *$K/2$ is the wrong threshold.* Every class is held by at least 7 of the 10 clients, so the half-the-clients rule
   predicts no contraction anywhere. Yet the rows of classes 7–9 shrank to 4–10% of their initial norm and those of
   classes 5–6 to 65–75%, while head rows (held by all 10 clients) grew by a factor 1.4. Holders gained only
@@ -178,7 +180,9 @@ contains the class; the predicted per-class rate $\frac1K\sum_k S_k\,[1-(1-\pi_{
 growth on T01 (Spearman 0.85, $p = 0.002$; `experiments/T02_dilution_rates.py`). HWA speeds the rarest rows up by
 about 1× at $K = 10$ and 2–3× at $K = 100$. The shared parameters see the rarest class in 0.4% of the loss, the same
 imbalance under which centralised diffusion models and conditional GANs already lose their tail classes [CBDM,
-CVPR 2023; gSR, ECCV 2022]. The size of the resulting accuracy loss for DCGAN-F / DDPM-F under the long tail is not
+CVPR 2023; gSR, ECCV 2022], and class conditioning alone can cause mode collapse in limited-data GANs [Shahbazi et
+al., "Collapse by Conditioning", ICLR 2022]. The new element here is the federated optimiser–aggregation mechanism,
+not class-conditional collapse as such. The size of the resulting accuracy loss for DCGAN-F / DDPM-F under the long tail is not
 yet measured.
 
 ### 3.3 Measurement across seeds and datasets
@@ -907,7 +911,7 @@ backbones, in image space (GeFL) or feature space (GeFL-F). FedGen and FedFTG ap
 *teacher predictions or losses* that train a server-side generator. HWA instead weights the *parameters* of a
 client-trained generator, namely its per-class conditioning rows, during aggregation. It is derived from a failure
 that is specific to that setting: under FedAvg with Adam's coupled weight decay, non-holders shrink a class's
-row at Adam's step size while holders barely grow it, so tail rows contract even when most clients hold the class.
+row at Adam's step size while holders barely grow it, so tail rows contract even when most clients hold the class. Closely related ideas exist elsewhere: federated recommendation aggregates each item embedding over the clients that updated it (FedNCF, Perifanis & Efraimidis, Knowledge-Based Systems 2022), and class embeddings can collapse under FedAvg when clients see only positive labels (FedAwS, Yu et al., ICML 2020), a different cause from decay. Class-conditional collapse in centralised generators is also known (Shahbazi et al., ICLR 2022; Qin et al., CVPR 2023; Rangwani et al., ECCV 2022). What we add is the federated mechanism: coupled Adam decay on non-holders combined with flat averaging.
 
 **FL under class imbalance and long tails.** Much of this work locates the bias in the classifier. CCVR [18]
 re-calibrates the classifier after training on virtual features sampled from a Gaussian mixture built from

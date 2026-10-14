@@ -38,7 +38,7 @@ backbones, in image space (GeFL) or feature space (GeFL-F). FedGen and FedFTG ap
 *teacher predictions or losses* that train a server-side generator. HWA instead weights the *parameters* of a
 client-trained generator, namely its per-class conditioning rows, during aggregation. It is derived from a failure
 that is specific to that setting: under FedAvg with Adam's coupled weight decay, non-holders shrink a class's
-row at Adam's step size while holders barely grow it, so tail rows contract even when most clients hold the class.
+row at Adam's step size while holders barely grow it, so tail rows contract even when most clients hold the class. Closely related ideas exist elsewhere: federated recommendation aggregates each item embedding over the clients that updated it (FedNCF, Perifanis & Efraimidis, Knowledge-Based Systems 2022), and class embeddings can collapse under FedAvg when clients see only positive labels (FedAwS, Yu et al., ICML 2020), a different cause from decay. Class-conditional collapse in centralised generators is also known (Shahbazi et al., ICLR 2022; Qin et al., CVPR 2023; Rangwani et al., ECCV 2022). What we add is the federated mechanism: coupled Adam decay on non-holders combined with flat averaging.
 
 **FL under class imbalance and long tails.** Much of this work locates the bias in the classifier. CCVR [18]
 re-calibrates the classifier after training on virtual features sampled from a Gaussian mixture built from
