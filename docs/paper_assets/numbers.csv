@@ -1,0 +1,276 @@
+table,row,col,mean,sd,n,seeds,p_vs_ref,test,draft,source
+T01_parity,"MNIST IID, K=10",Paper,95.47,,,,,,,published (paper)
+T01_parity,"MNIST IID, K=10",Authors' code,96.07,,,,,,,published (paper)
+T01_parity,"MNIST IID, K=10",Ours,96.015,0.1365,3,"{""0"": 95.865, ""1"": 96.048, ""2"": 96.132}",,,96.02,F10_combined_method :: GeFL-F :: mnist IF=1.0 K=10
+T01_parity,"MNIST IID, K=50",Paper,95.04,,,,,,,published (paper)
+T01_parity,"MNIST IID, K=50",Ours,95.157,0.0,1,"{""0"": 95.157}",,,95.16,F09_consensus_paper_setting :: GeFL-F :: mnist IF=1.0 K=50
+T01_parity,"MNIST IID, K=100",Paper,94.63,,,,,,,published (paper)
+T01_parity,"MNIST IID, K=100",Ours,94.614,0.0,1,"{""0"": 94.614}",,,94.61,F09_consensus_paper_setting :: GeFL-F :: mnist IF=1.0 K=100
+T01_parity,"FMNIST IID, K=10",Paper,83.14,,,,,,,published (paper)
+T01_parity,"FMNIST IID, K=10",Ours,82.674,0.3137,3,"{""0"": 82.754, ""1"": 82.328, ""2"": 82.94}",,,82.67,F09_consensus_paper_setting :: GeFL-F :: fmnist IF=1.0 K=10
+T02_longtail_minimal,FedAvg (per architecture),MNIST bal.,62.8558,1.8392,3,"{""0"": 64.9786, ""1"": 61.74, ""2"": 61.8487}",0.01996073786900738,paired,62.9,F01_main_longtail :: FedAvg (grouped) :: mnist IF=0.01 K=10
+T02_longtail_minimal,FedAvg (per architecture),MNIST tail,40.769,2.2691,3,"{""0"": 42.0082, ""1"": 38.1502, ""2"": 42.1486}",0.07187945143425944,paired,,F01_main_longtail :: FedAvg (grouped) :: mnist IF=0.01 K=10
+T02_longtail_minimal,FedAvg (per architecture),FMNIST bal.,52.7907,2.9684,3,"{""0"": 55.298, ""1"": 53.561, ""2"": 49.513}",0.010419908715607164,paired,52.8,F01_main_longtail :: FedAvg (grouped) :: fmnist IF=0.01 K=10
+T02_longtail_minimal,FedAvg (per architecture),FMNIST tail,33.675,3.2489,3,"{""0"": 36.9075, ""1"": 33.7075, ""2"": 30.41}",0.37077686659365816,paired,,F01_main_longtail :: FedAvg (grouped) :: fmnist IF=0.01 K=10
+T02_longtail_minimal,LG-FedAvg,MNIST bal.,63.2185,2.1793,3,"{""0"": 65.7329, ""1"": 61.8731, ""2"": 62.0495}",0.025200871909869724,paired,63.2,F01_main_longtail :: LG-FedAvg :: mnist IF=0.01 K=10
+T02_longtail_minimal,LG-FedAvg,MNIST tail,41.9778,2.3342,3,"{""0"": 42.9616, ""1"": 39.3128, ""2"": 43.6591}",0.08029602437712309,paired,,F01_main_longtail :: LG-FedAvg :: mnist IF=0.01 K=10
+T02_longtail_minimal,LG-FedAvg,FMNIST bal.,52.4537,2.927,3,"{""0"": 54.453, ""1"": 53.814, ""2"": 49.094}",0.021454520228907988,paired,52.5,F01_main_longtail :: LG-FedAvg :: fmnist IF=0.01 K=10
+T02_longtail_minimal,LG-FedAvg,FMNIST tail,33.2642,3.92,3,"{""0"": 36.1325, ""1"": 34.8625, ""2"": 28.7975}",0.3749926833458528,paired,,F01_main_longtail :: LG-FedAvg :: fmnist IF=0.01 K=10
+T02_longtail_minimal,LG-FedAvg + LA,MNIST bal.,67.8408,1.1563,3,"{""0"": 68.9292, ""1"": 67.9663, ""2"": 66.6269}",0.0520691583881106,paired,67.8,F01_main_longtail :: LG-FedAvg+LA :: mnist IF=0.01 K=10
+T02_longtail_minimal,LG-FedAvg + LA,MNIST tail,50.6203,1.6123,3,"{""0"": 48.8391, ""1"": 51.0416, ""2"": 51.98}",0.6823741385741919,paired,,F01_main_longtail :: LG-FedAvg+LA :: mnist IF=0.01 K=10
+T02_longtail_minimal,LG-FedAvg + LA,FMNIST bal.,57.5733,2.4017,3,"{""0"": 60.065, ""1"": 57.382, ""2"": 55.273}",0.21338197386007438,paired,57.6,F01_main_longtail :: LG-FedAvg+LA :: fmnist IF=0.01 K=10
+T02_longtail_minimal,LG-FedAvg + LA,FMNIST tail,40.9817,4.2234,3,"{""0"": 45.6475, ""1"": 39.8775, ""2"": 37.42}",0.021866888938620262,paired,,F01_main_longtail :: LG-FedAvg+LA :: fmnist IF=0.01 K=10
+T02_longtail_minimal,GeFL-F,MNIST bal.,74.6231,1.7577,3,"{""0"": 73.9153, ""1"": 73.3298, ""2"": 76.6244}",,,74.6,F01_main_longtail :: GeFL-F :: mnist IF=0.01 K=10
+T02_longtail_minimal,GeFL-F,MNIST tail,51.9441,6.0461,3,"{""0"": 47.7578, ""1"": 49.1988, ""2"": 58.8758}",,,,F01_main_longtail :: GeFL-F :: mnist IF=0.01 K=10
+T02_longtail_minimal,GeFL-F,FMNIST bal.,58.619,3.407,3,"{""0"": 62.156, ""1"": 58.342, ""2"": 55.359}",,,58.6,F01_main_longtail :: GeFL-F :: fmnist IF=0.01 K=10
+T02_longtail_minimal,GeFL-F,FMNIST tail,35.4267,5.668,3,"{""0"": 41.7175, ""1"": 33.845, ""2"": 30.7175}",,,,F01_main_longtail :: GeFL-F :: fmnist IF=0.01 K=10
+T02_longtail_minimal,GeFL-F + LA,MNIST bal.,78.9221,2.3216,3,"{""0"": 78.0448, ""1"": 77.167, ""2"": 81.5545}",0.005724686338277062,paired,78.9,F01_main_longtail :: +LA :: mnist IF=0.01 K=10
+T02_longtail_minimal,GeFL-F + LA,MNIST tail,60.0933,6.6168,3,"{""0"": 56.65, ""1"": 55.9082, ""2"": 67.7217}",0.0077158097392035045,paired,,F01_main_longtail :: +LA :: mnist IF=0.01 K=10
+T02_longtail_minimal,GeFL-F + LA,FMNIST bal.,64.7787,3.3489,3,"{""0"": 68.07, ""1"": 64.891, ""2"": 61.375}",0.0010200564167497084,paired,64.8,F01_main_longtail :: +LA :: fmnist IF=0.01 K=10
+T02_longtail_minimal,GeFL-F + LA,FMNIST tail,45.5475,5.4449,3,"{""0"": 51.6775, ""1"": 43.6925, ""2"": 41.2725}",0.00047004083070558366,paired,,F01_main_longtail :: +LA :: fmnist IF=0.01 K=10
+T02_longtail_minimal,GeFL-F + HWA + LA,MNIST bal.,87.8878,1.6135,3,"{""0"": 86.1463, ""1"": 88.1853, ""2"": 89.3319}",0.0036828697372314964,paired,87.9,F01_main_longtail :: +HWA+LA :: mnist IF=0.01 K=10
+T02_longtail_minimal,GeFL-F + HWA + LA,MNIST tail,81.0825,3.0359,3,"{""0"": 77.5822, ""1"": 82.6669, ""2"": 82.9983}",0.008598811799635392,paired,,F01_main_longtail :: +HWA+LA :: mnist IF=0.01 K=10
+T02_longtail_minimal,GeFL-F + HWA + LA,FMNIST bal.,76.019,0.6667,3,"{""0"": 75.998, ""1"": 75.363, ""2"": 76.696}",0.015225572115292421,paired,76.0,F01_main_longtail :: +HWA+LA :: fmnist IF=0.01 K=10
+T02_longtail_minimal,GeFL-F + HWA + LA,FMNIST tail,68.8117,1.7949,3,"{""0"": 68.2975, ""1"": 67.33, ""2"": 70.8075}",0.013375671719813943,paired,,F01_main_longtail :: +HWA+LA :: fmnist IF=0.01 K=10
+T03_clients_minimal,GeFL-F,K = 10,74.2443,1.9101,3,"{""0"": 74.7183, ""1"": 72.1419, ""2"": 75.8728}",,,74.2,F10_combined_method :: GeFL-F :: mnist IF=0.01 K=10
+T03_clients_minimal,GeFL-F,K = 50,78.1015,1.115,3,"{""0"": 78.1503, ""1"": 76.9628, ""2"": 79.1913}",,,78.1,F04_clients :: GeFL-F :: mnist IF=0.01 K=50
+T03_clients_minimal,GeFL-F,K = 100,75.9751,0.9478,3,"{""0"": 76.8315, ""1"": 74.9568, ""2"": 76.137}",,,76.0,F04_clients :: GeFL-F :: mnist IF=0.01 K=100
+T03_clients_minimal,+ LA,K = 10,78.9221,2.3216,3,"{""0"": 78.0448, ""1"": 77.167, ""2"": 81.5545}",0.021770012338634685,paired,78.9,F01_main_longtail :: +LA :: mnist IF=0.01 K=10
+T03_clients_minimal,+ LA,K = 50,81.3468,0.8227,3,"{""0"": 81.0118, ""1"": 80.7443, ""2"": 82.2841}",0.007171122016366399,paired,81.4,F04_clients :: +LA :: mnist IF=0.01 K=50
+T03_clients_minimal,+ LA,K = 100,79.5089,0.7631,3,"{""0"": 80.1858, ""1"": 78.6819, ""2"": 79.6589}",0.0009190343282235923,paired,79.5,F04_clients :: +LA :: mnist IF=0.01 K=100
+T03_clients_minimal,+ HWA + LA,K = 10,87.7813,2.0726,3,"{""0"": 85.4842, ""1"": 88.3484, ""2"": 89.5113}",0.013208598344287401,paired,87.8,F10_combined_method :: +HWA+LA :: mnist IF=0.01 K=10
+T03_clients_minimal,+ HWA + LA,K = 50,86.4632,0.8366,3,"{""0"": 85.5109, ""1"": 86.7985, ""2"": 87.08}",0.0080043918713141,paired,86.5,F04_clients :: +HWA+LA :: mnist IF=0.01 K=50
+T03_clients_minimal,+ HWA + LA,K = 100,83.072,0.5623,3,"{""0"": 82.5629, ""1"": 82.9776, ""2"": 83.6755}",0.009502191947346323,paired,83.1,F04_clients :: +HWA+LA :: mnist IF=0.01 K=100
+T03_clients_minimal,+ HWA + LA + CSL,K = 10,89.8702,0.9605,3,"{""0"": 88.7721, ""1"": 90.5544, ""2"": 90.2842}",0.007899585390952335,paired,89.9,F10_combined_method :: +HWA+LA+CSL :: mnist IF=0.01 K=10
+T03_clients_minimal,+ HWA + LA + CSL,K = 100,83.0404,0.0565,2,"{""0"": 83.0005, ""1"": 83.0803}",0.08652300532519315,paired,82.7,F04_clients :: +HWA+LA+CSL :: mnist IF=0.01 K=100
+T03_clients_minimal,FSG + LA,K = 10,87.0398,1.6318,3,"{""0"": 88.629, ""1"": 85.3684, ""2"": 87.1219}",0.0038673088337076015,paired,87.0,F01_main_longtail :: FSG+LA :: mnist IF=0.01 K=10
+T03_clients_minimal,FSG + LA,K = 50,87.6584,0.9572,3,"{""0"": 88.0008, ""1"": 86.5771, ""2"": 88.3973}",0.0003878523233136883,paired,87.7,F04_clients :: FSG+LA :: mnist IF=0.01 K=50
+T03_clients_minimal,FSG + LA,K = 100,86.0456,0.8358,3,"{""0"": 86.8423, ""1"": 85.1756, ""2"": 86.119}",5.483582430384715e-05,paired,86.1,F04_clients :: FSG+LA :: mnist IF=0.01 K=100
+T03_clients_minimal,FSG + LA + CSL,K = 100,86.3378,0.0,1,"{""0"": 86.3378}",,,85.5,F04_clients :: FSG+LA+CSL :: mnist IF=0.01 K=100
+T03_clients_minimal,MIX + HWA + LA + CSL,K = 100,85.2874,1.775,2,"{""0"": 86.5425, ""1"": 84.0323}",0.021529836540318578,paired,85.2,F04_clients :: MIX+HWA+LA+CSL :: mnist IF=0.01 K=100
+T04_iid_csl,"MNIST, K=10",Paper GeFL-F,95.47,,,,,,,published (paper)
+T04_iid_csl,"MNIST, K=10",Our GeFL-F,96.0233,0.0427,3,"{""0"": 95.974, ""1"": 96.047, ""2"": 96.049}",,,96.02,F09_consensus_paper_setting :: GeFL-F :: mnist IF=1.0 K=10
+T04_iid_csl,"MNIST, K=10",+ CSL,96.7097,0.1567,3,"{""0"": 96.54, ""1"": 96.74, ""2"": 96.849}",,,96.71,F09_consensus_paper_setting :: +CSL (beta=0.5) :: mnist IF=1.0 K=10
+T04_iid_csl,"FMNIST, K=10",Paper GeFL-F,83.14,,,,,,,published (paper)
+T04_iid_csl,"FMNIST, K=10",Our GeFL-F,82.674,0.3137,3,"{""0"": 82.754, ""1"": 82.328, ""2"": 82.94}",,,82.67,F09_consensus_paper_setting :: GeFL-F :: fmnist IF=1.0 K=10
+T04_iid_csl,"FMNIST, K=10",+ CSL,83.163,0.3189,3,"{""0"": 83.359, ""1"": 82.795, ""2"": 83.335}",,,83.16,F09_consensus_paper_setting :: +CSL (beta=0.5) :: fmnist IF=1.0 K=10
+T04_iid_csl,"MNIST, K=50",Paper GeFL-F,95.04,,,,,,,published (paper)
+T04_iid_csl,"MNIST, K=50",Our GeFL-F,95.157,0.0,1,"{""0"": 95.157}",,,95.16,F09_consensus_paper_setting :: GeFL-F :: mnist IF=1.0 K=50
+T04_iid_csl,"MNIST, K=50",+ CSL,95.413,0.0,1,"{""0"": 95.413}",,,95.41,F09_consensus_paper_setting :: +CSL (beta=0.5) :: mnist IF=1.0 K=50
+T04_iid_csl,"MNIST, K=100",Paper GeFL-F,94.63,,,,,,,published (paper)
+T04_iid_csl,"MNIST, K=100",Our GeFL-F,94.614,0.0,1,"{""0"": 94.614}",,,94.61,F09_consensus_paper_setting :: GeFL-F :: mnist IF=1.0 K=100
+T04_iid_csl,"MNIST, K=100",+ CSL,94.724,0.0,1,"{""0"": 94.724}",,,94.72,F09_consensus_paper_setting :: +CSL (beta=0.5) :: mnist IF=1.0 K=100
+T04_iid_csl,"SVHN, K=10",Paper GeFL-F,76.26,,,,,,,published (paper)
+T04_iid_csl,"SVHN, K=10",Our GeFL-F,75.8196,0.5518,3,"{""0"": 75.222, ""1"": 75.9269, ""2"": 76.3099}",,,75.82,K01_kaggle_cifar10_svhn__svhn :: GeFL-F :: svhn IF=1.0 K=10
+T04_iid_csl,"SVHN, K=10",+ CSL,76.3022,0.2994,3,"{""0"": 76.0015, ""1"": 76.3049, ""2"": 76.6003}",,,76.3,K01_kaggle_cifar10_svhn__svhn :: +CSL (beta=0.5) :: svhn IF=1.0 K=10
+T04_iid_csl,"CIFAR-10, K=10",Paper GeFL-F,55.86,,,,,,,published (paper)
+T04_iid_csl,"CIFAR-10, K=10",Our GeFL-F,59.1,0.63,3,,,,59.1,K01_kaggle_cifar10_svhn__cifar10 :: GeFL-F :: cifar10 IF=1.0 K=10 (summary.md only)
+T04_iid_csl,"CIFAR-10, K=10",+ CSL,59.85,0.5,3,,,,,K01_kaggle_cifar10_svhn__cifar10 :: +CSL (beta=0.5) :: cifar10 IF=1.0 K=10 (summary.md only)
+T05_combined,GeFL-F,MNIST LT,74.2443,1.9101,3,"{""0"": 74.7183, ""1"": 72.1419, ""2"": 75.8728}",,,74.24,F10_combined_method :: GeFL-F :: mnist IF=0.01 K=10
+T05_combined,GeFL-F,FMNIST LT,58.7387,3.9426,3,"{""0"": 62.362, ""1"": 59.314, ""2"": 54.54}",,,58.74,F10_combined_method :: GeFL-F :: fmnist IF=0.01 K=10
+T05_combined,GeFL-F,MNIST IID,96.015,0.1365,3,"{""0"": 95.865, ""1"": 96.048, ""2"": 96.132}",,,96.01,F10_combined_method :: GeFL-F :: mnist IF=1.0 K=10
+T05_combined,GeFL-F,FMNIST IID,82.8023,0.2189,3,"{""0"": 82.881, ""1"": 82.555, ""2"": 82.971}",,,82.8,F10_combined_method :: GeFL-F :: fmnist IF=1.0 K=10
+T05_combined,+ CSL,MNIST LT,76.3535,1.9583,3,"{""0"": 76.61, ""1"": 74.2795, ""2"": 78.1708}",0.0031227356268798017,paired,76.35,F10_combined_method :: +CSL :: mnist IF=0.01 K=10
+T05_combined,+ CSL,FMNIST LT,58.586,3.6684,3,"{""0"": 61.674, ""1"": 59.553, ""2"": 54.531}",0.6369729925968006,paired,58.59,F10_combined_method :: +CSL :: fmnist IF=0.01 K=10
+T05_combined,+ CSL,MNIST IID,96.8237,0.068,3,"{""0"": 96.756, ""1"": 96.823, ""2"": 96.892}",0.002609892989471947,paired,96.82,F10_combined_method :: +CSL :: mnist IF=1.0 K=10
+T05_combined,+ CSL,FMNIST IID,83.255,0.3146,3,"{""0"": 83.264, ""1"": 82.936, ""2"": 83.565}",0.023516287719249927,paired,83.25,F10_combined_method :: +CSL :: fmnist IF=1.0 K=10
+T05_combined,+ HWA + LA,MNIST LT,87.7813,2.0726,3,"{""0"": 85.4842, ""1"": 88.3484, ""2"": 89.5113}",0.013208598344287401,paired,87.78,F10_combined_method :: +HWA+LA :: mnist IF=0.01 K=10
+T05_combined,+ HWA + LA,FMNIST LT,75.9897,0.474,3,"{""0"": 75.457, ""1"": 76.365, ""2"": 76.147}",0.019722982251899595,paired,75.99,F10_combined_method :: +HWA+LA :: fmnist IF=0.01 K=10
+T05_combined,+ HWA + LA,MNIST IID,96.015,0.0531,3,"{""0"": 95.96, ""1"": 96.066, ""2"": 96.019}",0.9999976860754228,paired,96.01,F10_combined_method :: +HWA+LA :: mnist IF=1.0 K=10
+T05_combined,+ HWA + LA,FMNIST IID,82.74,0.2812,3,"{""0"": 82.858, ""1"": 82.419, ""2"": 82.943}",0.23290230740608234,paired,82.74,F10_combined_method :: +HWA+LA :: fmnist IF=1.0 K=10
+T05_combined,+ HWA + LA + CSL (ours),MNIST LT,89.8702,0.9605,3,"{""0"": 88.7721, ""1"": 90.5544, ""2"": 90.2842}",0.007899585390952335,paired,89.87,F10_combined_method :: +HWA+LA+CSL :: mnist IF=0.01 K=10
+T05_combined,+ HWA + LA + CSL (ours),FMNIST LT,76.365,0.6382,3,"{""0"": 75.737, ""1"": 77.013, ""2"": 76.345}",0.018536924910258826,paired,76.37,F10_combined_method :: +HWA+LA+CSL :: fmnist IF=0.01 K=10
+T05_combined,+ HWA + LA + CSL (ours),MNIST IID,96.7677,0.0566,3,"{""0"": 96.713, ""1"": 96.764, ""2"": 96.826}",0.004057100058988383,paired,96.77,F10_combined_method :: +HWA+LA+CSL :: mnist IF=1.0 K=10
+T05_combined,+ HWA + LA + CSL (ours),FMNIST IID,83.215,0.2822,3,"{""0"": 83.317, ""1"": 82.896, ""2"": 83.432}",0.007754871383540066,paired,83.21,F10_combined_method :: +HWA+LA+CSL :: fmnist IF=1.0 K=10
+T06_regimes,"label skew only (IF = 1, Dir 0.5)",MNIST GeFL-F,89.7882,1.6278,3,"{""0"": 91.413, ""2"": 88.1575, ""1"": 89.794}",,,89.8,K02_kaggle_regimes_privacy_ablations :: GeFL-F :: mnist IF=1.0 K=10
+T06_regimes,"label skew only (IF = 1, Dir 0.5)",MNIST ours,95.5871,0.2845,3,"{""0"": 95.2592, ""2"": 95.7353, ""1"": 95.767}",,,95.6,K02_kaggle_regimes_privacy_ablations :: Ours :: mnist IF=1.0 K=10
+T06_regimes,"label skew only (IF = 1, Dir 0.5)",FMNIST GeFL-F,74.0637,1.9637,3,"{""1"": 72.353, ""0"": 76.208, ""2"": 73.63}",,,74.1,K02_kaggle_regimes_privacy_ablations :: GeFL-F :: fmnist IF=1.0 K=10
+T06_regimes,"label skew only (IF = 1, Dir 0.5)",FMNIST ours,79.193,0.1632,3,"{""1"": 79.022, ""0"": 79.21, ""2"": 79.347}",,,79.2,K02_kaggle_regimes_privacy_ablations :: Ours :: fmnist IF=1.0 K=10
+T06_regimes,mild tail (IF = 10),MNIST GeFL-F,86.9072,1.8465,3,"{""1"": 86.9913, ""0"": 88.7101, ""2"": 85.02}",,,86.9,K02_kaggle_regimes_privacy_ablations :: GeFL-F :: mnist IF=0.1 K=10
+T06_regimes,mild tail (IF = 10),MNIST ours,94.3356,0.1949,3,"{""1"": 94.2631, ""0"": 94.1873, ""2"": 94.5563}",,,94.3,K02_kaggle_regimes_privacy_ablations :: Ours :: mnist IF=0.1 K=10
+T06_regimes,mild tail (IF = 10),FMNIST GeFL-F,72.6307,2.3016,3,"{""0"": 75.222, ""2"": 71.846, ""1"": 70.824}",,,72.6,K02_kaggle_regimes_privacy_ablations :: GeFL-F :: fmnist IF=0.1 K=10
+T06_regimes,mild tail (IF = 10),FMNIST ours,79.4137,0.2067,3,"{""0"": 79.345, ""2"": 79.25, ""1"": 79.646}",,,79.4,K02_kaggle_regimes_privacy_ablations :: Ours :: fmnist IF=0.1 K=10
+T06_regimes,heavy tail (IF = 100),MNIST GeFL-F,75.3071,1.1124,3,"{""0"": 74.2388, ""2"": 76.4589, ""1"": 75.2236}",,,75.3,K02_kaggle_regimes_privacy_ablations :: GeFL-F :: mnist IF=0.01 K=10
+T06_regimes,heavy tail (IF = 100),MNIST ours,90.1496,0.9367,3,"{""0"": 89.1068, ""1"": 90.9199, ""2"": 90.4221}",,,90.2,K02_kaggle_regimes_privacy_ablations :: Ours :: mnist IF=0.01 K=10
+T06_regimes,heavy tail (IF = 100),FMNIST GeFL-F,58.898,3.6226,3,"{""1"": 59.511, ""0"": 62.175, ""2"": 55.008}",,,58.9,K02_kaggle_regimes_privacy_ablations :: GeFL-F :: fmnist IF=0.01 K=10
+T06_regimes,heavy tail (IF = 100),FMNIST ours,76.5137,0.4918,3,"{""1"": 76.319, ""0"": 76.149, ""2"": 77.073}",,,76.5,K02_kaggle_regimes_privacy_ablations :: Ours :: fmnist IF=0.01 K=10
+T07_k02_ablations,GeFL-F,MNIST,75.3071,1.1124,3,"{""0"": 74.2388, ""2"": 76.4589, ""1"": 75.2236}",0.001135010556854037,paired,,K02_kaggle_regimes_privacy_ablations :: GeFL-F :: mnist IF=0.01 K=10
+T07_k02_ablations,GeFL-F,FMNIST,58.898,3.6226,3,"{""1"": 59.511, ""0"": 62.175, ""2"": 55.008}",0.01762846299540097,paired,,K02_kaggle_regimes_privacy_ablations :: GeFL-F :: fmnist IF=0.01 K=10
+T07_k02_ablations,Ours,MNIST,90.1496,0.9367,3,"{""0"": 89.1068, ""1"": 90.9199, ""2"": 90.4221}",,,,K02_kaggle_regimes_privacy_ablations :: Ours :: mnist IF=0.01 K=10
+T07_k02_ablations,Ours,FMNIST,76.5137,0.4918,3,"{""1"": 76.319, ""0"": 76.149, ""2"": 77.073}",,,,K02_kaggle_regimes_privacy_ablations :: Ours :: fmnist IF=0.01 K=10
+T07_k02_ablations,no HWA (flat averaging),MNIST,83.0816,1.76,2,"{""0"": 81.8371, ""1"": 84.3261}",0.03101799174459194,paired,,K02_kaggle_regimes_privacy_ablations :: no HWA (flat averaging) :: mnist IF=0.01 K=10
+T07_k02_ablations,no HWA (flat averaging),FMNIST,68.4355,1.0826,2,"{""1"": 67.67, ""0"": 69.201}",0.06915597990324522,paired,,K02_kaggle_regimes_privacy_ablations :: no HWA (flat averaging) :: fmnist IF=0.01 K=10
+T07_k02_ablations,no LA (plain CE),MNIST,85.4596,2.1415,2,"{""0"": 83.9453, ""1"": 86.9739}",0.08446592461575088,paired,,K02_kaggle_regimes_privacy_ablations :: no LA (plain CE) :: mnist IF=0.01 K=10
+T07_k02_ablations,no LA (plain CE),FMNIST,68.7075,2.3398,2,"{""1"": 67.053, ""0"": 70.362}",0.14459445567667897,paired,,K02_kaggle_regimes_privacy_ablations :: no LA (plain CE) :: fmnist IF=0.01 K=10
+T07_k02_ablations,no CSL,MNIST,87.641,1.8924,2,"{""0"": 86.3028, ""1"": 88.9791}",0.11456472845620431,paired,,K02_kaggle_regimes_privacy_ablations :: no CSL :: mnist IF=0.01 K=10
+T07_k02_ablations,no CSL,FMNIST,76.519,0.0255,2,"{""1"": 76.537, ""0"": 76.501}",0.14698330254950498,paired,,K02_kaggle_regimes_privacy_ablations :: no CSL :: fmnist IF=0.01 K=10
+T07_k02_ablations,HWA weights = counts n,MNIST,89.9692,1.8197,2,"{""0"": 88.6825, ""1"": 91.256}",0.9264595173142549,paired,,K02_kaggle_regimes_privacy_ablations :: HWA weights = counts n :: mnist IF=0.01 K=10
+T07_k02_ablations,HWA weights = counts n,FMNIST,76.4465,0.0106,2,"{""1"": 76.439, ""0"": 76.454}",0.26136316082071703,paired,,K02_kaggle_regimes_privacy_ablations :: HWA weights = counts n :: fmnist IF=0.01 K=10
+T07_k02_ablations,HWA weights = uniform over holders,MNIST,89.0225,2.1441,2,"{""0"": 87.5064, ""1"": 90.5387}",0.35114126040757415,paired,,K02_kaggle_regimes_privacy_ablations :: HWA weights = uniform over holders :: mnist IF=0.01 K=10
+T07_k02_ablations,HWA weights = uniform over holders,FMNIST,76.3275,0.2793,2,"{""1"": 76.525, ""0"": 76.13}",0.5585544493451639,paired,,K02_kaggle_regimes_privacy_ablations :: HWA weights = uniform over holders :: fmnist IF=0.01 K=10
+T07_k02_ablations,CSL beta=0.25,MNIST,88.9101,1.8242,2,"{""0"": 87.6203, ""1"": 90.2}",0.21290856343532782,paired,,K02_kaggle_regimes_privacy_ablations :: CSL beta=0.25 :: mnist IF=0.01 K=10
+T07_k02_ablations,CSL beta=0.25,FMNIST,76.0535,0.2058,2,"{""1"": 76.199, ""0"": 75.908}",0.20589801986375536,paired,,K02_kaggle_regimes_privacy_ablations :: CSL beta=0.25 :: fmnist IF=0.01 K=10
+T07_k02_ablations,CSL beta=0.75,MNIST,90.7038,1.5556,2,"{""0"": 89.6038, ""1"": 91.8038}",0.17394135106148634,paired,,K02_kaggle_regimes_privacy_ablations :: CSL beta=0.75 :: mnist IF=0.01 K=10
+T07_k02_ablations,CSL beta=0.75,FMNIST,75.7425,0.0417,2,"{""1"": 75.772, ""0"": 75.713}",0.07157419512816904,paired,,K02_kaggle_regimes_privacy_ablations :: CSL beta=0.75 :: fmnist IF=0.01 K=10
+T07_k02_ablations,LA tau=1.5,MNIST,90.0586,1.298,2,"{""0"": 89.1408, ""1"": 90.9764}",0.15568193297358224,paired,,K02_kaggle_regimes_privacy_ablations :: LA tau=1.5 :: mnist IF=0.01 K=10
+T07_k02_ablations,LA tau=1.5,FMNIST,77.7645,0.5254,2,"{""1"": 78.136, ""0"": 77.393}",0.11780814565227601,paired,,K02_kaggle_regimes_privacy_ablations :: LA tau=1.5 :: fmnist IF=0.01 K=10
+T07_k02_ablations,LA tau=2.0,MNIST,89.7182,1.2126,2,"{""0"": 88.8608, ""1"": 90.5757}",0.10491587503603587,paired,,K02_kaggle_regimes_privacy_ablations :: LA tau=2.0 :: mnist IF=0.01 K=10
+T07_k02_ablations,LA tau=2.0,FMNIST,77.9355,0.2341,2,"{""1"": 78.101, ""0"": 77.77}",0.03009865423777926,paired,,K02_kaggle_regimes_privacy_ablations :: LA tau=2.0 :: fmnist IF=0.01 K=10
+T07_k02_ablations,"Ours, DP eps=10",MNIST,90.1015,0.9926,3,"{""0"": 89.1351, ""1"": 91.1184, ""2"": 90.0509}",0.8024917577068,paired,,"K02_kaggle_regimes_privacy_ablations :: Ours, DP eps=10 :: mnist IF=0.01 K=10"
+T07_k02_ablations,"Ours, DP eps=10",FMNIST,76.397,0.4733,3,"{""1"": 76.333, ""0"": 75.959, ""2"": 76.899}",0.216836252729265,paired,,"K02_kaggle_regimes_privacy_ablations :: Ours, DP eps=10 :: fmnist IF=0.01 K=10"
+T07_k02_ablations,"Ours, DP eps=1",MNIST,88.867,0.6502,3,"{""0"": 88.3116, ""1"": 88.7071, ""2"": 89.5823}",0.11026187437274773,paired,,"K02_kaggle_regimes_privacy_ablations :: Ours, DP eps=1 :: mnist IF=0.01 K=10"
+T07_k02_ablations,"Ours, DP eps=1",FMNIST,76.3293,0.0395,3,"{""1"": 76.322, ""0"": 76.294, ""2"": 76.372}",0.5539921339186176,paired,,"K02_kaggle_regimes_privacy_ablations :: Ours, DP eps=1 :: fmnist IF=0.01 K=10"
+T07_k02_ablations,"Ours, DP eps=0.1",MNIST,86.7279,0.8229,3,"{""0"": 85.786, ""1"": 87.0906, ""2"": 87.3072}",0.003827552015864189,paired,,"K02_kaggle_regimes_privacy_ablations :: Ours, DP eps=0.1 :: mnist IF=0.01 K=10"
+T07_k02_ablations,"Ours, DP eps=0.1",FMNIST,73.0347,0.804,3,"{""1"": 73.861, ""0"": 72.988, ""2"": 72.255}",0.03813784013821718,paired,,"K02_kaggle_regimes_privacy_ablations :: Ours, DP eps=0.1 :: fmnist IF=0.01 K=10"
+T08_dp,GeFL-F (no formal privacy),MNIST,75.2451,1.1233,3,"{""0"": 74.1942, ""1"": 75.1119, ""2"": 76.429}",0.0024903888690578605,paired,75.25,E20_proto_generator :: GeFL-F :: mnist IF=0.01 K=10
+T08_dp,GeFL-F (no formal privacy),FMNIST,58.469,3.5947,3,"{""0"": 61.959, ""1"": 58.67, ""2"": 54.778}",0.010990377719362912,paired,58.47,E20_proto_generator :: GeFL-F :: fmnist IF=0.01 K=10
+T08_dp,"final method, exact statistics",MNIST,94.8157,0.5723,3,"{""0"": 95.3761, ""1"": 94.8387, ""2"": 94.2322}",,,94.82,E25_anchored_stack :: Ours-A Ts=10 :: mnist IF=0.01 K=10
+T08_dp,"final method, exact statistics",FMNIST,79.6743,0.5446,3,"{""0"": 79.124, ""1"": 80.213, ""2"": 79.686}",,,79.67,E25_anchored_stack :: Ours-A Ts=10 :: fmnist IF=0.01 K=10
+T08_dp,"(8, 1e-5)-DP statistics",MNIST,90.3594,0.2982,3,"{""0"": 90.596, ""1"": 90.0245, ""2"": 90.4577}",0.005805515190752861,paired,90.36,"E26_private_anchoring :: Ours-A Ts=10, DP eps=8 :: mnist IF=0.01 K=10"
+T08_dp,"(8, 1e-5)-DP statistics",FMNIST,72.7707,1.6719,3,"{""0"": 72.007, ""1"": 71.617, ""2"": 74.688}",0.022117726859290747,paired,72.77,"E26_private_anchoring :: Ours-A Ts=10, DP eps=8 :: fmnist IF=0.01 K=10"
+T08_dp,"(2, 1e-5)-DP statistics",MNIST,85.0584,0.5442,3,"{""0"": 85.4107, ""1"": 84.4316, ""2"": 85.3328}",0.002096912493254497,paired,85.06,"E26_private_anchoring :: Ours-A Ts=10, DP eps=2 :: mnist IF=0.01 K=10"
+T08_dp,"(2, 1e-5)-DP statistics",FMNIST,65.5873,0.5754,3,"{""0"": 65.74, ""1"": 64.951, ""2"": 66.071}",0.001757090630346102,paired,65.59,"E26_private_anchoring :: Ours-A Ts=10, DP eps=2 :: fmnist IF=0.01 K=10"
+T09_budget_iid,GeFL-F (hard labels),T_s=1,82.9583,0.2895,3,"{""0"": 83.147, ""1"": 82.625, ""2"": 83.103}",,,82.96,E16_csl_synthetic_budget :: GeFL-F :: fmnist IF=1.0 K=10
+T09_budget_iid,GeFL-F (hard labels),T_s=3,83.1973,0.3369,3,"{""0"": 83.411, ""1"": 82.809, ""2"": 83.372}",,,83.2,E16_csl_synthetic_budget :: GeFL-F Ts=3 :: fmnist IF=1.0 K=10
+T09_budget_iid,GeFL-F (hard labels),T_s=5,83.1773,0.3114,3,"{""0"": 83.346, ""1"": 82.818, ""2"": 83.368}",,,83.18,E16_csl_synthetic_budget :: GeFL-F Ts=5 :: fmnist IF=1.0 K=10
+T09_budget_iid,+ CSL,T_s=1,83.3087,0.2703,3,"{""0"": 83.45, ""1"": 82.997, ""2"": 83.479}",,,83.31,E16_csl_synthetic_budget :: +CSL :: fmnist IF=1.0 K=10
+T09_budget_iid,+ CSL,T_s=3,83.897,0.328,3,"{""0"": 84.032, ""1"": 83.523, ""2"": 84.136}",,,83.9,E16_csl_synthetic_budget :: +CSL Ts=3 :: fmnist IF=1.0 K=10
+T09_budget_iid,+ CSL,T_s=5,84.139,0.257,3,"{""0"": 84.21, ""1"": 83.854, ""2"": 84.353}",,,84.14,E16_csl_synthetic_budget :: +CSL Ts=5 :: fmnist IF=1.0 K=10
+T09_budget_iid,+ CSL,T_s=10,84.373,0.2323,3,"{""0"": 84.345, ""1"": 84.156, ""2"": 84.618}",,,84.37,E16_csl_synthetic_budget :: +CSL Ts=10 :: fmnist IF=1.0 K=10
+T09_budget_iid,Ours (HWA + LA + CSL),T_s=5,84.1193,0.3027,3,"{""0"": 84.156, ""1"": 83.8, ""2"": 84.402}",,,84.12,E16_csl_synthetic_budget :: Ours (HWA+LA+CSL) Ts=5 :: fmnist IF=1.0 K=10
+T09_budget_iid,Ours (HWA + LA + CSL),T_s=10,84.34,0.3996,3,"{""0"": 84.553, ""1"": 83.879, ""2"": 84.588}",,,84.34,E16_csl_synthetic_budget :: Ours (HWA+LA+CSL) Ts=10 :: fmnist IF=1.0 K=10
+T10_budget_lt,GeFL-F,balanced,59.1293,3.963,3,"{""0"": 62.412, ""1"": 60.249, ""2"": 54.727}",,,61.33,E16_csl_synthetic_budget :: GeFL-F :: fmnist IF=0.01 K=10
+T10_budget_lt,GeFL-F,tail,36.035,5.7353,3,"{""0"": 41.845, ""1"": 35.8825, ""2"": 30.3775}",,,38.86,E16_csl_synthetic_budget :: GeFL-F :: fmnist IF=0.01 K=10
+T10_budget_lt,"Ours, T_s=1",balanced,76.944,0.5372,3,"{""0"": 76.447, ""1"": 77.514, ""2"": 76.871}",0.017057711395157358,paired,76.98,E16_csl_synthetic_budget :: Ours (HWA+LA+CSL) :: fmnist IF=0.01 K=10
+T10_budget_lt,"Ours, T_s=1",tail,70.22,0.5483,3,"{""0"": 69.625, ""1"": 70.705, ""2"": 70.33}",0.010485595543694564,paired,70.17,E16_csl_synthetic_budget :: Ours (HWA+LA+CSL) :: fmnist IF=0.01 K=10
+T10_budget_lt,"Ours, T_s=5",balanced,78.7587,0.628,3,"{""0"": 78.127, ""1"": 79.383, ""2"": 78.766}",0.014809184488800269,paired,78.76,E16_csl_synthetic_budget :: Ours (HWA+LA+CSL) Ts=5 :: fmnist IF=0.01 K=10
+T10_budget_lt,"Ours, T_s=5",tail,71.9217,0.973,3,"{""0"": 71.7675, ""1"": 72.9625, ""2"": 71.035}",0.007644746000890838,paired,72.37,E16_csl_synthetic_budget :: Ours (HWA+LA+CSL) Ts=5 :: fmnist IF=0.01 K=10
+T10_budget_lt,"Ours, T_s=10",balanced,79.2283,0.5052,3,"{""0"": 78.864, ""1"": 79.805, ""2"": 79.016}",0.012609694138270431,paired,79.33,E16_csl_synthetic_budget :: Ours (HWA+LA+CSL) Ts=10 :: fmnist IF=0.01 K=10
+T10_budget_lt,"Ours, T_s=10",tail,71.8308,1.2313,3,"{""0"": 71.82, ""1"": 73.0675, ""2"": 70.605}",0.007135588290749435,paired,72.44,E16_csl_synthetic_budget :: Ours (HWA+LA+CSL) Ts=10 :: fmnist IF=0.01 K=10
+T11_anchored,GeFL-F,MNIST LT,75.2451,1.1233,3,"{""0"": 74.1942, ""1"": 75.1119, ""2"": 76.429}",,,75.25,E20_proto_generator :: GeFL-F :: mnist IF=0.01 K=10
+T11_anchored,GeFL-F,FMNIST LT,58.469,3.5947,3,"{""0"": 61.959, ""1"": 58.67, ""2"": 54.778}",,,58.47,E20_proto_generator :: GeFL-F :: fmnist IF=0.01 K=10
+T11_anchored,GeFL-F,MNIST IID,96.015,0.1365,3,"{""0"": 95.865, ""1"": 96.048, ""2"": 96.132}",,,96.01,F10_combined_method :: GeFL-F :: mnist IF=1.0 K=10
+T11_anchored,GeFL-F,FMNIST IID,82.759,0.3335,3,"{""0"": 82.945, ""1"": 82.374, ""2"": 82.958}",,,82.76,E20_proto_generator :: GeFL-F :: fmnist IF=1.0 K=10
+T11_anchored,minimal variant (CVAE + HWA + LA + CSL),MNIST LT,90.4048,1.4247,3,"{""0"": 88.7801, ""1"": 91.4406, ""2"": 90.9938}",0.00148302315143839,paired,90.4,E20_proto_generator :: Ours (HWA+LA+CSL) :: mnist IF=0.01 K=10
+T11_anchored,minimal variant (CVAE + HWA + LA + CSL),FMNIST LT,76.6043,0.206,3,"{""0"": 76.531, ""1"": 76.837, ""2"": 76.445}",0.012516597184169713,paired,76.6,E20_proto_generator :: Ours (HWA+LA+CSL) :: fmnist IF=0.01 K=10
+T11_anchored,minimal variant (CVAE + HWA + LA + CSL),MNIST IID,96.7677,0.0566,3,"{""0"": 96.713, ""1"": 96.764, ""2"": 96.826}",0.004057100058988383,paired,96.77,F10_combined_method :: +HWA+LA+CSL :: mnist IF=1.0 K=10
+T11_anchored,minimal variant (CVAE + HWA + LA + CSL),FMNIST IID,83.1933,0.4704,3,"{""0"": 83.586, ""1"": 82.672, ""2"": 83.322}",0.05384319737027987,paired,83.19,E20_proto_generator :: Ours (HWA+LA+CSL) :: fmnist IF=1.0 K=10
+T11_anchored,PC-VAE + MC,MNIST LT,92.3124,0.6105,3,"{""0"": 91.7217, ""1"": 92.9408, ""2"": 92.2747}",0.0013043835063281195,paired,92.31,E20_proto_generator :: Ours-PC+MC :: mnist IF=0.01 K=10
+T11_anchored,PC-VAE + MC,FMNIST LT,77.562,0.7553,3,"{""0"": 77.137, ""1"": 78.434, ""2"": 77.115}",0.011812017570167671,paired,77.56,E20_proto_generator :: Ours-PC+MC :: fmnist IF=0.01 K=10
+T11_anchored,PC-VAE + MC,FMNIST IID,82.9207,0.6596,3,"{""0"": 83.306, ""1"": 82.159, ""2"": 83.297}",0.4813349936236787,paired,82.92,E20_proto_generator :: Ours-PC+MC :: fmnist IF=1.0 K=10
+T11_anchored,KME-Gen (1 seed),MNIST LT,89.884,0.0,1,"{""0"": 89.884}",,,89.88,E24_kme_generator :: Ours-KME (KME+LA+CSL) :: mnist IF=0.01 K=10
+T11_anchored,KME-Gen (1 seed),FMNIST LT,75.106,0.0,1,"{""0"": 75.106}",,,75.11,E24_kme_generator :: Ours-KME (KME+LA+CSL) :: fmnist IF=0.01 K=10
+T11_anchored,KME-Gen (1 seed),FMNIST IID,81.818,0.0,1,"{""0"": 81.818}",,,81.82,E24_kme_generator :: Ours-KME (KME+LA+CSL) :: fmnist IF=1.0 K=10
+T11_anchored,"Ours-A, T_s = 1",MNIST LT,93.1128,0.4216,3,"{""0"": 92.961, ""1"": 93.5892, ""2"": 92.7881}",0.0017991774856430435,paired,93.11,E25_anchored_stack :: Ours-A (PC+MC+KH+LA+CSL) :: mnist IF=0.01 K=10
+T11_anchored,"Ours-A, T_s = 1",FMNIST LT,78.218,0.6938,3,"{""0"": 77.486, ""1"": 78.866, ""2"": 78.302}",0.013513305823103375,paired,78.22,E25_anchored_stack :: Ours-A (PC+MC+KH+LA+CSL) :: fmnist IF=0.01 K=10
+T11_anchored,"Ours-A, T_s = 1",MNIST IID,96.6707,0.0061,3,"{""0"": 96.676, ""1"": 96.672, ""2"": 96.664}",0.015313152261213827,paired,96.67,E25_anchored_stack :: Ours-A (PC+MC+KH+LA+CSL) :: mnist IF=1.0 K=10
+T11_anchored,"Ours-A, T_s = 1",FMNIST IID,83.3477,0.2179,3,"{""0"": 83.381, ""1"": 83.115, ""2"": 83.547}",0.02164705959768557,paired,83.35,E25_anchored_stack :: Ours-A (PC+MC+KH+LA+CSL) :: fmnist IF=1.0 K=10
+T11_anchored,"Ours-A, T_s = 10",MNIST LT,94.8157,0.5723,3,"{""0"": 95.3761, ""1"": 94.8387, ""2"": 94.2322}",0.0024903888690578605,paired,94.82,E25_anchored_stack :: Ours-A Ts=10 :: mnist IF=0.01 K=10
+T11_anchored,"Ours-A, T_s = 10",FMNIST LT,79.6743,0.5446,3,"{""0"": 79.124, ""1"": 80.213, ""2"": 79.686}",0.010990377719362912,paired,79.67,E25_anchored_stack :: Ours-A Ts=10 :: fmnist IF=0.01 K=10
+T11_anchored,"Ours-A, T_s = 10",MNIST IID,97.6167,0.0562,3,"{""0"": 97.558, ""1"": 97.67, ""2"": 97.622}",0.0013760898821112933,paired,97.62,E25_anchored_stack :: Ours-A Ts=10 :: mnist IF=1.0 K=10
+T11_anchored,"Ours-A, T_s = 10",FMNIST IID,83.963,0.3949,3,"{""0"": 83.802, ""1"": 83.674, ""2"": 84.413}",0.0214371140062029,paired,83.96,E25_anchored_stack :: Ours-A Ts=10 :: fmnist IF=1.0 K=10
+T11_anchored,"Ours-A, T_s = 10, + gated BBC",MNIST LT,95.1726,0.5506,3,"{""0"": 95.6899, ""1"": 95.234, ""2"": 94.5938}",0.0023437556707742325,paired,95.17,E25_anchored_stack :: Ours-A Ts=10 :: mnist IF=0.01 K=10
+T11_anchored,"Ours-A, T_s = 10, + gated BBC",FMNIST LT,80.554,0.647,3,"{""0"": 79.842, ""1"": 81.106, ""2"": 80.714}",0.010960251980621434,paired,80.55,E25_anchored_stack :: Ours-A Ts=10 :: fmnist IF=0.01 K=10
+T11_anchored,"Ours-A-B (MC-B), T_s = 10",MNIST LT,94.7556,1.9508,3,"{""0"": 95.8923, ""1"": 95.8716, ""2"": 92.5031}",0.007855402297257365,paired,,E32_moment_anchor_bayes :: Ours-A-B Ts=10 :: mnist IF=0.01 K=10
+T11_anchored,"Ours-A-B (MC-B), T_s = 10",FMNIST LT,81.568,0.31,3,"{""0"": 81.507, ""1"": 81.904, ""2"": 81.293}",0.007504178779340278,paired,,E32_moment_anchor_bayes :: Ours-A-B Ts=10 :: fmnist IF=0.01 K=10
+T11_anchored,"Ours-A-B (MC-B), T_s = 10",FMNIST IID,85.747,0.4469,3,"{""0"": 85.539, ""1"": 85.442, ""2"": 86.26}",0.00482279672289135,paired,,E32_moment_anchor_bayes :: Ours-A-B Ts=10 :: fmnist IF=1.0 K=10
+T11_anchored,oracle: heads re-fit on pooled real data,MNIST LT,94.9332,0.7014,3,"{""0"": 95.5832, ""1"": 95.0267, ""2"": 94.1898}",0.0028509667022226276,paired,94.93,E25_anchored_stack :: Ours-A Ts=10 :: mnist IF=0.01 K=10
+T11_anchored,oracle: heads re-fit on pooled real data,FMNIST LT,81.5533,0.7648,3,"{""0"": 80.672, ""1"": 82.042, ""2"": 81.946}",0.011032728914698442,paired,81.55,E25_anchored_stack :: Ours-A Ts=10 :: fmnist IF=0.01 K=10
+T12_clients_anchored,GeFL-F,MNIST K=100,75.9751,0.9478,3,"{""0"": 76.8315, ""1"": 74.9568, ""2"": 76.137}",,,75.98,F04_clients :: GeFL-F :: mnist IF=0.01 K=100
+T12_clients_anchored,GeFL-F,FMNIST K=50,61.9157,1.3134,3,"{""0"": 62.629, ""1"": 62.718, ""2"": 60.4}",,,,K03_kaggle_client_scaling__K50 :: GeFL-F :: fmnist IF=0.01 K=50
+T12_clients_anchored,GeFL-F,FMNIST K=100,61.9467,1.5167,3,"{""1"": 61.561, ""0"": 63.619, ""2"": 60.66}",,,,K03_kaggle_client_scaling__K100 :: GeFL-F :: fmnist IF=0.01 K=100
+T12_clients_anchored,CVAE + HWA + LA,MNIST K=100,83.072,0.5623,3,"{""0"": 82.5629, ""1"": 82.9776, ""2"": 83.6755}",0.009502191947346323,paired,83.07,F04_clients :: +HWA+LA :: mnist IF=0.01 K=100
+T12_clients_anchored,CVAE + HWA + LA,FMNIST K=50,75.4473,0.1933,3,"{""0"": 75.299, ""1"": 75.377, ""2"": 75.666}",0.00408172596344777,paired,,K03_kaggle_client_scaling__K50 :: +HWA+LA :: fmnist IF=0.01 K=50
+T12_clients_anchored,CVAE + HWA + LA,FMNIST K=100,73.2523,0.7447,3,"{""1"": 72.613, ""0"": 74.07, ""2"": 73.074}",0.0026277401678397707,paired,,K03_kaggle_client_scaling__K100 :: +HWA+LA :: fmnist IF=0.01 K=100
+T12_clients_anchored,FSG + LA,MNIST K=100,86.0456,0.8358,3,"{""0"": 86.8423, ""1"": 85.1756, ""2"": 86.119}",5.483582430384715e-05,paired,86.05,F04_clients :: FSG+LA :: mnist IF=0.01 K=100
+T12_clients_anchored,FSG + LA,FMNIST K=50,75.0563,0.4416,3,"{""0"": 74.991, ""1"": 75.527, ""2"": 74.651}",0.0018760163849330476,paired,,K03_kaggle_client_scaling__K50 :: FSG+LA :: fmnist IF=0.01 K=50
+T12_clients_anchored,FSG + LA,FMNIST K=100,74.5583,0.8448,3,"{""1"": 73.827, ""0"": 75.483, ""2"": 74.365}",0.0019578124315331362,paired,,K03_kaggle_client_scaling__K100 :: FSG+LA :: fmnist IF=0.01 K=100
+T12_clients_anchored,"Ours-A, T_s = 1",MNIST K=100,90.4127,0.5168,3,"{""0"": 90.8681, ""1"": 89.851, ""2"": 90.519}",0.0002975674000497198,paired,90.41,E22_pc_many_clients :: Ours-A (PC+MC+KH+LA+CSL) :: mnist IF=0.01 K=100
+T12_clients_anchored,"Ours-A, T_s = 1",FMNIST K=50,77.2447,0.449,3,"{""0"": 76.771, ""2"": 77.299, ""1"": 77.664}",0.0028395695971125436,paired,,K08_kaggle_anchored_stack__fmnist :: Ours-A (PC+MC+KH+LA+CSL) :: fmnist IF=0.01 K=50
+T12_clients_anchored,"Ours-A, T_s = 1",FMNIST K=100,76.204,1.118,3,"{""0"": 76.788, ""1"": 74.915, ""2"": 76.909}",0.0048570612638290794,paired,,K08_kaggle_anchored_stack__fmnist :: Ours-A (PC+MC+KH+LA+CSL) :: fmnist IF=0.01 K=100
+T12_clients_anchored,"Ours-A, T_s = 10",MNIST K=100,94.3041,0.3112,3,"{""0"": 94.5475, ""1"": 93.9535, ""2"": 94.4115}",0.0004087460979107873,paired,94.3,E22_pc_many_clients :: Ours-A Ts=10 :: mnist IF=0.01 K=100
+T12_clients_anchored,"Ours-A, T_s = 10",FMNIST K=50,79.4703,0.383,3,"{""0"": 79.168, ""2"": 79.901, ""1"": 79.342}",0.0030610329712608404,paired,,K08_kaggle_anchored_stack__fmnist :: Ours-A Ts=10 :: fmnist IF=0.01 K=50
+T12_clients_anchored,"Ours-A, T_s = 10",FMNIST K=100,79.017,0.9776,3,"{""1"": 77.91, ""0"": 79.379, ""2"": 79.762}",0.003620748435592292,paired,,K08_kaggle_anchored_stack__fmnist :: Ours-A Ts=10 :: fmnist IF=0.01 K=100
+T13_cifar_svhn,GeFL-F,CIFAR-10 LT,33.74,0.51,3,,,,33.74,K01_kaggle_cifar10_svhn__cifar10 :: GeFL-F :: cifar10 IF=0.01 K=10 (summary.md only)
+T13_cifar_svhn,GeFL-F,SVHN LT,50.4936,2.2353,3,"{""0"": 51.6791, ""1"": 51.8865, ""2"": 47.9153}",,,50.49,K01_kaggle_cifar10_svhn__svhn :: GeFL-F :: svhn IF=0.01 K=10
+T13_cifar_svhn,GeFL-F,CIFAR-10 IID,59.1,0.63,3,,,,59.1,K01_kaggle_cifar10_svhn__cifar10 :: GeFL-F :: cifar10 IF=1.0 K=10 (summary.md only)
+T13_cifar_svhn,GeFL-F,SVHN IID,75.8196,0.5518,3,"{""0"": 75.222, ""1"": 75.9269, ""2"": 76.3099}",,,75.82,K01_kaggle_cifar10_svhn__svhn :: GeFL-F :: svhn IF=1.0 K=10
+T13_cifar_svhn,+ HWA + LA,CIFAR-10 LT,40.73,0.78,3,,0.00047654590470750177,Welch,40.73,K01_kaggle_cifar10_svhn__cifar10 :: +HWA+LA :: cifar10 IF=0.01 K=10 (summary.md only)
+T13_cifar_svhn,+ HWA + LA,SVHN LT,62.4494,1.7615,3,"{""0"": 60.4282, ""1"": 63.2632, ""2"": 63.6569}",0.027881432742125546,paired,62.45,K01_kaggle_cifar10_svhn__svhn :: +HWA+LA (ours) :: svhn IF=0.01 K=10
+T13_cifar_svhn,+ HWA + LA,SVHN IID,75.6422,0.509,3,"{""0"": 75.1041, ""1"": 75.7064, ""2"": 76.1159}",0.028712804061932516,paired,75.64,K01_kaggle_cifar10_svhn__svhn :: +HWA+LA (ours) :: svhn IF=1.0 K=10
+T13_cifar_svhn,minimal variant / + CSL,CIFAR-10 LT,42.1,0.74,3,,0.00019018708753316794,Welch,42.1,K01_kaggle_cifar10_svhn__cifar10 :: Ours (HWA+LA+CSL) :: cifar10 IF=0.01 K=10 (summary.md only)
+T13_cifar_svhn,minimal variant / + CSL,CIFAR-10 IID,59.85,0.5,3,,0.1852341322761447,Welch,60.02,K01_kaggle_cifar10_svhn__cifar10 :: +CSL (beta=0.5) :: cifar10 IF=1.0 K=10 (summary.md only)
+T13_cifar_svhn,minimal variant / + CSL,SVHN IID,76.3022,0.2994,3,"{""0"": 76.0015, ""1"": 76.3049, ""2"": 76.6003}",0.08507250047317626,paired,76.3,K01_kaggle_cifar10_svhn__svhn :: +CSL (beta=0.5) :: svhn IF=1.0 K=10
+T13_cifar_svhn,FSG + LA,CIFAR-10 LT,44.17,0.87,3,,0.00024189569351643837,Welch,44.17,K01_kaggle_cifar10_svhn__cifar10 :: FSG+LA :: cifar10 IF=0.01 K=10 (summary.md only)
+T13_cifar_svhn,FSG + LA,SVHN LT,44.2337,2.7093,3,"{""0"": 42.896, ""1"": 47.3517, ""2"": 42.4534}",0.03992058346301537,paired,44.23,K01_kaggle_cifar10_svhn__svhn :: FSG+LA :: svhn IF=0.01 K=10
+T13_cifar_svhn,"Ours-A, T_s = 1",CIFAR-10 LT,46.056,1.2883,3,"{""1"": 44.814, ""0"": 45.968, ""2"": 47.386}",0.0012332672651518245,Welch,46.06,K08_kaggle_anchored_stack__cifar10_lt :: Ours-A (PC+MC+KH+LA+CSL) :: cifar10 IF=0.01 K=10
+T13_cifar_svhn,"Ours-A, T_s = 1",SVHN LT,55.8877,1.2005,3,"{""1"": 55.3394, ""0"": 55.0593, ""2"": 57.2645}",0.11223722452743133,paired,55.89,K08_kaggle_anchored_stack__svhn :: Ours-A (PC+MC+KH+LA+CSL) :: svhn IF=0.01 K=10
+T13_cifar_svhn,"Ours-A, T_s = 1",CIFAR-10 IID,60.39,0.8382,3,"{""0"": 60.065, ""1"": 59.763, ""2"": 61.342}",0.10542209047341035,Welch,60.39,K08_kaggle_anchored_stack__cifar10_iid :: Ours-A (PC+MC+KH+LA+CSL) :: cifar10 IF=1.0 K=10
+T13_cifar_svhn,"Ours-A, T_s = 1",SVHN IID,73.8569,0.5995,3,"{""0"": 73.9202, ""1"": 74.4222, ""2"": 73.2283}",0.07322686512964693,paired,73.86,K08_kaggle_anchored_stack__svhn :: Ours-A (PC+MC+KH+LA+CSL) :: svhn IF=1.0 K=10
+T13_cifar_svhn,"Ours-A, T_s = 1, + gated BBC",CIFAR-10 LT,48.7057,0.957,3,"{""1"": 47.825, ""0"": 48.568, ""2"": 49.724}",0.00014284528991223612,Welch,49.0,K08_kaggle_anchored_stack__cifar10_lt :: Ours-A (PC+MC+KH+LA+CSL) :: cifar10 IF=0.01 K=10
+T13_cifar_svhn,"Ours-A, T_s = 1, + gated BBC",SVHN LT,57.1868,1.5555,3,"{""1"": 56.2493, ""0"": 56.3288, ""2"": 58.9824}",0.09234382566988021,paired,57.0,K08_kaggle_anchored_stack__svhn :: Ours-A (PC+MC+KH+LA+CSL) :: svhn IF=0.01 K=10
+T13_cifar_svhn,"Ours-A, T_s = 10",CIFAR-10 LT,44.3833,1.0746,3,"{""1"": 43.168, ""0"": 44.774, ""2"": 45.208}",0.0007606696095127507,Welch,44.38,K08_kaggle_anchored_stack__cifar10_lt :: Ours-A Ts=10 :: cifar10 IF=0.01 K=10
+T13_cifar_svhn,"Ours-A, T_s = 10",SVHN LT,54.415,1.1329,3,"{""0"": 54.5875, ""1"": 53.2057, ""2"": 55.4517}",0.1702087288460707,paired,54.41,K08_kaggle_anchored_stack__svhn :: Ours-A Ts=10 :: svhn IF=0.01 K=10
+T13_cifar_svhn,"Ours-A, T_s = 10",CIFAR-10 IID,60.9343,1.2656,3,"{""0"": 60.797, ""1"": 59.743, ""2"": 62.263}",0.11220942218865458,Welch,60.93,K08_kaggle_anchored_stack__cifar10_iid :: Ours-A Ts=10 :: cifar10 IF=1.0 K=10
+T13_cifar_svhn,"Ours-A, T_s = 10",SVHN IID,74.3824,0.7859,3,"{""0"": 74.8383, ""2"": 73.475, ""1"": 74.834}",0.18715572237919073,paired,74.38,K08_kaggle_anchored_stack__svhn :: Ours-A Ts=10 :: svhn IF=1.0 K=10
+T13_cifar_svhn,"Ours-A, T_s = 10 + VCT",CIFAR-10 LT,45.6477,0.5533,3,"{""1"": 45.038, ""0"": 46.118, ""2"": 45.787}",1.1176216412345002e-05,Welch,,K13_kaggle_vct_vs_mixup__cifar10_lt :: Ours-A + VCT :: cifar10 IF=0.01 K=10
+T13_cifar_svhn,"Ours-A, T_s = 10 + VCT",CIFAR-10 IID,60.2897,1.2416,3,"{""1"": 61.161, ""0"": 60.84, ""2"": 58.868}",0.23645715348704577,Welch,,K13_kaggle_vct_vs_mixup__cifar10_iid :: Ours-A Ts=10 + VCT :: cifar10 IF=1.0 K=10
+T13_cifar_svhn,"Ours-A, T_s = 10 + MixUp",CIFAR-10 LT,46.1973,1.1329,3,"{""1"": 45.405, ""0"": 45.692, ""2"": 47.495}",0.0006445661872253153,Welch,,K13_kaggle_vct_vs_mixup__cifar10_lt :: Ours-A + MixUp :: cifar10 IF=0.01 K=10
+T13_cifar_svhn,"Ours-A, T_s = 10 + MixUp",CIFAR-10 IID,59.9793,0.9122,3,"{""1"": 60.544, ""0"": 60.467, ""2"": 58.927}",0.24973499030405405,Welch,,K13_kaggle_vct_vs_mixup__cifar10_iid :: Ours-A Ts=10 + MixUp :: cifar10 IF=1.0 K=10
+T13_cifar_svhn,paper: GeFL-F / best of ten,CIFAR-10 IID,55.86,,,,,,,published (paper)
+T13_cifar_svhn,paper: GeFL-F / best of ten,SVHN IID,76.26,,,,,,,published (paper)
+T14_svhn_gate,GeFL-F,long tail,50.4936,2.2353,3,"{""0"": 51.6791, ""1"": 51.8865, ""2"": 47.9153}",0.11709321493153994,paired,50.49,K01_kaggle_cifar10_svhn__svhn :: GeFL-F :: svhn IF=0.01 K=10
+T14_svhn_gate,GeFL-F,IID best_mean_acc,75.8196,0.5518,3,"{""0"": 75.222, ""1"": 75.9269, ""2"": 76.3099}",0.15303182600706453,paired,75.82,K01_kaggle_cifar10_svhn__svhn :: GeFL-F :: svhn IF=1.0 K=10
+T14_svhn_gate,+ HWA + LA,long tail,62.4494,1.7615,3,"{""0"": 60.4282, ""1"": 63.2632, ""2"": 63.6569}",0.057057438942035604,paired,62.45,K01_kaggle_cifar10_svhn__svhn :: +HWA+LA (ours) :: svhn IF=0.01 K=10
+T14_svhn_gate,+ HWA + LA,IID best_mean_acc,75.6422,0.509,3,"{""0"": 75.1041, ""1"": 75.7064, ""2"": 76.1159}",0.1808816894949833,paired,75.64,K01_kaggle_cifar10_svhn__svhn :: +HWA+LA (ours) :: svhn IF=1.0 K=10
+T14_svhn_gate,Ours-A (PC + MC + KH),long tail,55.7632,1.679,3,"{""0"": 56.7551, ""1"": 53.8246, ""2"": 56.7098}",,,55.76,K11_kaggle_covariance_anchoring__svhn :: Ours-A (PC+MC+KH+LA+CSL) :: svhn IF=0.01 K=10
+T14_svhn_gate,Ours-A (PC + MC + KH),+ gated BBC,57.2698,2.0411,3,"{""0"": 58.4075, ""1"": 54.9134, ""2"": 58.4884}",,,57.27,K11_kaggle_covariance_anchoring__svhn :: Ours-A (PC+MC+KH+LA+CSL) :: svhn IF=0.01 K=10
+T14_svhn_gate,Ours-A (PC + MC + KH),IID best_mean_acc,74.3813,0.6621,3,"{""0"": 74.652, ""1"": 74.8652, ""2"": 73.6267}",,,74.38,K11_kaggle_covariance_anchoring__svhn :: Ours-A (PC+MC+KH+LA+CSL) :: svhn IF=1.0 K=10
+T14_svhn_gate,Ours-A-S (PC + MC-S + KH),long tail,61.798,1.2794,3,"{""0"": 61.2931, ""1"": 60.8481, ""2"": 63.2528}",0.015537472776647845,paired,61.8,K11_kaggle_covariance_anchoring__svhn :: Ours-A-S (PC+MCS+KH+LA+CSL) :: svhn IF=0.01 K=10
+T14_svhn_gate,Ours-A-S (PC + MC-S + KH),+ gated BBC,63.3026,1.4872,3,"{""0"": 62.9918, ""1"": 61.9954, ""2"": 64.9206}",0.015033208005956597,paired,63.3,K11_kaggle_covariance_anchoring__svhn :: Ours-A-S (PC+MCS+KH+LA+CSL) :: svhn IF=0.01 K=10
+T14_svhn_gate,Ours-A-S (PC + MC-S + KH),IID best_mean_acc,77.049,0.0998,3,"{""0"": 76.9806, ""1"": 77.0029, ""2"": 77.1635}",0.025914356349557518,paired,77.05,K11_kaggle_covariance_anchoring__svhn :: Ours-A-S (PC+MCS+KH+LA+CSL) :: svhn IF=1.0 K=10
+T14_svhn_gate,hybrid PCR + MC + KH,long tail,60.864,0.8444,3,"{""0"": 60.0706, ""1"": 61.7516, ""2"": 60.7697}",0.07033594759305511,paired,60.86,K10_kaggle_hybrid_svhn_cifar10__svhn :: Ours-R :: svhn IF=0.01 K=10
+T14_svhn_gate,hybrid PCR + MC + KH,+ gated BBC,62.0839,1.2109,3,"{""0"": 60.7456, ""1"": 63.1037, ""2"": 62.4024}",0.11045780395059795,paired,62.0,K10_kaggle_hybrid_svhn_cifar10__svhn :: Ours-R :: svhn IF=0.01 K=10
+T14_svhn_gate,hybrid PCR + MC + KH,IID best_mean_acc,76.0609,0.2237,3,"{""0"": 75.8513, ""1"": 76.0349, ""2"": 76.2965}",0.07700935741962017,paired,76.06,K10_kaggle_hybrid_svhn_cifar10__svhn :: Ours-R :: svhn IF=1.0 K=10
+T14_svhn_gate,hybrid PCR + MC-S + KH,long tail,62.8853,1.0662,3,"{""0"": 61.8732, ""1"": 63.9985, ""2"": 62.7843}",0.044276686599570084,paired,62.89,K11_kaggle_covariance_anchoring__svhn :: Ours-R-S (PCR+MCS+KH+LA+CSL) :: svhn IF=0.01 K=10
+T14_svhn_gate,hybrid PCR + MC-S + KH,+ gated BBC,64.5687,0.7474,3,"{""0"": 63.7842, ""1"": 65.2725, ""2"": 64.6494}",0.04209122834293628,paired,64.57,K11_kaggle_covariance_anchoring__svhn :: Ours-R-S (PCR+MCS+KH+LA+CSL) :: svhn IF=0.01 K=10
+T14_svhn_gate,hybrid PCR + MC-S + KH,IID best_mean_acc,77.3894,0.4076,3,"{""0"": 77.2638, ""1"": 77.0594, ""2"": 77.845}",0.03958731678533985,paired,77.39,K11_kaggle_covariance_anchoring__svhn :: Ours-R-S (PCR+MCS+KH+LA+CSL) :: svhn IF=1.0 K=10
+T14_svhn_gate,rows (CVAE + HWA) + MC + KH,long tail,65.6001,1.5004,3,"{""0"": 64.0202, ""1"": 65.7741, ""2"": 67.0059}",0.01889276109996341,paired,65.6,K10_kaggle_hybrid_svhn_cifar10__svhn :: Ours+MC+KH (CVAE+HWA) :: svhn IF=0.01 K=10
+T14_svhn_gate,rows (CVAE + HWA) + MC + KH,+ gated BBC,66.9623,1.8241,3,"{""0"": 65.1912, ""1"": 66.8608, ""2"": 68.8351}",0.023904320506773942,paired,67.0,K10_kaggle_hybrid_svhn_cifar10__svhn :: Ours+MC+KH (CVAE+HWA) :: svhn IF=0.01 K=10
+T14_svhn_gate,rows (CVAE + HWA) + MC + KH,IID best_mean_acc,77.0744,0.1853,3,"{""0"": 77.2641, ""1"": 77.0652, ""2"": 76.8938}",0.01305044939134112,paired,77.07,K10_kaggle_hybrid_svhn_cifar10__svhn :: Ours+MC+KH (CVAE+HWA) :: svhn IF=1.0 K=10
+T14_svhn_gate,paper: GeFL-F / best of ten,IID best_mean_acc,76.26,,,,,,,published (paper)
+T15_ablation,Ours-A Ts=10,MNIST bal.,95.1752,0.0841,3,"{""0"": 95.082, ""1"": 95.2452, ""2"": 95.1985}",,,,K09_kaggle_ablation_final__mnist :: Ours-A Ts=10 :: mnist IF=0.01 K=10
+T15_ablation,Ours-A Ts=10,MNIST BBC,95.4022,0.1259,3,"{""0"": 95.2778, ""1"": 95.3994, ""2"": 95.5296}",,,,K09_kaggle_ablation_final__mnist :: Ours-A Ts=10 :: mnist IF=0.01 K=10
+T15_ablation,Ours-A Ts=10,FMNIST bal.,79.788,0.3126,3,"{""0"": 79.519, ""1"": 79.714, ""2"": 80.131}",,,,K09_kaggle_ablation_final__fmnist :: Ours-A Ts=10 :: fmnist IF=0.01 K=10
+T15_ablation,Ours-A Ts=10,FMNIST BBC,80.686,0.3762,3,"{""0"": 80.266, ""1"": 80.8, ""2"": 80.992}",,,,K09_kaggle_ablation_final__fmnist :: Ours-A Ts=10 :: fmnist IF=0.01 K=10
+T15_ablation,-LA,MNIST bal.,92.1973,0.6561,3,"{""0"": 91.9625, ""1"": 91.691, ""2"": 92.9385}",0.01591662884983978,paired,,K09_kaggle_ablation_final__mnist :: -LA :: mnist IF=0.01 K=10
+T15_ablation,-LA,MNIST BBC,95.1442,0.1973,3,"{""0"": 95.0968, ""1"": 94.975, ""2"": 95.3609}",0.09026158210129007,paired,,K09_kaggle_ablation_final__mnist :: -LA :: mnist IF=0.01 K=10
+T15_ablation,-LA,FMNIST bal.,73.611,1.2254,3,"{""0"": 74.862, ""1"": 72.413, ""2"": 73.558}",0.015907884742291278,paired,,K09_kaggle_ablation_final__fmnist :: -LA :: fmnist IF=0.01 K=10
+T15_ablation,-LA,FMNIST BBC,80.1583,0.3917,3,"{""0"": 79.735, ""1"": 80.232, ""2"": 80.508}",0.0021151578842683624,paired,,K09_kaggle_ablation_final__fmnist :: -LA :: fmnist IF=0.01 K=10
+T15_ablation,-CSL,MNIST bal.,93.5466,0.9705,3,"{""0"": 93.2747, ""1"": 92.7409, ""2"": 94.624}",0.10197851222839571,paired,,K09_kaggle_ablation_final__mnist :: -CSL :: mnist IF=0.01 K=10
+T15_ablation,-CSL,MNIST BBC,93.7199,1.0006,3,"{""0"": 93.4716, ""1"": 92.8668, ""2"": 94.8212}",0.08662131228601133,paired,,K09_kaggle_ablation_final__mnist :: -CSL :: mnist IF=0.01 K=10
+T15_ablation,-CSL,FMNIST bal.,78.4057,0.5343,3,"{""0"": 77.936, ""1"": 78.294, ""2"": 78.987}",0.008480954914492106,paired,,K09_kaggle_ablation_final__fmnist :: -CSL :: fmnist IF=0.01 K=10
+T15_ablation,-CSL,FMNIST BBC,78.9743,0.6604,3,"{""0"": 78.383, ""1"": 78.853, ""2"": 79.687}",0.013931902747630965,paired,,K09_kaggle_ablation_final__fmnist :: -CSL :: fmnist IF=0.01 K=10
+T15_ablation,-MC,MNIST bal.,94.2172,0.2457,3,"{""0"": 94.2271, ""1"": 93.9667, ""2"": 94.4579}",0.027952482805752816,paired,,K09_kaggle_ablation_final__mnist :: -MC :: mnist IF=0.01 K=10
+T15_ablation,-MC,MNIST BBC,94.3795,0.3397,3,"{""0"": 94.3482, ""1"": 94.0566, ""2"": 94.7338}",0.02494653655676965,paired,,K09_kaggle_ablation_final__mnist :: -MC :: mnist IF=0.01 K=10
+T15_ablation,-MC,FMNIST bal.,79.3007,0.6005,3,"{""0"": 78.76, ""1"": 79.195, ""2"": 79.947}",0.09984101166486664,paired,,K09_kaggle_ablation_final__fmnist :: -MC :: fmnist IF=0.01 K=10
+T15_ablation,-MC,FMNIST BBC,80.2723,0.6578,3,"{""0"": 79.546, ""1"": 80.443, ""2"": 80.828}",0.12645355470257327,paired,,K09_kaggle_ablation_final__fmnist :: -MC :: fmnist IF=0.01 K=10
+T15_ablation,-KH,MNIST bal.,94.4684,0.3236,3,"{""0"": 94.2693, ""1"": 94.2941, ""2"": 94.8417}",0.05888222271950827,paired,,K09_kaggle_ablation_final__mnist :: -KH :: mnist IF=0.01 K=10
+T15_ablation,-KH,MNIST BBC,94.6996,0.338,3,"{""0"": 94.5397, ""1"": 94.4712, ""2"": 95.0878}",0.03826428236250107,paired,,K09_kaggle_ablation_final__mnist :: -KH :: mnist IF=0.01 K=10
+T15_ablation,-KH,FMNIST bal.,79.4917,0.1807,3,"{""0"": 79.29, ""1"": 79.546, ""2"": 79.639}",0.09651143801251644,paired,,K09_kaggle_ablation_final__fmnist :: -KH :: fmnist IF=0.01 K=10
+T15_ablation,-KH,FMNIST BBC,80.5093,0.2922,3,"{""0"": 80.24, ""1"": 80.82, ""2"": 80.468}",0.41716467631509,paired,,K09_kaggle_ablation_final__fmnist :: -KH :: fmnist IF=0.01 K=10
+T15_ablation,-PC (CVAE+HWA),MNIST bal.,90.4592,1.0421,3,"{""0"": 90.8677, ""1"": 89.2747, ""2"": 91.2351}",0.017456176112116216,paired,,K09_kaggle_ablation_final__mnist :: -PC (CVAE+HWA) :: mnist IF=0.01 K=10
+T15_ablation,-PC (CVAE+HWA),MNIST BBC,90.3176,1.4526,3,"{""0"": 90.878, ""1"": 88.6683, ""2"": 91.4065}",0.025453961108532392,paired,,K09_kaggle_ablation_final__mnist :: -PC (CVAE+HWA) :: mnist IF=0.01 K=10
+T15_ablation,-PC (CVAE+HWA),FMNIST bal.,79.117,0.2182,3,"{""0"": 79.315, ""1"": 78.883, ""2"": 79.153}",0.10564236339624042,paired,,K09_kaggle_ablation_final__fmnist :: -PC (CVAE+HWA) :: fmnist IF=0.01 K=10
+T15_ablation,-PC (CVAE+HWA),FMNIST BBC,79.1537,0.4878,3,"{""0"": 79.686, ""1"": 78.728, ""2"": 79.047}",0.08494145800902503,paired,,K09_kaggle_ablation_final__fmnist :: -PC (CVAE+HWA) :: fmnist IF=0.01 K=10
+T15_ablation,Ours-A-B (MC-B; E32 + K14),MNIST bal.,94.7556,1.9508,3,"{""0"": 95.8923, ""1"": 95.8716, ""2"": 92.5031}",0.7479767055940327,paired,,E32_moment_anchor_bayes :: Ours-A-B Ts=10 :: mnist IF=0.01 K=10
+T15_ablation,Ours-A-B (MC-B; E32 + K14),MNIST BBC,94.9856,1.8382,3,"{""0"": 96.0526, ""1"": 96.0412, ""2"": 92.863}",0.7467917258293582,paired,,E32_moment_anchor_bayes :: Ours-A-B Ts=10 :: mnist IF=0.01 K=10
+T15_ablation,Ours-A-B (MC-B; E32 + K14),FMNIST bal.,81.568,0.31,3,"{""0"": 81.507, ""1"": 81.904, ""2"": 81.293}",0.029820155960403702,paired,,E32_moment_anchor_bayes :: Ours-A-B Ts=10 :: fmnist IF=0.01 K=10
+T15_ablation,Ours-A-B (MC-B; E32 + K14),FMNIST BBC,81.962,0.3027,3,"{""0"": 82.086, ""1"": 82.183, ""2"": 81.617}",0.06737041792579798,paired,,E32_moment_anchor_bayes :: Ours-A-B Ts=10 :: fmnist IF=0.01 K=10
+T16_ddpm,GeFL-F (DDPM-F),FMNIST,83.165,0.0,1,"{""0"": 83.165}",,,83.16,F11_ddpm_generator :: GeFL-F (DDPM-F) :: fmnist IF=1.0 K=10
+T16_ddpm,GeFL-F (DDPM-F),SVHN,69.7732,0.8515,3,"{""0"": 68.9156, ""1"": 70.6185, ""2"": 69.7856}",,,,K04_kaggle_ddpm_cifar10_svhn__svhn :: GeFL-F (DDPM-F) :: svhn IF=1.0 K=10
+T16_ddpm,+ CSL (DDPM-F),FMNIST,83.037,0.0,1,"{""0"": 83.037}",,,83.04,F11_ddpm_generator :: +CSL (DDPM-F) :: fmnist IF=1.0 K=10
+T16_ddpm,+ CSL (DDPM-F),SVHN,70.2484,0.6791,3,"{""0"": 69.5375, ""1"": 70.8904, ""2"": 70.3173}",0.04543290002944221,paired,,K04_kaggle_ddpm_cifar10_svhn__svhn :: +CSL (DDPM-F) :: svhn IF=1.0 K=10
+T16_ddpm,Ours (DDPM-F),FMNIST,82.823,0.3889,2,"{""0"": 83.098, ""1"": 82.548}",,,83.1,F11_ddpm_generator :: Ours (DDPM-F) :: fmnist IF=1.0 K=10
+T16_ddpm,Ours (DDPM-F),SVHN,70.3683,0.6483,3,"{""0"": 69.6255, ""1"": 70.8201, ""2"": 70.6592}",0.0987379906335799,paired,,K04_kaggle_ddpm_cifar10_svhn__svhn :: Ours (DDPM-F) :: svhn IF=1.0 K=10
+T16_ddpm,paper: GeFL-F DDPM-F,FMNIST,84.28,,,,,,,published (paper)
