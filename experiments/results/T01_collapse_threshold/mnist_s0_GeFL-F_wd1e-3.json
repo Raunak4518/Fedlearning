@@ -1,0 +1,1 @@
+{"label": "GeFL-F wd=1e-3", "wd": 0.001, "agg": "flat", "dataset": "mnist", "seed": 0, "K": 10, "IF": 0.01, "alpha": 0.5, "rounds": 40, "batch": 64, "local_epochs": 5, "lr": 0.001, "time_s": 1350.384070634842}
