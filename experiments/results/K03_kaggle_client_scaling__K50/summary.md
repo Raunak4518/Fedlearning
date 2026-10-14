@@ -1,5 +1,8 @@
 # K03_kaggle_client_scaling: Client scaling K = 50, 100: paper setting (IID) and long tail
-(pasted by the user from Kaggle NB5; runs.jsonl not yet copied back)
+
+Mode: full
+
+Hypothesis: IID: Ours and +CSL beat GeFL-F at K=50/100. Long tail: Ours > +LA > GeFL-F, gap growing with K.
 
 ## fmnist  IF=0.01  alpha=0.5  K=50
 
@@ -13,6 +16,7 @@
 | FSG+LA+CSL | 3 | 75.08 ± 0.64 | 74.90 ± 0.70 | 66.58 ± 0.74 | 79.42 ± 4.05 | 0.88 ± 0.03 | 0.00418 |
 
 ## fmnist  IF=1.0  alpha=None  K=50
+Paper Figure 4 GeFL-F (CVAE-F): 82.21%
 
 | label | n | best_mean_acc | final_bal | final_tail | fidelity_tail | cond_norm_tail_over_head_end | p vs GeFL-F (best_mean_acc) |
 |---|---|---|---|---|---|---|---|
@@ -21,9 +25,11 @@
 | +CSL (beta=0.5) | 3 | 81.29 ± 0.19 | 81.20 ± 0.19 | 81.62 ± 0.74 | 83.14 ± 5.85 | 1.01 ± 0.00 | 0.0688 |
 
 ## mnist  IF=1.0  alpha=None  K=50
+Paper Figure 4 GeFL-F (CVAE-F): 95.04%
 
 | label | n | best_mean_acc | final_bal | final_tail | fidelity_tail | cond_norm_tail_over_head_end | p vs GeFL-F (best_mean_acc) |
 |---|---|---|---|---|---|---|---|
 | Ours (HWA+LA+CSL) | 3 | 95.53 ± 0.17 | 95.47 ± 0.18 | 93.64 ± 0.13 | 46.67 ± 2.48 | 0.99 ± 0.01 | 0.251 |
 | GeFL-F | 3 | 95.43 ± 0.27 | 95.37 ± 0.26 | 93.65 ± 0.17 | 46.31 ± 2.94 | 0.98 ± 0.01 | - |
 | +CSL (beta=0.5) | 3 | 95.53 ± 0.18 | 95.47 ± 0.17 | 93.70 ± 0.10 | 46.31 ± 2.94 | 0.98 ± 0.01 | 0.203 |
+

@@ -1,5 +1,8 @@
 # K02_kaggle_regimes_privacy_ablations: Regimes, DP class counts and memorisation, ablations (MNIST, FMNIST)
-(pasted by the user from Kaggle NB3; runs.jsonl not yet copied back)
+
+Mode: full
+
+Hypothesis: Ours > GeFL-F in every regime; most of the gain survives eps=1; MND < 1; removing HWA or LA costs several points.
 
 ## fmnist  IF=0.01  alpha=0.5  K=10
 
@@ -70,3 +73,4 @@
 | Ours | 3 | 95.59 ± 0.28 | 94.28 ± 0.70 | 95.69 ± 0.25 | 0.98 ± 0.01 | 62.56 ± 3.96 | 0.033 |
 | GeFL-F | 3 | 89.79 ± 1.63 | 89.91 ± 1.93 | 89.98 ± 1.92 | 0.97 ± 0.01 | 48.94 ± 4.36 | - |
 | +LA | 3 | 92.28 ± 0.90 | 92.18 ± 0.98 | 92.88 ± 0.83 | 0.97 ± 0.01 | 48.94 ± 4.36 | 0.0333 |
+

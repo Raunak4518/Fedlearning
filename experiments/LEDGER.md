@@ -14,6 +14,8 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Ours (HWA+LA+CSL) | K01_kaggle_cifar10_svhn__cifar10 | 0,1,2 |
 | Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__cifar10_iid | 0,1,2 |
 | Ours-A Ts=10 | K08_kaggle_anchored_stack__cifar10_iid | 0,1,2 |
+| Ours-A Ts=10 + MixUp | K13_kaggle_vct_vs_mixup__cifar10_iid | 0,1,2 |
+| Ours-A Ts=10 + VCT | K13_kaggle_vct_vs_mixup__cifar10_iid | 0,1,2 |
 
 ## cifar10  IF=0.01  alpha=0.5  K=10
 
@@ -26,6 +28,8 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | GeFL-F | K01_kaggle_cifar10_svhn__cifar10 | 0,1,2 |
 | Ours (HWA+LA+CSL) | K01_kaggle_cifar10_svhn__cifar10 | 0,1,2 |
 | Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__cifar10_lt | 0,1,2 |
+| Ours-A + MixUp | K13_kaggle_vct_vs_mixup__cifar10_lt | 0,1,2 |
+| Ours-A + VCT | K13_kaggle_vct_vs_mixup__cifar10_lt | 0,1,2 |
 | Ours-A Ts=10 | K08_kaggle_anchored_stack__cifar10_lt | 0,1,2 |
 
 ## fmnist  IF=1.0  alpha=0.5  K=10
@@ -136,6 +140,8 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | +CSL (beta=0.5) | K03_kaggle_client_scaling__K100 | 0,1,2 |
 | GeFL-F | K03_kaggle_client_scaling__K100 | 0,1,2 |
 | Ours (HWA+LA+CSL) | K03_kaggle_client_scaling__K100 | 0,1,2 |
+| Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__fmnist | 0,1,2 |
+| Ours-A Ts=10 | K08_kaggle_anchored_stack__fmnist | 0,1,2 |
 
 ## fmnist  IF=0.1  alpha=0.5  K=10
 
@@ -272,6 +278,8 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | FSG+LA+CSL | K03_kaggle_client_scaling__K50 | 0,1,2 |
 | GeFL-F | K03_kaggle_client_scaling__K50 | 0,1,2 |
 | Ours (HWA+LA+CSL) | K03_kaggle_client_scaling__K50 | 0,1,2 |
+| Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__fmnist | 0,1,2 |
+| Ours-A Ts=10 | K08_kaggle_anchored_stack__fmnist | 0,1,2 |
 
 ## fmnist  IF=0.01  alpha=0.5  K=100
 
@@ -283,6 +291,8 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | FSG+LA+CSL | K03_kaggle_client_scaling__K100 | 0,1,2 |
 | GeFL-F | K03_kaggle_client_scaling__K100 | 0,1,2 |
 | Ours (HWA+LA+CSL) | K03_kaggle_client_scaling__K100 | 0,1,2 |
+| Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__fmnist | 0,1,2 |
+| Ours-A Ts=10 | K08_kaggle_anchored_stack__fmnist | 0,1,2 |
 
 ## mnist  IF=1.0  alpha=0.5  K=10
 
@@ -529,7 +539,11 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | label | result folder | seeds |
 |---|---|---|
 | +CSL (DDPM-F) | K04_kaggle_ddpm_cifar10_svhn__svhn | 0,1,2 |
+| +CSL (beta=0.5) | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
+| +CSLM (interleaved) | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
+| +HWA+LA (ours) | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
 | FedAvg (grouped) | E00_paper_parity_quick | 0 |
+| GeFL-F | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
 | GeFL-F (DDPM-F) | K04_kaggle_ddpm_cifar10_svhn__svhn | 0,1,2 |
 | Ours (DDPM-F) | K04_kaggle_ddpm_cifar10_svhn__svhn | 0,1,2 |
 | Ours+MC+KH (CVAE+HWA) | K10_kaggle_hybrid_svhn_cifar10__svhn | 0,1,2 |
@@ -545,6 +559,11 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 
 | label | result folder | seeds |
 |---|---|---|
+| +HWA+LA (ours) | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
+| +HWA+LA+CSLM | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
+| +LA | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
+| FSG+LA | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
+| GeFL-F | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
 | Ours+MC+KH (CVAE+HWA) | K10_kaggle_hybrid_svhn_cifar10__svhn | 0,1,2 |
 | Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__svhn | 0,1,2 |
 | Ours-A (PC+MC+KH+LA+CSL) | K11_kaggle_covariance_anchoring__svhn | 0,1,2 |
@@ -554,31 +573,86 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Ours-R Ts=10 | K10_kaggle_hybrid_svhn_cifar10__svhn | 0,1,2 |
 | Ours-R-S (PCR+MCS+KH+LA+CSL) | K11_kaggle_covariance_anchoring__svhn | 0,1,2 |
 
-## Kaggle notebooks built but no results in the repo
+## Status of every job (planned runs vs runs in its result folder)
 
-(Either not run yet, or the zip was never copied back. Copy results back before re-running.)
+COMPLETE = every planned run is in the folder. PARTIAL lists the missing (label: seeds). NOT RUN = no result folder (ask before re-running: the zip may just not be copied back). QUICK ONLY = only a reduced-round viability pass exists. Most PARTIAL rows are arms added to a spec AFTER it ran (superseded by a later job); see docs/PROGRESS.md before re-running any of them.
 
-| notebook | expected result folder | what |
-|---|---|---|
-| NB2_svhn_main | K01_kaggle_cifar10_svhn__svhn | SVHN: paper's IID setting and the 100:1 long tail, our method vs GeFL-F. |
-| NB9_newgen_svhn | K05_kaggle_newgen_cifar10_svhn__svhn | SVHN, long tail + IID: only the NEW generator arms (PC-VAE, moment calibration); baselines come from NB2. |
-| NB10_newgen_cifar10_longtail | K05_kaggle_newgen_cifar10_svhn__cifar10_lt | CIFAR-10 long tail: only the NEW generator arms; baselines come from NB1. |
-| NB11_newgen_cifar10_iid | K05_kaggle_newgen_cifar10_svhn__cifar10_iid | CIFAR-10 in the paper's IID setting (paper GeFL-F 55.86): only the NEW generator arms; baselines come from NB1. |
-| NB12_newgen_fmnist_many_clients | K06_kaggle_newgen_many_clients | FashionMNIST, 50 and 100 clients: only the NEW arms (plus Ours with the fixed CSL); baselines come from NB4/NB5. |
-| NB13_baselines_cifar10_svhn | K07_kaggle_baselines_cifar10_svhn | SVHN + CIFAR-10, long tail + IID: the paper's federated baselines (FedAvg, LG-FedAvg, LG-FedAvg+LA) - never run under imbalance before. |
-| NB17_anchored_fmnist_many_clients | K08_kaggle_anchored_stack__fmnist | FashionMNIST with 50 and 100 clients: the final anchored method, T_s = 1 and 10. |
-| NB20_hybrid_cifar10_longtail | K10_kaggle_hybrid_svhn_cifar10__cifar10_lt | CIFAR-10 long tail: the hybrid generator vs CVAE + HWA with MC + KH. |
-| NB21_hybrid_cifar10_iid | K10_kaggle_hybrid_svhn_cifar10__cifar10_iid | CIFAR-10 in the paper's IID setting (paper GeFL-F 55.86): the hybrid generator vs CVAE + HWA with MC + KH. |
-| NB23_covariance_cifar10_longtail | K11_kaggle_covariance_anchoring__cifar10_lt | CIFAR-10 long tail: MC-S against Ours-A, at 1 and 10 synthetic epochs. |
-| NB24_covariance_cifar10_iid | K11_kaggle_covariance_anchoring__cifar10_iid | CIFAR-10 in the paper's IID setting: MC-S against Ours-A, at 1 and 10 synthetic epochs. |
-| NB25_final_svhn | K12_kaggle_final_gated__svhn_K10 | SVHN long tail + IID: the final method's low-separation branch (HWA class rows) with MC vs MC-S. |
-| NB26_final_svhn_K50 | K12_kaggle_final_gated__svhn_K50 | SVHN, 50 clients, paper's IID setting (paper: 73.64): GeFL-F and the final method. |
-| NB27_final_svhn_K100 | K12_kaggle_final_gated__svhn_K100 | SVHN, 100 clients, paper's IID setting (paper: 76.00): GeFL-F and the final method. |
-| NB28_final_cifar10_K50 | K12_kaggle_final_gated__cifar10_K50 | CIFAR-10, 50 clients, paper's IID setting (paper: GeFL-F 53.19, best 56.31): GeFL-F and the final method, 2 seeds. |
-| NB29_final_cifar10_K100 | K12_kaggle_final_gated__cifar10_K100 | CIFAR-10, 100 clients, paper's IID setting (paper: GeFL-F 51.46, best 53.95): GeFL-F and the final method, 2 seeds. |
-| NB30_beat_mixup_cifar10_iid | K13_kaggle_vct_vs_mixup__cifar10_iid | CIFAR-10, paper's IID setting (the paper's GeFL + MixUp: 62.67): our new VCT against MixUp, inside the final method. |
-| NB31_vct_cifar10_longtail | K13_kaggle_vct_vs_mixup__cifar10_lt | CIFAR-10 long tail: VCT against MixUp, inside the final method. |
-| NB36_ablation_seeds_mcb_mnist | K14_kaggle_ablation_seeds_mcb__mnist | MNIST long tail, seeds 3-4 only: the K09 ablation arms and MC-B (seeds 0-2 exist in K09 / E32). |
-| NB37_ablation_seeds_mcb_fmnist | K14_kaggle_ablation_seeds_mcb__fmnist | FashionMNIST long tail, seeds 3-4 only: the K09 ablation arms and MC-B (seeds 0-2 exist in K09 / E32). |
-| NB7_cifar10_diffusion_seed0 | K04_kaggle_ddpm_cifar10_svhn__cifar10_s0 | CIFAR-10 with the diffusion feature generator, seed 0. |
-| NB8_cifar10_diffusion_seed1 | K04_kaggle_ddpm_cifar10_svhn__cifar10_s1 | CIFAR-10 with the diffusion feature generator, seed 1. |
+| job | script + args | result folder | planned | done | status |
+|---|---|---|---|---|---|
+| NB1_cifar10_main | K01_kaggle_cifar10_svhn --datasets cifar10 | K01_kaggle_cifar10_svhn__cifar10 | 27 | 27 | COMPLETE |
+| NB2_svhn_main | K01_kaggle_cifar10_svhn --datasets svhn | K01_kaggle_cifar10_svhn__svhn | 27 | 18 | PARTIAL - missing FSG+LA+CSL svhn IF=0.01 K=10: s0,1,2; Ours (HWA+LA+CSL) svhn IF=0.01 K=10: s0,1,2; Ours (HWA+LA+CSL) svhn IF=1.0 K=10: s0,1,2 |
+| NB3_regimes_privacy_ablations | K02_kaggle_regimes_privacy_ablations  | K02_kaggle_regimes_privacy_ablations | 102 | 102 | COMPLETE |
+| NB4_clients_K100 | K03_kaggle_client_scaling --K 100 | K03_kaggle_client_scaling__K100 | 51 | 36 | PARTIAL - missing +CSL Ts=10 fmnist IF=1.0 K=100: s0,1,2; +CSL Ts=10 mnist IF=1.0 K=100: s0,1,2; Ours (HWA+LA+CSL) Ts=10 fmnist IF=0.01 K=100: s0,1,2; Ours (HWA+LA+CSL) Ts=10 fmnist IF=1.0 K=100: s0,1,2; Ours (HWA+LA+CSL) Ts=10 mnist IF=1.0 K=100: s0,1,2 |
+| NB5_clients_K50 | K03_kaggle_client_scaling --K 50 | K03_kaggle_client_scaling__K50 | 51 | 36 | PARTIAL - missing +CSL Ts=10 fmnist IF=1.0 K=50: s0,1,2; +CSL Ts=10 mnist IF=1.0 K=50: s0,1,2; Ours (HWA+LA+CSL) Ts=10 fmnist IF=0.01 K=50: s0,1,2; Ours (HWA+LA+CSL) Ts=10 fmnist IF=1.0 K=50: s0,1,2; Ours (HWA+LA+CSL) Ts=10 mnist IF=1.0 K=50: s0,1,2 |
+| NB9_newgen_svhn | K05_kaggle_newgen_cifar10_svhn --datasets svhn | K05_kaggle_newgen_cifar10_svhn__svhn | 24 | 0 | NOT RUN |
+| NB10_newgen_cifar10_longtail | K05_kaggle_newgen_cifar10_svhn --datasets cifar10 --IF 0.01 | K05_kaggle_newgen_cifar10_svhn__cifar10_lt | 12 | 0 | NOT RUN |
+| NB11_newgen_cifar10_iid | K05_kaggle_newgen_cifar10_svhn --datasets cifar10 --IF 1.0 | K05_kaggle_newgen_cifar10_svhn__cifar10_iid | 12 | 0 | NOT RUN |
+| NB12_newgen_fmnist_many_clients | K06_kaggle_newgen_many_clients  | K06_kaggle_newgen_many_clients | 36 | 0 | NOT RUN |
+| NB13_baselines_cifar10_svhn | K07_kaggle_baselines_cifar10_svhn  | K07_kaggle_baselines_cifar10_svhn | 36 | 0 | NOT RUN |
+| NB14_anchored_cifar10_longtail | K08_kaggle_anchored_stack --datasets cifar10 --IF 0.01 | K08_kaggle_anchored_stack__cifar10_lt | 6 | 6 | COMPLETE |
+| NB15_anchored_cifar10_iid | K08_kaggle_anchored_stack --datasets cifar10 --IF 1.0 | K08_kaggle_anchored_stack__cifar10_iid | 6 | 6 | COMPLETE |
+| NB16_anchored_svhn | K08_kaggle_anchored_stack --datasets svhn | K08_kaggle_anchored_stack__svhn | 12 | 12 | COMPLETE |
+| NB17_anchored_fmnist_many_clients | K08_kaggle_anchored_stack --datasets fmnist | K08_kaggle_anchored_stack__fmnist | 18 | 18 | COMPLETE |
+| NB18_ablation_final_method | K09_kaggle_ablation_final  | K09_kaggle_ablation_final__fmnist, K09_kaggle_ablation_final__mnist | 36 | 36 | COMPLETE |
+| NB19_hybrid_svhn | K10_kaggle_hybrid_svhn_cifar10 --datasets svhn | K10_kaggle_hybrid_svhn_cifar10__svhn | 18 | 18 | COMPLETE |
+| NB20_hybrid_cifar10_longtail | K10_kaggle_hybrid_svhn_cifar10 --datasets cifar10 --IF 0.01 | K10_kaggle_hybrid_svhn_cifar10__cifar10_lt | 9 | 0 | NOT RUN |
+| NB21_hybrid_cifar10_iid | K10_kaggle_hybrid_svhn_cifar10 --datasets cifar10 --IF 1.0 | K10_kaggle_hybrid_svhn_cifar10__cifar10_iid | 9 | 0 | NOT RUN |
+| NB22_covariance_svhn | K11_kaggle_covariance_anchoring --datasets svhn | K11_kaggle_covariance_anchoring__svhn | 18 | 18 | COMPLETE |
+| NB23_covariance_cifar10_longtail | K11_kaggle_covariance_anchoring --datasets cifar10 --IF 0.01 | K11_kaggle_covariance_anchoring__cifar10_lt | 9 | 0 | NOT RUN |
+| NB24_covariance_cifar10_iid | K11_kaggle_covariance_anchoring --datasets cifar10 --IF 1.0 | K11_kaggle_covariance_anchoring__cifar10_iid | 9 | 0 | NOT RUN |
+| NB25_final_svhn | K12_kaggle_final_gated --datasets svhn --K 10 | K12_kaggle_final_gated__svhn_K10 | 18 | 0 | NOT RUN |
+| NB26_final_svhn_K50 | K12_kaggle_final_gated --datasets svhn --K 50 | K12_kaggle_final_gated__svhn_K50 | 9 | 0 | NOT RUN |
+| NB27_final_svhn_K100 | K12_kaggle_final_gated --datasets svhn --K 100 | K12_kaggle_final_gated__svhn_K100 | 9 | 0 | NOT RUN |
+| NB28_final_cifar10_K50 | K12_kaggle_final_gated --datasets cifar10 --K 50 --seeds 0 1 | K12_kaggle_final_gated__cifar10_K50 | 4 | 0 | NOT RUN |
+| NB29_final_cifar10_K100 | K12_kaggle_final_gated --datasets cifar10 --K 100 --seeds 0 1 | K12_kaggle_final_gated__cifar10_K100 | 4 | 0 | NOT RUN |
+| NB30_beat_mixup_cifar10_iid | K13_kaggle_vct_vs_mixup --IF 1.0 | K13_kaggle_vct_vs_mixup__cifar10_iid | 6 | 6 | COMPLETE |
+| NB31_vct_cifar10_longtail | K13_kaggle_vct_vs_mixup --IF 0.01 | K13_kaggle_vct_vs_mixup__cifar10_lt | 6 | 6 | COMPLETE |
+| NB36_ablation_seeds_mcb_mnist | K14_kaggle_ablation_seeds_mcb --datasets mnist | K14_kaggle_ablation_seeds_mcb__mnist | 14 | 0 | NOT RUN |
+| NB37_ablation_seeds_mcb_fmnist | K14_kaggle_ablation_seeds_mcb --datasets fmnist | K14_kaggle_ablation_seeds_mcb__fmnist | 14 | 0 | NOT RUN |
+| NB6_svhn_diffusion | K04_kaggle_ddpm_cifar10_svhn --datasets svhn | K04_kaggle_ddpm_cifar10_svhn__svhn | 9 | 9 | COMPLETE |
+| NB7_cifar10_diffusion_seed0 | K04_kaggle_ddpm_cifar10_svhn --datasets cifar10 --seeds 0 | K04_kaggle_ddpm_cifar10_svhn__cifar10_s0 | 3 | 0 | NOT RUN |
+| NB8_cifar10_diffusion_seed1 | K04_kaggle_ddpm_cifar10_svhn --datasets cifar10 --seeds 1 | K04_kaggle_ddpm_cifar10_svhn__cifar10_s1 | 3 | 0 | NOT RUN |
+| (local) | E00_paper_parity  | E00_paper_parity | 36 | 0 | QUICK ONLY |
+| (local) | E01_imbalance_gap  | E01_imbalance_gap | 48 | 0 | QUICK ONLY |
+| (local) | E02_conditioning_collapse  | E02_conditioning_collapse | 36 | 0 | QUICK ONLY |
+| (local) | E03_method_components  | E03_method_components | 126 | 0 | QUICK ONLY |
+| (local) | E04_client_scaling  | E04_client_scaling | 45 | 0 | NOT RUN |
+| (local) | E05_datasets  | E05_datasets | 36 | 0 | NOT RUN |
+| (local) | E06_iid_paper_setting  | E06_iid_paper_setting | 45 | 0 | NOT RUN |
+| (local) | E07_ablations  | E07_ablations | 34 | 0 | NOT RUN |
+| (local) | E08_generators  | E08_generators | 24 | 0 | NOT RUN |
+| (local) | E09_oracles  | E09_oracles | 24 | 0 | NOT RUN |
+| (local) | E10_cifar10_track2  | E10_cifar10_track2 | 12 | 0 | NOT RUN |
+| (local) | E11_privacy_cost  | E11_privacy_cost | 36 | 0 | NOT RUN |
+| (local) | E12_confirmation  | E12_confirmation | 147 | 0 | QUICK ONLY |
+| (local) | E13_sufficient_statistics  | E13_sufficient_statistics | 72 | 0 | QUICK ONLY |
+| (local) | E14_relative_hybrid  | E14_relative_hybrid | 105 | 0 | QUICK ONLY |
+| (local) | E15_server_distillation  | E15_server_distillation | 84 | 0 | QUICK ONLY |
+| (local) | E16_csl_synthetic_budget  | E16_csl_synthetic_budget | 78 | 75 | PARTIAL - missing Ours (HWA+LA+CSL) Ts=10 mnist IF=1.0 K=10: s0,1,2 |
+| (local) | E17_budget_more_clients  | E17_budget_more_clients | 21 | 0 | NOT RUN |
+| (local) | E18_bayesian_csl  | E18_bayesian_csl | 24 | 24 | COMPLETE |
+| (local) | E19_csl_response_surface  | E19_csl_response_surface | 40 | 0 | NOT RUN |
+| (local) | E20_proto_generator  | E20_proto_generator | 63 | 63 | COMPLETE |
+| (local) | E21_pc_mc_budget  | E21_pc_mc_budget | 27 | 0 | NOT RUN |
+| (local) | E22_pc_many_clients  | E22_pc_many_clients | 9 | 9 | COMPLETE |
+| (local) | E23_heldclass_alignment  | E23_heldclass_alignment | 27 | 0 | NOT RUN |
+| (local) | E24_kme_generator  | E24_kme_generator | 36 | 12 | PARTIAL - missing Ours-KME (KME+LA+CSL) fmnist IF=0.01 K=10: s1,2; Ours-KME (KME+LA+CSL) fmnist IF=1.0 K=10: s1,2; Ours-KME (KME+LA+CSL) mnist IF=0.01 K=10: s1,2; Ours-KME+KH fmnist IF=0.01 K=10: s1,2; Ours-KME+KH fmnist IF=1.0 K=10: s1,2; Ours-KME+KH mnist IF=0.01 K=10: s1,2; Ours-KME+MC fmnist IF=0.01 K=10: s1,2; Ours-KME+MC fmnist IF=1.0 K=10: s1,2; Ours-KME+MC mnist IF=0.01 K=10: s1,2; Ours-PC+MC+KH fmnist IF=0.01 K=10: s1,2; Ours-PC+MC+KH fmnist IF=1.0 K=10: s1,2; Ours-PC+MC+KH mnist IF=0.01 K=10: s1,2 |
+| (local) | E25_anchored_stack  | E25_anchored_stack | 24 | 24 | COMPLETE |
+| (local) | E26_private_anchoring  | E26_private_anchoring | 12 | 12 | COMPLETE |
+| (local) | E27_final_iid_many_clients  | E27_final_iid_many_clients | 9 | 9 | COMPLETE |
+| (local) | E29_hybrid_generator  | E29_hybrid_generator | 11 | 11 | COMPLETE |
+| (local) | E30_covariance_anchoring  | E30_covariance_anchoring | 12 | 0 | NOT RUN |
+| (local) | E31_covariance_anchoring_mnist_fmnist  | E31_covariance_anchoring_mnist_fmnist | 9 | 9 | COMPLETE |
+| (local) | E32_moment_anchor_bayes  | E32_moment_anchor_bayes | 9 | 9 | COMPLETE |
+| (local) | F01_main_longtail  | F01_main_longtail | 54 | 48 | PARTIAL - missing MIX+HWA+LA fmnist IF=0.01 K=10: s0,1,2; MIX+HWA+LA mnist IF=0.01 K=10: s0,1,2 |
+| (local) | F02_paper_setting  | F02_paper_setting | 45 | 0 | NOT RUN |
+| (local) | F03_regimes  | F03_regimes | 36 | 0 | NOT RUN |
+| (local) | F04_clients  | F04_clients | 42 | 29 | PARTIAL - missing +HWA+LA+CSL mnist IF=0.01 K=50: s0,1,2; +HWA+LA+CSL mnist IF=0.01 K=100: s2; FSG+LA+CSL mnist IF=0.01 K=50: s0,1,2; FSG+LA+CSL mnist IF=0.01 K=100: s1,2; MIX+HWA+LA+CSL mnist IF=0.01 K=50: s0,1,2; MIX+HWA+LA+CSL mnist IF=0.01 K=100: s2 |
+| (local) | F05_harder_datasets  | F05_harder_datasets | 24 | 0 | NOT RUN |
+| (local) | F06_mechanism  | F06_mechanism | 30 | 0 | NOT RUN |
+| (local) | F07_privacy  | F07_privacy | 30 | 0 | NOT RUN |
+| (local) | F08_ablations  | F08_ablations | 40 | 0 | NOT RUN |
+| (local) | F09_consensus_paper_setting  | F09_consensus_paper_setting | 144 | 22 | PARTIAL - missing +CSL (beta=0.5) cifar10 IF=1.0 K=10: s0,1,2; +CSL (beta=0.5) cifar10 IF=1.0 K=50: s0,1,2; +CSL (beta=0.5) cifar10 IF=1.0 K=100: s0,1,2; +CSL (beta=0.5) fmnist IF=1.0 K=50: s0,1,2; +CSL (beta=0.5) fmnist IF=1.0 K=100: s0,1,2; +CSL (beta=0.5) mnist IF=1.0 K=50: s1,2; +CSL (beta=0.5) mnist IF=1.0 K=100: s1,2; +CSL (beta=0.5) svhn IF=1.0 K=10: s0,1,2; +CSL (beta=0.5) svhn IF=1.0 K=50: s0,1,2; +CSL (beta=0.5) svhn IF=1.0 K=100: s0,1,2; +CSL (beta=1) cifar10 IF=1.0 K=10: s0,1,2; +CSL (beta=1) cifar10 IF=1.0 K=50: s0,1,2; +CSL (beta=1) cifar10 IF=1.0 K=100: s0,1,2; +CSL (beta=1) fmnist IF=1.0 K=10: s0,1,2; +CSL (beta=1) fmnist IF=1.0 K=50: s0,1,2; +CSL (beta=1) fmnist IF=1.0 K=100: s0,1,2; +CSL (beta=1) mnist IF=1.0 K=10: s1,2; +CSL (beta=1) mnist IF=1.0 K=50: s1,2; +CSL (beta=1) mnist IF=1.0 K=100: s1,2; +CSL (beta=1) svhn IF=1.0 K=10: s0,1,2; +CSL (beta=1) svhn IF=1.0 K=50: s0,1,2; +CSL (beta=1) svhn IF=1.0 K=100: s0,1,2; +CSLM (interleaved) cifar10 IF=1.0 K=10: s0,1,2; +CSLM (interleaved) cifar10 IF=1.0 K=50: s0,1,2; +CSLM (interleaved) cifar10 IF=1.0 K=100: s0,1,2; +CSLM (interleaved) fmnist IF=1.0 K=10: s0,1,2; +CSLM (interleaved) fmnist IF=1.0 K=50: s0,1,2; +CSLM (interleaved) fmnist IF=1.0 K=100: s0,1,2; +CSLM (interleaved) mnist IF=1.0 K=10: s1,2; +CSLM (interleaved) mnist IF=1.0 K=50: s1,2; +CSLM (interleaved) mnist IF=1.0 K=100: s1,2; +CSLM (interleaved) svhn IF=1.0 K=10: s0,1,2; +CSLM (interleaved) svhn IF=1.0 K=50: s0,1,2; +CSLM (interleaved) svhn IF=1.0 K=100: s0,1,2; GeFL-F cifar10 IF=1.0 K=10: s0,1,2; GeFL-F cifar10 IF=1.0 K=50: s0,1,2; GeFL-F cifar10 IF=1.0 K=100: s0,1,2; GeFL-F fmnist IF=1.0 K=50: s0,1,2; GeFL-F fmnist IF=1.0 K=100: s0,1,2; GeFL-F mnist IF=1.0 K=50: s1,2; GeFL-F mnist IF=1.0 K=100: s1,2; GeFL-F svhn IF=1.0 K=10: s0,1,2; GeFL-F svhn IF=1.0 K=50: s0,1,2; GeFL-F svhn IF=1.0 K=100: s0,1,2 |
+| (local) | F10_combined_method  | F10_combined_method | 48 | 48 | COMPLETE |
+| (local) | F11_ddpm_generator  | F11_ddpm_generator | 36 | 4 | PARTIAL - missing +CSL (DDPM-F) fmnist IF=1.0 K=10: s1,2; +CSL (DDPM-F) mnist IF=1.0 K=10: s0,1,2; +LA (DDPM-F) fmnist IF=0.01 K=10: s0,1,2; +LA (DDPM-F) mnist IF=0.01 K=10: s0,1,2; GeFL-F (DDPM-F) fmnist IF=0.01 K=10: s0,1,2; GeFL-F (DDPM-F) fmnist IF=1.0 K=10: s1,2; GeFL-F (DDPM-F) mnist IF=0.01 K=10: s0,1,2; GeFL-F (DDPM-F) mnist IF=1.0 K=10: s0,1,2; Ours (DDPM-F) fmnist IF=0.01 K=10: s0,1,2; Ours (DDPM-F) fmnist IF=1.0 K=10: s2; Ours (DDPM-F) mnist IF=0.01 K=10: s0,1,2; Ours (DDPM-F) mnist IF=1.0 K=10: s0,1,2 |
+

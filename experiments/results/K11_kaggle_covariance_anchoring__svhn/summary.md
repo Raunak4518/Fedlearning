@@ -1,5 +1,8 @@
-# K11_kaggle_covariance_anchoring: MC-S: exact class-covariance anchoring (SVHN)
-(pasted by the user from Kaggle NB22; per-seed values included.)
+# K11_kaggle_covariance_anchoring: MC-S: exact class-covariance anchoring (SVHN, CIFAR-10; long tail + IID)
+
+Mode: full
+
+Hypothesis: Ours-A-S > Ours-A everywhere; on SVHN it closes the gap to CVAE + HWA (62.5 LT, 76.3 IID).
 
 ## svhn  IF=0.01  alpha=0.5  K=10
 
@@ -22,6 +25,7 @@
 | Ours-A-S (PC+MCS+KH+LA+CSL) | 2 | 63.25 | 44.88 | 68.65 | 64.92 | 23.33 | 30.08 | 0.93 | 0.01 | 14.36 |
 
 ## svhn  IF=1.0  alpha=None  K=10
+Paper Figure 4 GeFL-F (CVAE-F): 76.26%
 
 | label | n | final_bal | final_tail | best_mean_acc | bbc_bal | fidelity_tail_mc | fidelity_tail_kh | spread_tail_mc | class_sep_F | ncm_acc | p vs Ours-A (PC+MC+KH+LA+CSL) (final_bal) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -40,3 +44,4 @@
 | Ours-A-S (PC+MCS+KH+LA+CSL) | 0 | 75.90 | 74.01 | 76.98 | 75.93 | 45.25 | 50.83 | 0.94 | 0.01 | 22.95 |
 | Ours-A-S (PC+MCS+KH+LA+CSL) | 1 | 75.88 | 73.46 | 77.00 | 75.85 | 44.25 | 50.50 | 0.95 | 0.01 | 15.57 |
 | Ours-A-S (PC+MCS+KH+LA+CSL) | 2 | 75.85 | 73.51 | 77.16 | 75.75 | 48.33 | 52.08 | 0.93 | 0.01 | 15.58 |
+

@@ -77,27 +77,44 @@ def write_ledger(runs, path):
         for (lab, tag), seeds in sorted(by[st].items()):
             lines.append(f"| {lab} | {tag} | {','.join(map(str, sorted(seeds)))} |")
         lines.append("")
-    # jobs built as notebooks whose results never came back
-    try:
-        sys.path.insert(0, HERE)
-        import make_kaggle_notebooks as M
-        have = {os.path.basename(d.rstrip("/")) for d in glob.glob(os.path.join(RES, "*/"))}
-        missing = [j for j in M.JOBS if not any(h == j[3] or h.startswith(j[3] + "__") for h in have)]
-        lines += ["## Kaggle notebooks built but no results in the repo", "",
-                  "(Either not run yet, or the zip was never copied back. Copy results back before re-running.)", "",
-                  "| notebook | expected result folder | what |", "|---|---|---|"]
-        lines += [f"| {j[0]} | {j[3]} | {j[5]} |" for j in missing]
-    except Exception as e:  # pragma: no cover
-        lines.append(f"(could not read make_kaggle_notebooks.JOBS: {e})")
+    lines += job_status(runs)
     with open(path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
     print("wrote", path, f"({len(runs)} runs)")
 
 
-def check(script, argv, runs):
+def _flat(d, pre=""):
+    out = {}
+    for k, v in (d or {}).items():
+        if isinstance(v, dict):
+            out.update(_flat(v, pre + k + "."))
+        else:
+            out[pre + k] = v
+    return out
+
+
+def same_method(stored, plan_m, defaults):
+    """stored (from an older runs.jsonl) matches the planned method if every stored key agrees
+    and every key the stored dict lacks (added to the code later) is at its 'off' default."""
+    a, b = _flat(stored), _flat(plan_m)
+    for k, v in b.items():
+        if k in a:
+            if a[k] != v:
+                return False
+        elif defaults.get(k, v) != v:
+            return False
+    return True
+
+
+def planned(script, argv):
+    """The runs a built script would execute with these command-line arguments."""
     sys.path.insert(0, HERE)
+    saved = sys.argv
     sys.argv = [script] + argv
-    mod = importlib.import_module(script)
+    try:
+        mod = importlib.import_module(script)
+    finally:
+        sys.argv = saved
     exp = mod.EXPERIMENT
     ap = argparse.ArgumentParser()
     ap.add_argument("--seeds", type=int, nargs="+")
@@ -108,8 +125,70 @@ def check(script, argv, runs):
     a, _ = ap.parse_known_args(argv)
     cfg = dict(quick=False, seeds=a.seeds or exp.get("seeds", [0, 1, 2]), quick_scale=1.0, quick_frac={})
     plan = exp["plan"](cfg)
-    plan = [r for r in plan if (not a.datasets or r["dataset"] in a.datasets) and (not a.IF or r["IF"] in a.IF)
+    planned.defaults = _flat(dict(fe=getattr(mod, "FE_DEFAULTS", {}), gen=getattr(mod, "GEN_DEFAULTS", {}),
+                                  head=getattr(mod, "HEAD_DEFAULTS", {})))
+    return [r for r in plan if (not a.datasets or r["dataset"] in a.datasets) and (not a.IF or r["IF"] in a.IF)
             and (not a.K or r["K"] in a.K) and (not a.only or r["label"] in a.only)]
+
+
+def _seeds(xs):
+    return ",".join(map(str, sorted(xs)))
+
+
+def job_status(runs):
+    """Every Kaggle notebook job and every local E/F spec: planned runs vs runs in its result folder."""
+    import shlex
+    sys.path.insert(0, HERE)
+    import make_kaggle_notebooks as M
+    done = defaultdict(set)                      # folder -> {(label, setting, seed)}
+    meth = defaultdict(list)                     # (folder, setting, seed) -> [stored method dicts]
+    for r in runs:
+        done[r["folder"]].add((r["label"], r["setting"], r["seed"]))
+        if r["method"]:
+            meth[(r["folder"], r["setting"], r["seed"])].append(json.loads(r["method"]))
+    jobs = [(j[0], j[1], shlex.split(j[2]), j[3]) for j in M.JOBS]
+    for spec in sorted(glob.glob(os.path.join(HERE, "specs", "[EF]*.py"))):
+        name = os.path.splitext(os.path.basename(spec))[0]
+        if os.path.exists(os.path.join(HERE, name + ".py")):
+            jobs.append(("(local)", name, [], name))
+    lines = ["## Status of every job (planned runs vs runs in its result folder)", "",
+             "COMPLETE = every planned run is in the folder. PARTIAL lists the missing (label: seeds). "
+             "NOT RUN = no result folder (ask before re-running: the zip may just not be copied back). "
+             "QUICK ONLY = only a reduced-round viability pass exists. "
+             "Most PARTIAL rows are arms added to a spec AFTER it ran (superseded by a later job); see "
+             "docs/PROGRESS.md before re-running any of them.", "",
+             "| job | script + args | result folder | planned | done | status |", "|---|---|---|---|---|---|"]
+    for nb, script, argv, folder in jobs:
+        try:
+            plan = planned(script, argv)
+        except Exception as e:  # pragma: no cover
+            lines.append(f"| {nb} | {script} | {folder} | ? | ? | cannot plan: {e} |")
+            continue
+        folders = [f for f in done if f == folder or f.startswith(folder + "__")]
+        have = set().union(*[done[f] for f in folders]) if folders else set()
+        miss = defaultdict(set)
+        for r in plan:
+            key = (r["label"], setting(r["dataset"], r["IF"], r["alpha"], r["K"]), r["seed"])
+            by_method = any(same_method(m, r["m"], planned.defaults)
+                            for f in folders for m in meth.get((f, key[1], key[2]), []))
+            if key not in have and not by_method:
+                miss[(r["label"], key[1])].add(r["seed"])
+        n_miss = sum(len(v) for v in miss.values())
+        if not folders:
+            status = "QUICK ONLY" if folder + "_quick" in done else "NOT RUN"
+        elif n_miss == 0:
+            status = "COMPLETE"
+        else:
+            status = "PARTIAL - missing " + "; ".join(f"{lab} {st[0]} IF={st[1]} K={st[3]}: s{_seeds(sd)}"
+                                                       for (lab, st), sd in sorted(miss.items()))
+        args = " ".join(argv)
+        lines.append(f"| {nb} | {script} {args} | {', '.join(folders) or folder} | {len(plan)} | "
+                     f"{len(plan) - n_miss} | {status} |")
+    return lines + [""]
+
+
+def check(script, argv, runs):
+    plan = planned(script, argv)
     by_m = defaultdict(list)
     by_l = defaultdict(list)
     for r in runs:
