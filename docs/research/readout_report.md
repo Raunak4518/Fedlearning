@@ -1,0 +1,122 @@
+# Beyond ESA: where GeFL-F's remaining error lives, and the readout-bias mechanism
+
+*Technical report, 2026-10-14. Status of every claim is marked: **[proved]**, **[measured]** (existing runs),
+**[T03]** (new isolated test, `experiments/T03_exact_readout.py`, pre-registered in
+`experiments/results/T03_exact_readout/PREREGISTRATION.md`), **[conjecture]**, **[known]** (prior work).*
+
+## 1. Current research state (verified against the repository)
+
+* **Implemented final method (Ours-A).** PC-VAE generator conditioned on exact class means; MC (or MC-B) moment
+  correction; KH kernel herding; LA heads; CSL consensus labels; gated BBC; T_s = 10 on MNIST/FMNIST. On SVHN-like
+  data (F < 0.05) the gate selects CVAE class rows + HWA + MC + KH. Ablation K09 (3 seeds): every component helps
+  on 30/30 seed-level comparisons; per-component significance pending K14.
+* **Proved.** Theorem 1 / Lemma 2 (row contraction under coupled Adam decay), Prop. 3 (synthetic budget), Prop. 4
+  (MC is minimum-displacement), Prop. 5 (mean anchor separates only as far as means), Prop. 6 (Gelbrich map),
+  Prop. 7 (MixUp to second order).
+* **Rejected on evidence.** Prior-completing batches, lazy decay as a fix with HWA, FSG / hybrid generators, BCR and
+  BBC-only recalibration *on synthetic features*, SED (server distillation on synthetic features), Bayesian CSL,
+  held-class alignment, KME-Gen, VCT (K13: VCT 60.29 vs MixUp 59.98, neither reaches 62.67).
+* **Pending.** K14 (ablation seeds 3-4, MC-B), K15 (collapse fixes vs HWA).
+
+## 2. Where the remaining error is [measured]
+
+Two diagnostics the pipeline already logs for every run:
+* **oracle**: each head's last layer (`fc`) re-fit on the *pooled real* training embeddings with class-balanced
+  sampling (body frozen);
+* **ensemble**: the average of the G heads' softmax outputs.
+
+Define, in balanced accuracy, the **readout gap** = oracle − head and the **representation gap** = ensemble − oracle.
+
+| run (3 seeds) | head | oracle | ensemble | readout gap | repr. gap |
+|---|---|---|---|---|---|
+| GeFL-F, MNIST LT | 74.2 | 90.7 | 84.9 | **16.5** | −5.8 |
+| GeFL-F, FMNIST LT | 58.7 | 79.2 | 71.7 | **20.5** | −7.5 |
+| GeFL-F, SVHN LT | 50.5 | 64.8 | 60.0 | **14.3** | −4.8 |
+| + HWA + LA, MNIST LT | 87.8 | 92.4 | 94.1 | 4.6 | 1.7 |
+| + HWA + LA, FMNIST LT | 76.0 | 80.1 | 81.8 | 4.1 | 1.7 |
+| Ours-A, MNIST LT | 94.8 | 94.9 | 96.1 | 0.1 | 1.2 |
+| Ours-A, FMNIST LT (K = 10 / 50 / 100) | 79.7 / 79.5 / 79.0 | 81.6 / 81.2 / 81.0 | 83.1 / 82.1 / 81.1 | 1.9 / 1.7 / 2.0 | 1.5 / 0.9 / 0.1 |
+| Ours-A (rows), SVHN LT | 65.6 | 68.4 | 72.2 | 2.8 | 3.8 |
+| Ours-A, CIFAR-10 LT | 46.1 | 52.3 | 57.1 | **6.2** | 4.8 |
+| Ours-A, CIFAR-10 IID | 56.8 | 57.9 | 67.5 | 1.1 | 9.6 |
+
+Reading:
+1. **GeFL-F's long-tail failure is mostly a readout failure.** Its bodies are good enough that a balanced
+   last-layer refit on pooled real data adds 14-20 points; the readout gap is larger than the ensemble gap.
+2. **ESA's components shrink the readout gap** (16.5 → 4.6 → 0.1 on MNIST; 20.5 → 4.1 → 1.9 on FMNIST) and, beyond
+   that, improve the bodies: Ours-A's head beats GeFL-F's *oracle* by +4.1 (MNIST), +0.5 (FMNIST), +0.8 (SVHN,
+   rows), and its oracle beats GeFL-F's oracle by +4.2 / +2.4 / +3.6.
+3. **The representation gap is a single-client-head effect.** With K = 10 and G = 10 architectures every head is
+   trained on one client's real data. As clients per architecture grow (FMNIST K = 50, 100) the representation gap
+   falls to 0.1 while the **readout gap stays at 1.7-2.0**: the readout gap is the K-invariant residual of the
+   final method under the long tail, and it is large on CIFAR-10 (6.2).
+
+Consequence for the paper [known + measured]: classifier re-calibration from federated feature statistics (CCVR,
+NeurIPS 2021; CReFF, IJCAI 2022; Fed3R, ICML 2024) attacks exactly the readout gap. Applied to GeFL-F its *upper
+bound* (the oracle) is 90.7 / 79.2 / 64.8, which the final method beats by only +4.1 / +0.5 / +0.8. The paper does
+not yet compare against this family; it must.
+
+## 3. Competing hypotheses for the K-invariant readout gap
+
+| | Hypothesis | Intervention | Predicts | Status |
+|---|---|---|---|---|
+| H-R | **Readout bias from synthetic dependence × synthetic mismatch.** A head learns tail classes mostly from synthetic features; in the head's embedding space their mean is off by Δ_c; prior corrections cannot remove a mean error. | Exact-statistics readout (ER) from real embedding sums, per architecture | ER ≈ oracle; gap ∝ (1 − α)·‖Δ‖; BBC < oracle | selected; T03 |
+| H-P | Pure class-prior bias (the LA/BBC target) | better prior correction | BBC = oracle | already contradicted: BBC < oracle in every LA run (e.g. FMNIST 80.6 vs 81.6, CIFAR-10 48.7 vs 52.3) |
+| H-V | Single-client head variance (heads see one client's data) | cross-architecture codistillation on local real data | ensemble gap shrinks; readout gap unchanged | explains the *representation* gap (falls with K); known technique (federated codistillation, FedGKD, FedDF) |
+
+## 4. Derivation (H-R)
+
+**Setting.** FE output $h \in \mathbb R^{D}$. Head $g$: body $e_g:\mathbb R^D\to\mathbb R^{d_g}$, readout
+$(W_g, b_g) \in \mathbb R^{C\times d_g}\times\mathbb R^C$. Client $k$ (architecture $g = a(k)$) has $n_{k,c}$ real
+samples of class $c$, $n_k = \sum_c n_{k,c}$. Each round: $T_s$ synthetic epochs (about $T_s n_k / C$ samples per
+class, uniform labels) then $T_r = 5$ real epochs. Target: balanced risk
+$R_{\mathrm{bal}}(f) = \frac1C\sum_c \mathbb E_{h\sim P_c}\,\ell(f(h), c)$.
+
+**Readout model.** Fix the body. In embedding space let real class $c$ have mean $\mu_c$ and common covariance
+$\Sigma$; let generated class-$c$ samples have mean $\mu_c + \Delta_c$. The readout that minimises the balanced risk
+under this Gaussian model is uniform-prior LDA: $w_c = \Sigma^{-1}\mu_c$, $b_c = -\tfrac12\mu_c^\top\Sigma^{-1}\mu_c$.
+
+**What the client's readout sees.** Within a round, class $c$'s evidence on client $k$ is a mixture of its local
+real samples (mean $\hat\mu_{k,c} = \mu_c + \varepsilon_{k,c}$,
+$\varepsilon_{k,c}\sim\mathcal N(0,\Sigma/n_{k,c})$) and synthetic samples, with real share
+$$\alpha_{k,c} = \frac{T_r\,n_{k,c}}{T_r\,n_{k,c} + T_s\,n_k/C}.$$
+The fitted class mean is $m_{k,c} = \alpha_{k,c}\hat\mu_{k,c} + (1-\alpha_{k,c})(\mu_c + \Delta_c)$, so its error is
+$$\delta_{k,c} = m_{k,c} - \mu_c = \underbrace{(1-\alpha_{k,c})\,\Delta_c}_{\text{synthetic bias}} + \underbrace{\alpha_{k,c}\,\varepsilon_{k,c}}_{\text{local noise}} . \tag{1}$$
+
+**Lemma R1 [proved].** Logit offsets (LA, BBC, any prior correction) map LDA$(m)$ to LDA$(m')$ only if
+$\Sigma^{-1}(m_c - m'_c)$ is the same vector for every $c$.
+*Proof.* LDA$(m)$'s logit difference between classes $c, c'$ at $e$ is
+$(m_c - m_{c'})^\top\Sigma^{-1}e + \text{const}$. An offset changes only the constant, so the $e$-dependent part is
+preserved iff $\Sigma^{-1}\big((m_c - m'_c) - (m_{c'} - m'_{c'})\big) = 0$ for all pairs. $\square$
+Numerical check (C = 4, d = 6): a common shift of all means is fully undone by BBC's offsets (88.3 → 76.9 → 88.3);
+a class-specific shift of the same size is only partly undone (88.3 → 70.9 → 75.6).
+
+So the class-specific part of (1) survives every prior correction. It is zero when $\alpha_{k,c} = 1$ (plenty of
+local data: IID) or $\Delta_c = 0$ (a faithful generator), which is why the readout gap is small in IID runs and on
+MNIST and largest on CIFAR-10 LT (largest synthetic–real embedding mismatch, `gap_held` 15 %, and tail classes
+learned almost only from synthetic features).
+
+**Excess risk.** LDA is optimal at $\delta = 0$, so the balanced risk is stationary there and the excess is
+second order: $R(m) - R(\mu) \approx \tfrac12\sum_{c,c'}\delta_c^\top H_{cc'}\delta_{c'}$. To first approximation
+the per-class damage scales with $\|\delta_{k,c}\|^2_{\Sigma^{-1}}$, whose expectation is
+$$\mathbb E\|\delta_{k,c}\|^2_{\Sigma^{-1}} = (1-\alpha_{k,c})^2\|\Delta_c\|^2_{\Sigma^{-1}} + \alpha_{k,c}^2\,\frac{d_g}{n_{k,c}} . \tag{2}$$
+
+**Exact-statistics readout (ER).** Every client embeds its real features with *every* architecture's current body
+and uploads, per architecture, the class sums $\sum e$, the counts, and $\sum e e^\top$; secure aggregation gives the
+pooled $\mu_c$ and $\Sigma$, and the server sets the LDA readout (shrinkage $\gamma = 0.1$ fixed a priori). Then
+$\delta = 0$ up to estimation error $\Sigma/n_c$ with the *federation's* $n_c$, not the client's. Special cases: with
+one architecture and a frozen pretrained body this is Fed3R's setting (ridge instead of LDA) and CCVR's (Gaussian
+virtual features); the cross-architecture statistics are what heterogeneous heads add.
+
+**Cost.** One extra round. Each client: G forward passes of its data through small heads. Upload per architecture
+$C d_g + d_g^2$ numbers ($d_g$ = 80-1024 here; under 1.1 M numbers for the largest head). Disclosure: federation-level
+class means and second moments of each head's embedding, the same kind of release as MC-S and FSG.
+
+**Where it should fail [conjecture].** (i) Embedding distributions far from a shared-covariance Gaussian (LDA
+misspecified): ER below the CE-refit oracle. (ii) Representation-limited regimes (CIFAR-10 IID: readout gap 1.1,
+representation gap 9.6): ER cannot help. (iii) Under DP, tail-class embedding means carry noise of order
+$\sqrt{d_g}/(n_c\varepsilon)$, which grows with $d_g$.
+
+## 5-14. Results, interpretation and decision
+
+*(filled in from T03 below)*
