@@ -374,10 +374,13 @@ for _tid, _metric, _title in [("T17_collapse_fixes", "final_bal", "balanced accu
           [f"{ds.upper()} K={K}" for ds, K in _KS],
           [("GeFL-F", [_ref(ds, K, "GeFL-F", _metric) for ds, K in _KS]),
            ("+ LA (coupled Adam decay)", [_ref(ds, K, "+LA", _metric) for ds, K in _KS]),
-           ("+ AdamW + LA", [C(f"K15_kaggle_collapse_fixes__{ds}", "+ADAMW+LA", ds, LT, K, _metric) for ds, K in _KS]),
+           ("+ AdamW (1e-3, matched) + LA", [C(f"K15_kaggle_collapse_fixes__{ds}", "+ADAMW3+LA", ds, LT, K, _metric) for ds, K in _KS]),
+           ("+ AdamW (1e-2) + LA", [C(f"K15_kaggle_collapse_fixes__{ds}", "+ADAMW+LA", ds, LT, K, _metric) if K == 10 else None
+                                    for ds, K in _KS]),
+           ("+ no decay on class rows + LA", [C(f"K15_kaggle_collapse_fixes__{ds}", "+ROWNOWD+LA", ds, LT, K, _metric) for ds, K in _KS]),
            ("+ lazy decay + LA", [C(f"K15_kaggle_collapse_fixes__{ds}", "+LCD+LA", ds, LT, K, _metric) for ds, K in _KS]),
            ("+ HWA + LA", [_ref(ds, K, "+HWA+LA", _metric) for ds, K in _KS])],
-          ref="+ HWA + LA", note="Rows 3-4 fill in when K15 (NB38 / NB39) results are copied back.")
+          ref="+ HWA + LA", note="Rows 3-6 fill in when K15 (NB38 / NB39) results are copied back.")
 
 MERGED = {"K09+K14:mnist": ["K09_kaggle_ablation_final__mnist", "K14_kaggle_ablation_seeds_mcb__mnist"],
           "K09+K14:fmnist": ["K09_kaggle_ablation_final__fmnist", "K14_kaggle_ablation_seeds_mcb__fmnist"],

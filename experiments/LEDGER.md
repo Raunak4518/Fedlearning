@@ -609,8 +609,8 @@ COMPLETE = every planned run is in the folder. PARTIAL lists the missing (label:
 | NB31_vct_cifar10_longtail | K13_kaggle_vct_vs_mixup --IF 0.01 | K13_kaggle_vct_vs_mixup__cifar10_lt | 6 | 6 | COMPLETE |
 | NB36_ablation_seeds_mcb_mnist | K14_kaggle_ablation_seeds_mcb --datasets mnist | K14_kaggle_ablation_seeds_mcb__mnist | 14 | 0 | NOT RUN |
 | NB37_ablation_seeds_mcb_fmnist | K14_kaggle_ablation_seeds_mcb --datasets fmnist | K14_kaggle_ablation_seeds_mcb__fmnist | 14 | 0 | NOT RUN |
-| NB38_collapse_fixes_mnist | K15_kaggle_collapse_fixes --datasets mnist | K15_kaggle_collapse_fixes__mnist | 18 | 0 | NOT RUN |
-| NB39_collapse_fixes_fmnist | K15_kaggle_collapse_fixes --datasets fmnist | K15_kaggle_collapse_fixes__fmnist | 18 | 0 | NOT RUN |
+| NB38_collapse_fixes_mnist | K15_kaggle_collapse_fixes --datasets mnist | K15_kaggle_collapse_fixes__mnist | 30 | 0 | NOT RUN |
+| NB39_collapse_fixes_fmnist | K15_kaggle_collapse_fixes --datasets fmnist | K15_kaggle_collapse_fixes__fmnist | 30 | 0 | NOT RUN |
 | NB6_svhn_diffusion | K04_kaggle_ddpm_cifar10_svhn --datasets svhn | K04_kaggle_ddpm_cifar10_svhn__svhn | 9 | 9 | COMPLETE |
 | NB7_cifar10_diffusion_seed0 | K04_kaggle_ddpm_cifar10_svhn --datasets cifar10 --seeds 0 | K04_kaggle_ddpm_cifar10_svhn__cifar10_s0 | 3 | 0 | NOT RUN |
 | NB8_cifar10_diffusion_seed1 | K04_kaggle_ddpm_cifar10_svhn --datasets cifar10 --seeds 1 | K04_kaggle_ddpm_cifar10_svhn__cifar10_s1 | 3 | 0 | NOT RUN |

@@ -4,20 +4,25 @@
 Theorem 1 (paper section 3.1): under flat FedAvg a class row contracts when the holders' gain is
 smaller than the non-holders' loss; under Adam with COUPLED decay the non-holders' loss is a step of
 order lr for any lambda > 0 (Lemma 2). Fixes that already exist outside this paper:
-  ADAMW : decoupled weight decay (Loshchilov & Hutter 2019): a non-holder's row shrinks only by
-          (1 - lr * wd) per step -> removes the collapse term, keeps flat averaging (dilution m_c / K).
+  ADAMW3: decoupled weight decay (Loshchilov & Hutter 2019) at the paper's coefficient 1e-3 (matched to
+          GeFL-F): a non-holder's row shrinks only by (1 - lr * wd) per step -> removes the collapse term,
+          keeps flat averaging (dilution m_c / K).
+  ADAMW : the same at PyTorch's default 1e-2, at K = 10 only: shows the coefficient does not matter
+          (predicted: non-holder shrink ~ steps * lr * wd = 0.05% vs 0.005% per round, both negligible).
+  ROWNOWD: no decay on the class rows only, the rest of the generator keeps coupled decay 1e-3: the
+          single-cause test (only the term Theorem 1 blames is removed).
   LCD   : lazy decay, as in lazy Adam for embedding rows: decay and update only the rows present in
           the batch -> non-holders leave the row unchanged; flat averaging still dilutes it.
-  HWA   : (ours; the same idea as count-weighted sparse aggregation in federated recommendation)
+  HWA   : (closely related to sparse, count-weighted aggregation in federated recommendation)
           average the row over holders only -> removes both the collapse term and the dilution.
-Prediction: ADAMW and LCD restore the rows at every K, but their data step is diluted by m_c / K,
+Prediction: ADAMW3, ROWNOWD and LCD restore the rows at every K, but their data step is diluted by m_c / K,
 so HWA's advantage over them GROWS with K (fewer holders per tail class).
 
 Heads use LA in every arm, so only the generator differs. Reference arms are NOT re-run (same splits
 and seeds, merge their runs.jsonl): GeFL-F, +LA, +HWA+LA from F01 (K = 10) and F04 (MNIST K = 50/100),
 and from K03 (FMNIST K = 50/100). Check: python ledger.py --check K15_kaggle_collapse_fixes.
 
-Typical use (rough time on T4 x2: ~2 h per dataset):
+Typical use (rough time on T4 x2: ~3.3 h per dataset):
     python K15.py --datasets mnist  --out_dir /kaggle/working/results
     python K15.py --datasets fmnist --out_dir /kaggle/working/results
 """
@@ -604,7 +609,7 @@ def opt_to(opt, device):
 # ---------------------------------------------------------------- method spec
 FE_DEFAULTS = dict(la=False, T_FE=None, oracle=False)
 GEN_DEFAULTS = dict(type="cvae", wd=1e-3, agg="flat", lazy=False, beta=0.999, weight="en",
-                    dp_eps=None, oracle=False, T_KA=None, opt="adam")
+                    dp_eps=None, oracle=False, T_KA=None, opt="adam", rowwd0=False)
 HEAD_DEFAULTS = dict(sampler="uniform", order="syn_first", ts=1, tr=5, mix=None, mix_ratio=0.2, vct=0.0, mixup=0.0,
                      loss="ce", tau=1.0, bcr=0, bcr_lr=0.05, gen_update=False, csl=0.0, csl_mix=False,
                      sed=0, sed_lr=0.05, sed_beta=0.5, sed_bs=128, csl_mode="mix", mc=False, rsa=0.0, kh=False)
@@ -623,6 +628,8 @@ COMPONENTS = {
     "LCD": dict(gen=dict(lazy=True)),           # lazy conditioning decay
     "NOWD": dict(gen=dict(wd=0.0)),             # generator without weight decay
     "ADAMW": dict(gen=dict(opt="adamw", wd=1e-2)),  # decoupled decay (Loshchilov & Hutter), PyTorch default 1e-2
+    "ADAMW3": dict(gen=dict(opt="adamw", wd=1e-3)),  # decoupled decay at the paper's coefficient (matched to GeFL-F)
+    "ROWNOWD": dict(gen=dict(rowwd0=True)),     # no decay on the class rows only; trunk keeps coupled decay 1e-3
     "GF": dict(head=dict(sampler="gapfill")),   # gap-filling synthetic labels (water-filling)
     "PCM": dict(head=dict(mix="pcm")),          # prior-completing mixed batches
     "LA": dict(head=dict(loss="la")),           # logit adjustment by the training prior
@@ -1039,7 +1046,7 @@ class GenClient:
     def __init__(self, G, gspec, offload):
         self.offload = offload
         if G.kind == "cvae":
-            cond = [G.label_proj] if gspec["lazy"] else []
+            cond = [G.label_proj] if (gspec["lazy"] or gspec.get("rowwd0")) else []
             ids = {id(p) for p in cond}
             trunk = [p for p in G.parameters() if id(p) not in ids]
             groups = [{"params": trunk, "weight_decay": gspec["wd"]}]
@@ -2652,16 +2659,18 @@ def main(exp):
 # ======================================================================
 #  Experiment definition
 # ======================================================================
-ARMS = [("+ADAMW+LA", "ADAMW+LA"), ("+LCD+LA", "LCD+LA")]
+ARMS = [("+ADAMW3+LA", "ADAMW3+LA"), ("+ROWNOWD+LA", "ROWNOWD+LA"), ("+LCD+LA", "LCD+LA")]
+ARMS_K10 = [("+ADAMW+LA", "ADAMW+LA")]
 EXPERIMENT = dict(
     name="K15_kaggle_collapse_fixes",
     title="Existing fixes for row collapse (AdamW, lazy decay) against HWA, K = 10 / 50 / 100",
-    hypothesis="ADAMW and LCD restore the tail rows (ratio ~1) but trail +HWA+LA, by more as K grows.",
-    reference="+ADAMW+LA",
+    hypothesis="ADAMW3, ROWNOWD and LCD restore the tail rows (ratio ~1) but trail +HWA+LA, by more as K grows; ADAMW (1e-2) = ADAMW3 at K = 10.",
+    reference="+ADAMW3+LA",
     split_by_gen=True,
     metrics=["final_bal", "final_tail", "best_mean_acc", "cond_norm_tail_over_head_end", "fidelity_tail"],
     plan=lambda cfg: [run_spec(lab, ds, s, compose(c), IF=0.01, alpha=0.5, K=K)
-                      for ds in ["mnist", "fmnist"] for K in [10, 50, 100] for s in cfg["seeds"] for lab, c in ARMS],
+                      for ds in ["mnist", "fmnist"] for K in [10, 50, 100] for s in cfg["seeds"]
+                      for lab, c in ARMS + (ARMS_K10 if K == 10 else [])],
 )
 
 

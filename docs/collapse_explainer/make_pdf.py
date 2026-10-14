@@ -293,14 +293,16 @@ def build():
     fix_rows = [["Fix", "Removes the shrink term D?", "Removes the m<sub>c</sub>/K dilution?", "Where it comes from",
                  "Our evidence so far"]]
     for name, lab, d_, dil, src in [("AdamW (decoupled decay)", None, "yes (D ≈ 0)", "no", "Loshchilov & Hutter 2019"),
-                                    ("No decay on the rows", "+NOWD", "yes (D = 0)", "no", "common practice for embeddings"),
+                                    ("No weight decay (whole generator)", "+NOWD", "yes (D = 0)", "no", "common practice"),
+                                    ("No decay on the class rows only (rest keeps decay)", None, "yes (D = 0)", "no",
+                                     "common practice for embeddings"),
                                     ("Lazy decay (decay only rows in the batch)", "+LCD", "yes (D = 0)", "no",
                                      "lazy Adam; ours: LCD"),
                                     ("HWA: average row c over holders only", "+HWA", "yes", "yes",
                                      "ours; same idea as sparse aggregation in fed. recommendation"),
                                     ("No class rows at all (class from the exact class mean)", None, "nothing to "
                                      "shrink", "nothing to dilute", "ours: PC-VAE")]:
-        ev = "not run yet (K15)" if name.startswith("AdamW") else ""
+        ev = "not run yet (K15)" if name.startswith(("AdamW", "No decay on the class rows")) else ""
         if lab:
             parts = []
             for ds in ["mnist", "fmnist"]:
@@ -326,15 +328,19 @@ def build():
     story += [P("8. The experiment that settles it (K15, ready to run)", "h1"),
               P("<b>Question.</b> Is HWA better than the standard optimiser fixes, and by how much, in this "
                 "setting?"),
-              *bullets(["<b>Arms</b>: AdamW + LA, lazy decay + LA (new); GeFL-F, + LA, + HWA + LA (already run with "
-                        "the same splits and seeds; reused, not repeated). Heads use LA in every arm, so only the "
-                        "generator differs.",
+              *bullets(["<b>New arms</b>: AdamW at the paper's decay 10<super>-3</super> (matched, so only the "
+                        "optimiser changes); no decay on the class rows only (the rest keeps the paper's decay: the "
+                        "single-cause test); lazy decay; and AdamW at 10<super>-2</super> at K = 10 only, to show "
+                        "the coefficient does not matter. <b>Reused</b> (same splits and seeds, not repeated): "
+                        "GeFL-F, + LA, + HWA + LA. Heads use LA in every arm, so only the generator differs.",
                         "<b>Settings</b>: MNIST and FashionMNIST, 100:1 long tail, Dirichlet(0.5), K = 10, 50 and 100 "
-                        "clients, 3 seeds each: 36 new runs, about 2 GPU-hours per dataset (notebooks NB38, NB39).",
+                        "clients, 3 seeds each: 60 new runs, about 3.3 hours per dataset on a T4 × 2 (NB38, NB39).",
                         "<b>Measured</b>: balanced accuracy, tail recall, tail/head row length, generator fidelity on "
                         "tail classes."]),
               P("<b>What the theory predicts, written down before the run:</b>"),
-              *bullets(["AdamW and lazy decay bring the tail/head row ratio close to 1 at every K (they set D ≈ 0).",
+              *bullets(["AdamW (both coefficients), no-decay-on-rows and lazy decay bring the tail/head row ratio "
+                        "close to 1 at every K (they set D ≈ 0); AdamW at 10<super>-2</super> and 10<super>-3</super> "
+                        "give the same result.",
                         "They still beat + LA (GeFL-F with the bad optimiser) by a large margin.",
                         "HWA is at least as good as both, and its lead <b>grows with K</b>, because with more clients a "
                         "tail class has more non-holders, and only HWA removes their dilution (m<sub>c</sub>/K falls "
