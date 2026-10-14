@@ -463,7 +463,8 @@ FIGS = []
 def save(fig, fid, section, caption, sources):
     os.makedirs(os.path.join(OUT, "figures"), exist_ok=True)
     for ext in ("png", "pdf"):
-        fig.savefig(os.path.join(OUT, "figures", f"{fid}.{ext}"), dpi=200, bbox_inches="tight")
+        fig.savefig(os.path.join(OUT, "figures", f"{fid}.{ext}"), dpi=200, bbox_inches="tight",
+                    metadata={"CreationDate": None} if ext == "pdf" else {"Software": None})
     plt.close(fig)
     FIGS.append(dict(id=fid, section=section, caption=caption, sources=sources))
 
