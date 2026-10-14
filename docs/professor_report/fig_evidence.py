@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "fig")
 ROOT = os.path.normpath(os.path.join(HERE, "..", "..", "experiments", "results"))
-D01 = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "D01_component_evidence")
+D01 = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "D01_kaggle")  # Kaggle T4 run; the local run (D01_component_evidence) agrees
 K09 = sys.argv[2:] or sorted(glob.glob(os.path.join(ROOT, "K09_kaggle_ablation_final*")))
 plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 8.5})
 INK, MUTED, GOOD, BAD, OURS, NEUT = "#1f2a37", "#5b6676", "#2f9e44", "#c92a2a", "#1c7ed6", "#868e96"

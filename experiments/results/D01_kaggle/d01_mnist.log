@@ -1,0 +1,37 @@
+23:33:48 mnist s0: real F=0.291 NCM acc=0.822
+23:33:48 mnist s0: stage I done (35s), referee test acc 0.971
+/usr/local/lib/python3.13/dist-packages/torch/autograd/graph.py:869: UserWarning: The AccumulateGrad node's stream does not match the stream of the node that produced the incoming gradient. This may incur unnecessary synchronization and break CUDA graph capture if the AccumulateGrad node's stream is the default stream. This mismatch is caused by an AccumulateGrad node created prior to the current iteration being kept alive. This can happen if the autograd graph is still being kept alive by tensors such as the loss, or if you are using DDP, which will stash a reference to the node. To resolve the mismatch, delete all references to the autograd graph or ensure that DDP initialization is performed under the same stream as subsequent forwards. If the mismatch is intentional, you can use torch.autograd.graph.set_warn_on_accumulate_grad_stream_mismatch(False) to suppress this warning. (Triggered internally at /pytorch/torch/csrc/autograd/input_buffer.cpp:240.)
+  return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+23:42:06 mnist s0: CVAE-F trained (533s)
+23:50:18 mnist s0: CVAE-F+HWA trained (1024s)
+23:58:33 mnist s0: PC-VAE trained (1520s)
+23:59:20 mnist s0: CVAE-F         fid_tail=0.112 spread_tail=0.958 mmd_tail=0.2769 F=0.120 TSTR bal=0.580 tail=0.243
+23:59:33 mnist s0: CVAE-F+HWA     fid_tail=0.288 spread_tail=0.886 mmd_tail=0.2182 F=0.164 TSTR bal=0.765 tail=0.662
+23:59:46 mnist s0: PC-VAE         fid_tail=0.903 spread_tail=0.471 mmd_tail=0.2055 F=0.710 TSTR bal=0.906 tail=0.843
+23:59:59 mnist s0: PC-VAE+MC      fid_tail=0.851 spread_tail=0.849 mmd_tail=0.1053 F=0.345 TSTR bal=0.930 tail=0.891
+00:00:23 mnist s0: PC-VAE+MC+KH   fid_tail=0.871 spread_tail=0.941 mmd_tail=0.0917 F=0.307 TSTR bal=0.941 tail=0.911
+00:31:53 mnist s0: Ours-A: bal=95.21 tail=91.91 TV one-hot 0.100 -> CSL 0.092
+00:39:14 mnist s0: Ours-A with CE (no LA): bal=92.04 tail=84.51 TV one-hot 0.100 -> CSL 0.093
+00:39:14 mnist s0: done in 3961s
+00:39:41 mnist s1: real F=0.320 NCM acc=0.817
+00:39:41 mnist s1: stage I done (28s), referee test acc 0.970
+00:48:03 mnist s1: CVAE-F trained (529s)
+00:56:19 mnist s1: CVAE-F+HWA trained (1025s)
+01:04:38 mnist s1: PC-VAE trained (1524s)
+01:04:51 mnist s1: CVAE-F         fid_tail=0.073 spread_tail=1.028 mmd_tail=0.3044 F=0.106 TSTR bal=0.531 tail=0.216
+01:05:04 mnist s1: CVAE-F+HWA     fid_tail=0.306 spread_tail=0.923 mmd_tail=0.2175 F=0.175 TSTR bal=0.804 tail=0.753
+01:05:17 mnist s1: PC-VAE         fid_tail=0.954 spread_tail=0.438 mmd_tail=0.2094 F=0.879 TSTR bal=0.923 tail=0.889
+01:05:31 mnist s1: PC-VAE+MC      fid_tail=0.908 spread_tail=0.855 mmd_tail=0.1014 F=0.388 TSTR bal=0.937 tail=0.907
+01:05:56 mnist s1: PC-VAE+MC+KH   fid_tail=0.909 spread_tail=0.935 mmd_tail=0.0912 F=0.340 TSTR bal=0.912 tail=0.849
+01:05:56 mnist s1: done in 1602s
+01:06:24 mnist s2: real F=0.293 NCM acc=0.826
+01:06:24 mnist s2: stage I done (28s), referee test acc 0.973
+01:14:42 mnist s2: CVAE-F trained (527s)
+01:22:55 mnist s2: CVAE-F+HWA trained (1020s)
+01:31:12 mnist s2: PC-VAE trained (1517s)
+01:31:25 mnist s2: CVAE-F         fid_tail=0.110 spread_tail=0.895 mmd_tail=0.2789 F=0.043 TSTR bal=0.587 tail=0.499
+01:31:37 mnist s2: CVAE-F+HWA     fid_tail=0.328 spread_tail=0.810 mmd_tail=0.2071 F=0.170 TSTR bal=0.853 tail=0.794
+01:31:50 mnist s2: PC-VAE         fid_tail=0.929 spread_tail=0.417 mmd_tail=0.2160 F=0.751 TSTR bal=0.931 tail=0.877
+01:32:02 mnist s2: PC-VAE+MC      fid_tail=0.893 spread_tail=0.851 mmd_tail=0.1028 F=0.354 TSTR bal=0.945 tail=0.909
+01:32:26 mnist s2: PC-VAE+MC+KH   fid_tail=0.909 spread_tail=0.945 mmd_tail=0.0994 F=0.312 TSTR bal=0.954 tail=0.923
+01:32:26 mnist s2: done in 1590s

@@ -197,15 +197,15 @@ C.push(H2("Result"));
 C.push(B("Rare-class fidelity (referee kitne fake samples ko sahi class bolta hai): MNIST 0.11 → **0.91**, FMNIST 0.33 → **0.87**."));
 C.push(B("Akele accuracy mein HWA ke barabar (MNIST 90.40 vs 90.75; FMNIST 76.60 vs 75.96). Asli fayda: MC aur KH sirf tab kaam karte hain jab fake classes sahi hon, aur 100 clients pe Ours-A sirf 0.5 girta hai (HWA 4.8)."));
 C.push(B("Kami: samples mean ke bahut paas aate hain (spread kam). Isi liye agla step MC hai."));
-C.push(H2("Proof: real data pe (3 seeds)"));
-C.push(...img("ev01_collapse.png", 600, "Har line = ek class ki row ka size (start = 1). GeFL-F: rare classes ki rows 0.33 (MNIST) / 0.43 (FMNIST) tak gir jaati hain. HWA: sab badhti hain."));
+C.push(H2("Proof: real data pe (3 seeds, Kaggle)"));
+C.push(...img("ev01_collapse.png", 600, "Har line = ek class ki row ka size (start = 1). GeFL-F: rare classes ki rows 0.33 (MNIST) / 0.44 (FMNIST) tak gir jaati hain. HWA: sab badhti hain."));
 C.push(P("**Plot kaise padhein:** left panel mein light lines (rare classes) neeche gir rahi hain, dark lines (common) upar. Right panel: har point ek class hai; 1 se neeche = row shrink hui. Dhyan do: 70–90 % clients ke paas class hone pe bhi row giri, kyunki holders ka data gradient chhota hai aur Adam weight decay ko poora step bana deta hai."));
 C.push(...img("ev02_fidelity.png", 600, "Referee (real data pe trained head) fake samples ko kitna sahi pehchanta hai."));
-C.push(P("**Matlab:** GeFL-F ke rare-class fake samples sirf 11 % (MNIST) / 21 % (FMNIST) baar sahi pehchane jaate hain, PC-VAE ke 93 % / 90 %. Real test features 96 % / 84 % pe hain, to PC-VAE real ke barabar class information deta hai."));
-C.push(...img("ev07_rare_class_mnist.png", 600, "MNIST ki rarest class (sirf 24 real samples): green = real, colour = fake."));
+C.push(P("**Matlab:** GeFL-F ke rare-class fake samples sirf 10 % (MNIST) / 20 % (FMNIST) baar sahi pehchane jaate hain, PC-VAE ke 93 % / 88 %. Real test features 97 % / 84 % pe hain, to PC-VAE real ke barabar class information deta hai."));
+C.push(...img("ev07_rare_class_mnist.png", 600, "MNIST ki rarest class (sirf 24 real samples, 8/10 clients ke paas): green = real, colour = fake."));
 C.push(P("**Matlab:** GeFL-F ka fake class 9 doosri classes ke upar pada hai (grey blob). PC-VAE class ke upar hai lekin bahut sikuda hua (too narrow). MC aur KH usse real class jitna phaila dete hain."));
 C.push(...img("ev06_separability.png", 600, "Class mean kitna class pehchanta hai: F aur nearest-mean accuracy."));
-C.push(P("**Matlab:** sirf class mean se class pehchanne ki accuracy: MNIST 81 %, FMNIST 69 %, CIFAR-10 40 %, SVHN 13 % (chance 10 %). Figure ke neeche waale 4 panels mein X = class means: MNIST/FMNIST pe door-door, CIFAR-10 pe thode paas, SVHN pe sab ek jagah. Isliye PC-VAE MNIST/FMNIST pe sabse achha, CIFAR pe theek, SVHN pe kamzor."));
+C.push(P("**Matlab:** sirf class mean se class pehchanne ki accuracy: MNIST 82 %, FMNIST 69 %, CIFAR-10 41 %, SVHN 12 % (chance 10 %). Figure ke neeche waale 4 panels mein X = class means: MNIST/FMNIST pe door-door, CIFAR-10 pe thode paas, SVHN pe sab ek jagah. Isliye PC-VAE MNIST/FMNIST pe sabse achha, CIFAR pe theek, SVHN pe kamzor."));
 prof([
   ["Idea kahan se aaya?", "FedProto (Tan et al., AAAI 2022) class prototypes share karta hai. Hum prototype ko generator ki conditioning bana rahe hain aur residual seekh rahe hain."],
   ["SVHN pe kyun kaam nahi karta?", "SVHN ke class means almost same hain (nearest-mean accuracy 12 %, chance 10 %). Mean se class pehchani hi nahi jaati. Ye humari limitation hai, future scope mein fix hai."],
@@ -238,11 +238,11 @@ C.push(H2("Result"));
 C.push(B("PC-VAE ke upar: MNIST 90.75 → **92.31 (+1.56)**, FMNIST 75.96 → **77.56 (+1.60)**."));
 C.push(B("Optimal transport ka scalar case hai (Olkin and Pukelsheim, 1982)."));
 C.push(B("Limit: sirf total spread (ek number) match hota hai, poori covariance nahi. Covariance version (MC-S / MC-B) future scope hai."));
-C.push(H2("Proof: real data pe (3 seeds)"));
+C.push(H2("Proof: real data pe (3 seeds, Kaggle)"));
 C.push(...img("ev03_moments.png", 600, "Left: spread (1 = real). Right: class mean ki galti (0 = exact)."));
-C.push(P("**Matlab:** PC-VAE ka spread sirf 0.50 / 0.45 hai (samples sikude hue). MC ke baad 0.86 / 0.89, KH ke baad 0.95 / 0.98. Exact 1.0 nahi aata kyunki map ke baad ReLU negative values kaat deta hai, aur ye honest baat hai. Rare class ke mean ki galti 0.19 → 0.09 class std (MNIST)."));
+C.push(P("**Matlab:** PC-VAE ka spread sirf 0.47 / 0.45 hai (samples sikude hue). MC ke baad 0.85 / 0.90, KH ke baad 0.95 / 0.98. Exact 1.0 nahi aata kyunki map ke baad ReLU negative values kaat deta hai, aur ye honest baat hai. Rare class ke mean ki galti 0.22 → 0.09 class std (MNIST)."));
 C.push(...img("ev11_fake_separability.png", 600, "Fake features ki class separability F; green band = real features."));
-C.push(P("**Matlab:** GeFL-F ki fake classes ek doosre mein ghusi hain (F bahut kam). PC-VAE ki fake classes zaroorat se zyada alag hain (too clean, F 0.78 vs real 0.33). Head too-clean data pe aasaan cheez seekhta hai jo real pe kaam nahi aati. MC + KH ke baad F 0.35 / 0.62, real 0.33 / 0.61 ke almost barabar."));
+C.push(P("**Matlab:** GeFL-F ki fake classes ek doosre mein ghusi hain (F bahut kam). PC-VAE ki fake classes zaroorat se zyada alag hain (too clean, F 0.78 vs real 0.30). Head too-clean data pe aasaan cheez seekhta hai jo real pe kaam nahi aati. MC + KH ke baad F 0.32 / 0.61, real 0.30 / 0.60 ke almost barabar."));
 prof([
   ["ReLU kyun lagaya?", "Real features ReLU ke baad aate hain, to negative nahi ho sakte. Fake features bhi wahi range mein rehne chahiye."],
   ["Spread ko scalar kyun rakha?", "Rare class ke sirf 24 samples hain; 768×768 covariance ka estimate bahut noisy hota. Scalar spread 24 samples se bhi stable hai."],
@@ -278,11 +278,11 @@ C.push(B("MC ke upar: MNIST 92.31 → **93.11 (+0.80)**, FMNIST 77.56 → **78.2
 C.push(B("**9 out of 9** paired tests mein help kiya (p = 0.004)."));
 C.push(B("Interesting: referee fidelity thodi giri (0.94 → 0.88). Ye achha hai: fake features ab real jitne \"hard\" hain, artificially easy nahi."));
 C.push(B("Source: Chen, Welling and Smola, Kernel Herding (UAI 2010); MMD: Gretton et al. (JMLR 2012)."));
-C.push(H2("Proof: real data pe (3 seeds)"));
+C.push(H2("Proof: real data pe (3 seeds, Kaggle)"));
 C.push(...img("ev04_mmd.png", 600, "Left: har class ka MMD (fake ↔ real test). Right: MMD vs real accuracy, har point = ek (class, method)."));
-C.push(P("**Matlab:** MMD (sab classes): GeFL-F 0.22 → PC-VAE 0.18 → MC 0.086 → KH 0.069 (MNIST). Right plot Lemma 1 ko real data pe dikhata hai: jahan MMD kam, wahan fake pe trained head real data pe zyada sahi (r = −0.75 MNIST, −0.51 FMNIST)."));
+C.push(P("**Matlab:** MMD (sab classes): GeFL-F 0.22 → PC-VAE 0.20 → MC 0.089 → KH 0.071 (MNIST). Right plot Lemma 1 ko real data pe dikhata hai: jahan MMD kam, wahan fake pe trained head real data pe zyada sahi (r = −0.69 MNIST, −0.47 FMNIST)."));
 C.push(...img("ev05_tstr.png", 600, "Head sirf fake features pe train, real test pe check."));
-C.push(P("**Matlab:** sirf fake data se seekh ke real accuracy: GeFL-F 59 %, Ours-A 94 % (MNIST); real data pe trained head 97 %. Rare classes 32 % → 91 %. Honest baat: is test mein KH MC ke upar thoda hi jodta hai (+0.5 MNIST, +0.2 FMNIST); poori pipeline mein uska fayda +0.8 / +0.7 hai."));
+C.push(P("**Matlab:** sirf fake data se seekh ke real accuracy: GeFL-F 57 %, Ours-A 94 % (MNIST); real data pe trained head 97 %. Rare classes 32 % → 89 %. Honest baat: is test mein KH MC ke upar kuch nahi jodta (−0.2 MNIST, −1.1 FMNIST); uska fayda sirf poori pipeline mein dikhta hai (+0.8 / +0.7). Professor pooche to yahi bolna: KH MMD ghataata hai (upar wala plot), lekin akele head ke test mein MC hi kaafi hai."));
 prof([
   ["Sirf zyada samples kyun nahi bana lete?", "Zyada random samples se bhi wahi galat shape aati hai. Herding galat shape waale samples ko chhod deta hai."],
   ["Fingerprint ko train karna padta hai?", "Nahi. W aur b random fixed hain (seed), sab clients same map use karte hain."],
@@ -318,9 +318,9 @@ C.push(H2("Result"));
 C.push(B("MNIST long tail +2.5 (87.89 → 90.40), FMNIST +0.6. IID mein bhi +0.5 to +0.8 (MNIST 96.82 vs 96.01; CIFAR-10 59.85 vs 59.10; SVHN 76.30 vs 75.82)."));
 C.push(B("Bayesian CSL try kiya, fail hua (heads generator se hi seekhte hain to wo hamesha agree karte hain, ρ̂ → 0.999)."));
 C.push(B("Source: FedMD (Li and Wang, 2019); FedDF (Lin et al., NeurIPS 2020)."));
-C.push(H2("Proof: real data pe (seed 0)"));
+C.push(H2("Proof: real data pe (seed 0, Kaggle)"));
 C.push(...img("ev08_la_csl.png", 600, "Right column = CSL: training target ki real-data referee se doori (TV, kam = behtar)."));
-C.push(P("**Matlab:** right column dekho. Grey = one-hot label, blue = consensus soft label. Lagbhag har class mein blue chhota hai: TV 0.098 → 0.088 (MNIST), 0.192 → 0.179 (FMNIST). Matlab CSL ka target real data ki sachchai ke zyada paas hai. Sabse bada fark confusing classes pe (MNIST class 8, FMNIST class 6 = shirt)."));
+C.push(P("**Matlab:** right column dekho. Grey = one-hot label, blue = consensus soft label. **Har class** mein blue chhota ya barabar hai: TV 0.100 → 0.092 (MNIST), 0.212 → 0.202 (FMNIST). Matlab CSL ka target real data ki sachchai ke zyada paas hai. Sabse bada fark confusing classes pe (MNIST class 8, FMNIST class 6 = shirt)."));
 prof([
   ["Privacy?", "Sirf fake features pe predictions ka sum jaata hai. Real data ka kuch bhi nahi."],
   ["Consensus kis round ke heads se?", "Pichhle round ke averaged heads se, round ke shuru mein."],
@@ -352,11 +352,11 @@ C.push(H2("Result"));
 C.push(B("GeFL-F ke upar: MNIST 75.25 → **78.92 (+3.67)**, FMNIST 58.47 → **64.78 (+6.31)**; chaaron datasets pe +3.6 se +6.3."));
 C.push(B("IID mein koi effect nahi (π_k uniform hai, log π constant), to balanced setting kharab nahi hoti."));
 C.push(B("Source: Menon et al., Logit Adjustment (ICLR 2021); FL mein FedLC (Zhang et al., ICML 2022)."));
-C.push(H2("Proof: real data pe (seed 0)"));
+C.push(H2("Proof: real data pe (seed 0, Kaggle)"));
 C.push(P("Upar waali figure (Section 5) ke left aur middle column LA ke liye hain:"));
-C.push(B("**Left:** test set balanced hai, to har class ko 10 % predictions milni chahiye (green line). Plain CE common classes ko zyada predict karta hai (FMNIST class 0: 16.6 %), rare ko kam (class 6: 3.8 %). LA ke saath bars 10 % ke paas: 13.3 % aur 5.6 %."));
-C.push(B("**Middle:** har point = ek client ki ek class. x = client ke data mein us class ka share, y = head us class ko kitna predict karta hai. CE mein correlation 0.61 / 0.67 (head apni skew copy karta hai), LA mein 0.42 / 0.54."));
-C.push(B("**Accuracy:** CE 92.3 → LA 95.5 (MNIST), 74.0 → 79.2 (FMNIST), rare classes 84.8 → 92.6 (MNIST)."));
+C.push(B("**Left:** test set balanced hai, to har class ko 10 % predictions milni chahiye (green line). Plain CE common classes ko zyada predict karta hai (FMNIST class 0: 16.4 %), rare ko kam (class 6: 3.7 %). LA ke saath bars 10 % ke paas: 13.1 % aur 5.7 %."));
+C.push(B("**Middle:** har point = ek client ki ek class. x = client ke data mein us class ka share, y = head us class ko kitna predict karta hai. CE mein correlation 0.64 / 0.67 (head apni skew copy karta hai), LA mein 0.44 / 0.52."));
+C.push(B("**Accuracy:** CE 92.0 → LA 95.2 (MNIST), 75.5 → 79.9 (FMNIST), rare classes 84.5 → 91.9 (MNIST)."));
 prof([
   ["Ye to existing technique hai, novelty kya?", "Haan, LA established hai, hum claim nahi karte. Hum dikhate hain ki GeFL-F mein ye zaroori kyun hai (real phase skew wapas lata hai), aur ye baaki components ke saath add hota hai."],
   ["τ = 1 kyun?", "Theory mein τ = 1 Bayes-optimal hai; humne wahi rakha."],
