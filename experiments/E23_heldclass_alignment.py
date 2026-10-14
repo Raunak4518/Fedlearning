@@ -596,7 +596,7 @@ def opt_to(opt, device):
 # ---------------------------------------------------------------- method spec
 FE_DEFAULTS = dict(la=False, T_FE=None, oracle=False)
 GEN_DEFAULTS = dict(type="cvae", wd=1e-3, agg="flat", lazy=False, beta=0.999, weight="en",
-                    dp_eps=None, oracle=False, T_KA=None)
+                    dp_eps=None, oracle=False, T_KA=None, opt="adam")
 HEAD_DEFAULTS = dict(sampler="uniform", order="syn_first", ts=1, tr=5, mix=None, mix_ratio=0.2, vct=0.0, mixup=0.0,
                      loss="ce", tau=1.0, bcr=0, bcr_lr=0.05, gen_update=False, csl=0.0, csl_mix=False,
                      sed=0, sed_lr=0.05, sed_beta=0.5, sed_bs=128, csl_mode="mix", mc=False, rsa=0.0, kh=False)
@@ -614,6 +614,7 @@ COMPONENTS = {
     "HWA": dict(gen=dict(agg="A")),             # holder-weighted conditioning aggregation
     "LCD": dict(gen=dict(lazy=True)),           # lazy conditioning decay
     "NOWD": dict(gen=dict(wd=0.0)),             # generator without weight decay
+    "ADAMW": dict(gen=dict(opt="adamw", wd=1e-2)),  # decoupled decay (Loshchilov & Hutter), PyTorch default 1e-2
     "GF": dict(head=dict(sampler="gapfill")),   # gap-filling synthetic labels (water-filling)
     "PCM": dict(head=dict(mix="pcm")),          # prior-completing mixed batches
     "LA": dict(head=dict(loss="la")),           # logit adjustment by the training prior
@@ -1036,7 +1037,10 @@ class GenClient:
             groups = [{"params": trunk, "weight_decay": gspec["wd"]}]
             if cond:
                 groups.append({"params": cond, "weight_decay": 0.0})
-            self.opts = [torch.optim.Adam(groups, lr=1e-3, fused=DEV == "cuda")]
+            # "adamw": decoupled decay (no gradient term), so a non-holder's row shrinks only by
+            # (1 - lr * wd) per step instead of by a step of order lr (Theorem 1 / Lemma 2)
+            opt_cls = torch.optim.AdamW if gspec.get("opt", "adam") == "adamw" else torch.optim.Adam
+            self.opts = [opt_cls(groups, lr=1e-3, fused=DEV == "cuda")]
         elif G.kind == "ddpm":
             self.opts = [torch.optim.Adam(G.parameters(), lr=1e-4)]
         else:

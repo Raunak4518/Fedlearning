@@ -274,3 +274,39 @@ T16_ddpm,+ CSL (DDPM-F),SVHN,70.2484,0.6791,3,"{""0"": 69.5375, ""1"": 70.8904, 
 T16_ddpm,Ours (DDPM-F),FMNIST,82.823,0.3889,2,"{""0"": 83.098, ""1"": 82.548}",,,83.1,F11_ddpm_generator :: Ours (DDPM-F) :: fmnist IF=1.0 K=10
 T16_ddpm,Ours (DDPM-F),SVHN,70.3683,0.6483,3,"{""0"": 69.6255, ""1"": 70.8201, ""2"": 70.6592}",0.0987379906335799,paired,,K04_kaggle_ddpm_cifar10_svhn__svhn :: Ours (DDPM-F) :: svhn IF=1.0 K=10
 T16_ddpm,paper: GeFL-F DDPM-F,FMNIST,84.28,,,,,,,published (paper)
+T17_collapse_fixes,GeFL-F,MNIST K=10,74.6231,1.7577,3,"{""0"": 73.9153, ""1"": 73.3298, ""2"": 76.6244}",0.0036828697372314964,paired,,F01_main_longtail :: GeFL-F :: mnist IF=0.01 K=10
+T17_collapse_fixes,GeFL-F,MNIST K=50,78.1015,1.115,3,"{""0"": 78.1503, ""1"": 76.9628, ""2"": 79.1913}",0.0080043918713141,paired,,F04_clients :: GeFL-F :: mnist IF=0.01 K=50
+T17_collapse_fixes,GeFL-F,MNIST K=100,75.9751,0.9478,3,"{""0"": 76.8315, ""1"": 74.9568, ""2"": 76.137}",0.009502191947346323,paired,,F04_clients :: GeFL-F :: mnist IF=0.01 K=100
+T17_collapse_fixes,GeFL-F,FMNIST K=10,58.619,3.407,3,"{""0"": 62.156, ""1"": 58.342, ""2"": 55.359}",0.015225572115292421,paired,,F01_main_longtail :: GeFL-F :: fmnist IF=0.01 K=10
+T17_collapse_fixes,GeFL-F,FMNIST K=50,61.9157,1.3134,3,"{""0"": 62.629, ""1"": 62.718, ""2"": 60.4}",0.00408172596344777,paired,,K03_kaggle_client_scaling__K50 :: GeFL-F :: fmnist IF=0.01 K=50
+T17_collapse_fixes,GeFL-F,FMNIST K=100,61.9467,1.5167,3,"{""1"": 61.561, ""0"": 63.619, ""2"": 60.66}",0.0026277401678397707,paired,,K03_kaggle_client_scaling__K100 :: GeFL-F :: fmnist IF=0.01 K=100
+T17_collapse_fixes,+ LA (coupled Adam decay),MNIST K=10,78.9221,2.3216,3,"{""0"": 78.0448, ""1"": 77.167, ""2"": 81.5545}",0.012955661411064977,paired,,F01_main_longtail :: +LA :: mnist IF=0.01 K=10
+T17_collapse_fixes,+ LA (coupled Adam decay),MNIST K=50,81.3468,0.8227,3,"{""0"": 81.0118, ""1"": 80.7443, ""2"": 82.2841}",0.0085681891113852,paired,,F04_clients :: +LA :: mnist IF=0.01 K=50
+T17_collapse_fixes,+ LA (coupled Adam decay),MNIST K=100,79.5089,0.7631,3,"{""0"": 80.1858, ""1"": 78.6819, ""2"": 79.6589}",0.0270682775134527,paired,,F04_clients :: +LA :: mnist IF=0.01 K=100
+T17_collapse_fixes,+ LA (coupled Adam decay),FMNIST K=10,64.7787,3.3489,3,"{""0"": 68.07, ""1"": 64.891, ""2"": 61.375}",0.03526099146652252,paired,,F01_main_longtail :: +LA :: fmnist IF=0.01 K=10
+T17_collapse_fixes,+ LA (coupled Adam decay),FMNIST K=50,66.53,1.0823,3,"{""0"": 67.364, ""1"": 66.919, ""2"": 65.307}",0.006752017452002747,paired,,K03_kaggle_client_scaling__K50 :: +LA :: fmnist IF=0.01 K=50
+T17_collapse_fixes,+ LA (coupled Adam decay),FMNIST K=100,66.5573,1.9449,3,"{""1"": 66.042, ""0"": 68.708, ""2"": 64.922}",0.014247226310586985,paired,,K03_kaggle_client_scaling__K100 :: +LA :: fmnist IF=0.01 K=100
+T17_collapse_fixes,+ HWA + LA,MNIST K=10,87.8878,1.6135,3,"{""0"": 86.1463, ""1"": 88.1853, ""2"": 89.3319}",,,,F01_main_longtail :: +HWA+LA :: mnist IF=0.01 K=10
+T17_collapse_fixes,+ HWA + LA,MNIST K=50,86.4632,0.8366,3,"{""0"": 85.5109, ""1"": 86.7985, ""2"": 87.08}",,,,F04_clients :: +HWA+LA :: mnist IF=0.01 K=50
+T17_collapse_fixes,+ HWA + LA,MNIST K=100,83.072,0.5623,3,"{""0"": 82.5629, ""1"": 82.9776, ""2"": 83.6755}",,,,F04_clients :: +HWA+LA :: mnist IF=0.01 K=100
+T17_collapse_fixes,+ HWA + LA,FMNIST K=10,76.019,0.6667,3,"{""0"": 75.998, ""1"": 75.363, ""2"": 76.696}",,,,F01_main_longtail :: +HWA+LA :: fmnist IF=0.01 K=10
+T17_collapse_fixes,+ HWA + LA,FMNIST K=50,75.4473,0.1933,3,"{""0"": 75.299, ""1"": 75.377, ""2"": 75.666}",,,,K03_kaggle_client_scaling__K50 :: +HWA+LA :: fmnist IF=0.01 K=50
+T17_collapse_fixes,+ HWA + LA,FMNIST K=100,73.2523,0.7447,3,"{""1"": 72.613, ""0"": 74.07, ""2"": 73.074}",,,,K03_kaggle_client_scaling__K100 :: +HWA+LA :: fmnist IF=0.01 K=100
+T18_collapse_fixes_rows,GeFL-F,MNIST K=10,0.3272,0.3448,3,"{""0"": 0.0892, ""1"": 0.1698, ""2"": 0.7227}",0.09471098317743255,paired,,F01_main_longtail :: GeFL-F :: mnist IF=0.01 K=10
+T18_collapse_fixes_rows,GeFL-F,MNIST K=50,0.0513,0.0285,3,"{""0"": 0.0237, ""1"": 0.0496, ""2"": 0.0807}",0.0008407104595074198,paired,,F04_clients :: GeFL-F :: mnist IF=0.01 K=50
+T18_collapse_fixes_rows,GeFL-F,MNIST K=100,0.0418,0.0055,3,"{""0"": 0.0385, ""1"": 0.0389, ""2"": 0.0481}",0.0004751306940287713,paired,,F04_clients :: GeFL-F :: mnist IF=0.01 K=100
+T18_collapse_fixes_rows,GeFL-F,FMNIST K=10,0.2231,0.2838,3,"{""0"": 0.5487, ""1"": 0.0916, ""2"": 0.0288}",0.015887676264442836,paired,,F01_main_longtail :: GeFL-F :: fmnist IF=0.01 K=10
+T18_collapse_fixes_rows,GeFL-F,FMNIST K=50,0.067,0.022,3,"{""0"": 0.0606, ""1"": 0.0914, ""2"": 0.049}",0.0026753621423873633,paired,,K03_kaggle_client_scaling__K50 :: GeFL-F :: fmnist IF=0.01 K=50
+T18_collapse_fixes_rows,GeFL-F,FMNIST K=100,0.0648,0.0161,3,"{""1"": 0.0464, ""0"": 0.0724, ""2"": 0.0758}",0.0008927636460551643,paired,,K03_kaggle_client_scaling__K100 :: GeFL-F :: fmnist IF=0.01 K=100
+T18_collapse_fixes_rows,+ LA (coupled Adam decay),MNIST K=10,0.3272,0.3448,3,"{""0"": 0.0892, ""1"": 0.1698, ""2"": 0.7227}",0.09471098317743255,paired,,F01_main_longtail :: +LA :: mnist IF=0.01 K=10
+T18_collapse_fixes_rows,+ LA (coupled Adam decay),MNIST K=50,0.0513,0.0285,3,"{""0"": 0.0237, ""1"": 0.0496, ""2"": 0.0807}",0.0008407104595074198,paired,,F04_clients :: +LA :: mnist IF=0.01 K=50
+T18_collapse_fixes_rows,+ LA (coupled Adam decay),MNIST K=100,0.0418,0.0055,3,"{""0"": 0.0385, ""1"": 0.0389, ""2"": 0.0481}",0.0004751306940287713,paired,,F04_clients :: +LA :: mnist IF=0.01 K=100
+T18_collapse_fixes_rows,+ LA (coupled Adam decay),FMNIST K=10,0.2231,0.2838,3,"{""0"": 0.5487, ""1"": 0.0916, ""2"": 0.0288}",0.015887676264442836,paired,,F01_main_longtail :: +LA :: fmnist IF=0.01 K=10
+T18_collapse_fixes_rows,+ LA (coupled Adam decay),FMNIST K=50,0.067,0.022,3,"{""0"": 0.0606, ""1"": 0.0914, ""2"": 0.049}",0.0026753621423873633,paired,,K03_kaggle_client_scaling__K50 :: +LA :: fmnist IF=0.01 K=50
+T18_collapse_fixes_rows,+ LA (coupled Adam decay),FMNIST K=100,0.0648,0.0161,3,"{""1"": 0.0464, ""0"": 0.0724, ""2"": 0.0758}",0.0008927636460551643,paired,,K03_kaggle_client_scaling__K100 :: +LA :: fmnist IF=0.01 K=100
+T18_collapse_fixes_rows,+ HWA + LA,MNIST K=10,0.7968,0.0865,3,"{""0"": 0.708, ""1"": 0.8017, ""2"": 0.8807}",,,,F01_main_longtail :: +HWA+LA :: mnist IF=0.01 K=10
+T18_collapse_fixes_rows,+ HWA + LA,MNIST K=50,0.8372,0.043,3,"{""0"": 0.7942, ""1"": 0.8803, ""2"": 0.837}",,,,F04_clients :: +HWA+LA :: mnist IF=0.01 K=50
+T18_collapse_fixes_rows,+ HWA + LA,MNIST K=100,0.8634,0.0269,3,"{""0"": 0.8568, ""1"": 0.893, ""2"": 0.8404}",,,,F04_clients :: +HWA+LA :: mnist IF=0.01 K=100
+T18_collapse_fixes_rows,+ HWA + LA,FMNIST K=10,1.0122,0.1484,3,"{""0"": 1.1483, ""1"": 1.0343, ""2"": 0.8541}",,,,F01_main_longtail :: +HWA+LA :: fmnist IF=0.01 K=10
+T18_collapse_fixes_rows,+ HWA + LA,FMNIST K=50,0.923,0.0955,3,"{""0"": 0.9488, ""1"": 1.0029, ""2"": 0.8173}",,,,K03_kaggle_client_scaling__K50 :: +HWA+LA :: fmnist IF=0.01 K=50
+T18_collapse_fixes_rows,+ HWA + LA,FMNIST K=100,0.9326,0.0317,3,"{""1"": 0.9569, ""0"": 0.9443, ""2"": 0.8967}",,,,K03_kaggle_client_scaling__K100 :: +HWA+LA :: fmnist IF=0.01 K=100

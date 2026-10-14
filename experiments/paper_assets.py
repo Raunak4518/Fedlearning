@@ -358,6 +358,27 @@ table("T16_ddpm", "5.8", "Generator-agnostic: on the paper's DDPM-F (IID, best_m
                           C("K04_kaggle_ddpm_cifar10_svhn__svhn", "Ours (DDPM-F)", "svhn", IID, metric="best_mean_acc")]),
        ("paper: GeFL-F DDPM-F", [P(84.28), None])], ref="GeFL-F (DDPM-F)")
 
+# K15: existing fixes for row collapse vs HWA (references reused from F01 / F04 / K03, same splits and seeds)
+def _ref(ds, K, lab, metric):
+    if K == 10:
+        return C("F01_main_longtail", lab, ds, LT, 10, metric)
+    if ds == "mnist":
+        return C("F04_clients", lab, ds, LT, K, metric)
+    return C(f"K03_kaggle_client_scaling__K{K}", lab, ds, LT, K, metric)
+
+
+_KS = [("mnist", 10), ("mnist", 50), ("mnist", 100), ("fmnist", 10), ("fmnist", 50), ("fmnist", 100)]
+for _tid, _metric, _title in [("T17_collapse_fixes", "final_bal", "balanced accuracy"),
+                              ("T18_collapse_fixes_rows", "cond_norm_tail_over_head_end", "tail/head row norm at the end")]:
+    table(_tid, "3 / 4.1", f"Fixes for row collapse, long tail ({_title}; K15 + F01/F04/K03 references)",
+          [f"{ds.upper()} K={K}" for ds, K in _KS],
+          [("GeFL-F", [_ref(ds, K, "GeFL-F", _metric) for ds, K in _KS]),
+           ("+ LA (coupled Adam decay)", [_ref(ds, K, "+LA", _metric) for ds, K in _KS]),
+           ("+ AdamW + LA", [C(f"K15_kaggle_collapse_fixes__{ds}", "+ADAMW+LA", ds, LT, K, _metric) for ds, K in _KS]),
+           ("+ lazy decay + LA", [C(f"K15_kaggle_collapse_fixes__{ds}", "+LCD+LA", ds, LT, K, _metric) for ds, K in _KS]),
+           ("+ HWA + LA", [_ref(ds, K, "+HWA+LA", _metric) for ds, K in _KS])],
+          ref="+ HWA + LA", note="Rows 3-4 fill in when K15 (NB38 / NB39) results are copied back.")
+
 MERGED = {"K09+K14:mnist": ["K09_kaggle_ablation_final__mnist", "K14_kaggle_ablation_seeds_mcb__mnist"],
           "K09+K14:fmnist": ["K09_kaggle_ablation_final__fmnist", "K14_kaggle_ablation_seeds_mcb__fmnist"],
           "E32+K14:mnist": ["E32_moment_anchor_bayes", "K14_kaggle_ablation_seeds_mcb__mnist"],

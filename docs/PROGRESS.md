@@ -63,6 +63,7 @@ significant. **FIX DRAFT** = data exist but the draft quotes a different number.
 
 | Job | Why | Cost | Status |
 |---|---|---|---|
+| **NB38 / NB39 (K15)**, existing fixes for row collapse (AdamW, lazy decay) vs HWA, K = 10/50/100 | the question a reviewer asks first: is HWA better than just fixing the optimiser? Pre-registered predictions in `docs/collapse_explainer/collapse_theorem_explained.pdf` §8; tables T17/T18 fill in automatically | ~2 h each, T4 × 2 | ready in `kaggle_notebooks/`, not run; references reused (0 duplicates) |
 | NB36 / NB37 (K14), seeds 3–4 | per-component significance (claim 14) and MC-B stability on MNIST (claim 16) | ~2 h each, T4 × 2 | ready in `kaggle_notebooks/`, not run |
 | T01 extra seeds (local CPU or Kaggle) | claim 1 has 1 seed | ~1.5 h per seed on CPU | optional; theorem itself is exact, the seeds only add robustness |
 
