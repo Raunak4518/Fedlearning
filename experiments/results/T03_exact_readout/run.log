@@ -1,2 +1,8 @@
 21:32:08 loading fmnist
 21:51:45 [T03] fmnist GeFL-F: head 61.20 | oracle 78.65 | ER-LDA 79.12 | bbc 65.11 | rho(B)=0.64 rho(1-a)=0.77 rho(D)=0.33
+22:10:25 [T03] fmnist +HWA+LA: head 72.96 | oracle 79.44 | ER-LDA 79.87 | bbc 73.58 | rho(B)=0.43 rho(1-a)=0.57 rho(D)=0.16
+22:29:37 [T03] fmnist Ours-A Ts=1: head 75.66 | oracle 80.70 | ER-LDA 80.31 | bbc 77.89 | rho(B)=0.41 rho(1-a)=0.57 rho(D)=0.10
+22:29:37 loading mnist
+22:47:51 [T03] mnist GeFL-F: head 72.40 | oracle 91.02 | ER-LDA 90.75 | bbc 75.51 | rho(B)=0.82 rho(1-a)=0.90 rho(D)=0.32
+23:05:45 [T03] mnist +HWA+LA: head 82.08 | oracle 91.82 | ER-LDA 91.32 | bbc 82.00 | rho(B)=0.65 rho(1-a)=0.74 rho(D)=0.23
+23:25:17 [T03] mnist Ours-A Ts=1: head 91.07 | oracle 93.58 | ER-LDA 92.83 | bbc 92.23 | rho(B)=0.29 rho(1-a)=0.33 rho(D)=0.14

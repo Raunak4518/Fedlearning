@@ -2117,6 +2117,40 @@ def synreal_gap(ctx, headers, G, feats_te, n=300, held_min=5):
     return (float(np.mean(held)) if held else float("nan"), float(np.mean(unheld)) if unheld else float("nan"))
 
 
+@torch.no_grad()
+def exact_readout(ctx, headers, feats, ys_list, feats_te, gamma=0.1):
+    """ER (T03): per architecture, every client embeds its real features with that head's body and
+    contributes class sums, counts and sum e e^T (secure-aggregatable sums). The server sets the
+    uniform-prior LDA readout w_c = S^-1 mu_c, b_c = -mu_c^T S^-1 mu_c / 2, with S the pooled
+    within-class covariance shrunk by gamma toward tr(S)/d I. Closes the readout gap without real
+    data leaving any client; compare with classifier_oracle (pooled-real CE refit)."""
+    C = NUM_CLASSES
+    import copy
+    hs = {}
+    for g in ctx.groups:
+        h = copy.deepcopy(headers[g])
+        h.eval()
+        S1, n, M = None, torch.zeros(C, dtype=torch.float64, device=DEV), None
+        for X, Y in zip(feats, ys_list):
+            e = torch.cat([h.embed(X[i:i + 4096]) for i in range(0, len(X), 4096)]).double()
+            if S1 is None:
+                S1 = torch.zeros(C, e.shape[1], dtype=torch.float64, device=DEV)
+                M = torch.zeros(e.shape[1], e.shape[1], dtype=torch.float64, device=DEV)
+            S1.index_add_(0, Y, e)
+            n += torch.bincount(Y, minlength=C).double()
+            M += e.T @ e
+        mu = S1 / n[:, None].clamp(min=1)
+        d = mu.shape[1]
+        Sw = (M - (mu.T * n) @ mu) / max(float(n.sum()) - C, 1.0)
+        Sw = (Sw + Sw.T) / 2
+        Ss = (1 - gamma) * Sw + gamma * torch.trace(Sw) / d * torch.eye(d, dtype=torch.float64, device=DEV)
+        W = mu @ torch.linalg.inv(Ss)
+        h.fc.weight.copy_(W.float())
+        h.fc.bias.copy_((-0.5 * (W * mu).sum(1)).float())
+        hs[g] = h
+    return summarize_eval(eval_headers(ctx, hs, feats_te, ctx.data["yte"]))
+
+
 def classifier_oracle(ctx, headers, feats, ys_list, feats_te, steps=300):
     """Diagnostic run on every method: re-fit each header's fc on the pooled
     federation real features with class-balanced sampling. The gap between
@@ -2386,6 +2420,11 @@ def run_one(cfg, run, cache, data_cache):
             for o, sd in zip(c.opts, snap):
                 o.load_state_dict(sd)
     orc = classifier_oracle(ctx, headers, s1["feats"], s1["ys"], s1["feats_te"])
+    try:  # exact-statistics readout (T03); diagnostic, never allowed to break a run
+        er = exact_readout(ctx, headers, s1["feats"], s1["ys"], s1["feats_te"])
+        res.update(er_bal=er["bal"], er_tail=er["tail"], er_ens_bal=er.get("ens_bal"))
+    except Exception as e:  # pragma: no cover
+        res["er_error"] = repr(e)[:200]
     res.update(oracle_bal=orc["bal"], oracle_tail=orc["tail"])
     if G is not None:
         bb = balanced_bias_calibration(ctx, headers, G, s1["feats_te"])
@@ -2418,7 +2457,7 @@ def finish(res, tracker, G):
     return res
 
 
-SCALAR_FIELDS = ["final_bal", "final_acc", "final_ens_acc", "final_ens_bal", "final_tail", "final_head", "final_medium", "final_worst", "n_gauss_classes",
+SCALAR_FIELDS = ["er_bal", "er_tail", "final_bal", "final_acc", "final_ens_acc", "final_ens_bal", "final_tail", "final_head", "final_medium", "final_worst", "n_gauss_classes",
                  "best_mean_acc", "oracle_bal", "oracle_tail", "fidelity_head", "fidelity_tail",
                  "cond_norm_tail_over_head_end", "cond_norm_tail_rel_init", "feature_mnd", "referee_test_acc",
                  "time_s", "fe_time_s", "gen_time_s", "head_time_s", "n_train", "min_client", "tail_holders"]
