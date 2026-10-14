@@ -37,8 +37,8 @@ heterogeneous models. GeFL [1] trains the generator itself by FedAvg across clie
 backbones, in image space (GeFL) or feature space (GeFL-F). FedGen and FedFTG apply label-count weights to the
 *teacher predictions or losses* that train a server-side generator. HWA instead weights the *parameters* of a
 client-trained generator, namely its per-class conditioning rows, during aggregation. It is derived from a failure
-that is specific to that setting: under FedAvg with Adam's coupled weight decay, rows of classes held by fewer
-than half the clients shrink every round.
+that is specific to that setting: under FedAvg with Adam's coupled weight decay, non-holders shrink a class's
+row at Adam's step size while holders barely grow it, so tail rows contract even when most clients hold the class.
 
 **FL under class imbalance and long tails.** Much of this work locates the bias in the classifier. CCVR [18]
 re-calibrates the classifier after training on virtual features sampled from a Gaussian mixture built from
@@ -94,9 +94,9 @@ noise to class counts only. A formal accounting for the generator itself is left
 ## Positioning relative to the closest works
 
 GeFL/GeFL-F [1] was evaluated only with IID clients and aggregates every generator parameter by flat FedAvg. We
-show that, combined with Adam's coupled weight decay, this shrinks the conditioning rows of every class held by
-fewer than half the clients, and HWA removes exactly this failure while reducing to FedAvg when class counts are
-equal. FedGen [11] and FedFTG [12] also use label-count weights, but on the teacher predictions or losses that train
+show that, combined with Adam's coupled weight decay, this contracts the conditioning rows of tail classes even
+when most clients hold them (Theorem 1), and HWA removes exactly the non-holder term while reducing to FedAvg when
+class counts are equal. FedGen [11] and FedFTG [12] also use label-count weights, but on the teacher predictions or losses that train
 a *server-side* generator; we weight the *parameters* of a *client-trained* generator. Both label generated samples
 with the hard conditioning label, whereas CSL relabels them with a one-hot/cross-architecture-consensus mixture.
 CReFF [19] and CCVR [18] use synthetic or virtual features to re-train one homogeneous classifier after training,

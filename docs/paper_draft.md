@@ -10,9 +10,11 @@
 GeFL-F lets clients with different model architectures learn from each other. They share a small feature extractor
 and a conditional feature generator, and each trains its own classifier head on real and generated features. We
 show that GeFL-F fails under long-tailed client data, for a reason that can be stated exactly. Under federated
-averaging with Adam's coupled weight decay, the generator's class-conditioning rows shrink every round for every class
-held by fewer than half the clients. Rare classes vanish from the generator, and every head is then taught from
-class-agnostic features.
+averaging with Adam's coupled weight decay, every client that does not hold a class shrinks that class's
+conditioning row at a rate set by Adam's learning rate, not by the decay coefficient, while the clients that hold it
+barely grow it. The row contracts whenever the share of holders is below a threshold we derive, which in practice
+exceeds one half: on MNIST, tail rows held by 7 of 10 clients fall to 4–10% of their norm. Rare classes vanish from
+the generator, and every head is then taught from class-agnostic features.
 
 The diagnosis suggests a principle: **anchor every stage of generator-based heterogeneous FL to exactly aggregated
 statistics** (sums that secure aggregation delivers) instead of to federated-averaged parameters. We instantiate it
@@ -64,9 +66,11 @@ interact to erase rare classes from the generator. This is a structural failure,
 number of clients grows and as the tail lengthens.
 
 *Contributions.*
-1. **Diagnosis (§3).** An exact recursion for a conditioning row under flat averaging with coupled weight decay. It
-   predicts collapse whenever $m_c < K/2$, where $m_c$ is the number of clients holding class $c$. We confirm it with
-   row norms and with generator fidelity measured by an independent referee classifier.
+1. **Diagnosis (§3).** An exact, optimiser-free bound on a conditioning row under flat averaging (Theorem 1), and
+   what Adam's coupled decay does to it (Lemma 2). The row contracts whenever the share of holders $m_c/K$ is below
+   $\theta_c = \bar D_c/(\bar G_c + \bar D_c)$; the half-the-clients rule is the special case $\bar G_c = \bar D_c$
+   and is too optimistic. We verify the bound round by round on the real generator (0 violations in 1,200
+   row-rounds), and confirm the collapse with row norms and an independent referee classifier.
 2. **A minimal fix (§4.1–4.3).** HWA, LA and CSL. Each fixes one measured failure and each reduces to GeFL-F when
    its failure is absent. All three are compatible with secure aggregation.
 3. **A principle and its instantiation (§4.5).** Anchoring to exact statistics:
@@ -103,28 +107,67 @@ architectures.
 
 ## 3. Why rare classes vanish
 
-### 3.1 The conditioning-row recursion
+### 3.1 The conditioning-row contraction bound
 
-Take a class $c$ held by $m_c$ of the $K$ clients. A client that does not hold $c$ gets no data gradient on $w_c$.
-Its only gradient on $w_c$ is the decay term $\lambda w_c$. Adam normalises each coordinate's step by the root of its
-second-moment estimate, so a pure-decay gradient yields a step of about $\eta\,\mathrm{sign}(w_c)$, the full learning
-rate, whatever the value of $\lambda$. Over a round of $S$ local steps, a non-holder therefore returns
-$w_c - S\eta\,\mathrm{sign}(w_c)$ coordinate-wise (until it reaches zero). A holder returns at most
-$w_c + S\eta$ in the useful direction. Flat averaging gives, per coordinate, an increase in $|w_c|$ of at most
+**Setting.** Class $c$'s conditioning row $r_c \in \mathbb R^{d}$ ($d = 512$) is the only class-specific parameter of
+CVAE-F, and its data gradient is non-zero only on samples labelled $c$. In one round, client $k$ starts from the global
+row $r_c$, runs $S_k$ local Adam steps with coupled weight decay $\lambda$, and returns $r_{k,c}$. Let $H_c$ be the
+$m_c$ clients that hold class $c$ and $p_c = m_c/K$. Write each client's change in norm as
+$\Delta_k = \|r_{k,c}\| - \|r_c\|$, the holders' mean gain as $\bar G_c = \frac{1}{m_c}\sum_{k\in H_c}\Delta_k$ and the
+non-holders' mean loss as $\bar D_c = -\frac{1}{K-m_c}\sum_{k\notin H_c}\Delta_k$.
 
-$$\Delta|w_c| \;\le\; \tfrac{m_c}{K} S\eta \;-\; \bigl(1-\tfrac{m_c}{K}\bigr) S\eta \;=\; \bigl(\tfrac{2m_c}{K}-1\bigr) S\eta ,$$
+**Theorem 1 (contraction bound).** Under flat FedAvg, $r_c^+ = \frac1K\sum_k r_{k,c}$,
+$$\|r_c^+\| \;\le\; \|r_c\| + p_c\,\bar G_c - (1-p_c)\,\bar D_c ,$$
+with equality iff all $r_{k,c}$ point in the same direction. Hence the row contracts whenever
+$$p_c\,\bar G_c < (1-p_c)\,\bar D_c \quad\Longleftrightarrow\quad \frac{m_c}{K} < \theta_c := \frac{\bar D_c}{\bar G_c + \bar D_c}
+\qquad (\bar G_c + \bar D_c > 0),$$
+and for every $m_c < K$ when $\bar G_c \le 0 < \bar D_c$. A class held by every client cannot be contracted by the
+aggregation.
 
-which is **negative for every class held by fewer than half the clients**. The row is driven toward zero round after
-round. The decoder then receives almost no class signal for $c$, and samples "of class $c$" become class-agnostic
-features.
+*Proof.* $\|\frac1K\sum_k r_{k,c}\| \le \frac1K\sum_k\|r_{k,c}\| = \|r_c\| + \frac1K\big(\sum_{k\in H_c}\Delta_k + \sum_{k\notin
+H_c}\Delta_k\big)$, and the two sums are $m_c\bar G_c$ and $-(K-m_c)\bar D_c$. $\square$
 
-Without weight decay (or with SGD), the decay term vanishes. The data step is still scaled by $m_c/K$ (Theorem 1 of
-`docs/improvement_derivations.html`), so rare classes learn $m_c/K$ times slower. That is dilution, not collapse.
+The bound uses no property of the optimiser. What the optimiser decides is the size of $\bar D_c$ and $\bar G_c$.
 
-**Predictions.** (i) GeFL-F's tail-to-head row-norm ratio is $\ll 1$ under a long tail. (ii) It worsens with $K$ for
-fixed data, because $m_c/K$ falls. (iii) Any change that removes non-holders from row $c$'s average restores it.
+**Lemma 2 (coupled decay under Adam).** A non-holder's gradient on $r_c$ is exactly $\lambda r_c$. Adam's update is
+invariant to a positive rescaling of the gradient sequence (up to $\epsilon$): $\hat m$ scales with $\lambda$ and
+$\sqrt{\hat v}$ with $\lambda$. So as long as $\lambda |r_{c,j}| \gg \epsilon$, a non-holder moves each coordinate of
+$r_c$ toward zero by a step of order the learning rate $\eta$, **whatever the value of $\lambda > 0$**, and
+$\bar D_c$ does not depend on $\lambda$. At $\lambda = 0$ the gradient and both moments are zero and $\bar D_c = 0$
+exactly. (Under SGD the same decay would cost only $\approx S\eta\lambda\|r_c\|$, $10^3$ times less at
+$\eta = \lambda = 10^{-3}$.)
 
-### 3.2 Measurement
+**What this means.** The earlier statement of this result, "rows of classes held by fewer than half the clients
+shrink", is the special case $\bar G_c = \bar D_c$: every holder would have to grow the row as fast as a non-holder
+shrinks it. Nothing forces that. A holder's data gradient fits the row; it does not push its norm up at Adam's full
+rate. So $\bar G_c \ll \bar D_c$, $\theta_c > 1/2$, and **tail rows contract even when most clients hold the class**.
+Without weight decay the non-holder term vanishes; the data step is then only diluted by $m_c/K$ (Theorem 1 of
+`docs/improvement_derivations.html`): rare classes learn more slowly but do not collapse.
+
+**Predictions.** (i) GeFL-F's tail-to-head row-norm ratio is $\ll 1$ under a long tail, even when every class is held
+by more than half the clients. (ii) It is the same for every $\lambda > 0$ and disappears at $\lambda = 0$. (iii) It
+worsens with $K$ for fixed data, because more clients are non-holders of each tail class. (iv) Removing non-holders
+from row $c$'s average (HWA) removes the $\bar D_c$ term and prevents the contraction.
+
+### 3.2 Verification on the real generator (T01)
+
+We instrumented the paper's CVAE-F and logged every client's row norms after every local round (MNIST, IF = 100,
+Dir 0.5, $K = 10$, 40 generator rounds, seed 0; `experiments/T01_collapse_threshold.py`, figure F01_collapse).
+
+* *The bound holds.* Theorem 1 is satisfied in all 1,200 row-rounds of the three flat-averaging arms (0 violations;
+  mean $\|r_c^+\|$/bound $= 0.983$).
+* *$K/2$ is the wrong threshold.* Every class is held by at least 7 of the 10 clients, so the half-the-clients rule
+  predicts no contraction anywhere. Yet the rows of classes 7–9 shrank to 4–10% of their initial norm and those of
+  classes 5–6 to 65–75%, while head rows (held by all 10 clients) grew by a factor 1.4. Holders gained only
+  $\bar G_c/\bar D_c = 0.07$–$0.64$ (median per class) of what non-holders lost, so $\theta_c = 0.61$–$0.93$.
+  Theorem 1 certifies 139 of the 197 contractions; the rest come from holder updates that partly cancel in
+  direction, which the norm bound does not use.
+* *Only the presence of decay matters.* $\lambda = 10^{-4}$ and $\lambda = 10^{-3}$ give the same trajectories (final
+  tail/head ratio 0.155 vs 0.152; non-holder loss $1.49\times10^{-2}$ per step in both). At $\lambda = 0$ the ratio
+  stays at 0.85 and only 2 of 400 row-rounds contract.
+* *HWA.* HWA_RESULT_PLACEHOLDER
+
+### 3.3 Measurement across seeds and datasets
 
 The setting is IF = 100 with Dirichlet(0.5), $K = 10$, full schedule and 3 seeds (F01). *Fidelity* is the accuracy of
 a referee classifier, trained on real held-out features, on generated features of each class.
@@ -148,8 +191,10 @@ Let $n_{k,c}$ be client $k$'s count of class $c$, and $E(n) = (1-\beta^n)/(1-\be
 
 $$w_c \leftarrow \frac{\sum_k E(n_{k,c})\, w_c^{(k)}}{\sum_k E(n_{k,c})}, \qquad\text{all other parameters by FedAvg.}$$
 
-* **Effect on §3.1.** Non-holders have $E(0) = 0$, so the decay-only copies are excluded. The recursion's negative
-  term disappears for every class with at least one holder.
+* **Effect on §3.1.** Non-holders have $E(0) = 0$, so the decay-only copies are excluded. By the same triangle
+  inequality, $\|r_c^+\| \le \|r_c\| + \sum_{k\in H_c}\omega_k\Delta_k$ with $\omega_k \propto E(n_{k,c})$: the
+  $-(1-p_c)\bar D_c$ term of Theorem 1 disappears for every class with at least one holder. HWA does not force the row
+  to grow; it leaves it to the holders, weighted toward those with the most samples.
 * **Why effective number.** A holder's row estimate has variance that falls with its sample count but saturates
   (correlated samples, a finite number of local steps). Inverse-variance weighting with a saturating variance model is
   $E(n)$-weighting. Raw counts $n$ and uniform-over-holders are the two limits, $\beta \to 1$ and $\beta \to 0$. Both
@@ -531,7 +576,7 @@ Matched seeds and splits, 3 seeds.
 | mild tail (IF = 10) | 86.9 → 94.3 (+7.4) | 72.6 → 79.4 (+6.8) |
 | heavy tail (IF = 100) | 75.3 → 90.2 (+14.8) | 58.9 → 76.5 (+17.6) |
 
-Dirichlet(0.5) already leaves some classes on fewer than half the clients, so the collapse term of §3 is active even
+Dirichlet(0.5) already leaves some clients without some classes, so the non-holder term of Theorem 1 is active even
 without a global tail.
 
 **Ablations** (IF = 100):
@@ -847,8 +892,8 @@ heterogeneous models. GeFL [1] trains the generator itself by FedAvg across clie
 backbones, in image space (GeFL) or feature space (GeFL-F). FedGen and FedFTG apply label-count weights to the
 *teacher predictions or losses* that train a server-side generator. HWA instead weights the *parameters* of a
 client-trained generator, namely its per-class conditioning rows, during aggregation. It is derived from a failure
-that is specific to that setting: under FedAvg with Adam's coupled weight decay, rows of classes held by fewer
-than half the clients shrink every round.
+that is specific to that setting: under FedAvg with Adam's coupled weight decay, non-holders shrink a class's
+row at Adam's step size while holders barely grow it, so tail rows contract even when most clients hold the class.
 
 **FL under class imbalance and long tails.** Much of this work locates the bias in the classifier. CCVR [18]
 re-calibrates the classifier after training on virtual features sampled from a Gaussian mixture built from
@@ -904,9 +949,9 @@ noise to class counts only. A formal accounting for the generator itself is left
 ### 6.7 Positioning relative to the closest works
 
 GeFL/GeFL-F [1] was evaluated only with IID clients and aggregates every generator parameter by flat FedAvg. We
-show that, combined with Adam's coupled weight decay, this shrinks the conditioning rows of every class held by
-fewer than half the clients, and HWA removes exactly this failure while reducing to FedAvg when class counts are
-equal. FedGen [11] and FedFTG [12] also use label-count weights, but on the teacher predictions or losses that train
+show that, combined with Adam's coupled weight decay, this contracts the conditioning rows of tail classes even
+when most clients hold them (Theorem 1), and HWA removes exactly the non-holder term while reducing to FedAvg when
+class counts are equal. FedGen [11] and FedFTG [12] also use label-count weights, but on the teacher predictions or losses that train
 a *server-side* generator; we weight the *parameters* of a *client-trained* generator. Both label generated samples
 with the hard conditioning label, whereas CSL relabels them with a one-hot/cross-architecture-consensus mixture.
 CReFF [19] and CCVR [18] use synthetic or virtual features to re-train one homogeneous classifier after training,

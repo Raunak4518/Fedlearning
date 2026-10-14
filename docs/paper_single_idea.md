@@ -8,9 +8,10 @@ from 3 seeds unless marked. Cells marked PENDING name the run that fills them.*
 Generator-based federated learning lets clients with different model architectures learn from one another. In
 GeFL-F, the clients share a small frozen feature extractor and a conditional feature generator, and each client
 trains its own classifier head on real and generated features. We show that GeFL-F fails when client data are
-long-tailed, for a reason that can be stated exactly. Under federated averaging, the generator's class-specific
-parameters shrink every round for every class held by fewer than half of the clients. Rare classes vanish from the
-generator, and every head is taught from class-agnostic features.
+long-tailed, for a reason that can be stated exactly. Under federated averaging with Adam's coupled weight decay,
+every client that lacks a class shrinks that class's parameters at Adam's step size while the holders barely grow
+them, so tail classes collapse even when most clients hold them (on MNIST, rows held by 7 of 10 clients fall to
+4–10% of their norm). Rare classes vanish from the generator, and every head is taught from class-agnostic features.
 
 Our single idea is that **class-level information should not be a parameter that federated averaging estimates. It
 should be anchored to statistics that secure aggregation computes exactly.** Per-class counts, sums and second
@@ -45,8 +46,8 @@ Real federations are long-tailed: some classes are common everywhere and others 
 numbers. We find that GeFL-F breaks under exactly this condition. At a 100:1 imbalance, GeFL-F's balanced accuracy
 falls 20 points below what its own heads can reach on pooled real data, and its tail classes are nearly never
 predicted. The cause is not a detail of the architecture (§3). The generator's class identity lives in class-specific
-parameters, and FedAvg drives the parameters of every class held by fewer than half of the clients toward zero, round
-after round. Generated samples of a rare class become class-agnostic, and every head learns from them.
+parameters, and FedAvg with coupled weight decay drives the parameters of tail classes toward zero, round after round,
+even when most clients hold those classes. Generated samples of a rare class become class-agnostic, and every head learns from them.
 
 **The idea.** Secure aggregation [44] lets the server compute sums over clients exactly, without seeing any client's
 term. Many quantities that decide how a generator represents a class are sums over clients: counts $n_c$, feature sums
@@ -56,8 +57,8 @@ FedAvg-trained parameter has no such property. ESA therefore anchors every class
 statistics instead of to averaged parameters.
 
 **Contributions.**
-1. *Diagnosis.* We show why rare classes vanish from FedAvg-trained conditional generators: the conditioning-row
-   recursion (Proposition 1). We measure it in GeFL-F on four datasets.
+1. *Diagnosis.* We show why rare classes vanish from FedAvg-trained conditional generators: an exact contraction bound
+   for the conditioning rows (Proposition 1), verified round by round on the real generator. We measure it in GeFL-F on four datasets.
 2. *One principle, instantiated where class information enters.*
    * class identity from the exact class mean, with no class-specific parameter left to collapse;
    * sample moments corrected to the exact class mean and covariance;
@@ -98,13 +99,17 @@ of [1]). GeFL-F runs three stages.
 
 ## 3. Why rare classes vanish
 
-**Proposition 1 (conditioning-row recursion).** Let class $c$ be held by $m_c$ of $K$ clients. A non-holder receives
-no data gradient on $w_c$, only the coupled decay $\lambda w_c$. Adam normalises each coordinate's step by its
-second-moment estimate, so a pure-decay gradient moves the coordinate by about $\eta\,\mathrm{sign}(w_c)$ per step,
-whatever $\lambda$ is. Over $S$ local steps a holder can grow $|w_c|$ by at most $S\eta$ per coordinate, and a
-non-holder shrinks it by $S\eta$ until it reaches zero. After flat averaging,
-$$\Delta |w_c| \;\le\; \Big(\frac{2 m_c}{K} - 1\Big) S\eta ,$$
-which is negative for every class held by fewer than half of the clients. $\square$ (Appendix A.1.)
+**Proposition 1 (contraction bound).** Let class $c$ be held by $m_c$ of $K$ clients, $p_c = m_c/K$. In a round,
+client $k$ returns the row $w_{k,c}$; let $\bar G_c$ be the holders' mean gain in $\|w_c\|$ and $\bar D_c$ the
+non-holders' mean loss. Under flat averaging,
+$$\|w_c^+\| \;\le\; \|w_c\| + p_c\bar G_c - (1-p_c)\bar D_c ,$$
+so the row contracts whenever $p_c < \theta_c = \bar D_c/(\bar G_c + \bar D_c)$. $\square$ (Triangle inequality;
+see paper_draft §3.1.) A non-holder's only gradient on $w_c$ is the coupled decay $\lambda w_c$; Adam is invariant to
+its scale, so $\bar D_c$ is of order $S\eta$ for every $\lambda > 0$ and zero at $\lambda = 0$. Holders fit the row
+rather than grow it, so $\bar G_c \ll \bar D_c$ and $\theta_c > 1/2$: the familiar "fewer than half the clients"
+rule is the special case $\bar G_c = \bar D_c$. Measured on the real CVAE-F (T01, MNIST LT, K = 10): 0 violations
+of the bound in 1,200 row-rounds, $\theta_c = 0.61$–$0.93$, identical collapse at $\lambda = 10^{-4}$ and $10^{-3}$,
+none at $\lambda = 0$.
 
 **Consequences.**
 * *Collapse.* Rows of rare classes are driven toward zero. The decoder receives almost no class signal for them, and
@@ -425,11 +430,16 @@ statistics as their targets.
 ## Appendix A. Proofs
 
 **A.1 Proposition 1.**
-* *Non-holder.* A non-holder's gradient on $w_c$ is $\lambda w_c$. Adam's update is $\eta\,\hat m/\sqrt{\hat v}$, and
-  for a constant-sign gradient $\hat m/\sqrt{\hat v} \to \mathrm{sign}(w_c)$, so each step moves $|w_c|$ by $\eta$
-  toward zero. Over $S$ steps that is $S\eta$, until zero.
-* *Holder.* A holder's normalised step is at most $\eta$ in magnitude, so $|w_c|$ grows by at most $S\eta$.
-* *Average.* Flat averaging weights holders by $m_c/K$ and non-holders by $1 - m_c/K$.
+* *Bound.* $\|\frac1K\sum_k w_{k,c}\| \le \frac1K\sum_k \|w_{k,c}\| = \|w_c\| + \frac1K\big(\sum_{k\in H_c}\Delta_k +
+  \sum_{k\notin H_c}\Delta_k\big) = \|w_c\| + p_c\bar G_c - (1-p_c)\bar D_c$, with $\Delta_k = \|w_{k,c}\| - \|w_c\|$.
+  Equality iff all $w_{k,c}$ are positively collinear. No property of the optimiser is used.
+* *Non-holder under Adam.* Its gradient on $w_c$ is $\lambda w_c$. Scaling every gradient by $\lambda$ scales $\hat m$
+  by $\lambda$ and $\sqrt{\hat v}$ by $\lambda$, so the step $\eta\,\hat m/(\sqrt{\hat v}+\epsilon)$ does not depend on
+  $\lambda$ while $\lambda|w_{c,j}| \gg \epsilon$; each coordinate moves toward zero by a step of order $\eta$. At
+  $\lambda = 0$ the gradient and both moments are zero, so $\bar D_c = 0$.
+* *Why not $K/2$.* The earlier form, $\Delta|w_c| \le (2m_c/K - 1)S\eta$, assumed every holder grows $|w_c|$ by the full
+  $S\eta$. Adam's single steps can exceed $\eta$ under sparse gradients (up to $(1-\beta_1)/\sqrt{1-\beta_2}\,\eta$), and
+  in practice holders fit the row rather than grow it: measured $\bar G_c/\bar D_c = 0.07$–$0.64$ (T01).
 
 **A.2 Proposition 2.** Couple both classes through the same $z$. ReLU is 1-Lipschitz, so
 $\|X_c - X_{c'}\| \le \|m_c - m_{c'}\| + L\|A(m_c - m_{c'})\|$. Taking expectations bounds $W_1$.

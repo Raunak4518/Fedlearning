@@ -53,8 +53,9 @@ significant. **FIX DRAFT** = data exist but the draft quotes a different number.
   K01 CIFAR-10; K01 SVHN, K08, K10, K11 are paired (p-values in `tables/T13`, `T14`).
 * §5.11 "Pending" list: FMNIST K = 50/100 (done: claim 12), VCT (done: negative, claim 17), formal DP (done) and the
   component ablation (done, K09) are no longer pending.
-* §3: the K/2 theorem is wrong in our own setting (every tail class has ≥ 7 of 10 holders and still collapses);
-  being rewritten from T01 (claim 1).
+* §3: DONE. The K/2 theorem was wrong in our own setting (every tail class has ≥ 7 of 10 holders and still
+  collapses). Rewritten as Theorem 1 (exact contraction bound) + Lemma 2 (Adam's coupled decay is λ-invariant) in
+  `paper_draft.md` §3.1–3.2 and `paper_single_idea.md` Prop. 1 / A.1; abstract, contributions and related work updated.
 
 ## 3. What is still to run (and what is NOT)
 
@@ -85,7 +86,7 @@ claim 4 keeps them.
 
 | Result | Status |
 |---|---|
-| Contraction bound for class rows (Theorem 1, §3) | rewrite in progress; verified on the real CVAE-F (T01) |
+| Contraction bound for class rows (Theorem 1, §3) | rewritten; 0 violations in 1,200 row-rounds on the real CVAE-F (T01); λ-invariance confirmed (10⁻⁴ ≡ 10⁻³, none at 0) |
 | Prop. 3 (synthetic budget) | stated; consistent with E16, K08 (T_s = 10 hurts final acc. where fidelity is low) |
 | Prop. 4 (MC is minimum-displacement), Prop. 6 (Gelbrich map for MC-S) | proved in the draft |
 | Prop. 5 (mean anchor separates classes only as far as their means) | proved; SVHN F = 0.01 matches |
