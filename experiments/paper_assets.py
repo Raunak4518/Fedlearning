@@ -132,7 +132,7 @@ def table(tid, section, title, cols, rows, ref=None, note=""):
 # §5.2 parity
 table("T01_parity", "5.2", "Our GeFL-F against the paper and the authors' code (best_mean_acc; LT: final balanced acc.)",
       ["Paper", "Authors' code", "Ours"],
-      [("MNIST IID, K=10", [P(95.47), P(96.07), C("F10_combined_method", "GeFL-F", "mnist", IID, metric="best_mean_acc", draft=96.02)]),
+      [("MNIST IID, K=10", [P(95.47), P(96.07), C("F09_consensus_paper_setting", "GeFL-F", "mnist", IID, metric="best_mean_acc", draft=96.02)]),
        ("MNIST IID, K=50", [P(95.04), None, C("F09_consensus_paper_setting", "GeFL-F", "mnist", IID, 50, "best_mean_acc", 95.16)]),
        ("MNIST IID, K=100", [P(94.63), None, C("F09_consensus_paper_setting", "GeFL-F", "mnist", IID, 100, "best_mean_acc", 94.61)]),
        ("FMNIST IID, K=10", [P(83.14), None, C("F09_consensus_paper_setting", "GeFL-F", "fmnist", IID, metric="best_mean_acc", draft=82.67)])],
@@ -157,13 +157,13 @@ table("T03_clients_minimal", "5.3", "More clients, MNIST long tail (balanced acc
                  C("F04_clients", "+LA", "mnist", LT, 100, draft=79.5)]),
        ("+ HWA + LA", [C("F10_combined_method", "+HWA+LA", "mnist", LT, draft=87.8), C("F04_clients", "+HWA+LA", "mnist", LT, 50, draft=86.5),
                        C("F04_clients", "+HWA+LA", "mnist", LT, 100, draft=83.1)]),
-       ("+ HWA + LA + CSL", [C("F10_combined_method", "+HWA+LA+CSL", "mnist", LT, draft=89.9), C("F04_clients", "+HWA+LA+CSL", "mnist", LT, 50, draft=86.8),
-                             C("F04_clients", "+HWA+LA+CSL", "mnist", LT, 100, draft=82.7)]),
+       ("+ HWA + LA + CSL", [C("F10_combined_method", "+HWA+LA+CSL", "mnist", LT, draft=89.9), C("F04_clients", "+HWA+LA+CSL", "mnist", LT, 50),
+                             C("F04_clients", "+HWA+LA+CSL", "mnist", LT, 100, draft=83.0)]),
        ("FSG + LA", [C("F01_main_longtail", "FSG+LA", "mnist", LT, draft=87.0), C("F04_clients", "FSG+LA", "mnist", LT, 50, draft=87.7),
                      C("F04_clients", "FSG+LA", "mnist", LT, 100, draft=86.1)]),
-       ("FSG + LA + CSL", [None, C("F04_clients", "FSG+LA+CSL", "mnist", LT, 50, draft=87.2), C("F04_clients", "FSG+LA+CSL", "mnist", LT, 100, draft=85.5)]),
-       ("MIX + HWA + LA + CSL", [None, C("F04_clients", "MIX+HWA+LA+CSL", "mnist", LT, 50, draft=87.9),
-                                 C("F04_clients", "MIX+HWA+LA+CSL", "mnist", LT, 100, draft=85.2)])], ref="GeFL-F")
+       ("FSG + LA + CSL", [None, C("F04_clients", "FSG+LA+CSL", "mnist", LT, 50), C("F04_clients", "FSG+LA+CSL", "mnist", LT, 100, draft=86.3)]),
+       ("MIX + HWA + LA + CSL", [None, C("F04_clients", "MIX+HWA+LA+CSL", "mnist", LT, 50),
+                                 C("F04_clients", "MIX+HWA+LA+CSL", "mnist", LT, 100, draft=85.3)])], ref="GeFL-F")
 
 # §5.4 IID + CSL
 table("T04_iid_csl", "5.4", "GeFL-F's own IID setting: consensus soft labels (best_mean_acc; F09, K01)",
@@ -232,8 +232,8 @@ table("T09_budget_iid", "5.9", "Synthetic budget T_s, FMNIST IID (best_mean_acc;
 table("T10_budget_lt", "5.9", "Synthetic budget under the long tail (FMNIST, IF = 100; E16; balanced accuracy)",
       ["balanced", "tail"],
       [(n, [C(_e16, lab, "fmnist", LT, draft=d), C(_e16, lab, "fmnist", LT, metric="final_tail", draft=t)])
-       for n, lab, d, t in [("GeFL-F", "GeFL-F", 61.33, 38.86), ("Ours, T_s=1", "Ours (HWA+LA+CSL)", 76.98, 70.17),
-                            ("Ours, T_s=5", "Ours (HWA+LA+CSL) Ts=5", 78.76, 72.37), ("Ours, T_s=10", "Ours (HWA+LA+CSL) Ts=10", 79.33, 72.44)]],
+       for n, lab, d, t in [("GeFL-F", "GeFL-F", 59.13, 36.04), ("Ours, T_s=1", "Ours (HWA+LA+CSL)", 76.94, 70.22),
+                            ("Ours, T_s=5", "Ours (HWA+LA+CSL) Ts=5", 78.76, 71.92), ("Ours, T_s=10", "Ours (HWA+LA+CSL) Ts=10", 79.23, 71.83)]],
       ref="GeFL-F")
 
 # §5.11 anchored method
@@ -294,7 +294,7 @@ table("T13_cifar_svhn", "5.11", "CIFAR-10 and SVHN (LT: final balanced acc., IID
                        C("K01_kaggle_cifar10_svhn__svhn", "+HWA+LA (ours)", "svhn", LT, draft=62.45), None,
                        C("K01_kaggle_cifar10_svhn__svhn", "+HWA+LA (ours)", "svhn", IID, metric="best_mean_acc", draft=75.64)]),
        ("minimal variant / + CSL", [C("K01_kaggle_cifar10_svhn__cifar10", "Ours (HWA+LA+CSL)", "cifar10", LT, draft=42.10), None,
-                                    C("K01_kaggle_cifar10_svhn__cifar10", "+CSL (beta=0.5)", "cifar10", IID, metric="best_mean_acc", draft=60.02),
+                                    C("K01_kaggle_cifar10_svhn__cifar10", "+CSL (beta=0.5)", "cifar10", IID, metric="best_mean_acc", draft=59.85),
                                     C("K01_kaggle_cifar10_svhn__svhn", "+CSL (beta=0.5)", "svhn", IID, metric="best_mean_acc", draft=76.30)]),
        ("FSG + LA", [C("K01_kaggle_cifar10_svhn__cifar10", "FSG+LA", "cifar10", LT, draft=44.17), C("K01_kaggle_cifar10_svhn__svhn", "FSG+LA", "svhn", LT, draft=44.23),
                      None, None]),
@@ -356,7 +356,7 @@ table("T16_ddpm", "5.8", "Generator-agnostic: on the paper's DDPM-F (IID, best_m
                             C("K04_kaggle_ddpm_cifar10_svhn__svhn", "GeFL-F (DDPM-F)", "svhn", IID, metric="best_mean_acc")]),
        ("+ CSL (DDPM-F)", [C("F11_ddpm_generator", "+CSL (DDPM-F)", "fmnist", IID, metric="best_mean_acc", draft=83.04),
                            C("K04_kaggle_ddpm_cifar10_svhn__svhn", "+CSL (DDPM-F)", "svhn", IID, metric="best_mean_acc")]),
-       ("Ours (DDPM-F)", [C("F11_ddpm_generator", "Ours (DDPM-F)", "fmnist", IID, metric="best_mean_acc", draft=83.10),
+       ("Ours (DDPM-F)", [C("F11_ddpm_generator", "Ours (DDPM-F)", "fmnist", IID, metric="best_mean_acc", draft=82.82),
                           C("K04_kaggle_ddpm_cifar10_svhn__svhn", "Ours (DDPM-F)", "svhn", IID, metric="best_mean_acc")]),
        ("paper: GeFL-F DDPM-F", [P(84.28), None])], ref="GeFL-F (DDPM-F)")
 

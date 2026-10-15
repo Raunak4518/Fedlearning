@@ -1,7 +1,7 @@
 table,row,col,mean,sd,n,seeds,p_vs_ref,test,draft,source
 T01_parity,"MNIST IID, K=10",Paper,95.47,,,,,,,published (paper)
 T01_parity,"MNIST IID, K=10",Authors' code,96.07,,,,,,,published (paper)
-T01_parity,"MNIST IID, K=10",Ours,96.015,0.1365,3,"{""0"": 95.865, ""1"": 96.048, ""2"": 96.132}",,,96.02,F10_combined_method :: GeFL-F :: mnist IF=1.0 K=10
+T01_parity,"MNIST IID, K=10",Ours,96.0233,0.0427,3,"{""0"": 95.974, ""1"": 96.047, ""2"": 96.049}",,,96.02,F09_consensus_paper_setting :: GeFL-F :: mnist IF=1.0 K=10
 T01_parity,"MNIST IID, K=50",Paper,95.04,,,,,,,published (paper)
 T01_parity,"MNIST IID, K=50",Ours,95.157,0.0,1,"{""0"": 95.157}",,,95.16,F09_consensus_paper_setting :: GeFL-F :: mnist IF=1.0 K=50
 T01_parity,"MNIST IID, K=100",Paper,94.63,,,,,,,published (paper)
@@ -42,12 +42,12 @@ T03_clients_minimal,+ HWA + LA,K = 10,87.7813,2.0726,3,"{""0"": 85.4842, ""1"": 
 T03_clients_minimal,+ HWA + LA,K = 50,86.4632,0.8366,3,"{""0"": 85.5109, ""1"": 86.7985, ""2"": 87.08}",0.0080043918713141,paired,86.5,F04_clients :: +HWA+LA :: mnist IF=0.01 K=50
 T03_clients_minimal,+ HWA + LA,K = 100,83.072,0.5623,3,"{""0"": 82.5629, ""1"": 82.9776, ""2"": 83.6755}",0.009502191947346323,paired,83.1,F04_clients :: +HWA+LA :: mnist IF=0.01 K=100
 T03_clients_minimal,+ HWA + LA + CSL,K = 10,89.8702,0.9605,3,"{""0"": 88.7721, ""1"": 90.5544, ""2"": 90.2842}",0.007899585390952335,paired,89.9,F10_combined_method :: +HWA+LA+CSL :: mnist IF=0.01 K=10
-T03_clients_minimal,+ HWA + LA + CSL,K = 100,83.0404,0.0565,2,"{""0"": 83.0005, ""1"": 83.0803}",0.08652300532519315,paired,82.7,F04_clients :: +HWA+LA+CSL :: mnist IF=0.01 K=100
+T03_clients_minimal,+ HWA + LA + CSL,K = 100,83.0404,0.0565,2,"{""0"": 83.0005, ""1"": 83.0803}",0.08652300532519315,paired,83.0,F04_clients :: +HWA+LA+CSL :: mnist IF=0.01 K=100
 T03_clients_minimal,FSG + LA,K = 10,87.0398,1.6318,3,"{""0"": 88.629, ""1"": 85.3684, ""2"": 87.1219}",0.0038673088337076015,paired,87.0,F01_main_longtail :: FSG+LA :: mnist IF=0.01 K=10
 T03_clients_minimal,FSG + LA,K = 50,87.6584,0.9572,3,"{""0"": 88.0008, ""1"": 86.5771, ""2"": 88.3973}",0.0003878523233136883,paired,87.7,F04_clients :: FSG+LA :: mnist IF=0.01 K=50
 T03_clients_minimal,FSG + LA,K = 100,86.0456,0.8358,3,"{""0"": 86.8423, ""1"": 85.1756, ""2"": 86.119}",5.483582430384715e-05,paired,86.1,F04_clients :: FSG+LA :: mnist IF=0.01 K=100
-T03_clients_minimal,FSG + LA + CSL,K = 100,86.3378,0.0,1,"{""0"": 86.3378}",,,85.5,F04_clients :: FSG+LA+CSL :: mnist IF=0.01 K=100
-T03_clients_minimal,MIX + HWA + LA + CSL,K = 100,85.2874,1.775,2,"{""0"": 86.5425, ""1"": 84.0323}",0.021529836540318578,paired,85.2,F04_clients :: MIX+HWA+LA+CSL :: mnist IF=0.01 K=100
+T03_clients_minimal,FSG + LA + CSL,K = 100,86.3378,0.0,1,"{""0"": 86.3378}",,,86.3,F04_clients :: FSG+LA+CSL :: mnist IF=0.01 K=100
+T03_clients_minimal,MIX + HWA + LA + CSL,K = 100,85.2874,1.775,2,"{""0"": 86.5425, ""1"": 84.0323}",0.021529836540318578,paired,85.3,F04_clients :: MIX+HWA+LA+CSL :: mnist IF=0.01 K=100
 T04_iid_csl,"MNIST, K=10",Paper GeFL-F,95.47,,,,,,,published (paper)
 T04_iid_csl,"MNIST, K=10",Our GeFL-F,96.0233,0.0427,3,"{""0"": 95.974, ""1"": 96.047, ""2"": 96.049}",,,96.02,F09_consensus_paper_setting :: GeFL-F :: mnist IF=1.0 K=10
 T04_iid_csl,"MNIST, K=10",+ CSL,96.7097,0.1567,3,"{""0"": 96.54, ""1"": 96.74, ""2"": 96.849}",,,96.71,F09_consensus_paper_setting :: +CSL (beta=0.5) :: mnist IF=1.0 K=10
@@ -139,14 +139,14 @@ T09_budget_iid,+ CSL,T_s=5,84.139,0.257,3,"{""0"": 84.21, ""1"": 83.854, ""2"": 
 T09_budget_iid,+ CSL,T_s=10,84.373,0.2323,3,"{""0"": 84.345, ""1"": 84.156, ""2"": 84.618}",,,84.37,E16_csl_synthetic_budget :: +CSL Ts=10 :: fmnist IF=1.0 K=10
 T09_budget_iid,Ours (HWA + LA + CSL),T_s=5,84.1193,0.3027,3,"{""0"": 84.156, ""1"": 83.8, ""2"": 84.402}",,,84.12,E16_csl_synthetic_budget :: Ours (HWA+LA+CSL) Ts=5 :: fmnist IF=1.0 K=10
 T09_budget_iid,Ours (HWA + LA + CSL),T_s=10,84.34,0.3996,3,"{""0"": 84.553, ""1"": 83.879, ""2"": 84.588}",,,84.34,E16_csl_synthetic_budget :: Ours (HWA+LA+CSL) Ts=10 :: fmnist IF=1.0 K=10
-T10_budget_lt,GeFL-F,balanced,59.1293,3.963,3,"{""0"": 62.412, ""1"": 60.249, ""2"": 54.727}",,,61.33,E16_csl_synthetic_budget :: GeFL-F :: fmnist IF=0.01 K=10
-T10_budget_lt,GeFL-F,tail,36.035,5.7353,3,"{""0"": 41.845, ""1"": 35.8825, ""2"": 30.3775}",,,38.86,E16_csl_synthetic_budget :: GeFL-F :: fmnist IF=0.01 K=10
-T10_budget_lt,"Ours, T_s=1",balanced,76.944,0.5372,3,"{""0"": 76.447, ""1"": 77.514, ""2"": 76.871}",0.017057711395157358,paired,76.98,E16_csl_synthetic_budget :: Ours (HWA+LA+CSL) :: fmnist IF=0.01 K=10
-T10_budget_lt,"Ours, T_s=1",tail,70.22,0.5483,3,"{""0"": 69.625, ""1"": 70.705, ""2"": 70.33}",0.010485595543694564,paired,70.17,E16_csl_synthetic_budget :: Ours (HWA+LA+CSL) :: fmnist IF=0.01 K=10
+T10_budget_lt,GeFL-F,balanced,59.1293,3.963,3,"{""0"": 62.412, ""1"": 60.249, ""2"": 54.727}",,,59.13,E16_csl_synthetic_budget :: GeFL-F :: fmnist IF=0.01 K=10
+T10_budget_lt,GeFL-F,tail,36.035,5.7353,3,"{""0"": 41.845, ""1"": 35.8825, ""2"": 30.3775}",,,36.04,E16_csl_synthetic_budget :: GeFL-F :: fmnist IF=0.01 K=10
+T10_budget_lt,"Ours, T_s=1",balanced,76.944,0.5372,3,"{""0"": 76.447, ""1"": 77.514, ""2"": 76.871}",0.017057711395157358,paired,76.94,E16_csl_synthetic_budget :: Ours (HWA+LA+CSL) :: fmnist IF=0.01 K=10
+T10_budget_lt,"Ours, T_s=1",tail,70.22,0.5483,3,"{""0"": 69.625, ""1"": 70.705, ""2"": 70.33}",0.010485595543694564,paired,70.22,E16_csl_synthetic_budget :: Ours (HWA+LA+CSL) :: fmnist IF=0.01 K=10
 T10_budget_lt,"Ours, T_s=5",balanced,78.7587,0.628,3,"{""0"": 78.127, ""1"": 79.383, ""2"": 78.766}",0.014809184488800269,paired,78.76,E16_csl_synthetic_budget :: Ours (HWA+LA+CSL) Ts=5 :: fmnist IF=0.01 K=10
-T10_budget_lt,"Ours, T_s=5",tail,71.9217,0.973,3,"{""0"": 71.7675, ""1"": 72.9625, ""2"": 71.035}",0.007644746000890838,paired,72.37,E16_csl_synthetic_budget :: Ours (HWA+LA+CSL) Ts=5 :: fmnist IF=0.01 K=10
-T10_budget_lt,"Ours, T_s=10",balanced,79.2283,0.5052,3,"{""0"": 78.864, ""1"": 79.805, ""2"": 79.016}",0.012609694138270431,paired,79.33,E16_csl_synthetic_budget :: Ours (HWA+LA+CSL) Ts=10 :: fmnist IF=0.01 K=10
-T10_budget_lt,"Ours, T_s=10",tail,71.8308,1.2313,3,"{""0"": 71.82, ""1"": 73.0675, ""2"": 70.605}",0.007135588290749435,paired,72.44,E16_csl_synthetic_budget :: Ours (HWA+LA+CSL) Ts=10 :: fmnist IF=0.01 K=10
+T10_budget_lt,"Ours, T_s=5",tail,71.9217,0.973,3,"{""0"": 71.7675, ""1"": 72.9625, ""2"": 71.035}",0.007644746000890838,paired,71.92,E16_csl_synthetic_budget :: Ours (HWA+LA+CSL) Ts=5 :: fmnist IF=0.01 K=10
+T10_budget_lt,"Ours, T_s=10",balanced,79.2283,0.5052,3,"{""0"": 78.864, ""1"": 79.805, ""2"": 79.016}",0.012609694138270431,paired,79.23,E16_csl_synthetic_budget :: Ours (HWA+LA+CSL) Ts=10 :: fmnist IF=0.01 K=10
+T10_budget_lt,"Ours, T_s=10",tail,71.8308,1.2313,3,"{""0"": 71.82, ""1"": 73.0675, ""2"": 70.605}",0.007135588290749435,paired,71.83,E16_csl_synthetic_budget :: Ours (HWA+LA+CSL) Ts=10 :: fmnist IF=0.01 K=10
 T11_anchored,GeFL-F,MNIST LT,75.2451,1.1233,3,"{""0"": 74.1942, ""1"": 75.1119, ""2"": 76.429}",,,75.25,E20_proto_generator :: GeFL-F :: mnist IF=0.01 K=10
 T11_anchored,GeFL-F,FMNIST LT,58.469,3.5947,3,"{""0"": 61.959, ""1"": 58.67, ""2"": 54.778}",,,58.47,E20_proto_generator :: GeFL-F :: fmnist IF=0.01 K=10
 T11_anchored,GeFL-F,MNIST IID,96.015,0.1365,3,"{""0"": 95.865, ""1"": 96.048, ""2"": 96.132}",,,96.01,F10_combined_method :: GeFL-F :: mnist IF=1.0 K=10
@@ -199,7 +199,7 @@ T13_cifar_svhn,+ HWA + LA,CIFAR-10 LT,40.73,0.78,3,,0.00047654590470750177,Welch
 T13_cifar_svhn,+ HWA + LA,SVHN LT,62.4494,1.7615,3,"{""0"": 60.4282, ""1"": 63.2632, ""2"": 63.6569}",0.027881432742125546,paired,62.45,K01_kaggle_cifar10_svhn__svhn :: +HWA+LA (ours) :: svhn IF=0.01 K=10
 T13_cifar_svhn,+ HWA + LA,SVHN IID,75.6422,0.509,3,"{""0"": 75.1041, ""1"": 75.7064, ""2"": 76.1159}",0.028712804061932516,paired,75.64,K01_kaggle_cifar10_svhn__svhn :: +HWA+LA (ours) :: svhn IF=1.0 K=10
 T13_cifar_svhn,minimal variant / + CSL,CIFAR-10 LT,42.1,0.74,3,,0.00019018708753316794,Welch,42.1,K01_kaggle_cifar10_svhn__cifar10 :: Ours (HWA+LA+CSL) :: cifar10 IF=0.01 K=10 (summary.md only)
-T13_cifar_svhn,minimal variant / + CSL,CIFAR-10 IID,59.85,0.5,3,,0.1852341322761447,Welch,60.02,K01_kaggle_cifar10_svhn__cifar10 :: +CSL (beta=0.5) :: cifar10 IF=1.0 K=10 (summary.md only)
+T13_cifar_svhn,minimal variant / + CSL,CIFAR-10 IID,59.85,0.5,3,,0.1852341322761447,Welch,59.85,K01_kaggle_cifar10_svhn__cifar10 :: +CSL (beta=0.5) :: cifar10 IF=1.0 K=10 (summary.md only)
 T13_cifar_svhn,minimal variant / + CSL,SVHN IID,76.3022,0.2994,3,"{""0"": 76.0015, ""1"": 76.3049, ""2"": 76.6003}",0.08507250047317626,paired,76.3,K01_kaggle_cifar10_svhn__svhn :: +CSL (beta=0.5) :: svhn IF=1.0 K=10
 T13_cifar_svhn,FSG + LA,CIFAR-10 LT,44.17,0.87,3,,0.00024189569351643837,Welch,44.17,K01_kaggle_cifar10_svhn__cifar10 :: FSG+LA :: cifar10 IF=0.01 K=10 (summary.md only)
 T13_cifar_svhn,FSG + LA,SVHN LT,44.2337,2.7093,3,"{""0"": 42.896, ""1"": 47.3517, ""2"": 42.4534}",0.03992058346301537,paired,44.23,K01_kaggle_cifar10_svhn__svhn :: FSG+LA :: svhn IF=0.01 K=10
@@ -271,7 +271,7 @@ T16_ddpm,GeFL-F (DDPM-F),FMNIST,83.165,0.0,1,"{""0"": 83.165}",,,83.16,F11_ddpm_
 T16_ddpm,GeFL-F (DDPM-F),SVHN,69.7732,0.8515,3,"{""0"": 68.9156, ""1"": 70.6185, ""2"": 69.7856}",,,,K04_kaggle_ddpm_cifar10_svhn__svhn :: GeFL-F (DDPM-F) :: svhn IF=1.0 K=10
 T16_ddpm,+ CSL (DDPM-F),FMNIST,83.037,0.0,1,"{""0"": 83.037}",,,83.04,F11_ddpm_generator :: +CSL (DDPM-F) :: fmnist IF=1.0 K=10
 T16_ddpm,+ CSL (DDPM-F),SVHN,70.2484,0.6791,3,"{""0"": 69.5375, ""1"": 70.8904, ""2"": 70.3173}",0.04543290002944221,paired,,K04_kaggle_ddpm_cifar10_svhn__svhn :: +CSL (DDPM-F) :: svhn IF=1.0 K=10
-T16_ddpm,Ours (DDPM-F),FMNIST,82.823,0.3889,2,"{""0"": 83.098, ""1"": 82.548}",,,83.1,F11_ddpm_generator :: Ours (DDPM-F) :: fmnist IF=1.0 K=10
+T16_ddpm,Ours (DDPM-F),FMNIST,82.823,0.3889,2,"{""0"": 83.098, ""1"": 82.548}",,,82.82,F11_ddpm_generator :: Ours (DDPM-F) :: fmnist IF=1.0 K=10
 T16_ddpm,Ours (DDPM-F),SVHN,70.3683,0.6483,3,"{""0"": 69.6255, ""1"": 70.8201, ""2"": 70.6592}",0.0987379906335799,paired,,K04_kaggle_ddpm_cifar10_svhn__svhn :: Ours (DDPM-F) :: svhn IF=1.0 K=10
 T16_ddpm,paper: GeFL-F DDPM-F,FMNIST,84.28,,,,,,,published (paper)
 T17_collapse_fixes,GeFL-F,MNIST K=10,74.6231,1.7577,3,"{""0"": 73.9153, ""1"": 73.3298, ""2"": 76.6244}",0.0036828697372314964,paired,,F01_main_longtail :: GeFL-F :: mnist IF=0.01 K=10
