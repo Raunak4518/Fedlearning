@@ -617,6 +617,8 @@ COMPONENTS = {
     "MIXUP": dict(head=dict(mixup=1.0)),             # control: standard MixUp on the client's own real features
     "ZP": dict(gen=dict(zpost=True)),                # ex-post latent prior from exact sums
     "MC": dict(head=dict(mc=True)),                  # moment-calibrated sampling (exact mean + spread)
+    "GATE": dict(gen=dict(gate_F=0.05)),             # runtime switch on the released class-separation F (training
+                                                     # sums only): F < gate_F -> CVAE class rows + HWA, else PC-VAE
     "KME": dict(gen=dict(type="kme")),               # server-trained generator from exact kernel mean embeddings
     "KH": dict(head=dict(kh=True)),                  # kernel herding of samples toward exact class embeddings
     "RSA": dict(head=dict(rsa=1.0)),                 # held-class real-synthetic alignment (shift transfer)
@@ -2276,6 +2278,17 @@ def run_one(cfg, run, cache, data_cache):
     tracker.hist = list(s1["tr"].hist)
     res["fe_time_s"] = s1["t"]
 
+    # ---- generator gate (A13): decided at run time from F, which the server computes from the released class
+    # sums (counts, sums of h, sums of |h|^2); no test data. The resolved generator spec equals the plain
+    # PC-VAE or CVAE+HWA spec, so cached stage-(ii) generators are shared with those arms.
+    if m["gen"] is not None and m["gen"].get("gate_F") is not None:
+        use_rows = res["class_sep_F"] < m["gen"]["gate_F"]
+        g_ = {k: v for k, v in m["gen"].items() if k != "gate_F"}
+        g_.update(dict(type="cvae", agg="A") if use_rows else dict(type="pcvae"))
+        m = dict(m, gen=g_)
+        run = dict(run, m=m)
+        res["gate_branch"] = "rows" if use_rows else "anchor"
+
     # ---- stage (ii)
     G, gen_state = None, None
     if m["gen"] is not None:
@@ -2417,6 +2430,13 @@ def run_one(cfg, run, cache, data_cache):
     if s1["ref"] is not None:
         with torch.no_grad():
             res["referee_test_acc"] = float((s1["ref"](s1["feats_te"]).argmax(1) == data["yte"]).float().mean())
+    if cfg.get("save_models"):
+        # trained feature extractor and heads (and optionally the generator), so later readouts, baselines and
+        # attacks need no re-run; main() writes them to <out_dir>/models/ and removes this key from the record
+        cpu = lambda sd: {k: v.detach().cpu() for k, v in sd.items()}
+        res["_models"] = dict(fe=cpu(s1["fe"].state_dict()), heads=[cpu(h.state_dict()) for h in headers],
+                              gen=cpu(s2["g_sd"]) if (cfg.get("save_gen") and m["gen"] is not None) else None,
+                              method=m, gate_branch=res.get("gate_branch"))
     res["time_s"] = time.time() - t0
     if DEV == "cuda":
         res["gpu_peak_mb"] = round(torch.cuda.max_memory_allocated() / 2 ** 20)
@@ -2521,6 +2541,22 @@ def write_summary(exp, rows, out_dir, cfg):
     return path
 
 
+def code_commit():
+    """Commit of the code that produced a run: BUILD_COMMIT is written into built scripts by build.py
+    (Kaggle has no git); otherwise ask git."""
+    c = globals().get("BUILD_COMMIT")
+    if c:
+        return c
+    try:
+        import subprocess
+        here = os.path.dirname(os.path.abspath(__file__))
+        h = subprocess.run(["git", "rev-parse", "--short=12", "HEAD"], cwd=here, capture_output=True, text=True).stdout.strip()
+        dirty = subprocess.run(["git", "status", "--porcelain", "--", "."], cwd=here, capture_output=True, text=True).stdout.strip()
+        return (h + ("+dirty" if dirty else "")) or "unknown"
+    except Exception:
+        return "unknown"
+
+
 def main(exp):
     ap = argparse.ArgumentParser(description=exp["title"])
     ap.add_argument("--quick", action="store_true", help="reduced rounds, 1 seed: viability check")
@@ -2536,10 +2572,20 @@ def main(exp):
     ap.add_argument("--gpus", type=int, default=None,
                     help="parallel GPU workers (default: all visible GPUs, e.g. 2 on Kaggle T4 x2)")
     ap.add_argument("--worker", type=int, default=None, help=argparse.SUPPRESS)
+    ap.add_argument("--deterministic", action="store_true",
+                    help="deterministic cuDNN/cuBLAS kernels (slower); same seed then gives the same run")
+    ap.add_argument("--no_save_models", action="store_true", help="do not save trained FE + heads per run")
+    ap.add_argument("--save_gen", action="store_true", help="also save the stage-(ii) generator per run (~24 MB)")
     a, _unknown = ap.parse_known_args()  # tolerate Jupyter/Kaggle kernel arguments
+    if a.deterministic or os.environ.get("GEFL_DETERMINISTIC") == "1":
+        os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.deterministic = True
+        torch.use_deterministic_algorithms(True, warn_only=True)
     cfg = dict(quick=a.quick, quick_scale=a.quick_scale, quick_frac={"cifar10": 0.2, "svhn": 0.5},
                seeds=a.seeds if a.seeds is not None else ([0] if a.quick else exp.get("seeds", [0, 1, 2])),
-               data_root=a.data_root, referee=exp.get("referee", True), mnd=exp.get("mnd", False))
+               data_root=a.data_root, referee=exp.get("referee", True), mnd=exp.get("mnd", False),
+               save_models=not a.no_save_models, save_gen=a.save_gen)
     runs = exp["plan"](cfg)
     if a.datasets:
         runs = [r for r in runs if r["dataset"] in a.datasets]
@@ -2639,8 +2685,15 @@ def main(exp):
             continue
         log(f"[{i + 1}/{len(runs)}] {rid}")
         res = run_one(cfg, r, cache, data_cache)
+        models = res.pop("_models", None)
+        if models is not None:
+            os.makedirs(os.path.join(out_dir, "models"), exist_ok=True)
+            fn = "".join(ch if ch.isalnum() or ch in "-_.=" else "_" for ch in rid) + ".pt"
+            torch.save(models, os.path.join(out_dir, "models", fn))
+            res["models_file"] = "models/" + fn
         row = dict(run_id=rid, exp=exp["name"], label=r["label"], dataset=r["dataset"], IF=r["IF"],
-                   alpha=r["alpha"], K=r["K"], seed=r["seed"], method=r["m"], quick=cfg["quick"], **res)
+                   alpha=r["alpha"], K=r["K"], seed=r["seed"], method=r["m"], quick=cfg["quick"],
+                   code_commit=code_commit(), deterministic=not torch.backends.cudnn.benchmark, **res)
         with open(jl, "a", encoding="utf-8") as f:
             f.write(json.dumps(row) + "\n")
         rows.append(row)
