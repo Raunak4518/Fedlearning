@@ -1,0 +1,21 @@
+K=10, d=64, S=47 steps/round, 40 rounds; columns: final ||r||/||r0||, mean holder gain G, mean non-holder loss D, rounds shrunk
+  head: all 10 hold, pi=0.20 (in-batch ~1.00)      lam= 1e-03 flat: final  1.479  G=+0.0569  D=nan  shrunk  2/40
+  head: all 10 hold, pi=0.20 (in-batch ~1.00)      lam= 1e-04 flat: final  1.477  G=+0.0568  D=nan  shrunk  2/40
+  head: all 10 hold, pi=0.20 (in-batch ~1.00)      lam= 0e+00 flat: final  1.478  G=+0.0569  D=nan  shrunk  2/40
+  head: all 10 hold, pi=0.20 (in-batch ~1.00)      lam= 1e-03 HWA : final  1.479  G=+0.0571  shrunk  2/40
+  rare, ALL 10 hold, pi=0.003 (in-batch ~0.17)     lam= 1e-03 flat: final  1.274  G=+0.0165  D=nan  shrunk  5/40
+  rare, ALL 10 hold, pi=0.003 (in-batch ~0.17)     lam= 1e-04 flat: final  1.290  G=+0.0173  D=nan  shrunk  5/40
+  rare, ALL 10 hold, pi=0.003 (in-batch ~0.17)     lam= 0e+00 flat: final  1.293  G=+0.0170  D=nan  shrunk  6/40
+  rare, ALL 10 hold, pi=0.003 (in-batch ~0.17)     lam= 1e-03 HWA : final  1.265  G=+0.0159  shrunk  5/40
+  rare, ALL 10 hold, pi=0.001 (in-batch ~0.06)     lam= 1e-03 flat: final  1.083  G=+0.0068  D=nan  shrunk  9/40
+  rare, ALL 10 hold, pi=0.001 (in-batch ~0.06)     lam= 1e-04 flat: final  1.089  G=+0.0070  D=nan  shrunk  8/40
+  rare, ALL 10 hold, pi=0.001 (in-batch ~0.06)     lam= 0e+00 flat: final  1.126  G=+0.0072  D=nan  shrunk 10/40
+  rare, ALL 10 hold, pi=0.001 (in-batch ~0.06)     lam= 1e-03 HWA : final  1.090  G=+0.0071  shrunk  8/40
+  rare, 8/10 hold, pi=0.003                        lam= 1e-03 flat: final  0.446  G=+0.0601  D=0.2113  shrunk 30/40
+  rare, 8/10 hold, pi=0.003                        lam= 1e-04 flat: final  0.459  G=+0.0606  D=0.2122  shrunk 27/40
+  rare, 8/10 hold, pi=0.003                        lam= 0e+00 flat: final  1.213  G=+0.0163  D=0.0000  shrunk  8/40
+  rare, 8/10 hold, pi=0.003                        lam= 1e-03 HWA : final  1.270  G=+0.0163  shrunk  6/40
+  rare, 4/10 hold, pi=0.05 (in-batch ~0.96)        lam= 1e-03 flat: final  0.155  G=+0.2424  D=0.1275  shrunk 34/40
+  rare, 4/10 hold, pi=0.05 (in-batch ~0.96)        lam= 1e-04 flat: final  0.152  G=+0.2419  D=0.1275  shrunk 32/40
+  rare, 4/10 hold, pi=0.05 (in-batch ~0.96)        lam= 0e+00 flat: final  1.418  G=+0.0629  D=0.0000  shrunk  5/40
+  rare, 4/10 hold, pi=0.05 (in-batch ~0.96)        lam= 1e-03 HWA : final  1.740  G=+0.0482  shrunk  2/40

@@ -1,0 +1,9 @@
+(A1) K=1, m=1 (holder only), d=2, S=1. Bound: Delta <= (2*1/1-1)*S*eta = eta
+    Delta = 1.414299e-03  vs bound 1.0e-03  -> ratio 1.414 (= sqrt(d))
+    with d=512: Delta = 2.2636e-02 (bound 1e-3)
+(A2) K=1, m=0 (one non-holder), d=1, S=1, r=1e-4 < eta. Bound: Delta <= -S*eta = -1e-3
+    r_k = -8.091e-04; Delta = +7.091e-04  (norm GROWS: Adam overshoots zero)
+(A3) K=2, m=1, d=1, S=1, r=0 (row at zero). Bound: Delta <= 0
+    holder 1.0e-03, non-holder 0.0e+00, aggregate 5.0e-04: Delta = +5.0e-04 > 0
+(B) m_c = K = 2, every holder GROWS the row, flat average contracts it
+    ||r||=1.000, ||r_1||=1.297, ||r_2||=1.297 (both grew: Gbar>0), ||r+||=0.500  -> contracted by the aggregation alone

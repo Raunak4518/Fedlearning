@@ -1,0 +1,9 @@
+(a) Prop 4: E||T*-X||^2 = 9.8997, closed form = 9.8997; competitors min = 52.0663 (all >= T*: True)
+(b) fraction zero in real feats 0.50; scale s=1.90
+    before ReLU: mean err/sqrt(V_c) = 0.0000, spread ratio = 1.0000, negative coords = 0.161
+    after  ReLU: mean err/sqrt(V_c) = 0.1012, spread ratio = 0.8302  (Prop 4 constraints NOT met)
+    displacement E||T-X||^2: affine 99.2, after ReLU 82.7
+(c) n=500 plug-in, no ReLU: mean err/sqrt(V_c) = 0.0456 +- 0.0012; spread ratio 1.0026 +- 0.0034
+(d) Gelbrich: E||T*-X||^2 = 19.4942, Gelbrich formula = 19.4942; ||Cov T* - Sig||_F/||Sig||_F = 2.96e-15
+    competitors (Sig^1/2 Q St^-1/2): min 37.5347 >= T*: True
+    eig(A_c) range [0.095, 5.407]; after clip to [0.1,10]: ||Cov - Sig||_F/||Sig||_F = 0.000

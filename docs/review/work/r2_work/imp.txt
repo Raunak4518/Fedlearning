@@ -1,0 +1,350 @@
+ Class-Balanced GeFL-F Derivations 
+ Method justification Third document in the set Every number below was computed from the project code 
+ Class-Balanced GeFL‑F Derivations
+ What can be proven, what can be compared to the original paper, and how each design decision is defended 
+ A hypothesis becomes defensible when its formula follows from a stated model of the problem, its
+ comparisons are controlled, and its predictions can fail. This document applies that standard to the
+ two proposed mechanisms. One survives intact and gains an exact proof. The other survives only in a
+ reformulated version, and only with a hard ceiling that changes what the paper should claim.
+ 0 Verdict 
+ 1 How this field defends decisions 
+ 2 Comparability with the paper 
+ 3 Result 1: the damping identity 
+ 4 Result 2: why Mechanism A's formula 
+ 5 Result 3: the sampling ceiling 
+ 6 Result 4: what the math adds 
+ 7 Defects the analysis found 
+ 8 Claims and experiments 
+ 9 Assumptions 
+ 00 Verdict 
+ Read this first. Everything after it is the supporting argument. 
+ Defensible as proposed Mechanism A 
+ Flat averaging provably shrinks every class's conditioning update by the fraction of clients holding that class. This is an exact identity, verified numerically. Mechanism A's weighting is the minimum-variance estimator under a stated noise model, and flat averaging is optimal only in the IID-balanced regime the paper tested. 
+ Defensible only reformulated Mechanism B 
+ No choice of sampling distribution can balance the header. The synthetic phase is one-sixth of training exposure, so the best possible p(y) still leaves a 7.5× head-to-tail gap. Its correct form is derived here (client-local water-filling), but it cannot be the headline. 
+ What the math adds A correction after the real phase 
+ The dominant imbalance enters in the real-data phase, which runs last and is five times longer. Logit adjustment is the provably correct correction for that term (Fisher-consistent for balanced error). It should become a component of the method, not only a baseline. 
+ Correction to an earlier claim 
+ An earlier version of the project review stated that the “support floor” variant
+ hurt results and presented it as a negative finding. That was wrong , and
+ the review and paper skeleton have since been corrected. The floor switches on only when a
+ class has fewer than 20 samples across a round's clients. With all 10 clients participating, the
+ rarest CIFAR‑10‑LT class has 25, so the floor never activated. The “floor” runs
+ were exact repeats of their non-floor configurations, and any differences between them are run-to-run
+ noise. Section 3.4 turns this accident into something useful.
+ 01 How this field defends design decisions 
+ The papers this work will be judged against each justify themselves in a recognisable way. Matching that standard is the bar. 
+ Four defence patterns, where they come from, and what each demands of this project 
+ Pattern Exemplar How they did it What it demands of us 
+ Derive the formula from a stated model Cui et al., CVPR 2019 
+ The effective number (1−β n )/(1−β) is not guessed. It falls out of modelling sampling as random covering, where each new sample overlaps old ones with probability β. 
+ Mechanism A's weights must follow from an explicit noise model (§4). Mechanism B's sampling rule must solve a stated objective (§5). 
+ Prove consistency for the reported metric Menon et al., ICLR 2021 
+ Logit adjustment is shown to be Fisher-consistent for the balanced error , the very metric long-tail papers report. 
+ Our headline metric is bucketed / balanced accuracy, so we should prefer corrections with this guarantee (§6). 
+ Diagnose before proposing Shang et al. (CReFF), IJCAI 2022 
+ Before introducing the method, they re-train each component of a FedAvg model separately on balanced data and show the classifier alone recovers most of the gap. 
+ We need the analogous diagnostic: a measurement showing where GeFL‑F loses the tail. Results 1 and 3 supply it analytically; the experiments in §8 confirm it. 
+ Controlled, protocol-matched comparison CReFF; ablation-design literature 
+ “We implement all compared FL methods with the same model for a fair comparison.” Change one factor at a time, fix seeds, report variance. 
+ Baseline GeFL‑F must be re-run in our protocol, never quoted from the paper. Each mechanism must be ablated alone and in combination (§8). 
+ A fifth pattern recurs in the reviewer-facing literature: make a prediction that could fail. 
+ A method that merely improves a number is weaker than one whose theory predicts how the
+ improvement should scale , followed by a test of that prediction. Result 1 gives exactly such a
+ prediction, and it happens to fall on the scalability axis the GeFL‑F paper itself studies.
+ 02 Comparability with the original paper 
+ The worry is legitimate: our implementation differs from the paper's. Some differences only shift absolute numbers; others would invalidate a comparison. They need to be separated. 
+ 2.1 What the paper actually measured 
+ Reading the reference implementation, not just the paper text, shows the protocol behind every reported GeFL‑F number: 
+ Partition: dict_iid , an IID split of a balanced dataset. The paper never evaluates long-tailed or Dirichlet-skewed data. 
+ Feature extractor: Conv(in→3) + BN + ReLU + MaxPool on 32×32 input, giving a 3×16×16 feature (768 values). 
+ Headers: ten CNNs from the reference targetNetModels/cnn.py . 
+ Reported metric: evaluate_models keeps the best accuracy each architecture reaches over all rounds, and the paper averages those maxima. It is a best-over-rounds number, not a final-round one. 
+ Consequence 
+ There is no long-tailed number in the paper to compare against, so none of our long-tail results can
+ be set beside the paper's table. This is not a weakness to hide; it is the gap the project
+ exists to fill. The defensible protocol has three tiers. Tier 1 shows our
+ GeFL‑F is GeFL‑F by reproducing one cell of the paper under its own protocol.
+ Tier 2 compares baseline and proposed inside our long-tail protocol, with identical
+ everything else. Tier 3 tests the mechanisms' predictions directly. This is the same
+ structure CReFF uses.
+ 2.2 The conditioning pathway is the same object in both implementations 
+ The most important comparability question is whether replacing the reference's one-hot conditioning
+ with an nn.Embedding changed the method. The reference decoder concatenates a one-hot
+ label to the latent and applies a linear layer. Split that layer's weight into the columns acting on
+ z and the columns acting on the one-hot:
+ W [ z ; e c  ]  =  W z z  +  W y e c 
+  =  W z z  +  w c 
+      w c = column c of W y 
+ (1) 
+ A one-hot input to a linear layer is an embedding lookup: column c of
+ W y is a learned per-class vector, and it receives gradient only
+ from samples of class c , because the input coordinate is zero otherwise.
+ Mechanism A is therefore well-defined on the unmodified reference architecture : its
+ conditioning parameters are those columns. Our embedding is a rank-limited factorisation of the same
+ object ( W e E[c] , with a 16-dimensional embedding). This turns
+ “we changed the architecture to suit our method” into “our method applies to the
+ original architecture; we use an equivalent factorised parameterisation.” We still control for it
+ with an ablation.
+ One honest asymmetry: the reference encoder conditions on the label as a single constant
+ channel holding the integer class value, an ordinal encoding with no per-class parameters. Mechanism A
+ has nothing to act on there. This does not matter for generation, which uses only the decoder.
+ 2.3 Every deviation, classified 
+ Which differences threaten a comparison, and the control each one requires 
+ Item Paper / reference Ours Threatens Required control 
+ Data regime IID, balanced Long-tail + Dirichlet absolute only Intended, since it is the research question. Tier 1 parity run on IID-balanced data. 
+ Feature channels 3 (768 values) 32 (8,192 values) validity Changes GeFL‑F itself: the feature is 2.67× larger than the image. Use fe_channels: 3 for all headline runs. 
+ MNIST input size resized to 32 native 28 absolute only --img_size 32 for the parity run. 
+ Header pool 10 CNNs 3 headers absolute + variance Parity run needs the ten reference headers ported; long-tail runs may use 3 if stated. 
+ Conditioning one-hot ⊕ Linear Embedding mild Equivalent by Eq. 1. Ablate: baseline with each conditioning, no mechanisms. 
+ Reported metric best over rounds final round parity only Use best-over-rounds only for the Tier 1 parity check; report final-round, the conservative choice, everywhere else. 
+ DDPM optimiser Adam, no weight decay Adam, weight decay 1e‑3 validity A defect, see §7.1. Remove, or switch to AdamW and exclude embeddings. 
+ Long-tail protocol (none) IF {0.01,0.1,1}, α=0.3 literature fit Adopt CReFF's IF {100,50,10} with α=0.5 as primary; keep α=0.3 as the harder setting. 
+ 03 Result 1: flat averaging damps every class's conditioning update 
+ The formal statement of what “class-blind aggregation” costs. It is exact, not an approximation. 
+ Theorem 1 — damping identity exact · verified numerically 
+ Let W r be the conditioning parameters of class r ,
+ meaning an embedding row or, equivalently, a one-hot column (Eq. 1). Let
+ H r be the set of participating clients holding at least one
+ sample of class r , with m r = |H r | 
+ out of K . If local training uses SGD or Adam without weight decay ,
+ then flat averaging produces
+ W r t+1  =  W r t  + 
+ m r K 
+ · Δ̄ r ,
+ Δ̄ r = 1 m r Σ k∈H r Δ k,r 
+ (2) 
+ so every class's update is scaled by the fraction of clients that hold it. Mechanism A, with weights a k summing to 1 over H r , gives W r t+1 = W r t + Σ k∈H r a k Δ k,r , with step factor 1. 
+ Proof. The loss gradient with respect to W r 
+ sums only over samples labelled r . For a client
+ k ∉ H r that sum is empty at every local step, so the gradient
+ on W r is identically zero. Under SGD the update is zero. Under
+ Adam the first and second moment estimates stay exactly zero, so the update
+ m̂/(√v̂ + ε) = 0 . Hence
+ W k,r = W r t for every non-holder. Then
+ (1/K)Σ k W k,r = W r t + (1/K)Σ k∈H r Δ k,r ,
+ which is Eq. 2. ∎
+ 3.1 Numerical verification 
+ We trained each generator locally with the project's own local_update_* functions on a client holding classes 0–6 only, and measured how far each embedding row moved: 
+ Largest change in a label-embedding row after local training · classes 7–9 absent at this client 
+ Generator Parameter held rows 0–6 absent rows 7–9 Theorem holds? 
+ CVAE‑F label_embed.weight 9.7e-3 … 1.1e-2 0.00 exactly 
+ DCGAN‑F G.label_embed.weight 2.2e-3 … 2.8e-3 0.00 exactly 
+ DCGAN‑F D.label_embed.weight 1.8e-3 … 3.1e-3 0.00 exactly 
+ DDPM‑F label_embed.weight 1.2e-3 1.2e-3 no — see §7.1 
+ 3.2 How severe the damping is, and how it scales 
+ The partition code was run with the project's CIFAR‑10‑LT settings (IF = 0.01, α = 0.3, every client participating), averaging over five partition seeds: 
+ 270..30 -->
+ 1.00 
+ 0.75 
+ 0.50 
+ 0.25 
+ 0 
+ step factor m/K 
+ 120, 320, 520 -->
+ 10 
+ 50 
+ 100 
+ number of clients K 
+ Mechanism A (all classes) 
+ y=270-240v -->
+ most frequent class 
+ tail average (classes 6–9) 
+ rarest class 
+ 0.71 
+ 0.45 
+ 0.33 
+ 0.22 
+ The damping grows with the number of clients, and it grows fastest for rare classes. At 100
+ clients, the rarest class's conditioning row moves at 22% of the speed its holders' updates call for,
+ while the most frequent class moves at 76%. The gap between classes, and not only the size of the
+ damping, is what biases the generator toward the head.
+ 3.3 The prediction this gives — and why it is the strongest card 
+ At 10 clients the tail damping is moderate (0.71), so Theorem 1 predicts Mechanism A's benefit there is
+ modest. It also predicts the benefit should grow as clients increase , because flat
+ averaging degrades from 0.71 to 0.33 on the tail while Mechanism A stays at 1. This is a falsifiable
+ prediction on precisely the axis the GeFL‑F paper uses to argue its own value (its Figure 4 sweeps
+ 10, 50 and 100 clients). If the measured gain from Mechanism A rises with K , the
+ theory is confirmed on the paper's home ground. If it does not, something other than damping limits the
+ tail, and we will have learned that too.
+ 3.4 A measured noise floor, from an accident 
+ Because the support floor never activated, the gate sweep contains two pairs of mechanistically
+ identical runs. Their differences measure pure run-to-run variation:
+ Gate sweep, CIFAR‑10‑LT IF=0.01, α=0.3 · floor runs are exact repeats 
+ Comparison Δ overall Δ tail Interpretation 
+ A only vs its repeat +0.3 pp +0.2 pp noise 
+ A + B vs its repeat −0.6 pp −0.4 pp noise 
+ baseline → A + B +8.2 pp +4.2 pp effect, at least 10× the noise 
+ This is not a substitute for three seeds and a significance test, but it is real evidence that the
+ gate result is not noise, and it is more honest than the negative-result story it replaces.
+ 04 Result 2: why Mechanism A uses these particular weights 
+ Theorem 1 says that non-holders should be excluded. This says how the holders should be weighted, from a stated model. 
+ Proposition 2 — Mechanism A is inverse-variance weighting under a stated noise model 
+ Model each holder's update as an unbiased, independent, noisy estimate of a common ideal update,
+ Δ k,r = δ r + ξ k , with
+ Var(ξ k ) = σ 2 / I(n k,r ) , where
+ I(n) is the information carried by n samples. The
+ minimum-variance unbiased linear combination is
+ a k  =  I(n k,r ) Σ j I(n j,r ) 
+ I(n) = n  (iid samples)   or   I(n) = E(n) = 1−β n 1−β  (Cui's covering model)
+ (3) 
+ Sketch. Minimise Var(Σa k Δ k ) = σ 2 Σa k 2 /I k 
+ subject to Σa k = 1 (unbiasedness). The Lagrangian gives
+ a k ∝ I k , the classical inverse-variance estimator.
+ A client with n k,r = 0 carries no information, so it gets weight 0,
+ consistent with Theorem 1. ∎
+ This answers the “why this direction?” question from first principles: Cui et al. use
+ 1/E(n) to reweight a loss , while we use E(n) 
+ to weight independent estimates . The two answer different questions, and Eq. 3 shows which
+ applies here.
+ It also gives the most persuasive sentence available to the paper. The flat average is the
+ minimum-variance estimator if and only if every holder has the same count , which is
+ exactly the IID-balanced regime in which GeFL‑F was evaluated. Class-blind aggregation costs
+ nothing in the paper's own setting and grows costly away from it. The authors did not make a mistake;
+ their setting simply never exposed it.
+ Variance of flat averaging relative to inverse-variance weighting, among holders only · real partition, α=0.3 
+ class 0 1 2 3 4 5 6 7 8 9 
+ Var ratio 20.3 20.6 6.1 10.8 9.0 2.5 4.4 4.1 2.8 1.8 
+ The ratio (Σ1/n k )(Σn k )/m 2 is at
+ least 1 by Cauchy–Schwarz, with equality only when all counts are equal. Note an honest
+ subtlety: the variance penalty is largest for head classes , where counts are most uneven across
+ clients. The tail benefits mainly through Theorem 1's damping. The two results act on different classes,
+ which is worth saying explicitly.
+ Whether to use n or E(n) barely matters here 
+ At β = 0.999 , E(n) ≈ n for small
+ counts ( E(25) = 24.7 ) and saturates by only about 21% at
+ n = 500 . The defensible core of Mechanism A is therefore “weight by
+ evidence, give zero to clients with none.” Effective number is a refinement. A clean ablation is
+ I(n) = n against I(n) = E(n) : if they tie, say so.
+ 05 Result 3: no sampling distribution can balance the header 
+ Mechanism B reshapes p(y). This section bounds how much that can ever achieve. 
+ 5.1 An exposure model 
+ In stage iii each round runs T s = 1 synthetic epoch and
+ T r = 5 real epochs, with the synthetic phase sized to one real
+ epoch's batch count. Let ε c be the fraction of synthetic
+ class- c samples that do not resemble class c . To first
+ order, the useful per-class training exposure per round, in units of one epoch, is
+ U c  =  T s  (1 − ε c ) p(c)  +  T r  π(c),
+      noise mass  =  T s  Σ c  ε c  p(c)
+ (4) 
+ The balanced error weights every class equally, so the target is
+ U c equal across classes. Aggregation averages client updates, which
+ to first order sums their gradients, so the global π governs the aggregated
+ header.
+ Proposition 3 — the sampling ceiling first-order model 
+ Over all p on the simplex, the most balanced achievable exposure, meaning
+ the largest possible worst-class U c , is attained by water-filling:
+ p * (c)  =  [ λ − T r  π(c) ] + T s  (1 − ε c ) ,
+     λ chosen so that Σ c p * (c) = 1
+ (5) 
+ Because the synthetic phase holds only T s /(T s +T r ) = 1/6 
+ of total exposure, the residual imbalance after the optimal p * is bounded away from 1.
+ Sketch. Maximising min c U c with
+ U c affine in p under a budget constraint is
+ the standard water-filling problem: raise every class below level λ up
+ to λ , starting from the lowest, until the budget is spent. Classes with
+ T r π(c) ≥ λ receive no synthetic samples. ∎
+ HEAD-TO-WORST-CLASS EXPOSURE RATIO — CIFAR‑10‑LT, IF = 0.01 
+ 230..710 (13.33 px/unit) -->
+ uniform p(y), perfect G 
+ 17.6× 
+ optimal p*, perfect G 
+ 7.5× 
+ uniform p(y), tail rendered badly 
+ 35.0× 
+ optimal p*, tail rendered badly 
+ 12.3× 
+ balanced target 
+ 1.0× 
+ “tail rendered badly”: ε rising linearly from 0.1 on the head class to 0.6 on the rarest 
+ The best possible sampling policy still leaves a 7.5× gap. Even with a perfect generator,
+ the optimal p * puts zero weight on the four most frequent classes and
+ every remaining sample on the tail, and that still cannot overcome a real-data phase five times longer.
+ With a realistic generator the noise mass also rises, from 0.35 to 0.54. That is the trade-off a
+ fidelity gate must manage.
+ 5.2 What this means for Mechanism B 
+ It cannot be the headline. Its improvement is capped by construction. The gate sweep agrees: B alone gave +3.3 pp tail, a real but bounded effect. 
+ Its correct form differs from the current code. The header is trained locally, so the right π in Eq. 5 is the client-local distribution π k , not the global one the current sampler uses. Per-client head-to-tail ratios on the real partition range from 1.0× to 41×, so one global distribution is wrong for almost every client. 
+ The fidelity gate is now derived, not heuristic. Eq. 5 multiplies by 1/(1−ε c ) , which increases sampling of badly rendered classes and with it the noise mass. Bounding the noise, Σε c p(c) ≤ η , or excluding classes with ε c > ε max , is what a principled fidelity gate does. Call the derived version Mechanism B′: gated, client-local water-filling. 
+ 06 Result 4: the correction the mathematics points to 
+ If the dominant imbalance enters in the real phase, the fix has to act after it. 
+ Proposition 3 locates the problem: five-sixths of the header's exposure comes from the real-data phase,
+ which follows the natural long-tailed π and runs last . Sequential
+ training then pulls the header back toward the real-data prior, so the first-order model, if anything,
+ overstates how much the synthetic phase can achieve. Any correction placed before the real phase
+ is diluted by it.
+ Two corrections act after it, and both have a pedigree: 
+ Post-real-phase corrections 
+ Correction Guarantee Cost Role 
+ Logit adjustment (Menon et al.): predict with arg max c f c (x) − τ log π(c) 
+ Fisher-consistent for balanced error, our reported metric none at training; one hyperparameter 
+ Directly corrects the real-phase prior that Proposition 3 identifies as dominant. 
+ Balanced classifier re-training (decoupling; CReFF): after stage iii, re-fit only the final layer on synthetic features drawn equally per class 
+ Empirical, but CReFF's own diagnostic shows the classifier holds most of the gap in federated long-tail learning a short extra stage 
+ The feature generator makes a perfectly balanced set available at every client, which ordinary FL cannot do. 
+ This turns a weakness into structure. Each component of the method maps to one term in the analysis:
+ Mechanism A removes the damping in the generator's conditioning (Theorem 1);
+ Mechanism B′ spends the synthetic budget optimally within its ceiling
+ (Proposition 3); logit adjustment corrects the real-phase prior that no sampling policy
+ can reach. A reviewer can see why each component exists and what it is responsible for.
+ The risk this creates, stated plainly 
+ Logit adjustment is cheap and well established. If it alone matches A + B′ + logit adjustment,
+ the generator-side contribution is weak. That outcome would still be publishable: it would show that
+ GeFL‑F's tail failure is a decision-boundary problem rather than a generative one. But the
+ paper's framing would change. The factorial design in §8 is built to detect this case.
+ 07 Defects the analysis uncovered 
+ 7.1  DDPM‑F weight decay erases tail classes 
+ Our DDPM‑F uses torch.optim.Adam(weight_decay=1e-3) . Plain Adam adds weight decay to
+ the gradient and then normalises the result, so a row whose only gradient is the decay term is still
+ pushed toward zero at the full learning rate. The test in §3.1 shows absent-class rows moving
+ exactly as fast as held rows (1.2e‑3). Every client that has never seen a class actively shrinks
+ that class's conditioning row, and flat averaging then mixes those shrunk rows in. The reference
+ implementation uses no weight decay for DDPM. Fix: remove it, or use
+ AdamW and exclude embedding parameters, which is standard practice. This must be done
+ before any DDPM‑F result is reported.
+ 7.2  Feature dimensionality 
+ Already documented in the technical reference: fe_channels = 32 makes the feature 2.67×
+ larger than the image, where the paper's 3 channels make it 4× smaller. This deviation changes
+ GeFL‑F itself and must be reverted for headline results.
+ 7.3  Mechanism B uses the global distribution 
+ The current FidelityGatedSampler blends toward inverse global frequency. Section 5.2
+ shows the derivable optimum depends on each client's local distribution. This is not a crash,
+ but the implementation does not match the version that can be justified.
+ 08 Each claim, the experiment that tests it, and how it could fail 
+ The defensible contribution, claim by claim 
+ Claim Support Experiment Falsified if 
+ C0  Our GeFL‑F reproduces the paper — 
+ Tier 1: CVAE‑F, MNIST resized to 32, 10 clients, IID-balanced, fe_channels: 3 , reference headers, best-over-rounds metric 
+ more than 1 pp from the paper's 95.47% 
+ C1  Flat averaging damps tail conditioning by m/K Theorem 1 (exact) 
+ Log per-row update norms in stage ii, baseline vs A logged ratio departs from m/K 
+ C2  Mechanism A's gain grows with client count Theorem 1 + Fig. 3.2 
+ K ∈ {10, 50, 100}, baseline vs A, 3 seeds gain flat or shrinking in K 
+ C3  Sampling alone is capped Proposition 3 
+ uniform, global-B, B′, and static inverse-frequency, tail accuracy compared any p(y) policy closes the tail gap by itself 
+ C4  Components are complementary §6 
+ factorial over {A} × {B′} × {logit adjustment}, 3 seeds, paired test full method ≤ best single component 
+ C5  The embedding parameterisation is not the source of gains Eq. 1 
+ baseline with one-hot vs embedding, no mechanisms baselines differ beyond noise 
+ C6  Privacy is not degraded — 
+ MND ratio, baseline vs full method MND rises above 1 or by more than 0.1 
+ Protocol for C1–C6: CReFF's long-tail settings (IF ∈ {100, 50, 10}, α = 0.5)
+ as the primary grid so the setup matches the established federated long-tail literature, with α = 0.3
+ as the harder secondary setting. Final-round accuracy, many/medium/few-shot buckets, three seeds, mean
+ ± standard deviation, and a paired test against the baseline. Every method shares model, partition
+ and seeds; nothing is quoted from another paper.
+ 09 What the derivations assume 
+ Stating these is part of the defence. A reviewer will find them anyway. 
+ Theorem 1 needs local optimisers without weight decay and conditioning parameters that are not tied to other parameters. Both hold for CVAE‑F and DCGAN‑F as implemented. It is exact about the update , not about final accuracy; the link to accuracy is an empirical claim (C2). 
+ Proposition 2 assumes holder updates are unbiased and independent. Client drift, where local trunks move in different directions, introduces bias that inverse-variance weighting does not correct. The update of row r also interacts with the trunk, which the model ignores. 
+ Proposition 3 is a first-order exposure model. It ignores phase ordering (which makes the synthetic phase weaker still, so the ceiling is optimistic for Mechanism B) and assumes one synthetic sample is worth one real one. A diverse synthetic sample could be worth more, which would raise the ceiling but not remove it. 
+ ε c is not directly observable. The header-confidence signal currently used to estimate it is partly circular (the header scores samples it trains on). A held-out estimate, such as reconstruction error on unseen local data or a frozen referee classifier, is the defensible measurement. 
+ Sources 
+ Y. Cui, M. Jia, T.-Y. Lin, Y. Song, S. Belongie. Class-Balanced Loss Based on Effective Number of Samples. CVPR 2019. arXiv:1901.05555 
+ A. K. Menon, S. Jayasumana, A. S. Rawat, H. Jain, A. Veit, S. Kumar. Long-tail learning via logit adjustment. ICLR 2021. arXiv:2007.07314 
+ X. Shang, Y. Lu, G. Huang, H. Wang. Federated Learning on Heterogeneous and Long-Tailed Data via Classifier Re-Training with Federated Features. IJCAI 2022. arXiv:2204.13399 
+ Ablation study design. TheoremPath. theorempath.com 
+ How to Do Statistical Evaluations in ECE/CS Papers: A Practical Playbook for Defensible Results. arXiv:2605.00428 
+ H. Kang, S. Cha, J. Kang. GeFL: Model-Agnostic Federated Learning with Generative Models. IEEE TMC 2025, and its reference implementation hetero-model-fl-gen . 
+ Class-Balanced GeFL‑F Derivations — companion to the project review and the whiteboard reference. 
+ Numerical claims were produced by running the project's own partition, generator and local-update code. The theorems state their assumptions; the proofs are sketched at the level a reviewer can check. 

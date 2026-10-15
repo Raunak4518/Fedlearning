@@ -1,0 +1,14 @@
+(a) paper MSE - true MSE = -lambda*n_s*sigma2*(lambda - 1)/(lambda*n_s + n_r)**2
+    true-model optimum w* = n_s*sigma2/(b**2*n_r*n_s + n_r*sigma2 + n_s*sigma2)  (paper: sigma^2/(2 n_r b^2))
+    b=0.01: paper w*=0.909  true w*=0.901  (w_max=0.909)
+    b=0.05: paper w*=0.909  true w*=0.741  (w_max=0.909)
+    b=0.1: paper w*=0.500  true w*=0.476  (w_max=0.909)
+    b=0.3: paper w*=0.056  true w*=0.099  (w_max=0.909)
+    MC Var at lambda=0.3: 0.00118; paper formula 0.00250; true formula 0.00119
+(b) herding MMD: t=1 0.6604, t=50 0.0628, t=200 0.0934; min over t 0.0613 at t=68; increases in 130/199 steps; random 200 of pool: 0.3042; all 800: 0.3125
+    ||phi(x)||^2 over candidates: min 0.913 max 1.082 (herding == greedy MMD only if constant)
+    exact greedy-MMD (same pool, w/o replacement) final MMD 0.0935 vs herding 0.0934
+(c) eps=8: rho=1.0491, rho+2sqrt(rho log1/d)=8.0000 (=eps), sigma multiplier=1.38, per-release rho=0.2623=rho/4
+(c) eps=2: rho=0.0800, rho+2sqrt(rho log1/d)=2.0000 (=eps), sigma multiplier=5.00, per-release rho=0.0200=rho/4
+(c) eps=1: rho=0.0208, rho+2sqrt(rho log1/d)=1.0000 (=eps), sigma multiplier=9.80, per-release rho=0.0052=rho/4
+(d) LDA exact 0.662; common shift -> with offsets 0.658; class-specific shift -> with offsets 0.426

@@ -1,0 +1,23 @@
+(a) D per round (norm loss) for a non-holder; ||r0|| = 2.5897
+  lam=   1e-01  D(round1..6) = 0.8370 0.8508 0.8569 0.8598 0.8616 0.8628   max|step|/eta=1.162
+  lam=   1e-02  D(round1..6) = 0.8370 0.8508 0.8569 0.8598 0.8616 0.8628   max|step|/eta=1.162
+  lam=   1e-03  D(round1..6) = 0.8369 0.8508 0.8569 0.8598 0.8615 0.8627   max|step|/eta=1.162
+  lam=   1e-04  D(round1..6) = 0.8364 0.8501 0.8563 0.8592 0.8609 0.8621   max|step|/eta=1.156
+  lam=   1e-05  D(round1..6) = 0.8309 0.8441 0.8501 0.8529 0.8547 0.8558   max|step|/eta=1.111
+  lam=   1e-06  D(round1..6) = 0.7793 0.7883 0.7932 0.7954 0.7967 0.7976   max|step|/eta=0.981
+  lam=   1e-07  D(round1..6) = 0.4831 0.4808 0.4819 0.4824 0.4826 0.4828   max|step|/eta=0.662
+  lam=   1e-08  D(round1..6) = 0.1049 0.1044 0.1044 0.1045 0.1045 0.1045   max|step|/eta=0.164
+  lam=   0e+00  D(round1..6) = 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000   max|step|/eta=0.000
+
+(b) long run (2000 steps, no reset) from r0, lam=1e-3: oscillation floor
+  step    47: ||r|| = 1.75274 (0.6768 of init), max|r_j| = 1.50e-01
+  step   100: ||r|| = 1.07664 (0.4157 of init), max|r_j| = 1.06e-01
+  step   200: ||r|| = 0.37415 (0.1445 of init), max|r_j| = 4.68e-02
+  step   500: ||r|| = 0.00434 (0.0017 of init), max|r_j| = 9.27e-04
+  step  1000: ||r|| = 0.00000 (0.0000 of init), max|r_j| = 4.29e-09
+  step  2000: ||r|| = 0.00000 (0.0000 of init), max|r_j| = 2.29e-31
+  coordinate sign flips over 2000 steps: 33293 (d = 512)
+
+(c) persistent state: global row restored each round after the non-holder had shrunk it
+  max per-coordinate |step| / eta over 6 rounds = 1.162  (Adam bound (1-b1)/sqrt(1-b2) = 3.162)
+  after 500 steps near 0, global row x100 restored: first step max|step|/eta = 1.983

@@ -1,0 +1,278 @@
+cifar10 | 0.01 | 0.5 | 10 | Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__cifar10_lt | n=3 seeds=[0, 1, 2] | bal 46.06 | tail 37.73 | bma 46.78 | orc 52.25 | bbc 48.71 | ens 57.09 | er - | n_train 18485.00
+cifar10 | 0.01 | 0.5 | 10 | Ours-A + MixUp | K13_kaggle_vct_vs_mixup__cifar10_lt | n=3 seeds=[0, 1, 2] | bal 46.20 | tail 41.23 | bma 47.76 | orc 52.94 | bbc 48.50 | ens 59.00 | er - | n_train 18485.00
+cifar10 | 0.01 | 0.5 | 10 | Ours-A + VCT | K13_kaggle_vct_vs_mixup__cifar10_lt | n=3 seeds=[0, 1, 2] | bal 45.65 | tail 51.25 | bma 48.09 | orc 52.49 | bbc 46.89 | ens 59.49 | er - | n_train 18485.00
+cifar10 | 0.01 | 0.5 | 10 | Ours-A Ts=10 | K08_kaggle_anchored_stack__cifar10_lt | n=3 seeds=[0, 1, 2] | bal 44.38 | tail 34.24 | bma 48.07 | orc 50.64 | bbc 47.26 | ens 54.32 | er - | n_train 18485.00
+cifar10 | 1.0 | None | 10 | Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__cifar10_iid | n=3 seeds=[0, 1, 2] | bal 58.62 | tail 67.30 | bma 60.39 | orc 59.12 | bbc 58.47 | ens 69.20 | er - | n_train 25000.00
+cifar10 | 1.0 | None | 10 | Ours-A Ts=10 | K08_kaggle_anchored_stack__cifar10_iid | n=3 seeds=[0, 1, 2] | bal 56.82 | tail 65.47 | bma 60.93 | orc 57.92 | bbc 56.40 | ens 67.47 | er - | n_train 25000.00
+cifar10 | 1.0 | None | 10 | Ours-A Ts=10 + MixUp | K13_kaggle_vct_vs_mixup__cifar10_iid | n=3 seeds=[0, 1, 2] | bal 54.76 | tail 63.33 | bma 59.98 | orc 59.71 | bbc 54.62 | ens 68.00 | er - | n_train 25000.00
+cifar10 | 1.0 | None | 10 | Ours-A Ts=10 + VCT | K13_kaggle_vct_vs_mixup__cifar10_iid | n=3 seeds=[0, 1, 2] | bal 53.18 | tail 61.54 | bma 60.29 | orc 58.26 | bbc 53.05 | ens 66.84 | er - | n_train 25000.00
+fmnist | 0.01 | 0.5 | 10 | +CSL | F10_combined_method | n=3 seeds=[0, 1, 2] | bal 58.59 | tail 36.10 | bma 59.24 | orc 79.70 | bbc - | ens 71.29 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | +HWA+LA | F01_main_longtail | n=3 seeds=[0, 1, 2] | bal 76.02 | tail 68.81 | bma 76.71 | orc 80.21 | bbc - | ens - | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | +HWA+LA | F10_combined_method | n=3 seeds=[0, 1, 2] | bal 75.99 | tail 68.64 | bma 76.56 | orc 80.08 | bbc - | ens 81.80 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | +HWA+LA+CSL | F10_combined_method | n=3 seeds=[0, 1, 2] | bal 76.37 | tail 69.83 | bma 76.85 | orc 80.91 | bbc - | ens 81.86 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | +LA | F01_main_longtail | n=3 seeds=[0, 1, 2] | bal 64.78 | tail 45.55 | bma 65.81 | orc 79.39 | bbc - | ens - | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | -CSL | K09_kaggle_ablation_final__fmnist | n=3 seeds=[0, 1, 2] | bal 78.41 | tail 72.31 | bma 79.03 | orc 80.29 | bbc 78.97 | ens 82.53 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | -KH | K09_kaggle_ablation_final__fmnist | n=3 seeds=[0, 1, 2] | bal 79.49 | tail 73.28 | bma 79.77 | orc 81.62 | bbc 80.51 | ens 82.55 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | -LA | K09_kaggle_ablation_final__fmnist | n=3 seeds=[0, 1, 2] | bal 73.61 | tail 65.89 | bma 74.29 | orc 82.05 | bbc 80.16 | ens 80.43 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | -MC | K09_kaggle_ablation_final__fmnist | n=3 seeds=[0, 1, 2] | bal 79.30 | tail 71.84 | bma 79.50 | orc 81.89 | bbc 80.27 | ens 82.63 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | -PC (CVAE+HWA) | K09_kaggle_ablation_final__fmnist | n=3 seeds=[0, 1, 2] | bal 79.12 | tail 71.15 | bma 79.76 | orc 81.94 | bbc 79.15 | ens 82.80 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | CSL beta=0.25 | K02_kaggle_regimes_privacy_ablations | n=2 seeds=[0, 1] | bal 76.05 | tail 68.73 | bma 76.93 | orc 80.85 | bbc - | ens 81.78 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | CSL beta=0.75 | K02_kaggle_regimes_privacy_ablations | n=2 seeds=[0, 1] | bal 75.74 | tail 68.83 | bma 76.33 | orc 81.21 | bbc - | ens 81.28 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | FSG+LA | F01_main_longtail | n=3 seeds=[0, 1, 2] | bal 73.60 | tail 68.45 | bma 73.87 | orc 79.51 | bbc - | ens - | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | FSG+LA+CSL | E20_proto_generator | n=3 seeds=[0, 1, 2] | bal 73.64 | tail 68.69 | bma 73.95 | orc 79.91 | bbc 74.40 | ens 78.15 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | FedAvg (grouped) | F01_main_longtail | n=3 seeds=[0, 1, 2] | bal 52.79 | tail 33.68 | bma 53.07 | orc - | bbc - | ens - | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | GeFL-F | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 59.13 | tail 36.04 | bma 60.02 | orc 79.42 | bbc - | ens 73.04 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | GeFL-F | E20_proto_generator | n=3 seeds=[0, 1, 2] | bal 58.47 | tail 35.45 | bma 59.10 | orc 78.94 | bbc 60.49 | ens 71.68 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | GeFL-F | F01_main_longtail | n=3 seeds=[0, 1, 2] | bal 58.62 | tail 35.43 | bma 59.46 | orc 79.23 | bbc - | ens - | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | GeFL-F | F10_combined_method | n=3 seeds=[0, 1, 2] | bal 58.74 | tail 35.57 | bma 59.41 | orc 79.17 | bbc - | ens 71.66 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | GeFL-F | K02_kaggle_regimes_privacy_ablations | n=3 seeds=[0, 1, 2] | bal 58.90 | tail 36.27 | bma 59.73 | orc 79.22 | bbc - | ens 72.52 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | HWA weights = counts n | K02_kaggle_regimes_privacy_ablations | n=2 seeds=[0, 1] | bal 76.45 | tail 69.10 | bma 76.86 | orc 81.18 | bbc - | ens 81.90 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | HWA weights = uniform over holders | K02_kaggle_regimes_privacy_ablations | n=2 seeds=[0, 1] | bal 76.33 | tail 69.22 | bma 76.87 | orc 81.20 | bbc - | ens 81.88 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | LA tau=1.5 | K02_kaggle_regimes_privacy_ablations | n=2 seeds=[0, 1] | bal 77.76 | tail 72.27 | bma 78.38 | orc 81.22 | bbc - | ens 82.47 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | LA tau=2.0 | K02_kaggle_regimes_privacy_ablations | n=2 seeds=[0, 1] | bal 77.94 | tail 74.46 | bma 78.45 | orc 81.23 | bbc - | ens 82.71 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | LG-FedAvg | F01_main_longtail | n=3 seeds=[0, 1, 2] | bal 52.45 | tail 33.26 | bma 52.67 | orc - | bbc - | ens - | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | LG-FedAvg+LA | F01_main_longtail | n=3 seeds=[0, 1, 2] | bal 57.57 | tail 40.98 | bma 57.99 | orc - | bbc - | ens - | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours | K02_kaggle_regimes_privacy_ablations | n=3 seeds=[0, 1, 2] | bal 76.51 | tail 69.65 | bma 77.07 | orc 81.02 | bbc - | ens 82.02 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours (HWA+LA+CSL) | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 76.94 | tail 70.22 | bma 77.54 | orc 81.09 | bbc - | ens 81.90 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours (HWA+LA+CSL) | E20_proto_generator | n=3 seeds=[0, 1, 2] | bal 76.60 | tail 69.25 | bma 77.01 | orc 80.73 | bbc 78.04 | ens 81.68 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours (HWA+LA+CSL) Ts=10 | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 79.23 | tail 71.83 | bma 79.56 | orc 81.75 | bbc - | ens 82.79 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours (HWA+LA+CSL) Ts=5 | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 78.76 | tail 71.92 | bma 79.05 | orc 81.60 | bbc - | ens 82.52 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours+MC | E20_proto_generator | n=3 seeds=[0, 1, 2] | bal 77.19 | tail 70.60 | bma 77.58 | orc 81.05 | bbc 78.22 | ens 81.70 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours, DP eps=0.1 | K02_kaggle_regimes_privacy_ablations | n=3 seeds=[0, 1, 2] | bal 73.03 | tail 60.48 | bma 73.72 | orc 80.69 | bbc - | ens 80.67 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours, DP eps=1 | K02_kaggle_regimes_privacy_ablations | n=3 seeds=[0, 1, 2] | bal 76.33 | tail 68.99 | bma 76.79 | orc 81.04 | bbc - | ens 81.69 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours, DP eps=10 | K02_kaggle_regimes_privacy_ablations | n=3 seeds=[0, 1, 2] | bal 76.40 | tail 68.60 | bma 76.93 | orc 81.10 | bbc - | ens 81.93 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours-A (PC+MC+KH+LA+CSL) | E25_anchored_stack | n=3 seeds=[0, 1, 2] | bal 78.22 | tail 72.29 | bma 78.60 | orc 81.19 | bbc 79.80 | ens 82.43 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours-A Ts=10 | E25_anchored_stack | n=3 seeds=[0, 1, 2] | bal 79.67 | tail 73.56 | bma 80.01 | orc 81.55 | bbc 80.55 | ens 83.06 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours-A Ts=10 | K09_kaggle_ablation_final__fmnist | n=3 seeds=[0, 1, 2] | bal 79.79 | tail 73.71 | bma 80.05 | orc 81.73 | bbc 80.69 | ens 82.85 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours-A Ts=10, DP eps=2 | E26_private_anchoring | n=3 seeds=[0, 1, 2] | bal 65.59 | tail 49.20 | bma 66.72 | orc 79.14 | bbc 62.86 | ens 75.66 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours-A Ts=10, DP eps=8 | E26_private_anchoring | n=3 seeds=[0, 1, 2] | bal 72.77 | tail 60.20 | bma 73.46 | orc 79.99 | bbc 70.98 | ens 78.38 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours-A-B Ts=10 | E32_moment_anchor_bayes | n=3 seeds=[0, 1, 2] | bal 81.57 | tail 74.54 | bma 81.75 | orc 82.75 | bbc 81.96 | ens 84.05 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours-A-S Ts=10 | E31_covariance_anchoring_mnist_fmnist | n=3 seeds=[0, 1, 2] | bal 79.65 | tail 71.37 | bma 79.83 | orc 81.92 | bbc 79.14 | ens 82.53 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours-KME (KME+LA+CSL) | E24_kme_generator | n=1 seeds=[0] | bal 75.11 | tail 71.16 | bma 75.38 | orc 79.98 | bbc 76.39 | ens 79.77 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours-KME+KH | E24_kme_generator | n=1 seeds=[0] | bal 75.31 | tail 71.31 | bma 75.71 | orc 79.85 | bbc 76.42 | ens 80.10 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours-KME+MC | E24_kme_generator | n=1 seeds=[0] | bal 75.05 | tail 71.11 | bma 75.33 | orc 80.06 | bbc 76.39 | ens 79.84 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours-PC (PC+LA+CSL) | E20_proto_generator | n=3 seeds=[0, 1, 2] | bal 75.96 | tail 68.55 | bma 76.33 | orc 80.45 | bbc 77.27 | ens 80.94 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours-PC+MC | E20_proto_generator | n=3 seeds=[0, 1, 2] | bal 77.56 | tail 71.24 | bma 77.82 | orc 80.88 | bbc 79.28 | ens 81.66 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours-PC+MC+KH | E24_kme_generator | n=1 seeds=[0] | bal 77.48 | tail 72.45 | bma 78.08 | orc 80.67 | bbc 79.27 | ens 81.92 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours-PC+ZP (PC+ZP+LA+CSL) | E20_proto_generator | n=3 seeds=[0, 1, 2] | bal 76.05 | tail 68.38 | bma 76.56 | orc 80.51 | bbc 77.48 | ens 81.06 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours-R Ts=10 | E29_hybrid_generator | n=3 seeds=[0, 1, 2] | bal 79.60 | tail 73.21 | bma 79.91 | orc 81.39 | bbc 80.46 | ens 82.94 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | Ours-hybrid (RHYB+HWA+LA) | F01_main_longtail | n=3 seeds=[0, 1, 2] | bal 72.40 | tail 67.98 | bma 72.84 | orc 79.28 | bbc - | ens - | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | no CSL | K02_kaggle_regimes_privacy_ablations | n=2 seeds=[0, 1] | bal 76.52 | tail 69.43 | bma 76.94 | orc 80.44 | bbc - | ens 81.80 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | no HWA (flat averaging) | K02_kaggle_regimes_privacy_ablations | n=2 seeds=[0, 1] | bal 68.44 | tail 50.88 | bma 69.38 | orc 80.52 | bbc - | ens 78.28 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 10 | no LA (plain CE) | K02_kaggle_regimes_privacy_ablations | n=2 seeds=[0, 1] | bal 68.71 | tail 58.33 | bma 69.41 | orc 81.07 | bbc - | ens 77.53 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 100 | +HWA+LA | K03_kaggle_client_scaling__K100 | n=3 seeds=[0, 1, 2] | bal 73.25 | tail 60.69 | bma 73.87 | orc 79.47 | bbc - | ens 78.83 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 100 | +LA | K03_kaggle_client_scaling__K100 | n=3 seeds=[0, 1, 2] | bal 66.56 | tail 45.37 | bma 67.64 | orc 78.86 | bbc - | ens 74.27 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 100 | FSG+LA | K03_kaggle_client_scaling__K100 | n=3 seeds=[0, 1, 2] | bal 74.56 | tail 65.33 | bma 74.70 | orc 79.46 | bbc - | ens 77.82 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 100 | FSG+LA+CSL | K03_kaggle_client_scaling__K100 | n=3 seeds=[0, 1, 2] | bal 73.77 | tail 63.68 | bma 74.09 | orc 79.40 | bbc - | ens 77.43 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 100 | GeFL-F | K03_kaggle_client_scaling__K100 | n=3 seeds=[0, 1, 2] | bal 61.95 | tail 35.40 | bma 62.61 | orc 78.71 | bbc - | ens 67.61 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 100 | Ours (HWA+LA+CSL) | K03_kaggle_client_scaling__K100 | n=3 seeds=[0, 1, 2] | bal 71.24 | tail 56.64 | bma 73.32 | orc 79.50 | bbc - | ens 77.46 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 100 | Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__fmnist | n=3 seeds=[0, 1, 2] | bal 76.20 | tail 66.74 | bma 76.57 | orc 80.17 | bbc 77.58 | ens 79.96 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 100 | Ours-A Ts=10 | K08_kaggle_anchored_stack__fmnist | n=3 seeds=[0, 1, 2] | bal 79.02 | tail 70.59 | bma 79.25 | orc 81.03 | bbc 79.35 | ens 81.11 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 50 | +HWA+LA | K03_kaggle_client_scaling__K50 | n=3 seeds=[0, 1, 2] | bal 75.45 | tail 66.07 | bma 75.96 | orc 80.09 | bbc - | ens 80.94 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 50 | +LA | K03_kaggle_client_scaling__K50 | n=3 seeds=[0, 1, 2] | bal 66.53 | tail 45.67 | bma 67.91 | orc 79.11 | bbc - | ens 75.98 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 50 | FSG+LA | K03_kaggle_client_scaling__K50 | n=3 seeds=[0, 1, 2] | bal 75.06 | tail 67.02 | bma 75.38 | orc 79.75 | bbc - | ens 78.85 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 50 | FSG+LA+CSL | K03_kaggle_client_scaling__K50 | n=3 seeds=[0, 1, 2] | bal 74.90 | tail 66.58 | bma 75.08 | orc 79.76 | bbc - | ens 78.72 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 50 | GeFL-F | K03_kaggle_client_scaling__K50 | n=3 seeds=[0, 1, 2] | bal 61.92 | tail 35.86 | bma 63.26 | orc 79.15 | bbc - | ens 69.49 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 50 | Ours (HWA+LA+CSL) | K03_kaggle_client_scaling__K50 | n=3 seeds=[0, 1, 2] | bal 74.48 | tail 64.14 | bma 75.68 | orc 80.12 | bbc - | ens 80.28 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 50 | Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__fmnist | n=3 seeds=[0, 1, 2] | bal 77.24 | tail 69.19 | bma 77.68 | orc 80.55 | bbc 78.56 | ens 81.17 | er - | n_train 5996.00
+fmnist | 0.01 | 0.5 | 50 | Ours-A Ts=10 | K08_kaggle_anchored_stack__fmnist | n=3 seeds=[0, 1, 2] | bal 79.47 | tail 71.69 | bma 79.81 | orc 81.25 | bbc 79.92 | ens 82.10 | er - | n_train 5996.00
+fmnist | 0.1 | 0.5 | 10 | +LA | K02_kaggle_regimes_privacy_ablations | n=3 seeds=[0, 1, 2] | bal 76.80 | tail 72.54 | bma 77.53 | orc 81.91 | bbc - | ens 83.76 | er - | n_train 5995.00
+fmnist | 0.1 | 0.5 | 10 | GeFL-F | K02_kaggle_regimes_privacy_ablations | n=3 seeds=[0, 1, 2] | bal 72.63 | tail 67.26 | bma 73.23 | orc 82.02 | bbc - | ens 82.92 | er - | n_train 5995.00
+fmnist | 0.1 | 0.5 | 10 | Ours | K02_kaggle_regimes_privacy_ablations | n=3 seeds=[0, 1, 2] | bal 79.41 | tail 78.06 | bma 79.73 | orc 82.88 | bbc - | ens 84.62 | er - | n_train 5995.00
+fmnist | 1.0 | 0.5 | 10 | +LA | K02_kaggle_regimes_privacy_ablations | n=3 seeds=[0, 1, 2] | bal 77.78 | tail 78.36 | bma 78.33 | orc 82.18 | bbc - | ens 84.68 | er - | n_train 6000.00
+fmnist | 1.0 | 0.5 | 10 | GeFL-F | K02_kaggle_regimes_privacy_ablations | n=3 seeds=[0, 1, 2] | bal 74.06 | tail 75.95 | bma 74.34 | orc 82.06 | bbc - | ens 84.29 | er - | n_train 6000.00
+fmnist | 1.0 | 0.5 | 10 | Ours | K02_kaggle_regimes_privacy_ablations | n=3 seeds=[0, 1, 2] | bal 79.19 | tail 81.05 | bma 79.54 | orc 82.97 | bbc - | ens 85.26 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | +BCSL | E18_bayesian_csl | n=3 seeds=[0, 1, 2] | bal 82.51 | tail 82.86 | bma 82.78 | orc 83.53 | bbc - | ens 86.31 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | +BCSL Ts=10 | E18_bayesian_csl | n=3 seeds=[0, 1, 2] | bal 82.80 | tail 83.29 | bma 83.16 | orc 83.61 | bbc - | ens 86.01 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | +CSL | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 83.23 | tail 83.58 | bma 83.31 | orc 83.95 | bbc - | ens 86.52 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | +CSL | F10_combined_method | n=3 seeds=[0, 1, 2] | bal 83.18 | tail 83.75 | bma 83.25 | orc 83.94 | bbc - | ens 86.46 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | +CSL (DDPM-F) | F11_ddpm_generator | n=1 seeds=[0] | bal 83.02 | tail 83.64 | bma 83.04 | orc 84.11 | bbc - | ens 86.21 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | +CSL (beta=0.5) | F09_consensus_paper_setting | n=3 seeds=[0, 1, 2] | bal 83.13 | tail 83.73 | bma 83.16 | orc 83.87 | bbc - | ens 86.45 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | +CSL Ts=10 | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 84.32 | tail 84.71 | bma 84.37 | orc 84.82 | bbc - | ens 86.95 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | +CSL Ts=10 | E18_bayesian_csl | n=3 seeds=[0, 1, 2] | bal 84.17 | tail 84.61 | bma 84.22 | orc 84.72 | bbc - | ens 86.85 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | +CSL Ts=3 | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 83.78 | tail 84.26 | bma 83.90 | orc 84.38 | bbc - | ens 86.72 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | +CSL Ts=5 | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 84.04 | tail 84.48 | bma 84.14 | orc 84.65 | bbc - | ens 86.82 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | +HWA+LA | F10_combined_method | n=3 seeds=[0, 1, 2] | bal 82.54 | tail 82.91 | bma 82.74 | orc 83.60 | bbc - | ens 86.24 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | +HWA+LA+CSL | F10_combined_method | n=3 seeds=[0, 1, 2] | bal 83.17 | tail 83.74 | bma 83.21 | orc 83.93 | bbc - | ens 86.40 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | FSG+LA+CSL | E20_proto_generator | n=3 seeds=[0, 1, 2] | bal 81.76 | tail 82.59 | bma 81.86 | orc 83.05 | bbc 81.43 | ens 84.63 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | GeFL-F | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 82.75 | tail 83.02 | bma 82.96 | orc 83.66 | bbc - | ens 86.49 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | GeFL-F | E20_proto_generator | n=3 seeds=[0, 1, 2] | bal 82.57 | tail 82.92 | bma 82.76 | orc 83.57 | bbc 82.10 | ens 86.39 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | GeFL-F | F09_consensus_paper_setting | n=3 seeds=[0, 1, 2] | bal 82.47 | tail 82.69 | bma 82.67 | orc 83.50 | bbc - | ens 86.13 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | GeFL-F | F10_combined_method | n=3 seeds=[0, 1, 2] | bal 82.63 | tail 82.89 | bma 82.80 | orc 83.62 | bbc - | ens 86.17 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | GeFL-F (DDPM-F) | F11_ddpm_generator | n=1 seeds=[0] | bal 83.12 | tail 83.97 | bma 83.16 | orc 84.14 | bbc - | ens 86.60 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | GeFL-F Ts=3 | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 82.88 | tail 83.25 | bma 83.20 | orc 83.81 | bbc - | ens 86.42 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | GeFL-F Ts=5 | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 82.89 | tail 83.17 | bma 83.18 | orc 83.72 | bbc - | ens 86.29 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | Ours (DDPM-F) | F11_ddpm_generator | n=2 seeds=[0, 1] | bal 82.80 | tail 83.53 | bma 82.82 | orc 83.84 | bbc - | ens 85.90 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | Ours (HWA+LA+CSL) | E20_proto_generator | n=3 seeds=[0, 1, 2] | bal 83.12 | tail 83.71 | bma 83.19 | orc 83.91 | bbc 82.12 | ens 86.40 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | Ours (HWA+LA+CSL) Ts=10 | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 84.27 | tail 84.63 | bma 84.34 | orc 84.79 | bbc - | ens 86.89 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | Ours (HWA+LA+CSL) Ts=5 | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 84.03 | tail 84.36 | bma 84.12 | orc 84.59 | bbc - | ens 86.83 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | Ours+MC | E20_proto_generator | n=3 seeds=[0, 1, 2] | bal 83.23 | tail 83.67 | bma 83.30 | orc 83.93 | bbc 82.63 | ens 86.38 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | Ours-A (PC+MC+KH+LA+CSL) | E25_anchored_stack | n=3 seeds=[0, 1, 2] | bal 83.24 | tail 83.41 | bma 83.35 | orc 83.87 | bbc 83.03 | ens 86.43 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | Ours-A Ts=10 | E25_anchored_stack | n=3 seeds=[0, 1, 2] | bal 83.81 | tail 84.18 | bma 83.96 | orc 84.09 | bbc 83.79 | ens 86.44 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | Ours-A-B Ts=10 | E32_moment_anchor_bayes | n=3 seeds=[0, 1, 2] | bal 85.60 | tail 85.79 | bma 85.75 | orc 85.74 | bbc 85.56 | ens 87.59 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | Ours-A-S Ts=10 | E31_covariance_anchoring_mnist_fmnist | n=3 seeds=[0, 1, 2] | bal 85.17 | tail 85.56 | bma 85.25 | orc 85.43 | bbc 85.08 | ens 87.15 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | Ours-B (HWA+LA+BCSL) Ts=10 | E18_bayesian_csl | n=3 seeds=[0, 1, 2] | bal 82.89 | tail 83.16 | bma 83.26 | orc 83.67 | bbc - | ens 86.17 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | Ours-KME (KME+LA+CSL) | E24_kme_generator | n=1 seeds=[0] | bal 81.76 | tail 82.48 | bma 81.82 | orc 82.93 | bbc 81.71 | ens 84.96 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | Ours-KME+KH | E24_kme_generator | n=1 seeds=[0] | bal 81.70 | tail 82.41 | bma 81.83 | orc 82.91 | bbc 81.46 | ens 84.89 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | Ours-KME+MC | E24_kme_generator | n=1 seeds=[0] | bal 81.65 | tail 82.35 | bma 81.78 | orc 82.86 | bbc 81.65 | ens 84.91 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | Ours-PC (PC+LA+CSL) | E20_proto_generator | n=3 seeds=[0, 1, 2] | bal 82.53 | tail 82.94 | bma 82.60 | orc 83.45 | bbc 81.39 | ens 86.02 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | Ours-PC+MC | E20_proto_generator | n=3 seeds=[0, 1, 2] | bal 82.83 | tail 83.26 | bma 82.92 | orc 83.63 | bbc 82.44 | ens 86.11 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | Ours-PC+MC+KH | E24_kme_generator | n=1 seeds=[0] | bal 83.46 | tail 84.08 | bma 83.50 | orc 83.99 | bbc 83.27 | ens 86.10 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | Ours-PC+ZP (PC+ZP+LA+CSL) | E20_proto_generator | n=3 seeds=[0, 1, 2] | bal 82.74 | tail 83.14 | bma 82.80 | orc 83.49 | bbc 81.83 | ens 86.29 | er - | n_train 6000.00
+fmnist | 1.0 | None | 10 | Ours-R Ts=10 | E29_hybrid_generator | n=3 seeds=[0, 1, 2] | bal 84.00 | tail 84.34 | bma 84.11 | orc 84.25 | bbc 83.91 | ens 86.66 | er - | n_train 6000.00
+fmnist | 1.0 | None | 100 | +CSL (beta=0.5) | K03_kaggle_client_scaling__K100 | n=3 seeds=[0, 1, 2] | bal 80.54 | tail 81.44 | bma 80.70 | orc 82.33 | bbc - | ens 84.63 | er - | n_train 6000.00
+fmnist | 1.0 | None | 100 | GeFL-F | K03_kaggle_client_scaling__K100 | n=3 seeds=[0, 1, 2] | bal 80.97 | tail 81.25 | bma 81.11 | orc 82.80 | bbc - | ens 84.76 | er - | n_train 6000.00
+fmnist | 1.0 | None | 100 | Ours (HWA+LA+CSL) | K03_kaggle_client_scaling__K100 | n=3 seeds=[0, 1, 2] | bal 80.50 | tail 81.31 | bma 80.76 | orc 82.39 | bbc - | ens 84.58 | er - | n_train 6000.00
+fmnist | 1.0 | None | 100 | Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__fmnist | n=3 seeds=[0, 1, 2] | bal 81.18 | tail 81.36 | bma 81.21 | orc 82.63 | bbc 80.75 | ens 84.69 | er - | n_train 6000.00
+fmnist | 1.0 | None | 100 | Ours-A Ts=10 | K08_kaggle_anchored_stack__fmnist | n=3 seeds=[0, 1, 2] | bal 81.82 | tail 82.14 | bma 82.04 | orc 83.09 | bbc 81.54 | ens 84.50 | er - | n_train 6000.00
+fmnist | 1.0 | None | 50 | +CSL (beta=0.5) | K03_kaggle_client_scaling__K50 | n=3 seeds=[0, 1, 2] | bal 81.20 | tail 81.62 | bma 81.29 | orc 82.76 | bbc - | ens 85.27 | er - | n_train 6000.00
+fmnist | 1.0 | None | 50 | GeFL-F | K03_kaggle_client_scaling__K50 | n=3 seeds=[0, 1, 2] | bal 81.37 | tail 81.57 | bma 81.50 | orc 82.91 | bbc - | ens 85.48 | er - | n_train 6000.00
+fmnist | 1.0 | None | 50 | Ours (HWA+LA+CSL) | K03_kaggle_client_scaling__K50 | n=3 seeds=[0, 1, 2] | bal 81.17 | tail 81.60 | bma 81.30 | orc 82.75 | bbc - | ens 85.31 | er - | n_train 6000.00
+fmnist | 1.0 | None | 50 | Ours-A Ts=10 | E27_final_iid_many_clients | n=3 seeds=[0, 1, 2] | bal 82.84 | tail 82.87 | bma 82.96 | orc 83.61 | bbc 82.59 | ens 85.56 | er - | n_train 6000.00
+fmnist | None | None | None | +HWA+LA | T03_exact_readout | n=1 seeds=[0] | bal - | tail - | bma - | orc 79.44 | bbc 73.58 | ens - | er - | n_train -
+fmnist | None | None | None | GeFL-F | T03_exact_readout | n=1 seeds=[0] | bal - | tail - | bma - | orc 78.65 | bbc 65.11 | ens - | er - | n_train -
+fmnist | None | None | None | Ours-A Ts=1 | T03_exact_readout | n=1 seeds=[0] | bal - | tail - | bma - | orc 80.70 | bbc 77.89 | ens - | er - | n_train -
+mnist | 0.01 | 0.5 | 10 | +CSL | F10_combined_method | n=3 seeds=[0, 1, 2] | bal 76.35 | tail 51.38 | bma 76.68 | orc 92.07 | bbc - | ens 83.23 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | +HWA+LA | F01_main_longtail | n=3 seeds=[0, 1, 2] | bal 87.89 | tail 81.08 | bma 88.65 | orc 92.46 | bbc - | ens - | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | +HWA+LA | F10_combined_method | n=3 seeds=[0, 1, 2] | bal 87.78 | tail 80.80 | bma 88.49 | orc 92.37 | bbc - | ens 94.12 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | +HWA+LA+CSL | F10_combined_method | n=3 seeds=[0, 1, 2] | bal 89.87 | tail 82.67 | bma 90.43 | orc 93.34 | bbc - | ens 94.37 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | +LA | F01_main_longtail | n=3 seeds=[0, 1, 2] | bal 78.92 | tail 60.09 | bma 80.17 | orc 90.91 | bbc - | ens - | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | -CSL | K09_kaggle_ablation_final__mnist | n=3 seeds=[0, 1, 2] | bal 93.55 | tail 89.26 | bma 94.43 | orc 93.97 | bbc 93.72 | ens 95.91 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | -KH | K09_kaggle_ablation_final__mnist | n=3 seeds=[0, 1, 2] | bal 94.47 | tail 90.88 | bma 94.70 | orc 94.98 | bbc 94.70 | ens 95.78 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | -LA | K09_kaggle_ablation_final__mnist | n=3 seeds=[0, 1, 2] | bal 92.20 | tail 84.86 | bma 92.34 | orc 95.42 | bbc 95.14 | ens 94.47 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | -MC | K09_kaggle_ablation_final__mnist | n=3 seeds=[0, 1, 2] | bal 94.22 | tail 90.72 | bma 94.40 | orc 94.61 | bbc 94.38 | ens 95.53 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | -PC (CVAE+HWA) | K09_kaggle_ablation_final__mnist | n=3 seeds=[0, 1, 2] | bal 90.46 | tail 83.46 | bma 92.60 | orc 92.90 | bbc 90.32 | ens 92.74 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | CSL beta=0.25 | K02_kaggle_regimes_privacy_ablations | n=2 seeds=[0, 1] | bal 88.91 | tail 82.09 | bma 89.57 | orc 93.23 | bbc - | ens 94.04 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | CSL beta=0.75 | K02_kaggle_regimes_privacy_ablations | n=2 seeds=[0, 1] | bal 90.70 | tail 84.32 | bma 91.02 | orc 93.73 | bbc - | ens 94.00 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | FSG+LA | F01_main_longtail | n=3 seeds=[0, 1, 2] | bal 87.04 | tail 81.30 | bma 87.41 | orc 91.00 | bbc - | ens - | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | FSG+LA+CSL | E20_proto_generator | n=3 seeds=[0, 1, 2] | bal 87.72 | tail 81.33 | bma 88.40 | orc 92.10 | bbc 87.84 | ens 91.42 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | FedAvg (grouped) | F01_main_longtail | n=3 seeds=[0, 1, 2] | bal 62.86 | tail 40.77 | bma 63.28 | orc - | bbc - | ens - | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | GeFL-F | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 74.94 | tail 51.82 | bma 75.69 | orc 91.00 | bbc - | ens 85.15 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | GeFL-F | E20_proto_generator | n=3 seeds=[0, 1, 2] | bal 75.25 | tail 51.87 | bma 75.93 | orc 91.21 | bbc 79.24 | ens 84.86 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | GeFL-F | F01_main_longtail | n=3 seeds=[0, 1, 2] | bal 74.62 | tail 51.94 | bma 75.15 | orc 90.90 | bbc - | ens - | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | GeFL-F | F10_combined_method | n=3 seeds=[0, 1, 2] | bal 74.24 | tail 51.40 | bma 74.87 | orc 90.73 | bbc - | ens 84.86 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | GeFL-F | K02_kaggle_regimes_privacy_ablations | n=3 seeds=[0, 1, 2] | bal 75.31 | tail 52.88 | bma 75.85 | orc 91.42 | bbc - | ens 85.88 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | HWA weights = counts n | K02_kaggle_regimes_privacy_ablations | n=2 seeds=[0, 1] | bal 89.97 | tail 83.33 | bma 90.34 | orc 93.58 | bbc - | ens 94.30 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | HWA weights = uniform over holders | K02_kaggle_regimes_privacy_ablations | n=2 seeds=[0, 1] | bal 89.02 | tail 81.03 | bma 89.44 | orc 93.35 | bbc - | ens 93.69 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | LA tau=1.5 | K02_kaggle_regimes_privacy_ablations | n=2 seeds=[0, 1] | bal 90.06 | tail 84.92 | bma 90.64 | orc 93.51 | bbc - | ens 94.45 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | LA tau=2.0 | K02_kaggle_regimes_privacy_ablations | n=2 seeds=[0, 1] | bal 89.72 | tail 85.64 | bma 90.36 | orc 93.35 | bbc - | ens 94.17 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | LG-FedAvg | F01_main_longtail | n=3 seeds=[0, 1, 2] | bal 63.22 | tail 41.98 | bma 63.69 | orc - | bbc - | ens - | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | LG-FedAvg+LA | F01_main_longtail | n=3 seeds=[0, 1, 2] | bal 67.84 | tail 50.62 | bma 68.90 | orc - | bbc - | ens - | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours | K02_kaggle_regimes_privacy_ablations | n=3 seeds=[0, 1, 2] | bal 90.15 | tail 83.14 | bma 90.59 | orc 93.69 | bbc - | ens 94.49 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours (HWA+LA+CSL) | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 90.20 | tail 83.14 | bma 90.57 | orc 93.53 | bbc - | ens 94.31 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours (HWA+LA+CSL) | E18_bayesian_csl | n=3 seeds=[0, 1, 2] | bal 89.74 | tail 82.16 | bma 90.18 | orc 93.59 | bbc 90.25 | ens 94.49 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours (HWA+LA+CSL) | E20_proto_generator | n=3 seeds=[0, 1, 2] | bal 90.40 | tail 83.68 | bma 90.78 | orc 93.63 | bbc 91.70 | ens 94.49 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours (HWA+LA+CSL) Ts=10 | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 90.15 | tail 83.01 | bma 91.52 | orc 92.89 | bbc - | ens 92.74 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours (HWA+LA+CSL) Ts=10 | E18_bayesian_csl | n=3 seeds=[0, 1, 2] | bal 90.51 | tail 84.37 | bma 91.70 | orc 93.28 | bbc 90.45 | ens 93.07 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours (HWA+LA+CSL) Ts=5 | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 90.78 | tail 84.14 | bma 91.61 | orc 93.38 | bbc - | ens 93.24 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours+MC | E20_proto_generator | n=3 seeds=[0, 1, 2] | bal 91.11 | tail 85.63 | bma 91.35 | orc 93.49 | bbc 91.79 | ens 94.19 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours, DP eps=0.1 | K02_kaggle_regimes_privacy_ablations | n=3 seeds=[0, 1, 2] | bal 86.73 | tail 74.54 | bma 87.36 | orc 93.29 | bbc - | ens 92.46 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours, DP eps=1 | K02_kaggle_regimes_privacy_ablations | n=3 seeds=[0, 1, 2] | bal 88.87 | tail 79.96 | bma 89.33 | orc 93.40 | bbc - | ens 93.91 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours, DP eps=10 | K02_kaggle_regimes_privacy_ablations | n=3 seeds=[0, 1, 2] | bal 90.10 | tail 83.36 | bma 90.56 | orc 93.59 | bbc - | ens 94.66 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours-A (PC+MC+KH+LA+CSL) | E25_anchored_stack | n=3 seeds=[0, 1, 2] | bal 93.11 | tail 89.15 | bma 93.24 | orc 94.07 | bbc 93.67 | ens 95.23 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours-A Ts=10 | E25_anchored_stack | n=3 seeds=[0, 1, 2] | bal 94.82 | tail 91.08 | bma 95.09 | orc 94.93 | bbc 95.17 | ens 96.10 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours-A Ts=10 | K09_kaggle_ablation_final__mnist | n=3 seeds=[0, 1, 2] | bal 95.18 | tail 91.77 | bma 95.36 | orc 95.37 | bbc 95.40 | ens 96.30 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours-A Ts=10, DP eps=2 | E26_private_anchoring | n=3 seeds=[0, 1, 2] | bal 85.06 | tail 68.56 | bma 86.20 | orc 92.93 | bbc 84.87 | ens 88.52 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours-A Ts=10, DP eps=8 | E26_private_anchoring | n=3 seeds=[0, 1, 2] | bal 90.36 | tail 79.60 | bma 91.25 | orc 94.31 | bbc 89.83 | ens 92.19 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours-A-B Ts=10 | E32_moment_anchor_bayes | n=3 seeds=[0, 1, 2] | bal 94.76 | tail 90.66 | bma 94.90 | orc 94.87 | bbc 94.99 | ens 95.90 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours-A-S Ts=10 | E31_covariance_anchoring_mnist_fmnist | n=3 seeds=[0, 1, 2] | bal 93.25 | tail 86.87 | bma 94.01 | orc 94.63 | bbc 93.08 | ens 94.54 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours-B (HWA+LA+BCSL) | E18_bayesian_csl | n=3 seeds=[0, 1, 2] | bal 88.68 | tail 81.16 | bma 89.33 | orc 92.99 | bbc 89.14 | ens 94.20 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours-B (HWA+LA+BCSL) Ts=10 | E18_bayesian_csl | n=3 seeds=[0, 1, 2] | bal 87.32 | tail 80.12 | bma 89.92 | orc 91.20 | bbc 87.48 | ens 92.00 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours-KME (KME+LA+CSL) | E24_kme_generator | n=1 seeds=[0] | bal 89.88 | tail 84.43 | bma 90.17 | orc 92.66 | bbc 90.30 | ens 93.17 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours-KME+KH | E24_kme_generator | n=1 seeds=[0] | bal 89.55 | tail 84.29 | bma 89.77 | orc 92.54 | bbc 90.04 | ens 93.24 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours-KME+MC | E24_kme_generator | n=1 seeds=[0] | bal 90.08 | tail 84.52 | bma 90.33 | orc 92.68 | bbc 90.50 | ens 93.33 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours-PC (PC+LA+CSL) | E20_proto_generator | n=3 seeds=[0, 1, 2] | bal 90.75 | tail 86.15 | bma 91.12 | orc 93.01 | bbc 91.65 | ens 94.18 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours-PC+MC | E20_proto_generator | n=3 seeds=[0, 1, 2] | bal 92.31 | tail 88.43 | bma 92.74 | orc 94.04 | bbc 93.40 | ens 95.11 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours-PC+MC+KH | E24_kme_generator | n=1 seeds=[0] | bal 92.91 | tail 89.59 | bma 93.10 | orc 94.25 | bbc 93.67 | ens 95.60 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours-PC+ZP (PC+ZP+LA+CSL) | E20_proto_generator | n=3 seeds=[0, 1, 2] | bal 91.69 | tail 86.96 | bma 91.89 | orc 93.45 | bbc 92.00 | ens 94.30 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours-R Ts=10 | E29_hybrid_generator | n=3 seeds=[0, 1, 2] | bal 95.03 | tail 91.46 | bma 95.24 | orc 95.13 | bbc 95.34 | ens 96.19 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | Ours-hybrid (RHYB+HWA+LA) | F01_main_longtail | n=3 seeds=[0, 1, 2] | bal 87.08 | tail 80.47 | bma 87.88 | orc 91.57 | bbc - | ens - | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | no CSL | K02_kaggle_regimes_privacy_ablations | n=2 seeds=[0, 1] | bal 87.64 | tail 80.31 | bma 88.30 | orc 92.54 | bbc - | ens 93.74 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | no HWA (flat averaging) | K02_kaggle_regimes_privacy_ablations | n=2 seeds=[0, 1] | bal 83.08 | tail 66.01 | bma 83.91 | orc 92.48 | bbc - | ens 91.55 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 10 | no LA (plain CE) | K02_kaggle_regimes_privacy_ablations | n=2 seeds=[0, 1] | bal 85.46 | tail 71.87 | bma 85.67 | orc 93.69 | bbc - | ens 91.00 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 100 | +HWA+LA | F04_clients | n=3 seeds=[0, 1, 2] | bal 83.07 | tail 66.63 | bma 83.60 | orc 92.31 | bbc - | ens 86.92 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 100 | +HWA+LA+CSL | F04_clients | n=2 seeds=[0, 1] | bal 83.04 | tail 65.90 | bma 83.26 | orc 92.31 | bbc 83.52 | ens 85.67 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 100 | +LA | F04_clients | n=3 seeds=[0, 1, 2] | bal 79.51 | tail 59.29 | bma 80.08 | orc 91.67 | bbc - | ens 83.42 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 100 | FSG+LA | F04_clients | n=3 seeds=[0, 1, 2] | bal 86.05 | tail 75.97 | bma 86.55 | orc 91.90 | bbc - | ens 89.28 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 100 | FSG+LA+CSL | F04_clients | n=1 seeds=[0] | bal 86.34 | tail 75.74 | bma 86.91 | orc 92.43 | bbc 86.76 | ens 89.71 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 100 | GeFL-F | F04_clients | n=3 seeds=[0, 1, 2] | bal 75.98 | tail 50.27 | bma 76.49 | orc 91.81 | bbc - | ens 79.12 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 100 | MIX+HWA+LA+CSL | F04_clients | n=2 seeds=[0, 1] | bal 85.29 | tail 73.06 | bma 85.92 | orc 92.13 | bbc 85.92 | ens 88.60 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 100 | Ours-A (PC+MC+KH+LA+CSL) | E22_pc_many_clients | n=3 seeds=[0, 1, 2] | bal 90.41 | tail 83.41 | bma 90.60 | orc 93.02 | bbc 91.49 | ens 93.00 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 100 | Ours-A Ts=10 | E22_pc_many_clients | n=3 seeds=[0, 1, 2] | bal 94.30 | tail 90.54 | bma 94.45 | orc 94.84 | bbc 94.45 | ens 95.22 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 100 | Ours-PC+MC | E22_pc_many_clients | n=3 seeds=[0, 1, 2] | bal 89.20 | tail 81.29 | bma 89.55 | orc 92.80 | bbc 90.62 | ens 92.22 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 100 | Ours-R Ts=10 | E29_hybrid_generator | n=2 seeds=[0, 1] | bal 94.36 | tail 90.53 | bma 94.40 | orc 94.81 | bbc 94.49 | ens 95.22 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 50 | +HWA+LA | F04_clients | n=3 seeds=[0, 1, 2] | bal 86.46 | tail 74.55 | bma 86.99 | orc 93.14 | bbc - | ens 91.68 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 50 | +LA | F04_clients | n=3 seeds=[0, 1, 2] | bal 81.35 | tail 62.92 | bma 82.00 | orc 92.35 | bbc - | ens 87.96 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 50 | FSG+LA | F04_clients | n=3 seeds=[0, 1, 2] | bal 87.66 | tail 79.53 | bma 88.10 | orc 92.30 | bbc - | ens 90.58 | er - | n_train 5996.00
+mnist | 0.01 | 0.5 | 50 | GeFL-F | F04_clients | n=3 seeds=[0, 1, 2] | bal 78.10 | tail 54.13 | bma 78.54 | orc 92.50 | bbc - | ens 81.98 | er - | n_train 5996.00
+mnist | 0.1 | 0.5 | 10 | +LA | K02_kaggle_regimes_privacy_ablations | n=3 seeds=[0, 1, 2] | bal 90.18 | tail 85.81 | bma 90.95 | orc 94.73 | bbc - | ens 96.42 | er - | n_train 5995.00
+mnist | 0.1 | 0.5 | 10 | GeFL-F | K02_kaggle_regimes_privacy_ablations | n=3 seeds=[0, 1, 2] | bal 86.91 | tail 80.03 | bma 87.31 | orc 94.75 | bbc - | ens 95.83 | er - | n_train 5995.00
+mnist | 0.1 | 0.5 | 10 | Ours | K02_kaggle_regimes_privacy_ablations | n=3 seeds=[0, 1, 2] | bal 94.34 | tail 91.59 | bma 94.54 | orc 95.95 | bbc - | ens 96.75 | er - | n_train 5995.00
+mnist | 1.0 | 0.5 | 10 | +LA | K02_kaggle_regimes_privacy_ablations | n=3 seeds=[0, 1, 2] | bal 92.28 | tail 92.18 | bma 92.88 | orc 95.81 | bbc - | ens 97.02 | er - | n_train 6000.00
+mnist | 1.0 | 0.5 | 10 | GeFL-F | K02_kaggle_regimes_privacy_ablations | n=3 seeds=[0, 1, 2] | bal 89.79 | tail 89.91 | bma 89.98 | orc 95.87 | bbc - | ens 97.18 | er - | n_train 6000.00
+mnist | 1.0 | 0.5 | 10 | Ours | K02_kaggle_regimes_privacy_ablations | n=3 seeds=[0, 1, 2] | bal 95.59 | tail 94.28 | bma 95.69 | orc 96.58 | bbc - | ens 97.36 | er - | n_train 6000.00
+mnist | 1.0 | None | 10 | +CSL | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 96.61 | tail 95.50 | bma 96.67 | orc 97.15 | bbc - | ens 97.88 | er - | n_train 6000.00
+mnist | 1.0 | None | 10 | +CSL | F10_combined_method | n=3 seeds=[0, 1, 2] | bal 96.75 | tail 95.63 | bma 96.82 | orc 97.27 | bbc - | ens 97.94 | er - | n_train 6000.00
+mnist | 1.0 | None | 10 | +CSL (beta=0.5) | F09_consensus_paper_setting | n=3 seeds=[0, 1, 2] | bal 96.65 | tail 95.60 | bma 96.71 | orc 97.13 | bbc - | ens 97.83 | er - | n_train 6000.00
+mnist | 1.0 | None | 10 | +CSL (beta=1) | F09_consensus_paper_setting | n=1 seeds=[0] | bal 96.08 | tail 94.78 | bma 96.10 | orc 96.62 | bbc - | ens 96.86 | er - | n_train 6000.00
+mnist | 1.0 | None | 10 | +CSL Ts=10 | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 95.97 | tail 94.64 | bma 96.49 | orc 96.62 | bbc - | ens 97.19 | er - | n_train 6000.00
+mnist | 1.0 | None | 10 | +CSL Ts=3 | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 96.41 | tail 95.21 | bma 96.65 | orc 97.01 | bbc - | ens 97.52 | er - | n_train 6000.00
+mnist | 1.0 | None | 10 | +CSL Ts=5 | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 96.15 | tail 94.90 | bma 96.54 | orc 96.82 | bbc - | ens 97.30 | er - | n_train 6000.00
+mnist | 1.0 | None | 10 | +CSLM (interleaved) | F09_consensus_paper_setting | n=1 seeds=[0] | bal 95.79 | tail 94.85 | bma 96.16 | orc 97.08 | bbc - | ens 97.83 | er - | n_train 6000.00
+mnist | 1.0 | None | 10 | +HWA+LA | F10_combined_method | n=3 seeds=[0, 1, 2] | bal 95.72 | tail 94.47 | bma 96.01 | orc 96.62 | bbc - | ens 97.75 | er - | n_train 6000.00
+mnist | 1.0 | None | 10 | +HWA+LA+CSL | F10_combined_method | n=3 seeds=[0, 1, 2] | bal 96.71 | tail 95.60 | bma 96.77 | orc 97.22 | bbc - | ens 97.83 | er - | n_train 6000.00
+mnist | 1.0 | None | 10 | GeFL-F | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 95.65 | tail 94.21 | bma 95.97 | orc 96.57 | bbc - | ens 97.54 | er - | n_train 6000.00
+mnist | 1.0 | None | 10 | GeFL-F | F09_consensus_paper_setting | n=3 seeds=[0, 1, 2] | bal 95.73 | tail 94.41 | bma 96.02 | orc 96.64 | bbc - | ens 97.68 | er - | n_train 6000.00
+mnist | 1.0 | None | 10 | GeFL-F | F10_combined_method | n=3 seeds=[0, 1, 2] | bal 95.75 | tail 94.40 | bma 96.01 | orc 96.65 | bbc - | ens 97.77 | er - | n_train 6000.00
+mnist | 1.0 | None | 10 | GeFL-F Ts=3 | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 94.92 | tail 93.39 | bma 95.81 | orc 96.06 | bbc - | ens 97.06 | er - | n_train 6000.00
+mnist | 1.0 | None | 10 | GeFL-F Ts=5 | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 94.66 | tail 93.14 | bma 95.71 | orc 95.87 | bbc - | ens 96.84 | er - | n_train 6000.00
+mnist | 1.0 | None | 10 | Ours (HWA+LA+CSL) Ts=5 | E16_csl_synthetic_budget | n=3 seeds=[0, 1, 2] | bal 96.26 | tail 95.10 | bma 96.62 | orc 96.89 | bbc - | ens 97.36 | er - | n_train 6000.00
+mnist | 1.0 | None | 10 | Ours-A (PC+MC+KH+LA+CSL) | E25_anchored_stack | n=3 seeds=[0, 1, 2] | bal 96.65 | tail 95.46 | bma 96.67 | orc 97.02 | bbc 96.67 | ens 97.67 | er - | n_train 6000.00
+mnist | 1.0 | None | 10 | Ours-A Ts=10 | E25_anchored_stack | n=3 seeds=[0, 1, 2] | bal 97.58 | tail 96.66 | bma 97.62 | orc 97.78 | bbc 97.61 | ens 98.25 | er - | n_train 6000.00
+mnist | 1.0 | None | 100 | +CSL (beta=0.5) | F09_consensus_paper_setting | n=1 seeds=[0] | bal 94.66 | tail 93.32 | bma 94.72 | orc 95.88 | bbc - | ens 96.32 | er - | n_train 6000.00
+mnist | 1.0 | None | 100 | +CSL (beta=0.5) | K03_kaggle_client_scaling__K100 | n=3 seeds=[0, 1, 2] | bal 94.82 | tail 93.23 | bma 94.89 | orc 96.12 | bbc - | ens 96.51 | er - | n_train 6000.00
+mnist | 1.0 | None | 100 | +CSL (beta=1) | F09_consensus_paper_setting | n=1 seeds=[0] | bal 94.44 | tail 93.04 | bma 94.49 | orc 95.68 | bbc - | ens 95.68 | er - | n_train 6000.00
+mnist | 1.0 | None | 100 | +CSLM (interleaved) | F09_consensus_paper_setting | n=1 seeds=[0] | bal 94.20 | tail 92.14 | bma 94.36 | orc 95.77 | bbc - | ens 96.09 | er - | n_train 6000.00
+mnist | 1.0 | None | 100 | GeFL-F | F09_consensus_paper_setting | n=1 seeds=[0] | bal 94.53 | tail 92.79 | bma 94.61 | orc 95.95 | bbc - | ens 96.41 | er - | n_train 6000.00
+mnist | 1.0 | None | 100 | GeFL-F | K03_kaggle_client_scaling__K100 | n=3 seeds=[0, 1, 2] | bal 94.79 | tail 92.94 | bma 94.88 | orc 96.20 | bbc - | ens 96.73 | er - | n_train 6000.00
+mnist | 1.0 | None | 100 | Ours (HWA+LA+CSL) | K03_kaggle_client_scaling__K100 | n=3 seeds=[0, 1, 2] | bal 94.80 | tail 93.17 | bma 94.87 | orc 96.11 | bbc - | ens 96.48 | er - | n_train 6000.00
+mnist | 1.0 | None | 100 | Ours-A Ts=10 | E27_final_iid_many_clients | n=3 seeds=[0, 1, 2] | bal 96.76 | tail 95.45 | bma 96.77 | orc 97.16 | bbc 96.79 | ens 97.29 | er - | n_train 6000.00
+mnist | 1.0 | None | 50 | +CSL (beta=0.5) | F09_consensus_paper_setting | n=1 seeds=[0] | bal 95.37 | tail 93.72 | bma 95.41 | orc 96.37 | bbc - | ens 97.10 | er - | n_train 6000.00
+mnist | 1.0 | None | 50 | +CSL (beta=0.5) | K03_kaggle_client_scaling__K50 | n=3 seeds=[0, 1, 2] | bal 95.47 | tail 93.70 | bma 95.53 | orc 96.50 | bbc - | ens 97.10 | er - | n_train 6000.00
+mnist | 1.0 | None | 50 | +CSL (beta=1) | F09_consensus_paper_setting | n=1 seeds=[0] | bal 95.08 | tail 93.77 | bma 95.13 | orc 96.04 | bbc - | ens 96.33 | er - | n_train 6000.00
+mnist | 1.0 | None | 50 | +CSLM (interleaved) | F09_consensus_paper_setting | n=1 seeds=[0] | bal 95.27 | tail 93.64 | bma 95.30 | orc 96.39 | bbc - | ens 96.93 | er - | n_train 6000.00
+mnist | 1.0 | None | 50 | GeFL-F | F09_consensus_paper_setting | n=1 seeds=[0] | bal 95.11 | tail 93.44 | bma 95.16 | orc 96.24 | bbc - | ens 97.26 | er - | n_train 6000.00
+mnist | 1.0 | None | 50 | GeFL-F | K03_kaggle_client_scaling__K50 | n=3 seeds=[0, 1, 2] | bal 95.37 | tail 93.65 | bma 95.43 | orc 96.54 | bbc - | ens 97.37 | er - | n_train 6000.00
+mnist | 1.0 | None | 50 | Ours (HWA+LA+CSL) | K03_kaggle_client_scaling__K50 | n=3 seeds=[0, 1, 2] | bal 95.47 | tail 93.64 | bma 95.53 | orc 96.47 | bbc - | ens 97.08 | er - | n_train 6000.00
+mnist | 1.0 | None | 50 | Ours-A Ts=10 | E27_final_iid_many_clients | n=3 seeds=[0, 1, 2] | bal 96.92 | tail 95.71 | bma 96.93 | orc 97.30 | bbc 96.92 | ens 97.55 | er - | n_train 6000.00
+mnist | None | None | None | +HWA+LA | T03_exact_readout | n=1 seeds=[0] | bal - | tail - | bma - | orc 91.82 | bbc 82.00 | ens - | er - | n_train -
+mnist | None | None | None | GeFL-F | T03_exact_readout | n=1 seeds=[0] | bal - | tail - | bma - | orc 91.02 | bbc 75.51 | ens - | er - | n_train -
+mnist | None | None | None | Ours-A Ts=1 | T03_exact_readout | n=1 seeds=[0] | bal - | tail - | bma - | orc 93.58 | bbc 92.23 | ens - | er - | n_train -
+svhn | 0.01 | 0.5 | 10 | +HWA+LA (ours) | K01_kaggle_cifar10_svhn__svhn | n=3 seeds=[0, 1, 2] | bal 62.45 | tail 47.82 | bma 66.86 | orc 65.54 | bbc - | ens 71.10 | er - | n_train 7321.00
+svhn | 0.01 | 0.5 | 10 | +HWA+LA+CSLM | K01_kaggle_cifar10_svhn__svhn | n=3 seeds=[0, 1, 2] | bal 49.88 | tail 48.44 | bma 52.81 | orc 64.62 | bbc - | ens 62.16 | er - | n_train 7321.00
+svhn | 0.01 | 0.5 | 10 | +LA | K01_kaggle_cifar10_svhn__svhn | n=3 seeds=[0, 1, 2] | bal 56.44 | tail 34.87 | bma 62.82 | orc 64.83 | bbc - | ens 65.36 | er - | n_train 7321.00
+svhn | 0.01 | 0.5 | 10 | FSG+LA | K01_kaggle_cifar10_svhn__svhn | n=3 seeds=[0, 1, 2] | bal 44.23 | tail 28.02 | bma 50.15 | orc 52.21 | bbc - | ens 56.23 | er - | n_train 7321.00
+svhn | 0.01 | 0.5 | 10 | GeFL-F | K01_kaggle_cifar10_svhn__svhn | n=3 seeds=[0, 1, 2] | bal 50.49 | tail 24.76 | bma 57.36 | orc 64.82 | bbc - | ens 59.96 | er - | n_train 7321.00
+svhn | 0.01 | 0.5 | 10 | Ours+MC+KH (CVAE+HWA) | K10_kaggle_hybrid_svhn_cifar10__svhn | n=3 seeds=[0, 1, 2] | bal 65.60 | tail 49.60 | bma 70.03 | orc 68.37 | bbc 66.96 | ens 72.25 | er - | n_train 7321.00
+svhn | 0.01 | 0.5 | 10 | Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__svhn | n=3 seeds=[0, 1, 2] | bal 55.89 | tail 37.10 | bma 61.62 | orc 61.77 | bbc 57.19 | ens 63.73 | er - | n_train 7321.00
+svhn | 0.01 | 0.5 | 10 | Ours-A (PC+MC+KH+LA+CSL) | K11_kaggle_covariance_anchoring__svhn | n=3 seeds=[0, 1, 2] | bal 55.76 | tail 36.82 | bma 61.65 | orc 61.75 | bbc 57.27 | ens 63.62 | er - | n_train 7321.00
+svhn | 0.01 | 0.5 | 10 | Ours-A Ts=10 | K08_kaggle_anchored_stack__svhn | n=3 seeds=[0, 1, 2] | bal 54.41 | tail 35.51 | bma 62.30 | orc 59.13 | bbc 54.86 | ens 59.81 | er - | n_train 7321.00
+svhn | 0.01 | 0.5 | 10 | Ours-A-S (PC+MCS+KH+LA+CSL) | K11_kaggle_covariance_anchoring__svhn | n=3 seeds=[0, 1, 2] | bal 61.80 | tail 42.07 | bma 67.34 | orc 66.14 | bbc 63.30 | ens 68.58 | er - | n_train 7321.00
+svhn | 0.01 | 0.5 | 10 | Ours-R | K10_kaggle_hybrid_svhn_cifar10__svhn | n=3 seeds=[0, 1, 2] | bal 60.86 | tail 42.79 | bma 65.97 | orc 65.37 | bbc 62.08 | ens 68.41 | er - | n_train 7321.00
+svhn | 0.01 | 0.5 | 10 | Ours-R Ts=10 | K10_kaggle_hybrid_svhn_cifar10__svhn | n=3 seeds=[0, 1, 2] | bal 60.51 | tail 42.04 | bma 66.58 | orc 64.29 | bbc 61.44 | ens 65.63 | er - | n_train 7321.00
+svhn | 0.01 | 0.5 | 10 | Ours-R-S (PCR+MCS+KH+LA+CSL) | K11_kaggle_covariance_anchoring__svhn | n=3 seeds=[0, 1, 2] | bal 62.89 | tail 42.88 | bma 68.20 | orc 67.37 | bbc 64.57 | ens 69.50 | er - | n_train 7321.00
+svhn | 1.0 | None | 10 | +CSL (DDPM-F) | K04_kaggle_ddpm_cifar10_svhn__svhn | n=3 seeds=[0, 1, 2] | bal 68.57 | tail 65.65 | bma 70.25 | orc 71.41 | bbc - | ens 78.74 | er - | n_train 7320.00
+svhn | 1.0 | None | 10 | +CSL (beta=0.5) | K01_kaggle_cifar10_svhn__svhn | n=3 seeds=[0, 1, 2] | bal 75.15 | tail 73.20 | bma 76.30 | orc 76.15 | bbc - | ens 81.78 | er - | n_train 7320.00
+svhn | 1.0 | None | 10 | +CSLM (interleaved) | K01_kaggle_cifar10_svhn__svhn | n=3 seeds=[0, 1, 2] | bal 74.38 | tail 72.37 | bma 75.86 | orc 75.46 | bbc - | ens 81.12 | er - | n_train 7320.00
+svhn | 1.0 | None | 10 | +HWA+LA (ours) | K01_kaggle_cifar10_svhn__svhn | n=3 seeds=[0, 1, 2] | bal 74.52 | tail 72.92 | bma 75.64 | orc 75.40 | bbc - | ens 81.35 | er - | n_train 7320.00
+svhn | 1.0 | None | 10 | GeFL-F | K01_kaggle_cifar10_svhn__svhn | n=3 seeds=[0, 1, 2] | bal 74.54 | tail 72.72 | bma 75.82 | orc 75.53 | bbc - | ens 81.44 | er - | n_train 7320.00
+svhn | 1.0 | None | 10 | GeFL-F (DDPM-F) | K04_kaggle_ddpm_cifar10_svhn__svhn | n=3 seeds=[0, 1, 2] | bal 67.86 | tail 65.33 | bma 69.77 | orc 70.73 | bbc - | ens 78.41 | er - | n_train 7320.00
+svhn | 1.0 | None | 10 | Ours (DDPM-F) | K04_kaggle_ddpm_cifar10_svhn__svhn | n=3 seeds=[0, 1, 2] | bal 68.69 | tail 65.74 | bma 70.37 | orc 71.53 | bbc - | ens 78.82 | er - | n_train 7320.00
+svhn | 1.0 | None | 10 | Ours+MC+KH (CVAE+HWA) | K10_kaggle_hybrid_svhn_cifar10__svhn | n=3 seeds=[0, 1, 2] | bal 75.89 | tail 74.14 | bma 77.07 | orc 76.67 | bbc 75.88 | ens 81.97 | er - | n_train 7320.00
+svhn | 1.0 | None | 10 | Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__svhn | n=3 seeds=[0, 1, 2] | bal 72.52 | tail 71.05 | bma 73.86 | orc 73.81 | bbc 72.45 | ens 80.02 | er - | n_train 7320.00
+svhn | 1.0 | None | 10 | Ours-A (PC+MC+KH+LA+CSL) | K11_kaggle_covariance_anchoring__svhn | n=3 seeds=[0, 1, 2] | bal 73.04 | tail 71.58 | bma 74.38 | orc 74.28 | bbc 73.02 | ens 80.32 | er - | n_train 7320.00
+svhn | 1.0 | None | 10 | Ours-A Ts=10 | K08_kaggle_anchored_stack__svhn | n=3 seeds=[0, 1, 2] | bal 71.82 | tail 70.98 | bma 74.38 | orc 73.24 | bbc 71.67 | ens 77.51 | er - | n_train 7320.00
+svhn | 1.0 | None | 10 | Ours-A-S (PC+MCS+KH+LA+CSL) | K11_kaggle_covariance_anchoring__svhn | n=3 seeds=[0, 1, 2] | bal 75.87 | tail 73.66 | bma 77.05 | orc 76.78 | bbc 75.84 | ens 82.21 | er - | n_train 7320.00
+svhn | 1.0 | None | 10 | Ours-R | K10_kaggle_hybrid_svhn_cifar10__svhn | n=3 seeds=[0, 1, 2] | bal 74.89 | tail 73.18 | bma 76.06 | orc 75.78 | bbc 74.79 | ens 81.41 | er - | n_train 7320.00
+svhn | 1.0 | None | 10 | Ours-R Ts=10 | K10_kaggle_hybrid_svhn_cifar10__svhn | n=3 seeds=[0, 1, 2] | bal 74.95 | tail 73.83 | bma 76.50 | orc 75.75 | bbc 74.92 | ens 79.89 | er - | n_train 7320.00
+svhn | 1.0 | None | 10 | Ours-R-S (PCR+MCS+KH+LA+CSL) | K11_kaggle_covariance_anchoring__svhn | n=3 seeds=[0, 1, 2] | bal 76.35 | tail 74.29 | bma 77.39 | orc 77.09 | bbc 76.27 | ens 82.58 | er - | n_train 7320.00

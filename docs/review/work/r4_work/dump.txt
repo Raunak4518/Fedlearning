@@ -1,0 +1,436 @@
+('E00_paper_parity_quick', 'FedAvg (grouped)', 'cifar10', 1.0, 10) bal {0: 37.79} bma {0: 38.58} quick
+('E00_paper_parity_quick', 'FedAvg (grouped)', 'fmnist', 1.0, 10) bal {0: 80.15} bma {0: 80.25} quick
+('E00_paper_parity_quick', 'FedAvg (grouped)', 'mnist', 1.0, 10) bal {0: 93.08} bma {0: 93.16} quick
+('E00_paper_parity_quick', 'FedAvg (grouped)', 'svhn', 1.0, 10) bal {0: 45.63} bma {0: 47.78} quick
+('E00_paper_parity_quick', 'GeFL-F', 'cifar10', 1.0, 10) bal {0: 36.97} bma {0: 37.21} quick
+('E00_paper_parity_quick', 'GeFL-F', 'fmnist', 1.0, 10) bal {0: 81.68} bma {0: 81.74} quick
+('E00_paper_parity_quick', 'GeFL-F', 'mnist', 1.0, 10) bal {0: 94.63} bma {0: 94.7} quick
+('E00_paper_parity_quick', 'LG-FedAvg', 'cifar10', 1.0, 10) bal {0: 38.49} bma {0: 39.27} quick
+('E00_paper_parity_quick', 'LG-FedAvg', 'fmnist', 1.0, 10) bal {0: 79.13} bma {0: 79.33} quick
+('E00_paper_parity_quick', 'LG-FedAvg', 'mnist', 1.0, 10) bal {0: 93.09} bma {0: 93.19} quick
+('E01_imbalance_gap_quick', 'GeFL-F', 'fmnist', 0.01, 10) bal {0: 58.34} bma {0: 58.57} quick
+('E01_imbalance_gap_quick', 'GeFL-F', 'fmnist', 0.1, 10) bal {0: 66.68} bma {0: 66.95} quick
+('E01_imbalance_gap_quick', 'GeFL-F', 'fmnist', 1.0, 10) bal {0: 81.64} bma {0: 81.69} quick
+('E01_imbalance_gap_quick', 'LG-FedAvg', 'fmnist', 0.01, 10) bal {0: 52.87} bma {0: 53.01} quick
+('E01_imbalance_gap_quick', 'LG-FedAvg', 'fmnist', 0.1, 10) bal {0: 59.29} bma {0: 59.37} quick
+('E01_imbalance_gap_quick', 'LG-FedAvg', 'fmnist', 1.0, 10) bal {0: 79.27} bma {0: 79.33} quick
+('E02_conditioning_collapse_quick', '+HWA', 'fmnist', 0.01, 10) bal {0: 63.43} bma {0: 63.66} quick
+('E02_conditioning_collapse_quick', '+HWA', 'mnist', 0.01, 10) bal {0: 70.7} bma {0: 71.81} quick
+('E02_conditioning_collapse_quick', '+HWA+LCD', 'fmnist', 0.01, 10) bal {0: 62.23} bma {0: 62.47} quick
+('E02_conditioning_collapse_quick', '+HWA+LCD', 'mnist', 0.01, 10) bal {0: 70.28} bma {0: 71.15} quick
+('E02_conditioning_collapse_quick', '+LCD', 'fmnist', 0.01, 10) bal {0: 60.69} bma {0: 60.96} quick
+('E02_conditioning_collapse_quick', '+LCD', 'mnist', 0.01, 10) bal {0: 69.66} bma {0: 70.55} quick
+('E02_conditioning_collapse_quick', '+NOWD', 'fmnist', 0.01, 10) bal {0: 62.55} bma {0: 62.74} quick
+('E02_conditioning_collapse_quick', '+NOWD', 'mnist', 0.01, 10) bal {0: 69.87} bma {0: 71.04} quick
+('E02_conditioning_collapse_quick', '+NOWD+HWA', 'fmnist', 0.01, 10) bal {0: 63.33} bma {0: 63.63} quick
+('E02_conditioning_collapse_quick', '+NOWD+HWA', 'mnist', 0.01, 10) bal {0: 70.75} bma {0: 71.61} quick
+('E02_conditioning_collapse_quick', 'GeFL-F', 'fmnist', 0.01, 10) bal {0: 57.91} bma {0: 58.45} quick
+('E02_conditioning_collapse_quick', 'GeFL-F', 'mnist', 0.01, 10) bal {0: 68.29} bma {0: 69.72} quick
+('E03_method_components_quick', '+BCR', 'fmnist', 0.01, 10) bal {0: 62.01} bma {0: 62.98} quick
+('E03_method_components_quick', '+BCR', 'mnist', 0.01, 10) bal {0: 73.68} bma {0: 74.5} quick
+('E03_method_components_quick', '+GF', 'fmnist', 0.01, 10) bal {0: 58.47} bma {0: 58.65} quick
+('E03_method_components_quick', '+GF', 'mnist', 0.01, 10) bal {0: 68.53} bma {0: 69.37} quick
+('E03_method_components_quick', '+HWA', 'fmnist', 0.01, 10) bal {0: 64.53} bma {0: 64.81} quick
+('E03_method_components_quick', '+HWA', 'mnist', 0.01, 10) bal {0: 70.87} bma {0: 71.22} quick
+('E03_method_components_quick', '+HWA+LCD', 'fmnist', 0.01, 10) bal {0: 63.29} bma {0: 63.53} quick
+('E03_method_components_quick', '+HWA+LCD', 'mnist', 0.01, 10) bal {0: 70.13} bma {0: 70.78} quick
+('E03_method_components_quick', '+HWA+LCD+GF', 'fmnist', 0.01, 10) bal {0: 63.49} bma {0: 63.58} quick
+('E03_method_components_quick', '+HWA+LCD+GF', 'mnist', 0.01, 10) bal {0: 72.35} bma {0: 72.59} quick
+('E03_method_components_quick', '+HWA+LCD+LA', 'fmnist', 0.01, 10) bal {0: 69.74} bma {0: 70.17} quick
+('E03_method_components_quick', '+HWA+LCD+LA', 'mnist', 0.01, 10) bal {0: 78.0} bma {0: 79.02} quick
+('E03_method_components_quick', '+HWA+LCD+PCM', 'fmnist', 0.01, 10) bal {0: 62.24} bma {0: 64.97} quick
+('E03_method_components_quick', '+HWA+LCD+PCM', 'mnist', 0.01, 10) bal {0: 76.08} bma {0: 77.74} quick
+('E03_method_components_quick', '+LA', 'fmnist', 0.01, 10) bal {0: 65.23} bma {0: 66.48} quick
+('E03_method_components_quick', '+LA', 'mnist', 0.01, 10) bal {0: 75.12} bma {0: 76.88} quick
+('E03_method_components_quick', '+LCD', 'fmnist', 0.01, 10) bal {0: 61.31} bma {0: 61.7} quick
+('E03_method_components_quick', '+LCD', 'mnist', 0.01, 10) bal {0: 68.59} bma {0: 69.98} quick
+('E03_method_components_quick', '+PCM', 'fmnist', 0.01, 10) bal {0: 57.01} bma {0: 59.16} quick
+('E03_method_components_quick', '+PCM', 'mnist', 0.01, 10) bal {0: 72.67} bma {0: 76.04} quick
+('E03_method_components_quick', '+PCM+LA', 'fmnist', 0.01, 10) bal {0: 59.6} bma {0: 61.68} quick
+('E03_method_components_quick', '+PCM+LA', 'mnist', 0.01, 10) bal {0: 72.53} bma {0: 76.79} quick
+('E03_method_components_quick', 'FedAvg (grouped)', 'fmnist', 0.01, 10) bal {0: 54.89} bma {0: 55.06} quick
+('E03_method_components_quick', 'FedAvg (grouped)', 'mnist', 0.01, 10) bal {0: 64.85} bma {0: 65.32} quick
+('E03_method_components_quick', 'GeFL-F', 'fmnist', 0.01, 10) bal {0: 58.77} bma {0: 59.18} quick
+('E03_method_components_quick', 'GeFL-F', 'mnist', 0.01, 10) bal {0: 68.4} bma {0: 69.15} quick
+('E03_method_components_quick', 'LG-FedAvg', 'fmnist', 0.01, 10) bal {0: 52.78} bma {0: 52.84} quick
+('E03_method_components_quick', 'LG-FedAvg', 'mnist', 0.01, 10) bal {0: 65.31} bma {0: 65.77} quick
+('E03_method_components_quick', 'LG-FedAvg+LA', 'fmnist', 0.01, 10) bal {0: 60.04} bma {0: 60.16} quick
+('E03_method_components_quick', 'LG-FedAvg+LA', 'mnist', 0.01, 10) bal {0: 64.65} bma {0: 70.11} quick
+('E03_method_components_quick', 'Ours (HWA+LCD+PCM+LA)', 'fmnist', 0.01, 10) bal {0: 66.21} bma {0: 68.7} quick
+('E03_method_components_quick', 'Ours (HWA+LCD+PCM+LA)', 'mnist', 0.01, 10) bal {0: 75.15} bma {0: 79.06} quick
+('E03_method_components_quick', 'Ours+BCR', 'fmnist', 0.01, 10) bal {0: 59.84} bma {0: 63.95} quick
+('E03_method_components_quick', 'Ours+BCR', 'mnist', 0.01, 10) bal {0: 74.07} bma {0: 78.85} quick
+('E03_method_components_quick', 'Ours+LAFE', 'fmnist', 0.01, 10) bal {0: 65.76} bma {0: 67.61} quick
+('E03_method_components_quick', 'Ours+LAFE', 'mnist', 0.01, 10) bal {0: 77.14} bma {0: 78.14} quick
+('E03_method_components_quick', 'Ours-private (LCD+PCM+LA)', 'fmnist', 0.01, 10) bal {0: 64.67} bma {0: 66.55} quick
+('E03_method_components_quick', 'Ours-private (LCD+PCM+LA)', 'mnist', 0.01, 10) bal {0: 74.3} bma {0: 77.77} quick
+('E12_confirmation_quick', '+HWA', 'fmnist', 0.01, 10) bal {0: 64.53, 1: 60.06, 2: 58.35} bma {0: 64.88, 1: 60.59, 2: 58.43} quick
+('E12_confirmation_quick', '+HWA', 'fmnist', 1.0, 10) bal {0: 81.61, 1: 81.06, 2: 81.25} bma {0: 81.71, 1: 81.12, 2: 81.39} quick
+('E12_confirmation_quick', '+HWA', 'mnist', 0.01, 10) bal {0: 70.9, 1: 68.58, 2: 70.05} bma {0: 71.33, 1: 69.05, 2: 70.13} quick
+('E12_confirmation_quick', '+HWA', 'mnist', 1.0, 10) bal {0: 94.72, 1: 94.91, 2: 95.05} bma {0: 94.81, 1: 94.96, 2: 95.1} quick
+('E12_confirmation_quick', '+HWA+LA', 'fmnist', 0.01, 10) bal {0: 71.09, 1: 69.07, 2: 68.25} bma {0: 71.79, 1: 70.32, 2: 68.43} quick
+('E12_confirmation_quick', '+HWA+LA', 'fmnist', 1.0, 10) bal {0: 81.73, 1: 81.13, 2: 81.38} bma {0: 81.77, 1: 81.23, 2: 81.57} quick
+('E12_confirmation_quick', '+HWA+LA', 'mnist', 0.01, 10) bal {0: 79.03, 1: 78.6, 2: 79.68} bma {0: 79.66, 1: 79.16, 2: 79.73} quick
+('E12_confirmation_quick', '+HWA+LA', 'mnist', 0.01, 50) bal {0: 67.8, 1: 66.58, 2: 69.0} bma {0: 68.24, 1: 67.14, 2: 69.63} quick
+('E12_confirmation_quick', '+HWA+LA', 'mnist', 1.0, 10) bal {0: 94.7, 1: 94.92, 2: 95.08} bma {0: 94.78, 1: 94.97, 2: 95.14} quick
+('E12_confirmation_quick', '+HWA+LA (tau=1.5)', 'fmnist', 0.01, 10) bal {0: 71.93, 1: 71.04, 2: 68.95} bma {0: 72.7, 1: 72.19, 2: 69.4} quick
+('E12_confirmation_quick', '+HWA+LA (tau=1.5)', 'mnist', 0.01, 10) bal {0: 79.56, 1: 79.31, 2: 79.98} bma {0: 80.25, 1: 79.64, 2: 79.94} quick
+('E12_confirmation_quick', '+HWA+LCD+LA', 'fmnist', 0.01, 10) bal {0: 70.01, 1: 68.36, 2: 67.07} bma {0: 70.75, 1: 69.2, 2: 67.1} quick
+('E12_confirmation_quick', '+HWA+LCD+LA', 'fmnist', 1.0, 10) bal {0: 81.64, 1: 81.11, 2: 81.37} bma {0: 81.71, 1: 81.22, 2: 81.64} quick
+('E12_confirmation_quick', '+HWA+LCD+LA', 'mnist', 0.01, 10) bal {0: 78.43, 1: 78.03, 2: 79.28} bma {0: 79.27, 1: 78.42, 2: 79.27} quick
+('E12_confirmation_quick', '+HWA+LCD+LA', 'mnist', 0.01, 50) bal {0: 65.49, 1: 66.61, 2: 68.63} bma {0: 67.28, 1: 67.07, 2: 69.24} quick
+('E12_confirmation_quick', '+HWA+LCD+LA', 'mnist', 1.0, 10) bal {0: 94.81, 1: 94.99, 2: 95.09} bma {0: 94.94, 1: 95.04, 2: 95.15} quick
+('E12_confirmation_quick', '+LA', 'fmnist', 0.01, 10) bal {0: 65.53, 1: 63.44, 2: 58.76} bma {0: 66.14, 1: 63.79, 2: 58.99} quick
+('E12_confirmation_quick', '+LA', 'fmnist', 1.0, 10) bal {0: 81.62, 1: 81.13, 2: 81.41} bma {0: 81.75, 1: 81.27, 2: 81.63} quick
+('E12_confirmation_quick', '+LA', 'mnist', 0.01, 10) bal {0: 76.03, 1: 75.04, 2: 75.0} bma {0: 76.76, 1: 75.39, 2: 75.16} quick
+('E12_confirmation_quick', '+LA', 'mnist', 0.01, 50) bal {0: 64.95, 1: 65.27, 2: 68.51} bma {0: 66.49, 1: 65.86, 2: 69.1} quick
+('E12_confirmation_quick', '+LA', 'mnist', 1.0, 10) bal {0: 94.74, 1: 94.93, 2: 95.08} bma {0: 94.85, 1: 94.98, 2: 95.18} quick
+('E12_confirmation_quick', '+LCD+LA', 'fmnist', 0.01, 10) bal {0: 68.62, 1: 67.48, 2: 64.31} bma {0: 69.13, 1: 68.22, 2: 64.45} quick
+('E12_confirmation_quick', '+LCD+LA', 'fmnist', 1.0, 10) bal {0: 81.67, 1: 81.19, 2: 81.29} bma {0: 81.72, 1: 81.28, 2: 81.5} quick
+('E12_confirmation_quick', '+LCD+LA', 'mnist', 0.01, 10) bal {0: 77.29, 1: 76.67, 2: 78.02} bma {0: 78.1, 1: 77.17, 2: 78.12} quick
+('E12_confirmation_quick', '+LCD+LA', 'mnist', 0.01, 50) bal {0: 66.41, 1: 65.43, 2: 68.71} bma {0: 67.12, 1: 66.33, 2: 69.31} quick
+('E12_confirmation_quick', '+LCD+LA', 'mnist', 1.0, 10) bal {0: 94.75, 1: 94.98, 2: 95.03} bma {0: 94.86, 1: 95.02, 2: 95.08} quick
+('E12_confirmation_quick', 'GeFL-F', 'fmnist', 0.01, 10) bal {0: 58.71, 1: 55.48, 2: 49.9} bma {0: 59.29, 1: 56.2, 2: 50.19} quick
+('E12_confirmation_quick', 'GeFL-F', 'fmnist', 1.0, 10) bal {0: 81.64, 1: 81.11, 2: 81.36} bma {0: 81.72, 1: 81.24, 2: 81.56} quick
+('E12_confirmation_quick', 'GeFL-F', 'mnist', 0.01, 10) bal {0: 69.38, 1: 65.67, 2: 65.64} bma {0: 69.9, 1: 66.15, 2: 65.86} quick
+('E12_confirmation_quick', 'GeFL-F', 'mnist', 0.01, 50) bal {0: 58.88, 1: 58.86, 2: 62.26} bma {0: 59.6, 1: 59.58, 2: 63.0} quick
+('E12_confirmation_quick', 'GeFL-F', 'mnist', 1.0, 10) bal {0: 94.63, 1: 94.87, 2: 95.05} bma {0: 94.81, 1: 94.93, 2: 95.14} quick
+('E12_confirmation_quick', 'LG-FedAvg+LA', 'fmnist', 0.01, 10) bal {0: 60.2, 1: 40.48, 2: 53.2} bma {0: 60.4, 1: 40.74, 2: 53.32} quick
+('E12_confirmation_quick', 'LG-FedAvg+LA', 'fmnist', 1.0, 10) bal {0: 79.05, 1: 76.44, 2: 77.32} bma {0: 79.1, 1: 76.44, 2: 77.38} quick
+('E12_confirmation_quick', 'LG-FedAvg+LA', 'mnist', 0.01, 10) bal {0: 70.02, 1: 68.5, 2: 67.11} bma {0: 70.6, 1: 69.51, 2: 68.1} quick
+('E12_confirmation_quick', 'LG-FedAvg+LA', 'mnist', 1.0, 10) bal {0: 93.21, 1: 93.43, 2: 93.36} bma {0: 93.29, 1: 93.52, 2: 93.46} quick
+('E13_sufficient_statistics_quick', '+HWA+LA', 'fmnist', 0.01, 10) bal {0: 70.07, 1: 70.65, 2: 69.34} bma {0: 70.76, 1: 71.16, 2: 69.4} quick
+('E13_sufficient_statistics_quick', '+HWA+LA', 'mnist', 0.01, 10) bal {0: 80.58, 1: 78.51, 2: 79.52} bma {0: 81.32, 1: 79.17, 2: 79.82} quick
+('E13_sufficient_statistics_quick', 'FSG (seq uniform)', 'fmnist', 0.01, 10) bal {0: 67.84, 1: 66.25, 2: 63.78} bma {0: 68.12, 1: 66.57, 2: 65.81} quick
+('E13_sufficient_statistics_quick', 'FSG (seq uniform)', 'mnist', 0.01, 10) bal {0: 76.32, 1: 76.58, 2: 78.35} bma {0: 77.16, 1: 77.08, 2: 78.38} quick
+('E13_sufficient_statistics_quick', 'FSG+GF+LA', 'fmnist', 0.01, 10) bal {0: 71.52, 1: 71.27, 2: 69.55} bma {0: 71.77, 1: 71.57, 2: 69.98} quick
+('E13_sufficient_statistics_quick', 'FSG+GF+LA', 'mnist', 0.01, 10) bal {0: 83.47, 1: 83.33, 2: 83.47} bma {0: 83.73, 1: 83.62, 2: 83.68} quick
+('E13_sufficient_statistics_quick', 'FSG+LA', 'fmnist', 0.01, 10) bal {0: 72.57, 1: 72.67, 2: 70.42} bma {0: 72.85, 1: 72.93, 2: 70.58} quick
+('E13_sufficient_statistics_quick', 'FSG+LA', 'fmnist', 1.0, 10) bal {0: 81.08, 1: 80.64, 2: 80.89} bma {0: 81.13, 1: 80.7, 2: 81.0} quick
+('E13_sufficient_statistics_quick', 'FSG+LA', 'mnist', 0.01, 10) bal {0: 80.9, 1: 81.28, 2: 84.12} bma {0: 82.58, 1: 81.79, 2: 84.19} quick
+('E13_sufficient_statistics_quick', 'FSG+LA', 'mnist', 1.0, 10) bal {0: 94.03, 1: 93.91, 2: 93.87} bma {0: 94.09, 1: 93.97, 2: 93.97} quick
+('E13_sufficient_statistics_quick', 'FSG+PCM+LA', 'fmnist', 0.01, 10) bal {0: 72.06, 1: 71.72, 2: 69.84} bma {0: 72.66, 1: 72.2, 2: 70.57} quick
+('E13_sufficient_statistics_quick', 'FSG+PCM+LA', 'fmnist', 1.0, 10) bal {0: 79.59, 1: 78.79, 2: 78.83} bma {0: 80.34, 1: 80.42, 2: 80.5} quick
+('E13_sufficient_statistics_quick', 'FSG+PCM+LA', 'mnist', 0.01, 10) bal {0: 84.02, 1: 82.33, 2: 86.65} bma {0: 84.51, 1: 85.08, 2: 87.27} quick
+('E13_sufficient_statistics_quick', 'FSG+PCM+LA', 'mnist', 1.0, 10) bal {0: 93.13, 1: 92.97, 2: 92.66} bma {0: 94.06, 1: 93.83, 2: 94.14} quick
+('E13_sufficient_statistics_quick', 'FSG+PCM+LA, DP eps=1', 'fmnist', 0.01, 10) bal {0: 72.26, 1: 69.16, 2: 69.57} bma {0: 72.47, 1: 72.0, 2: 70.11} quick
+('E13_sufficient_statistics_quick', 'FSG+PCM+LA, DP eps=1', 'mnist', 0.01, 10) bal {0: 83.99, 1: 84.09, 2: 86.65} bma {0: 85.81, 1: 85.2, 2: 87.39} quick
+('E13_sufficient_statistics_quick', 'GeFL-F', 'fmnist', 0.01, 10) bal {0: 58.38, 1: 55.47, 2: 50.09} bma {0: 58.76, 1: 56.38, 2: 50.46} quick
+('E13_sufficient_statistics_quick', 'GeFL-F', 'fmnist', 1.0, 10) bal {0: 81.52, 1: 80.79, 2: 81.03} bma {0: 81.67, 1: 80.87, 2: 81.18} quick
+('E13_sufficient_statistics_quick', 'GeFL-F', 'mnist', 0.01, 10) bal {0: 70.13, 1: 65.93, 2: 64.6} bma {0: 70.84, 1: 66.44, 2: 65.21} quick
+('E13_sufficient_statistics_quick', 'GeFL-F', 'mnist', 1.0, 10) bal {0: 94.67, 1: 94.81, 2: 95.13} bma {0: 94.71, 1: 94.89, 2: 95.15} quick
+('E13_sufficient_statistics_quick', 'HYB+HWA+LA', 'fmnist', 0.01, 10) bal {0: 69.28, 1: 69.45, 2: 67.04} bma {0: 69.77, 1: 69.73, 2: 67.33} quick
+('E13_sufficient_statistics_quick', 'HYB+HWA+LA', 'mnist', 0.01, 10) bal {0: 83.4, 1: 82.55, 2: 82.45} bma {0: 83.67, 1: 82.86, 2: 82.53} quick
+('E13_sufficient_statistics_quick', 'HYB+HWA+PCM+LA', 'fmnist', 0.01, 10) bal {0: 69.13, 1: 67.18, 2: 65.41} bma {0: 70.36, 1: 68.49, 2: 67.59} quick
+('E13_sufficient_statistics_quick', 'HYB+HWA+PCM+LA', 'mnist', 0.01, 10) bal {0: 84.98, 1: 80.52, 2: 84.22} bma {0: 86.13, 1: 82.93, 2: 85.91} quick
+('E14_relative_hybrid_quick', '+HWA+LA', 'fmnist', 0.01, 10) bal {0: 70.58, 1: 69.3, 2: 68.34} bma {0: 71.0, 1: 69.58, 2: 68.78} quick
+('E14_relative_hybrid_quick', '+HWA+LA', 'fmnist', 1.0, 10) bal {0: 81.59, 1: 80.96, 2: 81.18} bma {0: 81.71, 1: 81.07, 2: 81.38} quick
+('E14_relative_hybrid_quick', '+HWA+LA', 'mnist', 0.01, 10) bal {0: 78.17, 1: 78.26, 2: 79.39} bma {0: 79.46, 1: 78.99, 2: 79.32} quick
+('E14_relative_hybrid_quick', '+HWA+LA', 'mnist', 0.01, 50) bal {0: 68.24, 1: 66.18, 2: 69.0} bma {0: 68.67, 1: 66.76, 2: 69.67} quick
+('E14_relative_hybrid_quick', '+HWA+LA', 'mnist', 1.0, 10) bal {0: 94.77, 1: 94.99, 2: 95.1} bma {0: 94.83, 1: 95.09, 2: 95.16} quick
+('E14_relative_hybrid_quick', 'FSG+LA', 'fmnist', 0.01, 10) bal {0: 72.45, 1: 72.25, 2: 70.49} bma {0: 72.58, 1: 72.29, 2: 70.82} quick
+('E14_relative_hybrid_quick', 'FSG+LA', 'fmnist', 1.0, 10) bal {0: 81.01, 1: 80.68, 2: 80.76} bma {0: 81.04, 1: 80.75, 2: 80.79} quick
+('E14_relative_hybrid_quick', 'FSG+LA', 'mnist', 0.01, 10) bal {0: 83.72, 1: 82.49, 2: 83.92} bma {0: 84.04, 1: 83.12, 2: 84.01} quick
+('E14_relative_hybrid_quick', 'FSG+LA', 'mnist', 0.01, 50) bal {0: 69.17, 1: 69.17, 2: 69.61} bma {0: 70.03, 1: 69.76, 2: 71.94} quick
+('E14_relative_hybrid_quick', 'FSG+LA', 'mnist', 1.0, 10) bal {0: 94.09, 1: 93.91, 2: 94.0} bma {0: 94.21, 1: 94.02, 2: 94.06} quick
+('E14_relative_hybrid_quick', 'GeFL-F', 'fmnist', 0.01, 10) bal {0: 57.77, 1: 54.55, 2: 50.37} bma {0: 58.24, 1: 55.09, 2: 50.82} quick
+('E14_relative_hybrid_quick', 'GeFL-F', 'fmnist', 1.0, 10) bal {0: 81.7, 1: 80.75, 2: 81.1} bma {0: 81.74, 1: 80.94, 2: 81.23} quick
+('E14_relative_hybrid_quick', 'GeFL-F', 'mnist', 0.01, 10) bal {0: 67.04, 1: 65.34, 2: 65.07} bma {0: 69.11, 1: 66.63, 2: 65.59} quick
+('E14_relative_hybrid_quick', 'GeFL-F', 'mnist', 0.01, 50) bal {0: 58.1, 1: 58.47, 2: 62.37} bma {0: 58.87, 1: 59.2, 2: 63.04} quick
+('E14_relative_hybrid_quick', 'GeFL-F', 'mnist', 1.0, 10) bal {0: 94.63, 1: 94.87, 2: 94.95} bma {0: 94.71, 1: 94.96, 2: 95.03} quick
+('E14_relative_hybrid_quick', 'RHYB(0.5)+HWA+LA', 'fmnist', 0.01, 10) bal {0: 70.96, 1: 70.5, 2: 69.33} bma {0: 71.48, 1: 70.81, 2: 69.5} quick
+('E14_relative_hybrid_quick', 'RHYB(0.5)+HWA+LA', 'fmnist', 1.0, 10) bal {0: 81.65, 1: 80.88, 2: 81.05} bma {0: 81.69, 1: 81.01, 2: 81.29} quick
+('E14_relative_hybrid_quick', 'RHYB(0.5)+HWA+LA', 'mnist', 0.01, 10) bal {0: 83.71, 1: 82.91, 2: 82.97} bma {0: 84.42, 1: 83.34, 2: 83.39} quick
+('E14_relative_hybrid_quick', 'RHYB(0.5)+HWA+LA', 'mnist', 0.01, 50) bal {0: 66.98, 1: 69.36, 2: 73.23} bma {0: 68.71, 1: 69.9, 2: 73.62} quick
+('E14_relative_hybrid_quick', 'RHYB(0.5)+HWA+LA', 'mnist', 1.0, 10) bal {0: 94.76, 1: 94.97, 2: 94.99} bma {0: 94.83, 1: 95.08, 2: 95.06} quick
+('E14_relative_hybrid_quick', 'RHYB(1.0)+HWA+LA', 'fmnist', 0.01, 10) bal {0: 71.81, 1: 71.02, 2: 69.43} bma {0: 71.91, 1: 71.1, 2: 69.7} quick
+('E14_relative_hybrid_quick', 'RHYB(1.0)+HWA+LA', 'fmnist', 1.0, 10) bal {0: 81.62, 1: 80.89, 2: 81.04} bma {0: 81.66, 1: 81.02, 2: 81.35} quick
+('E14_relative_hybrid_quick', 'RHYB(1.0)+HWA+LA', 'mnist', 0.01, 10) bal {0: 84.9, 1: 82.51, 2: 83.07} bma {0: 85.24, 1: 82.88, 2: 83.62} quick
+('E14_relative_hybrid_quick', 'RHYB(1.0)+HWA+LA', 'mnist', 0.01, 50) bal {0: 67.42, 1: 69.72, 2: 72.79} bma {0: 69.31, 1: 70.27, 2: 73.7} quick
+('E14_relative_hybrid_quick', 'RHYB(1.0)+HWA+LA', 'mnist', 1.0, 10) bal {0: 94.73, 1: 94.97, 2: 95.01} bma {0: 94.8, 1: 95.06, 2: 95.08} quick
+('E15_server_distillation_quick', '+CSL', 'fmnist', 0.01, 10) bal {0: 58.29} bma {0: 58.43} quick
+('E15_server_distillation_quick', '+CSL', 'fmnist', 1.0, 10) bal {0: 81.56} bma {0: 81.6} quick
+('E15_server_distillation_quick', '+CSL+SED(20)', 'fmnist', 0.01, 10) bal {0: 60.57} bma {0: 61.51} quick
+('E15_server_distillation_quick', '+CSL+SED(20)', 'fmnist', 1.0, 10) bal {0: 80.59} bma {0: 80.82} quick
+('E15_server_distillation_quick', '+CSL+SED(60)', 'fmnist', 0.01, 10) bal {0: 59.57} bma {0: 61.74} quick
+('E15_server_distillation_quick', '+CSL+SED(60)', 'fmnist', 1.0, 10) bal {0: 80.48} bma {0: 80.78} quick
+('E15_server_distillation_quick', '+SED(20)', 'fmnist', 0.01, 10) bal {0: 61.58} bma {0: 62.45} quick
+('E15_server_distillation_quick', '+SED(20)', 'fmnist', 1.0, 10) bal {0: 80.17} bma {0: 80.56} quick
+('E15_server_distillation_quick', 'GeFL-F', 'fmnist', 0.01, 10) bal {0: 58.57} bma {0: 59.05} quick
+('E15_server_distillation_quick', 'GeFL-F', 'fmnist', 1.0, 10) bal {0: 81.51} bma {0: 81.57} quick
+('E15_server_distillation_quick', 'Ours (HWA+LA+CSL)', 'fmnist', 0.01, 10) bal {0: 70.65} bma {0: 70.68} quick
+('E15_server_distillation_quick', 'Ours (HWA+LA+CSL)', 'fmnist', 1.0, 10) bal {0: 81.62} bma {0: 81.69} quick
+('E15_server_distillation_quick', 'Ours+SED(20)', 'fmnist', 0.01, 10) bal {0: 71.3} bma {0: 71.58} quick
+('E15_server_distillation_quick', 'Ours+SED(20)', 'fmnist', 1.0, 10) bal {0: 80.72} bma {0: 80.96} quick
+('E16_csl_synthetic_budget', '+CSL', 'fmnist', 1.0, 10) bal {0: 83.4, 1: 82.88, 2: 83.41} bma {0: 83.45, 1: 83.0, 2: 83.48} 
+('E16_csl_synthetic_budget', '+CSL', 'mnist', 1.0, 10) bal {0: 96.6, 1: 96.52, 2: 96.72} bma {0: 96.63, 1: 96.56, 2: 96.81} 
+('E16_csl_synthetic_budget', '+CSL Ts=10', 'fmnist', 1.0, 10) bal {0: 84.33, 1: 84.07, 2: 84.56} bma {0: 84.34, 1: 84.16, 2: 84.62} 
+('E16_csl_synthetic_budget', '+CSL Ts=10', 'mnist', 1.0, 10) bal {0: 95.86, 1: 95.98, 2: 96.07} bma {0: 96.44, 1: 96.42, 2: 96.61} 
+('E16_csl_synthetic_budget', '+CSL Ts=3', 'fmnist', 1.0, 10) bal {0: 83.88, 1: 83.37, 2: 84.1} bma {0: 84.03, 1: 83.52, 2: 84.14} 
+('E16_csl_synthetic_budget', '+CSL Ts=3', 'mnist', 1.0, 10) bal {0: 96.37, 1: 96.33, 2: 96.53} bma {0: 96.6, 1: 96.58, 2: 96.78} 
+('E16_csl_synthetic_budget', '+CSL Ts=5', 'fmnist', 1.0, 10) bal {0: 84.15, 1: 83.75, 2: 84.23} bma {0: 84.21, 1: 83.85, 2: 84.35} 
+('E16_csl_synthetic_budget', '+CSL Ts=5', 'mnist', 1.0, 10) bal {0: 96.11, 1: 96.11, 2: 96.23} bma {0: 96.5, 1: 96.43, 2: 96.69} 
+('E16_csl_synthetic_budget', 'GeFL-F', 'fmnist', 0.01, 10) bal {0: 62.41, 1: 60.25, 2: 54.73} bma {0: 63.38, 1: 61.1, 2: 55.57} 
+('E16_csl_synthetic_budget', 'GeFL-F', 'fmnist', 1.0, 10) bal {0: 82.91, 1: 82.45, 2: 82.88} bma {0: 83.15, 1: 82.62, 2: 83.1} 
+('E16_csl_synthetic_budget', 'GeFL-F', 'mnist', 0.01, 10) bal {0: 73.79, 1: 73.72, 2: 77.3} bma {0: 74.88, 1: 74.62, 2: 77.58} 
+('E16_csl_synthetic_budget', 'GeFL-F', 'mnist', 1.0, 10) bal {0: 95.57, 1: 95.74, 2: 95.65} bma {0: 95.94, 1: 96.06, 2: 95.92} 
+('E16_csl_synthetic_budget', 'GeFL-F Ts=3', 'fmnist', 1.0, 10) bal {0: 83.03, 1: 82.5, 2: 83.12} bma {0: 83.41, 1: 82.81, 2: 83.37} 
+('E16_csl_synthetic_budget', 'GeFL-F Ts=3', 'mnist', 1.0, 10) bal {0: 94.91, 1: 94.93, 2: 94.92} bma {0: 95.76, 1: 95.97, 2: 95.69} 
+('E16_csl_synthetic_budget', 'GeFL-F Ts=5', 'fmnist', 1.0, 10) bal {0: 82.97, 1: 82.59, 2: 83.11} bma {0: 83.35, 1: 82.82, 2: 83.37} 
+('E16_csl_synthetic_budget', 'GeFL-F Ts=5', 'mnist', 1.0, 10) bal {0: 94.68, 1: 94.59, 2: 94.72} bma {0: 95.65, 1: 95.74, 2: 95.73} 
+('E16_csl_synthetic_budget', 'Ours (HWA+LA+CSL)', 'fmnist', 0.01, 10) bal {0: 76.45, 1: 77.51, 2: 76.87} bma {0: 76.86, 1: 78.24, 2: 77.52} 
+('E16_csl_synthetic_budget', 'Ours (HWA+LA+CSL)', 'mnist', 0.01, 10) bal {0: 89.08, 1: 90.87, 2: 90.65} bma {0: 89.66, 1: 91.09, 2: 90.97} 
+('E16_csl_synthetic_budget', 'Ours (HWA+LA+CSL) Ts=10', 'fmnist', 0.01, 10) bal {0: 78.86, 1: 79.81, 2: 79.02} bma {0: 79.22, 1: 80.06, 2: 79.41} 
+('E16_csl_synthetic_budget', 'Ours (HWA+LA+CSL) Ts=10', 'fmnist', 1.0, 10) bal {0: 84.45, 1: 83.83, 2: 84.54} bma {0: 84.55, 1: 83.88, 2: 84.59} 
+('E16_csl_synthetic_budget', 'Ours (HWA+LA+CSL) Ts=10', 'mnist', 0.01, 10) bal {0: 88.81, 1: 90.13, 2: 91.51} bma {0: 90.69, 1: 91.53, 2: 92.35} 
+('E16_csl_synthetic_budget', 'Ours (HWA+LA+CSL) Ts=5', 'fmnist', 0.01, 10) bal {0: 78.13, 1: 79.38, 2: 78.77} bma {0: 78.64, 1: 79.62, 2: 78.89} 
+('E16_csl_synthetic_budget', 'Ours (HWA+LA+CSL) Ts=5', 'fmnist', 1.0, 10) bal {0: 84.05, 1: 83.75, 2: 84.3} bma {0: 84.16, 1: 83.8, 2: 84.4} 
+('E16_csl_synthetic_budget', 'Ours (HWA+LA+CSL) Ts=5', 'mnist', 0.01, 10) bal {0: 89.64, 1: 90.89, 2: 91.82} bma {0: 90.72, 1: 91.8, 2: 92.32} 
+('E16_csl_synthetic_budget', 'Ours (HWA+LA+CSL) Ts=5', 'mnist', 1.0, 10) bal {0: 96.18, 1: 96.28, 2: 96.31} bma {0: 96.51, 1: 96.6, 2: 96.75} 
+('E18_bayesian_csl', '+BCSL', 'fmnist', 1.0, 10) bal {0: 82.67, 1: 82.11, 2: 82.76} bma {0: 82.96, 1: 82.44, 2: 82.93} 
+('E18_bayesian_csl', '+BCSL Ts=10', 'fmnist', 1.0, 10) bal {0: 83.16, 1: 82.3, 2: 82.96} bma {0: 83.34, 1: 82.82, 2: 83.33} 
+('E18_bayesian_csl', '+CSL Ts=10', 'fmnist', 1.0, 10) bal {0: 84.51, 1: 83.69, 2: 84.3} bma {0: 84.53, 1: 83.78, 2: 84.35} 
+('E18_bayesian_csl', 'Ours (HWA+LA+CSL)', 'mnist', 0.01, 10) bal {0: 88.58, 1: 90.58, 2: 90.06} bma {0: 89.08, 1: 90.85, 2: 90.61} 
+('E18_bayesian_csl', 'Ours (HWA+LA+CSL) Ts=10', 'mnist', 0.01, 10) bal {0: 88.92, 1: 90.45, 2: 92.15} bma {0: 90.37, 1: 91.65, 2: 93.07} 
+('E18_bayesian_csl', 'Ours-B (HWA+LA+BCSL)', 'mnist', 0.01, 10) bal {0: 86.78, 1: 89.93, 2: 89.33} bma {0: 87.68, 1: 90.35, 2: 89.97} 
+('E18_bayesian_csl', 'Ours-B (HWA+LA+BCSL) Ts=10', 'fmnist', 1.0, 10) bal {0: 83.2, 1: 82.3, 2: 83.19} bma {0: 83.56, 1: 82.71, 2: 83.52} 
+('E18_bayesian_csl', 'Ours-B (HWA+LA+BCSL) Ts=10', 'mnist', 0.01, 10) bal {0: 85.69, 1: 87.01, 2: 89.25} bma {0: 88.43, 1: 90.28, 2: 91.05} 
+('E20_proto_generator', 'FSG+LA+CSL', 'fmnist', 0.01, 10) bal {0: 73.65, 1: 74.53, 2: 72.74} bma {0: 74.23, 1: 74.65, 2: 72.96} 
+('E20_proto_generator', 'FSG+LA+CSL', 'fmnist', 1.0, 10) bal {0: 81.86, 1: 81.59, 2: 81.82} bma {0: 82.02, 1: 81.67, 2: 81.88} 
+('E20_proto_generator', 'FSG+LA+CSL', 'mnist', 0.01, 10) bal {0: 89.03, 1: 87.05, 2: 87.07} bma {0: 89.45, 1: 87.58, 2: 88.17} 
+('E20_proto_generator', 'GeFL-F', 'fmnist', 0.01, 10) bal {0: 61.96, 1: 58.67, 2: 54.78} bma {0: 62.24, 1: 59.46, 2: 55.59} 
+('E20_proto_generator', 'GeFL-F', 'fmnist', 1.0, 10) bal {0: 82.72, 1: 82.23, 2: 82.76} bma {0: 82.94, 1: 82.37, 2: 82.96} 
+('E20_proto_generator', 'GeFL-F', 'mnist', 0.01, 10) bal {0: 74.19, 1: 75.11, 2: 76.43} bma {0: 75.05, 1: 75.61, 2: 77.14} 
+('E20_proto_generator', 'Ours (HWA+LA+CSL)', 'fmnist', 0.01, 10) bal {0: 76.53, 1: 76.84, 2: 76.45} bma {0: 77.07, 1: 77.35, 2: 76.61} 
+('E20_proto_generator', 'Ours (HWA+LA+CSL)', 'fmnist', 1.0, 10) bal {0: 83.59, 1: 82.57, 2: 83.22} bma {0: 83.59, 1: 82.67, 2: 83.32} 
+('E20_proto_generator', 'Ours (HWA+LA+CSL)', 'mnist', 0.01, 10) bal {0: 88.78, 1: 91.44, 2: 90.99} bma {0: 89.26, 1: 91.76, 2: 91.33} 
+('E20_proto_generator', 'Ours+MC', 'fmnist', 0.01, 10) bal {0: 76.89, 1: 77.33, 2: 77.35} bma {0: 77.27, 1: 77.88, 2: 77.6} 
+('E20_proto_generator', 'Ours+MC', 'fmnist', 1.0, 10) bal {0: 83.5, 1: 82.66, 2: 83.52} bma {0: 83.51, 1: 82.82, 2: 83.56} 
+('E20_proto_generator', 'Ours+MC', 'mnist', 0.01, 10) bal {0: 90.78, 1: 91.47, 2: 91.08} bma {0: 90.98, 1: 91.68, 2: 91.4} 
+('E20_proto_generator', 'Ours-PC (PC+LA+CSL)', 'fmnist', 0.01, 10) bal {0: 75.7, 1: 76.71, 2: 75.46} bma {0: 76.24, 1: 76.97, 2: 75.78} 
+('E20_proto_generator', 'Ours-PC (PC+LA+CSL)', 'fmnist', 1.0, 10) bal {0: 82.82, 1: 81.89, 2: 82.87} bma {0: 82.87, 1: 82.02, 2: 82.91} 
+('E20_proto_generator', 'Ours-PC (PC+LA+CSL)', 'mnist', 0.01, 10) bal {0: 89.99, 1: 91.1, 2: 91.15} bma {0: 90.45, 1: 91.25, 2: 91.64} 
+('E20_proto_generator', 'Ours-PC+MC', 'fmnist', 0.01, 10) bal {0: 77.14, 1: 78.43, 2: 77.12} bma {0: 77.45, 1: 78.54, 2: 77.47} 
+('E20_proto_generator', 'Ours-PC+MC', 'fmnist', 1.0, 10) bal {0: 83.2, 1: 82.09, 2: 83.21} bma {0: 83.31, 1: 82.16, 2: 83.3} 
+('E20_proto_generator', 'Ours-PC+MC', 'mnist', 0.01, 10) bal {0: 91.72, 1: 92.94, 2: 92.27} bma {0: 92.34, 1: 93.04, 2: 92.85} 
+('E20_proto_generator', 'Ours-PC+ZP (PC+ZP+LA+CSL)', 'fmnist', 0.01, 10) bal {0: 75.72, 1: 76.97, 2: 75.47} bma {0: 76.27, 1: 77.32, 2: 76.1} 
+('E20_proto_generator', 'Ours-PC+ZP (PC+ZP+LA+CSL)', 'fmnist', 1.0, 10) bal {0: 83.09, 1: 81.99, 2: 83.13} bma {0: 83.14, 1: 82.09, 2: 83.17} 
+('E20_proto_generator', 'Ours-PC+ZP (PC+ZP+LA+CSL)', 'mnist', 0.01, 10) bal {0: 91.97, 1: 91.4, 2: 91.71} bma {0: 92.25, 1: 91.55, 2: 91.86} 
+('E22_pc_many_clients', 'Ours-A (PC+MC+KH+LA+CSL)', 'mnist', 0.01, 100) bal {0: 90.87, 1: 89.85, 2: 90.52} bma {0: 91.03, 1: 89.95, 2: 90.82} 
+('E22_pc_many_clients', 'Ours-A Ts=10', 'mnist', 0.01, 100) bal {0: 94.55, 1: 93.95, 2: 94.41} bma {0: 94.6, 1: 94.24, 2: 94.51} 
+('E22_pc_many_clients', 'Ours-PC+MC', 'mnist', 0.01, 100) bal {0: 89.47, 1: 88.65, 2: 89.48} bma {0: 89.8, 1: 88.98, 2: 89.88} 
+('E24_kme_generator', 'Ours-KME (KME+LA+CSL)', 'fmnist', 0.01, 10) bal {0: 75.11} bma {0: 75.38} 
+('E24_kme_generator', 'Ours-KME (KME+LA+CSL)', 'fmnist', 1.0, 10) bal {0: 81.76} bma {0: 81.82} 
+('E24_kme_generator', 'Ours-KME (KME+LA+CSL)', 'mnist', 0.01, 10) bal {0: 89.88} bma {0: 90.17} 
+('E24_kme_generator', 'Ours-KME+KH', 'fmnist', 0.01, 10) bal {0: 75.31} bma {0: 75.71} 
+('E24_kme_generator', 'Ours-KME+KH', 'fmnist', 1.0, 10) bal {0: 81.7} bma {0: 81.83} 
+('E24_kme_generator', 'Ours-KME+KH', 'mnist', 0.01, 10) bal {0: 89.55} bma {0: 89.77} 
+('E24_kme_generator', 'Ours-KME+MC', 'fmnist', 0.01, 10) bal {0: 75.05} bma {0: 75.33} 
+('E24_kme_generator', 'Ours-KME+MC', 'fmnist', 1.0, 10) bal {0: 81.65} bma {0: 81.78} 
+('E24_kme_generator', 'Ours-KME+MC', 'mnist', 0.01, 10) bal {0: 90.08} bma {0: 90.33} 
+('E24_kme_generator', 'Ours-PC+MC+KH', 'fmnist', 0.01, 10) bal {0: 77.48} bma {0: 78.08} 
+('E24_kme_generator', 'Ours-PC+MC+KH', 'fmnist', 1.0, 10) bal {0: 83.46} bma {0: 83.5} 
+('E24_kme_generator', 'Ours-PC+MC+KH', 'mnist', 0.01, 10) bal {0: 92.91} bma {0: 93.1} 
+('E25_anchored_stack', 'Ours-A (PC+MC+KH+LA+CSL)', 'fmnist', 0.01, 10) bal {0: 77.49, 1: 78.87, 2: 78.3} bma {0: 77.97, 1: 79.0, 2: 78.81} 
+('E25_anchored_stack', 'Ours-A (PC+MC+KH+LA+CSL)', 'fmnist', 1.0, 10) bal {0: 83.2, 1: 83.03, 2: 83.5} bma {0: 83.38, 1: 83.11, 2: 83.55} 
+('E25_anchored_stack', 'Ours-A (PC+MC+KH+LA+CSL)', 'mnist', 0.01, 10) bal {0: 92.96, 1: 93.59, 2: 92.79} bma {0: 93.18, 1: 93.67, 2: 92.88} 
+('E25_anchored_stack', 'Ours-A (PC+MC+KH+LA+CSL)', 'mnist', 1.0, 10) bal {0: 96.66, 1: 96.65, 2: 96.64} bma {0: 96.68, 1: 96.67, 2: 96.66} 
+('E25_anchored_stack', 'Ours-A Ts=10', 'fmnist', 0.01, 10) bal {0: 79.12, 1: 80.21, 2: 79.69} bma {0: 79.4, 1: 80.43, 2: 80.19} 
+('E25_anchored_stack', 'Ours-A Ts=10', 'fmnist', 1.0, 10) bal {0: 83.62, 1: 83.51, 2: 84.28} bma {0: 83.8, 1: 83.67, 2: 84.41} 
+('E25_anchored_stack', 'Ours-A Ts=10', 'mnist', 0.01, 10) bal {0: 95.38, 1: 94.84, 2: 94.23} bma {0: 95.47, 1: 95.28, 2: 94.52} 
+('E25_anchored_stack', 'Ours-A Ts=10', 'mnist', 1.0, 10) bal {0: 97.48, 1: 97.66, 2: 97.61} bma {0: 97.56, 1: 97.67, 2: 97.62} 
+('E26_private_anchoring', 'Ours-A Ts=10, DP eps=2', 'fmnist', 0.01, 10) bal {0: 65.74, 1: 64.95, 2: 66.07} bma {0: 66.5, 1: 66.19, 2: 67.46} 
+('E26_private_anchoring', 'Ours-A Ts=10, DP eps=2', 'mnist', 0.01, 10) bal {0: 85.41, 1: 84.43, 2: 85.33} bma {0: 86.68, 1: 85.51, 2: 86.4} 
+('E26_private_anchoring', 'Ours-A Ts=10, DP eps=8', 'fmnist', 0.01, 10) bal {0: 72.01, 1: 71.62, 2: 74.69} bma {0: 73.04, 1: 72.01, 2: 75.34} 
+('E26_private_anchoring', 'Ours-A Ts=10, DP eps=8', 'mnist', 0.01, 10) bal {0: 90.6, 1: 90.02, 2: 90.46} bma {0: 91.29, 1: 90.97, 2: 91.48} 
+('E27_final_iid_many_clients', 'Ours-A Ts=10', 'fmnist', 1.0, 50) bal {0: 82.57, 1: 82.42, 2: 83.52} bma {0: 82.74, 1: 82.53, 2: 83.61} 
+('E27_final_iid_many_clients', 'Ours-A Ts=10', 'mnist', 1.0, 50) bal {0: 96.72, 1: 97.13, 2: 96.9} bma {0: 96.73, 1: 97.14, 2: 96.91} 
+('E27_final_iid_many_clients', 'Ours-A Ts=10', 'mnist', 1.0, 100) bal {0: 96.57, 1: 96.93, 2: 96.78} bma {0: 96.58, 1: 96.94, 2: 96.79} 
+('E29_hybrid_generator', 'Ours-R Ts=10', 'fmnist', 0.01, 10) bal {0: 79.23, 1: 80.01, 2: 79.57} bma {0: 79.59, 1: 80.25, 2: 79.9} 
+('E29_hybrid_generator', 'Ours-R Ts=10', 'fmnist', 1.0, 10) bal {0: 83.74, 1: 83.61, 2: 84.64} bma {0: 83.93, 1: 83.66, 2: 84.75} 
+('E29_hybrid_generator', 'Ours-R Ts=10', 'mnist', 0.01, 10) bal {0: 95.3, 1: 95.12, 2: 94.67} bma {0: 95.47, 1: 95.35, 2: 94.9} 
+('E29_hybrid_generator', 'Ours-R Ts=10', 'mnist', 0.01, 100) bal {0: 94.46, 1: 94.25} bma {0: 94.52, 1: 94.28} 
+('E31_covariance_anchoring_mnist_fmnist', 'Ours-A-S Ts=10', 'fmnist', 0.01, 10) bal {0: 79.81, 1: 80.46, 2: 78.67} bma {0: 80.08, 1: 80.59, 2: 78.82} 
+('E31_covariance_anchoring_mnist_fmnist', 'Ours-A-S Ts=10', 'fmnist', 1.0, 10) bal {0: 84.95, 1: 84.61, 2: 85.96} bma {0: 85.06, 1: 84.72, 2: 85.98} 
+('E31_covariance_anchoring_mnist_fmnist', 'Ours-A-S Ts=10', 'mnist', 0.01, 10) bal {0: 94.05, 1: 92.53, 2: 93.19} bma {0: 94.78, 1: 93.38, 2: 93.86} 
+('E32_moment_anchor_bayes', 'Ours-A-B Ts=10', 'fmnist', 0.01, 10) bal {0: 81.51, 1: 81.9, 2: 81.29} bma {0: 81.68, 1: 82.05, 2: 81.53} 
+('E32_moment_anchor_bayes', 'Ours-A-B Ts=10', 'fmnist', 1.0, 10) bal {0: 85.33, 1: 85.32, 2: 86.17} bma {0: 85.54, 1: 85.44, 2: 86.26} 
+('E32_moment_anchor_bayes', 'Ours-A-B Ts=10', 'mnist', 0.01, 10) bal {0: 95.89, 1: 95.87, 2: 92.5} bma {0: 95.93, 1: 95.95, 2: 92.81} 
+('F01_main_longtail', '+HWA+LA', 'fmnist', 0.01, 10) bal {0: 76.0, 1: 75.36, 2: 76.7} bma {0: 76.66, 1: 76.43, 2: 77.05} 
+('F01_main_longtail', '+HWA+LA', 'mnist', 0.01, 10) bal {0: 86.15, 1: 88.19, 2: 89.33} bma {0: 86.71, 1: 89.03, 2: 90.22} 
+('F01_main_longtail', '+LA', 'fmnist', 0.01, 10) bal {0: 68.07, 1: 64.89, 2: 61.38} bma {0: 69.27, 1: 66.06, 2: 62.11} 
+('F01_main_longtail', '+LA', 'mnist', 0.01, 10) bal {0: 78.04, 1: 77.17, 2: 81.55} bma {0: 79.69, 1: 78.64, 2: 82.18} 
+('F01_main_longtail', 'FSG+LA', 'fmnist', 0.01, 10) bal {0: 74.48, 1: 73.5, 2: 72.82} bma {0: 74.71, 1: 73.89, 2: 73.0} 
+('F01_main_longtail', 'FSG+LA', 'mnist', 0.01, 10) bal {0: 88.63, 1: 85.37, 2: 87.12} bma {0: 88.92, 1: 85.82, 2: 87.48} 
+('F01_main_longtail', 'FedAvg (grouped)', 'fmnist', 0.01, 10) bal {0: 55.3, 1: 53.56, 2: 49.51} bma {0: 55.5, 1: 53.76, 2: 49.95} 
+('F01_main_longtail', 'FedAvg (grouped)', 'mnist', 0.01, 10) bal {0: 64.98, 1: 61.74, 2: 61.85} bma {0: 65.45, 1: 62.3, 2: 62.09} 
+('F01_main_longtail', 'GeFL-F', 'fmnist', 0.01, 10) bal {0: 62.16, 1: 58.34, 2: 55.36} bma {0: 62.75, 1: 59.68, 2: 55.95} 
+('F01_main_longtail', 'GeFL-F', 'mnist', 0.01, 10) bal {0: 73.92, 1: 73.33, 2: 76.62} bma {0: 74.74, 1: 73.87, 2: 76.85} 
+('F01_main_longtail', 'LG-FedAvg', 'fmnist', 0.01, 10) bal {0: 54.45, 1: 53.81, 2: 49.09} bma {0: 54.7, 1: 54.13, 2: 49.17} 
+('F01_main_longtail', 'LG-FedAvg', 'mnist', 0.01, 10) bal {0: 65.73, 1: 61.87, 2: 62.05} bma {0: 66.2, 1: 62.43, 2: 62.44} 
+('F01_main_longtail', 'LG-FedAvg+LA', 'fmnist', 0.01, 10) bal {0: 60.07, 1: 57.38, 2: 55.27} bma {0: 60.54, 1: 57.66, 2: 55.75} 
+('F01_main_longtail', 'LG-FedAvg+LA', 'mnist', 0.01, 10) bal {0: 68.93, 1: 67.97, 2: 66.63} bma {0: 69.97, 1: 69.26, 2: 67.45} 
+('F01_main_longtail', 'Ours-hybrid (RHYB+HWA+LA)', 'fmnist', 0.01, 10) bal {0: 73.62, 1: 72.01, 2: 71.56} bma {0: 73.93, 1: 72.61, 2: 71.98} 
+('F01_main_longtail', 'Ours-hybrid (RHYB+HWA+LA)', 'mnist', 0.01, 10) bal {0: 88.15, 1: 85.53, 2: 87.58} bma {0: 88.95, 1: 86.56, 2: 88.12} 
+('F04_clients', '+HWA+LA', 'mnist', 0.01, 50) bal {0: 85.51, 1: 86.8, 2: 87.08} bma {0: 86.18, 1: 87.16, 2: 87.65} 
+('F04_clients', '+HWA+LA', 'mnist', 0.01, 100) bal {0: 82.56, 1: 82.98, 2: 83.68} bma {0: 83.06, 1: 83.47, 2: 84.28} 
+('F04_clients', '+HWA+LA+CSL', 'mnist', 0.01, 100) bal {0: 83.0, 1: 83.08} bma {0: 83.25, 1: 83.26} 
+('F04_clients', '+LA', 'mnist', 0.01, 50) bal {0: 81.01, 1: 80.74, 2: 82.28} bma {0: 81.81, 1: 81.21, 2: 82.97} 
+('F04_clients', '+LA', 'mnist', 0.01, 100) bal {0: 80.19, 1: 78.68, 2: 79.66} bma {0: 80.51, 1: 79.49, 2: 80.26} 
+('F04_clients', 'FSG+LA', 'mnist', 0.01, 50) bal {0: 88.0, 1: 86.58, 2: 88.4} bma {0: 88.56, 1: 86.9, 2: 88.84} 
+('F04_clients', 'FSG+LA', 'mnist', 0.01, 100) bal {0: 86.84, 1: 85.18, 2: 86.12} bma {0: 87.62, 1: 85.62, 2: 86.4} 
+('F04_clients', 'FSG+LA+CSL', 'mnist', 0.01, 100) bal {0: 86.34} bma {0: 86.91} 
+('F04_clients', 'GeFL-F', 'mnist', 0.01, 50) bal {0: 78.15, 1: 76.96, 2: 79.19} bma {0: 78.67, 1: 77.49, 2: 79.47} 
+('F04_clients', 'GeFL-F', 'mnist', 0.01, 100) bal {0: 76.83, 1: 74.96, 2: 76.14} bma {0: 77.2, 1: 75.69, 2: 76.59} 
+('F04_clients', 'MIX+HWA+LA+CSL', 'mnist', 0.01, 100) bal {0: 86.54, 1: 84.03} bma {0: 86.98, 1: 84.87} 
+('F09_consensus_paper_setting', '+CSL (beta=0.5)', 'fmnist', 1.0, 10) bal {0: 83.32, 1: 82.78, 2: 83.29} bma {0: 83.36, 1: 82.79, 2: 83.33} 
+('F09_consensus_paper_setting', '+CSL (beta=0.5)', 'mnist', 1.0, 10) bal {0: 96.51, 1: 96.7, 2: 96.75} bma {0: 96.54, 1: 96.74, 2: 96.85} 
+('F09_consensus_paper_setting', '+CSL (beta=0.5)', 'mnist', 1.0, 50) bal {0: 95.37} bma {0: 95.41} 
+('F09_consensus_paper_setting', '+CSL (beta=0.5)', 'mnist', 1.0, 100) bal {0: 94.66} bma {0: 94.72} 
+('F09_consensus_paper_setting', '+CSL (beta=1)', 'mnist', 1.0, 10) bal {0: 96.08} bma {0: 96.1} 
+('F09_consensus_paper_setting', '+CSL (beta=1)', 'mnist', 1.0, 50) bal {0: 95.08} bma {0: 95.13} 
+('F09_consensus_paper_setting', '+CSL (beta=1)', 'mnist', 1.0, 100) bal {0: 94.44} bma {0: 94.49} 
+('F09_consensus_paper_setting', '+CSLM (interleaved)', 'mnist', 1.0, 10) bal {0: 95.79} bma {0: 96.16} 
+('F09_consensus_paper_setting', '+CSLM (interleaved)', 'mnist', 1.0, 50) bal {0: 95.27} bma {0: 95.3} 
+('F09_consensus_paper_setting', '+CSLM (interleaved)', 'mnist', 1.0, 100) bal {0: 94.2} bma {0: 94.36} 
+('F09_consensus_paper_setting', 'GeFL-F', 'fmnist', 1.0, 10) bal {0: 82.61, 1: 82.1, 2: 82.69} bma {0: 82.75, 1: 82.33, 2: 82.94} 
+('F09_consensus_paper_setting', 'GeFL-F', 'mnist', 1.0, 10) bal {0: 95.67, 1: 95.82, 2: 95.69} bma {0: 95.97, 1: 96.05, 2: 96.05} 
+('F09_consensus_paper_setting', 'GeFL-F', 'mnist', 1.0, 50) bal {0: 95.11} bma {0: 95.16} 
+('F09_consensus_paper_setting', 'GeFL-F', 'mnist', 1.0, 100) bal {0: 94.53} bma {0: 94.61} 
+('F10_combined_method', '+CSL', 'fmnist', 0.01, 10) bal {0: 61.67, 1: 59.55, 2: 54.53} bma {0: 62.25, 1: 59.71, 2: 55.76} 
+('F10_combined_method', '+CSL', 'fmnist', 1.0, 10) bal {0: 83.24, 1: 82.79, 2: 83.53} bma {0: 83.26, 1: 82.94, 2: 83.56} 
+('F10_combined_method', '+CSL', 'mnist', 0.01, 10) bal {0: 76.61, 1: 74.28, 2: 78.17} bma {0: 76.91, 1: 74.75, 2: 78.37} 
+('F10_combined_method', '+CSL', 'mnist', 1.0, 10) bal {0: 96.67, 1: 96.77, 2: 96.81} bma {0: 96.76, 1: 96.82, 2: 96.89} 
+('F10_combined_method', '+HWA+LA', 'fmnist', 0.01, 10) bal {0: 75.46, 1: 76.37, 2: 76.15} bma {0: 75.95, 1: 76.97, 2: 76.75} 
+('F10_combined_method', '+HWA+LA', 'fmnist', 1.0, 10) bal {0: 82.71, 1: 82.21, 2: 82.69} bma {0: 82.86, 1: 82.42, 2: 82.94} 
+('F10_combined_method', '+HWA+LA', 'mnist', 0.01, 10) bal {0: 85.48, 1: 88.35, 2: 89.51} bma {0: 86.17, 1: 89.23, 2: 90.08} 
+('F10_combined_method', '+HWA+LA', 'mnist', 1.0, 10) bal {0: 95.78, 1: 95.73, 2: 95.66} bma {0: 95.96, 1: 96.07, 2: 96.02} 
+('F10_combined_method', '+HWA+LA+CSL', 'fmnist', 0.01, 10) bal {0: 75.74, 1: 77.01, 2: 76.35} bma {0: 76.16, 1: 77.54, 2: 76.84} 
+('F10_combined_method', '+HWA+LA+CSL', 'fmnist', 1.0, 10) bal {0: 83.3, 1: 82.8, 2: 83.41} bma {0: 83.32, 1: 82.9, 2: 83.43} 
+('F10_combined_method', '+HWA+LA+CSL', 'mnist', 0.01, 10) bal {0: 88.77, 1: 90.55, 2: 90.28} bma {0: 89.85, 1: 90.75, 2: 90.69} 
+('F10_combined_method', '+HWA+LA+CSL', 'mnist', 1.0, 10) bal {0: 96.64, 1: 96.71, 2: 96.77} bma {0: 96.71, 1: 96.76, 2: 96.83} 
+('F10_combined_method', 'GeFL-F', 'fmnist', 0.01, 10) bal {0: 62.36, 1: 59.31, 2: 54.54} bma {0: 62.78, 1: 59.78, 2: 55.65} 
+('F10_combined_method', 'GeFL-F', 'fmnist', 1.0, 10) bal {0: 82.74, 1: 82.36, 2: 82.8} bma {0: 82.88, 1: 82.55, 2: 82.97} 
+('F10_combined_method', 'GeFL-F', 'mnist', 0.01, 10) bal {0: 74.72, 1: 72.14, 2: 75.87} bma {0: 75.7, 1: 72.8, 2: 76.1} 
+('F10_combined_method', 'GeFL-F', 'mnist', 1.0, 10) bal {0: 95.73, 1: 95.7, 2: 95.82} bma {0: 95.86, 1: 96.05, 2: 96.13} 
+('F11_ddpm_generator', '+CSL (DDPM-F)', 'fmnist', 1.0, 10) bal {0: 83.02} bma {0: 83.04} 
+('F11_ddpm_generator', 'GeFL-F (DDPM-F)', 'fmnist', 1.0, 10) bal {0: 83.12} bma {0: 83.16} 
+('F11_ddpm_generator', 'Ours (DDPM-F)', 'fmnist', 1.0, 10) bal {0: 83.07, 1: 82.54} bma {0: 83.1, 1: 82.55} 
+('K01_kaggle_cifar10_svhn__svhn', '+CSL (beta=0.5)', 'svhn', 1.0, 10) bal {0: 75.16, 1: 75.01, 2: 75.28} bma {0: 76.0, 1: 76.3, 2: 76.6} 
+('K01_kaggle_cifar10_svhn__svhn', '+CSLM (interleaved)', 'svhn', 1.0, 10) bal {0: 74.13, 1: 74.5, 2: 74.51} bma {0: 75.56, 1: 75.97, 2: 76.03} 
+('K01_kaggle_cifar10_svhn__svhn', '+HWA+LA (ours)', 'svhn', 0.01, 10) bal {0: 60.43, 1: 63.26, 2: 63.66} bma {0: 65.23, 1: 67.44, 2: 67.91} 
+('K01_kaggle_cifar10_svhn__svhn', '+HWA+LA (ours)', 'svhn', 1.0, 10) bal {0: 74.29, 1: 74.42, 2: 74.83} bma {0: 75.1, 1: 75.71, 2: 76.12} 
+('K01_kaggle_cifar10_svhn__svhn', '+HWA+LA+CSLM', 'svhn', 0.01, 10) bal {0: 50.42, 1: 47.53, 2: 51.7} bma {0: 53.64, 1: 52.1, 2: 52.68} 
+('K01_kaggle_cifar10_svhn__svhn', '+LA', 'svhn', 0.01, 10) bal {0: 56.45, 1: 57.21, 2: 55.65} bma {0: 62.8, 1: 63.55, 2: 62.13} 
+('K01_kaggle_cifar10_svhn__svhn', 'FSG+LA', 'svhn', 0.01, 10) bal {0: 42.9, 1: 47.35, 2: 42.45} bma {0: 48.77, 1: 52.73, 2: 48.97} 
+('K01_kaggle_cifar10_svhn__svhn', 'GeFL-F', 'svhn', 0.01, 10) bal {0: 51.68, 1: 51.89, 2: 47.92} bma {0: 59.11, 1: 58.37, 2: 54.6} 
+('K01_kaggle_cifar10_svhn__svhn', 'GeFL-F', 'svhn', 1.0, 10) bal {0: 74.28, 1: 74.4, 2: 74.94} bma {0: 75.22, 1: 75.93, 2: 76.31} 
+('K02_kaggle_regimes_privacy_ablations', '+LA', 'fmnist', 0.1, 10) bal {0: 78.06, 1: 76.8, 2: 75.55} bma {0: 78.58, 1: 77.8, 2: 76.22} 
+('K02_kaggle_regimes_privacy_ablations', '+LA', 'fmnist', 1.0, 10) bal {0: 79.16, 1: 76.62, 2: 77.56} bma {0: 79.63, 1: 77.6, 2: 77.77} 
+('K02_kaggle_regimes_privacy_ablations', '+LA', 'mnist', 0.1, 10) bal {0: 90.76, 1: 90.35, 2: 89.44} bma {0: 91.41, 1: 91.41, 2: 90.03} 
+('K02_kaggle_regimes_privacy_ablations', '+LA', 'mnist', 1.0, 10) bal {0: 93.3, 1: 91.99, 2: 91.57} bma {0: 93.77, 1: 92.75, 2: 92.12} 
+('K02_kaggle_regimes_privacy_ablations', 'CSL beta=0.25', 'fmnist', 0.01, 10) bal {0: 75.91, 1: 76.2} bma {0: 76.97, 1: 76.88} 
+('K02_kaggle_regimes_privacy_ablations', 'CSL beta=0.25', 'mnist', 0.01, 10) bal {0: 87.62, 1: 90.2} bma {0: 88.36, 1: 90.77} 
+('K02_kaggle_regimes_privacy_ablations', 'CSL beta=0.75', 'fmnist', 0.01, 10) bal {0: 75.71, 1: 75.77} bma {0: 76.25, 1: 76.4} 
+('K02_kaggle_regimes_privacy_ablations', 'CSL beta=0.75', 'mnist', 0.01, 10) bal {0: 89.6, 1: 91.8} bma {0: 90.05, 1: 91.98} 
+('K02_kaggle_regimes_privacy_ablations', 'GeFL-F', 'fmnist', 0.01, 10) bal {0: 62.17, 1: 59.51, 2: 55.01} bma {0: 62.83, 1: 60.61, 2: 55.76} 
+('K02_kaggle_regimes_privacy_ablations', 'GeFL-F', 'fmnist', 0.1, 10) bal {0: 75.22, 1: 70.82, 2: 71.85} bma {0: 75.65, 1: 71.45, 2: 72.6} 
+('K02_kaggle_regimes_privacy_ablations', 'GeFL-F', 'fmnist', 1.0, 10) bal {0: 76.21, 1: 72.35, 2: 73.63} bma {0: 76.75, 1: 72.41, 2: 73.85} 
+('K02_kaggle_regimes_privacy_ablations', 'GeFL-F', 'mnist', 0.01, 10) bal {0: 74.24, 1: 75.22, 2: 76.46} bma {0: 74.84, 1: 75.59, 2: 77.12} 
+('K02_kaggle_regimes_privacy_ablations', 'GeFL-F', 'mnist', 0.1, 10) bal {0: 88.71, 1: 86.99, 2: 85.02} bma {0: 89.07, 1: 87.32, 2: 85.53} 
+('K02_kaggle_regimes_privacy_ablations', 'GeFL-F', 'mnist', 1.0, 10) bal {0: 91.41, 1: 89.79, 2: 88.16} bma {0: 91.75, 1: 90.23, 2: 87.94} 
+('K02_kaggle_regimes_privacy_ablations', 'HWA weights = counts n', 'fmnist', 0.01, 10) bal {0: 76.45, 1: 76.44} bma {0: 76.64, 1: 77.08} 
+('K02_kaggle_regimes_privacy_ablations', 'HWA weights = counts n', 'mnist', 0.01, 10) bal {0: 88.68, 1: 91.26} bma {0: 89.13, 1: 91.56} 
+('K02_kaggle_regimes_privacy_ablations', 'HWA weights = uniform over holders', 'fmnist', 0.01, 10) bal {0: 76.13, 1: 76.53} bma {0: 76.72, 1: 77.02} 
+('K02_kaggle_regimes_privacy_ablations', 'HWA weights = uniform over holders', 'mnist', 0.01, 10) bal {0: 87.51, 1: 90.54} bma {0: 88.08, 1: 90.81} 
+('K02_kaggle_regimes_privacy_ablations', 'LA tau=1.5', 'fmnist', 0.01, 10) bal {0: 77.39, 1: 78.14} bma {0: 78.19, 1: 78.57} 
+('K02_kaggle_regimes_privacy_ablations', 'LA tau=1.5', 'mnist', 0.01, 10) bal {0: 89.14, 1: 90.98} bma {0: 89.75, 1: 91.53} 
+('K02_kaggle_regimes_privacy_ablations', 'LA tau=2.0', 'fmnist', 0.01, 10) bal {0: 77.77, 1: 78.1} bma {0: 78.31, 1: 78.59} 
+('K02_kaggle_regimes_privacy_ablations', 'LA tau=2.0', 'mnist', 0.01, 10) bal {0: 88.86, 1: 90.58} bma {0: 89.65, 1: 91.07} 
+('K02_kaggle_regimes_privacy_ablations', 'Ours', 'fmnist', 0.01, 10) bal {0: 76.15, 1: 76.32, 2: 77.07} bma {0: 76.95, 1: 76.95, 2: 77.32} 
+('K02_kaggle_regimes_privacy_ablations', 'Ours', 'fmnist', 0.1, 10) bal {0: 79.34, 1: 79.65, 2: 79.25} bma {0: 79.75, 1: 79.82, 2: 79.63} 
+('K02_kaggle_regimes_privacy_ablations', 'Ours', 'fmnist', 1.0, 10) bal {0: 79.21, 1: 79.02, 2: 79.35} bma {0: 79.76, 1: 79.41, 2: 79.44} 
+('K02_kaggle_regimes_privacy_ablations', 'Ours', 'mnist', 0.01, 10) bal {0: 89.11, 1: 90.92, 2: 90.42} bma {0: 89.64, 1: 91.29, 2: 90.83} 
+('K02_kaggle_regimes_privacy_ablations', 'Ours', 'mnist', 0.1, 10) bal {0: 94.19, 1: 94.26, 2: 94.56} bma {0: 94.41, 1: 94.46, 2: 94.75} 
+('K02_kaggle_regimes_privacy_ablations', 'Ours', 'mnist', 1.0, 10) bal {0: 95.26, 1: 95.77, 2: 95.74} bma {0: 95.4, 1: 95.85, 2: 95.82} 
+('K02_kaggle_regimes_privacy_ablations', 'Ours, DP eps=0.1', 'fmnist', 0.01, 10) bal {0: 72.99, 1: 73.86, 2: 72.26} bma {0: 74.33, 1: 74.38, 2: 72.46} 
+('K02_kaggle_regimes_privacy_ablations', 'Ours, DP eps=0.1', 'mnist', 0.01, 10) bal {0: 85.79, 1: 87.09, 2: 87.31} bma {0: 86.66, 1: 87.66, 2: 87.77} 
+('K02_kaggle_regimes_privacy_ablations', 'Ours, DP eps=1', 'fmnist', 0.01, 10) bal {0: 76.29, 1: 76.32, 2: 76.37} bma {0: 76.71, 1: 76.94, 2: 76.71} 
+('K02_kaggle_regimes_privacy_ablations', 'Ours, DP eps=1', 'mnist', 0.01, 10) bal {0: 88.31, 1: 88.71, 2: 89.58} bma {0: 88.69, 1: 89.37, 2: 89.93} 
+('K02_kaggle_regimes_privacy_ablations', 'Ours, DP eps=10', 'fmnist', 0.01, 10) bal {0: 75.96, 1: 76.33, 2: 76.9} bma {0: 76.4, 1: 77.04, 2: 77.34} 
+('K02_kaggle_regimes_privacy_ablations', 'Ours, DP eps=10', 'mnist', 0.01, 10) bal {0: 89.14, 1: 91.12, 2: 90.05} bma {0: 89.83, 1: 91.37, 2: 90.47} 
+('K02_kaggle_regimes_privacy_ablations', 'no CSL', 'fmnist', 0.01, 10) bal {0: 76.5, 1: 76.54} bma {0: 76.78, 1: 77.1} 
+('K02_kaggle_regimes_privacy_ablations', 'no CSL', 'mnist', 0.01, 10) bal {0: 86.3, 1: 88.98} bma {0: 86.95, 1: 89.65} 
+('K02_kaggle_regimes_privacy_ablations', 'no HWA (flat averaging)', 'fmnist', 0.01, 10) bal {0: 69.2, 1: 67.67} bma {0: 70.09, 1: 68.68} 
+('K02_kaggle_regimes_privacy_ablations', 'no HWA (flat averaging)', 'mnist', 0.01, 10) bal {0: 81.84, 1: 84.33} bma {0: 82.91, 1: 84.91} 
+('K02_kaggle_regimes_privacy_ablations', 'no LA (plain CE)', 'fmnist', 0.01, 10) bal {0: 70.36, 1: 67.05} bma {0: 71.05, 1: 67.78} 
+('K02_kaggle_regimes_privacy_ablations', 'no LA (plain CE)', 'mnist', 0.01, 10) bal {0: 83.95, 1: 86.97} bma {0: 84.12, 1: 87.22} 
+('K03_kaggle_client_scaling__K100', '+CSL (beta=0.5)', 'fmnist', 1.0, 100) bal {0: 80.88, 1: 80.5, 2: 80.23} bma {0: 81.01, 1: 80.68, 2: 80.4} 
+('K03_kaggle_client_scaling__K100', '+CSL (beta=0.5)', 'mnist', 1.0, 100) bal {0: 94.57, 1: 94.87, 2: 95.04} bma {0: 94.62, 1: 94.97, 2: 95.07} 
+('K03_kaggle_client_scaling__K100', '+HWA+LA', 'fmnist', 0.01, 100) bal {0: 74.07, 1: 72.61, 2: 73.07} bma {0: 74.84, 1: 73.29, 2: 73.48} 
+('K03_kaggle_client_scaling__K100', '+LA', 'fmnist', 0.01, 100) bal {0: 68.71, 1: 66.04, 2: 64.92} bma {0: 69.5, 1: 67.02, 2: 66.39} 
+('K03_kaggle_client_scaling__K100', 'FSG+LA', 'fmnist', 0.01, 100) bal {0: 75.48, 1: 73.83, 2: 74.37} bma {0: 75.67, 1: 73.96, 2: 74.47} 
+('K03_kaggle_client_scaling__K100', 'FSG+LA+CSL', 'fmnist', 0.01, 100) bal {0: 74.77, 1: 72.87, 2: 73.66} bma {0: 74.83, 1: 73.43, 2: 74.0} 
+('K03_kaggle_client_scaling__K100', 'GeFL-F', 'fmnist', 0.01, 100) bal {0: 63.62, 1: 61.56, 2: 60.66} bma {0: 64.16, 1: 62.5, 2: 61.16} 
+('K03_kaggle_client_scaling__K100', 'GeFL-F', 'fmnist', 1.0, 100) bal {0: 81.11, 1: 81.05, 2: 80.73} bma {0: 81.29, 1: 81.14, 2: 80.89} 
+('K03_kaggle_client_scaling__K100', 'GeFL-F', 'mnist', 1.0, 100) bal {0: 94.48, 1: 95.03, 2: 94.86} bma {0: 94.56, 1: 95.11, 2: 94.97} 
+('K03_kaggle_client_scaling__K100', 'Ours (HWA+LA+CSL)', 'fmnist', 0.01, 100) bal {0: 71.6, 1: 71.19, 2: 70.93} bma {0: 74.59, 1: 72.44, 2: 72.93} 
+('K03_kaggle_client_scaling__K100', 'Ours (HWA+LA+CSL)', 'fmnist', 1.0, 100) bal {0: 80.97, 1: 80.5, 2: 80.03} bma {0: 81.13, 1: 80.7, 2: 80.46} 
+('K03_kaggle_client_scaling__K100', 'Ours (HWA+LA+CSL)', 'mnist', 1.0, 100) bal {0: 94.54, 1: 94.87, 2: 95.0} bma {0: 94.6, 1: 94.97, 2: 95.03} 
+('K03_kaggle_client_scaling__K50', '+CSL (beta=0.5)', 'fmnist', 1.0, 50) bal {0: 81.42, 1: 81.09, 2: 81.08} bma {0: 81.5, 1: 81.24, 2: 81.13} 
+('K03_kaggle_client_scaling__K50', '+CSL (beta=0.5)', 'mnist', 1.0, 50) bal {0: 95.29, 1: 95.51, 2: 95.62} bma {0: 95.33, 1: 95.63, 2: 95.65} 
+('K03_kaggle_client_scaling__K50', '+HWA+LA', 'fmnist', 0.01, 50) bal {0: 75.3, 1: 75.38, 2: 75.67} bma {0: 76.05, 1: 75.95, 2: 75.88} 
+('K03_kaggle_client_scaling__K50', '+LA', 'fmnist', 0.01, 50) bal {0: 67.36, 1: 66.92, 2: 65.31} bma {0: 68.58, 1: 68.68, 2: 66.47} 
+('K03_kaggle_client_scaling__K50', 'FSG+LA', 'fmnist', 0.01, 50) bal {0: 74.99, 1: 75.53, 2: 74.65} bma {0: 75.67, 1: 75.8, 2: 74.68} 
+('K03_kaggle_client_scaling__K50', 'FSG+LA+CSL', 'fmnist', 0.01, 50) bal {0: 74.85, 1: 75.63, 2: 74.24} bma {0: 75.07, 1: 75.72, 2: 74.44} 
+('K03_kaggle_client_scaling__K50', 'GeFL-F', 'fmnist', 0.01, 50) bal {0: 62.63, 1: 62.72, 2: 60.4} bma {0: 64.27, 1: 64.4, 2: 61.12} 
+('K03_kaggle_client_scaling__K50', 'GeFL-F', 'fmnist', 1.0, 50) bal {0: 81.49, 1: 81.44, 2: 81.2} bma {0: 81.6, 1: 81.53, 2: 81.37} 
+('K03_kaggle_client_scaling__K50', 'GeFL-F', 'mnist', 1.0, 50) bal {0: 95.07, 1: 95.51, 2: 95.52} bma {0: 95.11, 1: 95.61, 2: 95.56} 
+('K03_kaggle_client_scaling__K50', 'Ours (HWA+LA+CSL)', 'fmnist', 0.01, 50) bal {0: 74.03, 1: 74.72, 2: 74.7} bma {0: 75.79, 1: 75.91, 2: 75.35} 
+('K03_kaggle_client_scaling__K50', 'Ours (HWA+LA+CSL)', 'fmnist', 1.0, 50) bal {0: 81.35, 1: 81.14, 2: 81.04} bma {0: 81.53, 1: 81.26, 2: 81.1} 
+('K03_kaggle_client_scaling__K50', 'Ours (HWA+LA+CSL)', 'mnist', 1.0, 50) bal {0: 95.28, 1: 95.48, 2: 95.64} bma {0: 95.33, 1: 95.6, 2: 95.66} 
+('K04_kaggle_ddpm_cifar10_svhn__svhn', '+CSL (DDPM-F)', 'svhn', 1.0, 10) bal {0: 67.79, 1: 69.32, 2: 68.59} bma {0: 69.54, 1: 70.89, 2: 70.32} 
+('K04_kaggle_ddpm_cifar10_svhn__svhn', 'GeFL-F (DDPM-F)', 'svhn', 1.0, 10) bal {0: 66.72, 1: 68.87, 2: 67.99} bma {0: 68.92, 1: 70.62, 2: 69.79} 
+('K04_kaggle_ddpm_cifar10_svhn__svhn', 'Ours (DDPM-F)', 'svhn', 1.0, 10) bal {0: 68.1, 1: 69.27, 2: 68.7} bma {0: 69.63, 1: 70.82, 2: 70.66} 
+('K08_kaggle_anchored_stack__cifar10_iid', 'Ours-A (PC+MC+KH+LA+CSL)', 'cifar10', 1.0, 10) bal {0: 58.71, 1: 57.15, 2: 59.99} bma {0: 60.06, 1: 59.76, 2: 61.34} 
+('K08_kaggle_anchored_stack__cifar10_iid', 'Ours-A Ts=10', 'cifar10', 1.0, 10) bal {0: 56.98, 1: 54.58, 2: 58.89} bma {0: 60.8, 1: 59.74, 2: 62.26} 
+('K08_kaggle_anchored_stack__cifar10_lt', 'Ours-A (PC+MC+KH+LA+CSL)', 'cifar10', 0.01, 10) bal {0: 45.97, 1: 44.81, 2: 47.39} bma {0: 46.31, 1: 45.88, 2: 48.14} 
+('K08_kaggle_anchored_stack__cifar10_lt', 'Ours-A Ts=10', 'cifar10', 0.01, 10) bal {0: 44.77, 1: 43.17, 2: 45.21} bma {0: 48.2, 1: 47.05, 2: 48.96} 
+('K08_kaggle_anchored_stack__fmnist', 'Ours-A (PC+MC+KH+LA+CSL)', 'fmnist', 0.01, 50) bal {0: 76.77, 1: 77.66, 2: 77.3} bma {0: 77.77, 1: 77.75, 2: 77.52} 
+('K08_kaggle_anchored_stack__fmnist', 'Ours-A (PC+MC+KH+LA+CSL)', 'fmnist', 0.01, 100) bal {0: 76.79, 1: 74.91, 2: 76.91} bma {0: 77.09, 1: 75.65, 2: 76.96} 
+('K08_kaggle_anchored_stack__fmnist', 'Ours-A (PC+MC+KH+LA+CSL)', 'fmnist', 1.0, 100) bal {0: 81.13, 1: 81.14, 2: 81.26} bma {0: 81.18, 1: 81.16, 2: 81.28} 
+('K08_kaggle_anchored_stack__fmnist', 'Ours-A Ts=10', 'fmnist', 0.01, 50) bal {0: 79.17, 1: 79.34, 2: 79.9} bma {0: 79.59, 1: 79.77, 2: 80.07} 
+('K08_kaggle_anchored_stack__fmnist', 'Ours-A Ts=10', 'fmnist', 0.01, 100) bal {0: 79.38, 1: 77.91, 2: 79.76} bma {0: 79.62, 1: 78.21, 2: 79.93} 
+('K08_kaggle_anchored_stack__fmnist', 'Ours-A Ts=10', 'fmnist', 1.0, 100) bal {0: 81.32, 1: 81.69, 2: 82.43} bma {0: 81.62, 1: 81.88, 2: 82.63} 
+('K08_kaggle_anchored_stack__svhn', 'Ours-A (PC+MC+KH+LA+CSL)', 'svhn', 0.01, 10) bal {0: 55.06, 1: 55.34, 2: 57.26} bma {0: 61.04, 1: 61.16, 2: 62.65} 
+('K08_kaggle_anchored_stack__svhn', 'Ours-A (PC+MC+KH+LA+CSL)', 'svhn', 1.0, 10) bal {0: 73.01, 1: 73.13, 2: 71.42} bma {0: 73.92, 1: 74.42, 2: 73.23} 
+('K08_kaggle_anchored_stack__svhn', 'Ours-A Ts=10', 'svhn', 0.01, 10) bal {0: 54.59, 1: 53.21, 2: 55.45} bma {0: 62.33, 1: 61.9, 2: 62.68} 
+('K08_kaggle_anchored_stack__svhn', 'Ours-A Ts=10', 'svhn', 1.0, 10) bal {0: 72.54, 1: 72.78, 2: 70.15} bma {0: 74.84, 1: 74.83, 2: 73.47} 
+('K09_kaggle_ablation_final__fmnist', '-CSL', 'fmnist', 0.01, 10) bal {0: 77.94, 1: 78.29, 2: 78.99} bma {0: 78.64, 1: 78.94, 2: 79.51} 
+('K09_kaggle_ablation_final__fmnist', '-KH', 'fmnist', 0.01, 10) bal {0: 79.29, 1: 79.55, 2: 79.64} bma {0: 79.6, 1: 79.8, 2: 79.89} 
+('K09_kaggle_ablation_final__fmnist', '-LA', 'fmnist', 0.01, 10) bal {0: 74.86, 1: 72.41, 2: 73.56} bma {0: 74.93, 1: 72.6, 2: 75.35} 
+('K09_kaggle_ablation_final__fmnist', '-MC', 'fmnist', 0.01, 10) bal {0: 78.76, 1: 79.2, 2: 79.95} bma {0: 78.97, 1: 79.5, 2: 80.02} 
+('K09_kaggle_ablation_final__fmnist', '-PC (CVAE+HWA)', 'fmnist', 0.01, 10) bal {0: 79.32, 1: 78.88, 2: 79.15} bma {0: 80.03, 1: 79.43, 2: 79.81} 
+('K09_kaggle_ablation_final__fmnist', 'Ours-A Ts=10', 'fmnist', 0.01, 10) bal {0: 79.52, 1: 79.71, 2: 80.13} bma {0: 79.86, 1: 79.94, 2: 80.34} 
+('K09_kaggle_ablation_final__mnist', '-CSL', 'mnist', 0.01, 10) bal {0: 93.27, 1: 92.74, 2: 94.62} bma {0: 94.26, 1: 94.18, 2: 94.84} 
+('K09_kaggle_ablation_final__mnist', '-KH', 'mnist', 0.01, 10) bal {0: 94.27, 1: 94.29, 2: 94.84} bma {0: 94.61, 1: 94.47, 2: 95.01} 
+('K09_kaggle_ablation_final__mnist', '-LA', 'mnist', 0.01, 10) bal {0: 91.96, 1: 91.69, 2: 92.94} bma {0: 92.11, 1: 91.82, 2: 93.08} 
+('K09_kaggle_ablation_final__mnist', '-MC', 'mnist', 0.01, 10) bal {0: 94.23, 1: 93.97, 2: 94.46} bma {0: 94.46, 1: 94.13, 2: 94.61} 
+('K09_kaggle_ablation_final__mnist', '-PC (CVAE+HWA)', 'mnist', 0.01, 10) bal {0: 90.87, 1: 89.27, 2: 91.24} bma {0: 92.79, 1: 92.67, 2: 92.35} 
+('K09_kaggle_ablation_final__mnist', 'Ours-A Ts=10', 'mnist', 0.01, 10) bal {0: 95.08, 1: 95.25, 2: 95.2} bma {0: 95.33, 1: 95.45, 2: 95.32} 
+('K10_kaggle_hybrid_svhn_cifar10__svhn', 'Ours+MC+KH (CVAE+HWA)', 'svhn', 0.01, 10) bal {0: 64.02, 1: 65.77, 2: 67.01} bma {0: 68.52, 1: 70.37, 2: 71.2} 
+('K10_kaggle_hybrid_svhn_cifar10__svhn', 'Ours+MC+KH (CVAE+HWA)', 'svhn', 1.0, 10) bal {0: 76.37, 1: 75.81, 2: 75.5} bma {0: 77.26, 1: 77.07, 2: 76.89} 
+('K10_kaggle_hybrid_svhn_cifar10__svhn', 'Ours-R', 'svhn', 0.01, 10) bal {0: 60.07, 1: 61.75, 2: 60.77} bma {0: 65.18, 1: 67.09, 2: 65.65} 
+('K10_kaggle_hybrid_svhn_cifar10__svhn', 'Ours-R', 'svhn', 1.0, 10) bal {0: 74.93, 1: 74.66, 2: 75.07} bma {0: 75.85, 1: 76.03, 2: 76.3} 
+('K10_kaggle_hybrid_svhn_cifar10__svhn', 'Ours-R Ts=10', 'svhn', 0.01, 10) bal {0: 59.99, 1: 61.15, 2: 60.39} bma {0: 65.91, 1: 67.52, 2: 66.33} 
+('K10_kaggle_hybrid_svhn_cifar10__svhn', 'Ours-R Ts=10', 'svhn', 1.0, 10) bal {0: 75.16, 1: 74.89, 2: 74.79} bma {0: 76.58, 1: 76.41, 2: 76.53} 
+('K11_kaggle_covariance_anchoring__svhn', 'Ours-A (PC+MC+KH+LA+CSL)', 'svhn', 0.01, 10) bal {0: 56.76, 1: 53.82, 2: 56.71} bma {0: 62.27, 1: 60.18, 2: 62.49} 
+('K11_kaggle_covariance_anchoring__svhn', 'Ours-A (PC+MC+KH+LA+CSL)', 'svhn', 1.0, 10) bal {0: 73.31, 1: 73.49, 2: 72.31} bma {0: 74.65, 1: 74.87, 2: 73.63} 
+('K11_kaggle_covariance_anchoring__svhn', 'Ours-A-S (PC+MCS+KH+LA+CSL)', 'svhn', 0.01, 10) bal {0: 61.29, 1: 60.85, 2: 63.25} bma {0: 66.77, 1: 66.6, 2: 68.65} 
+('K11_kaggle_covariance_anchoring__svhn', 'Ours-A-S (PC+MCS+KH+LA+CSL)', 'svhn', 1.0, 10) bal {0: 75.9, 1: 75.88, 2: 75.85} bma {0: 76.98, 1: 77.0, 2: 77.16} 
+('K11_kaggle_covariance_anchoring__svhn', 'Ours-R-S (PCR+MCS+KH+LA+CSL)', 'svhn', 0.01, 10) bal {0: 61.87, 1: 64.0, 2: 62.78} bma {0: 67.21, 1: 69.32, 2: 68.07} 
+('K11_kaggle_covariance_anchoring__svhn', 'Ours-R-S (PCR+MCS+KH+LA+CSL)', 'svhn', 1.0, 10) bal {0: 76.37, 1: 76.01, 2: 76.67} bma {0: 77.26, 1: 77.06, 2: 77.84} 
+('K13_kaggle_vct_vs_mixup__cifar10_iid', 'Ours-A Ts=10 + MixUp', 'cifar10', 1.0, 10) bal {0: 55.38, 1: 56.17, 2: 52.72} bma {0: 60.47, 1: 60.54, 2: 58.93} 
+('K13_kaggle_vct_vs_mixup__cifar10_iid', 'Ours-A Ts=10 + VCT', 'cifar10', 1.0, 10) bal {0: 54.87, 1: 54.8, 2: 49.86} bma {0: 60.84, 1: 61.16, 2: 58.87} 
+('K13_kaggle_vct_vs_mixup__cifar10_lt', 'Ours-A + MixUp', 'cifar10', 0.01, 10) bal {0: 45.69, 1: 45.41, 2: 47.5} bma {0: 47.95, 1: 46.6, 2: 48.72} 
+('K13_kaggle_vct_vs_mixup__cifar10_lt', 'Ours-A + VCT', 'cifar10', 0.01, 10) bal {0: 46.12, 1: 45.04, 2: 45.79} bma {0: 48.51, 1: 47.48, 2: 48.29} 

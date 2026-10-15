@@ -1,0 +1,117 @@
+== K08_kaggle_anchored_stack__cifar10_iid/runs.jsonl
+  Ours-A (PC+MC+KH+LA+CSL)                         cifar10 IF=1.0   a=None K=10  n=3 t=  4349 fe=  165 gen=  3635 head=   526 gpuMB=12711 bal=58.62 ts=1
+  Ours-A Ts=10                                     cifar10 IF=1.0   a=None K=10  n=3 t=  1969 fe=  165 gen=  3635 head=  1963 gpuMB=14021 bal=56.82 ts=10
+== K08_kaggle_anchored_stack__cifar10_lt/runs.jsonl
+  Ours-A (PC+MC+KH+LA+CSL)                         cifar10 IF=0.01  a=0.5  K=10  n=3 t=  3910 fe=  123 gen=  2966 head=   806 gpuMB=13882 bal=46.06 ts=1
+  Ours-A Ts=10                                     cifar10 IF=0.01  a=0.5  K=10  n=3 t=  2038 fe=  123 gen=  2966 head=  2032 gpuMB=11075 bal=44.38 ts=10
+== K08_kaggle_anchored_stack__fmnist/runs.jsonl
+  Ours-A (PC+MC+KH+LA+CSL)                         fmnist  IF=0.01  a=0.5  K=100 n=3 t=  1538 fe=   59 gen=   676 head=   790 gpuMB=11969 bal=76.20 ts=1
+  Ours-A Ts=10                                     fmnist  IF=0.01  a=0.5  K=100 n=3 t=  1658 fe=   59 gen=   676 head=  1652 gpuMB=12554 bal=79.02 ts=10
+  Ours-A (PC+MC+KH+LA+CSL)                         fmnist  IF=0.01  a=0.5  K=50  n=3 t=   819 fe=   48 gen=   574 head=   191 gpuMB= 4611 bal=77.24 ts=1
+  Ours-A Ts=10                                     fmnist  IF=0.01  a=0.5  K=50  n=3 t=  1220 fe=   48 gen=   574 head=  1213 gpuMB=12162 bal=79.47 ts=10
+  Ours-A (PC+MC+KH+LA+CSL)                         fmnist  IF=1.0   a=None K=100 n=3 t=   931 fe=   41 gen=   611 head=   272 gpuMB= 8057 bal=81.18 ts=1
+  Ours-A Ts=10                                     fmnist  IF=1.0   a=None K=100 n=3 t=  1670 fe=   41 gen=   611 head=  1663 gpuMB=11999 bal=81.82 ts=10
+== K08_kaggle_anchored_stack__svhn/runs.jsonl
+  Ours-A (PC+MC+KH+LA+CSL)                         svhn    IF=0.01  a=0.5  K=10  n=3 t=  1044 fe=  100 gen=   592 head=   331 gpuMB=11768 bal=55.89 ts=1
+  Ours-A Ts=10                                     svhn    IF=0.01  a=0.5  K=10  n=3 t=  1572 fe=  100 gen=   592 head=  1565 gpuMB=13836 bal=54.41 ts=10
+  Ours-A (PC+MC+KH+LA+CSL)                         svhn    IF=1.0   a=None K=10  n=3 t=   853 fe=  100 gen=   585 head=   160 gpuMB= 7266 bal=72.52 ts=1
+  Ours-A Ts=10                                     svhn    IF=1.0   a=None K=10  n=3 t=   814 fe=  100 gen=   585 head=   807 gpuMB=13074 bal=71.82 ts=10
+== K09_kaggle_ablation_final__fmnist/runs.jsonl
+  Ours-A Ts=10                                     fmnist  IF=0.01  a=0.5  K=10  n=3 t=  1189 fe=   32 gen=   501 head=   647 gpuMB= 8730 bal=79.79 ts=10
+  -PC (CVAE+HWA)                                   fmnist  IF=0.01  a=0.5  K=10  n=3 t=  1404 fe=   33 gen=   507 head=   853 gpuMB=13200 bal=79.12 ts=10
+  -LA                                              fmnist  IF=0.01  a=0.5  K=10  n=3 t=   338 fe=   32 gen=   501 head=   331 gpuMB= 1556 bal=73.61 ts=10
+  -CSL                                             fmnist  IF=0.01  a=0.5  K=10  n=3 t=  1576 fe=   32 gen=   501 head=  1570 gpuMB=10417 bal=78.41 ts=10
+  -MC                                              fmnist  IF=0.01  a=0.5  K=10  n=3 t=   338 fe=   32 gen=   501 head=   332 gpuMB= 1617 bal=79.30 ts=10
+  -KH                                              fmnist  IF=0.01  a=0.5  K=10  n=3 t=   116 fe=   32 gen=   501 head=   113 gpuMB= 7034 bal=79.49 ts=10
+== K09_kaggle_ablation_final__mnist/runs.jsonl
+  -PC (CVAE+HWA)                                   mnist   IF=0.01  a=0.5  K=10  n=3 t=  1511 fe=   29 gen=   490 head=   982 gpuMB=13046 bal=90.46 ts=10
+  Ours-A Ts=10                                     mnist   IF=0.01  a=0.5  K=10  n=3 t=  1416 fe=   27 gen=   501 head=   878 gpuMB= 8347 bal=95.18 ts=10
+  -LA                                              mnist   IF=0.01  a=0.5  K=10  n=3 t=   394 fe=   27 gen=   501 head=   388 gpuMB= 1576 bal=92.20 ts=10
+  -CSL                                             mnist   IF=0.01  a=0.5  K=10  n=3 t=  1420 fe=   27 gen=   501 head=  1414 gpuMB= 9337 bal=93.55 ts=10
+  -MC                                              mnist   IF=0.01  a=0.5  K=10  n=3 t=   394 fe=   27 gen=   501 head=   388 gpuMB= 1634 bal=94.22 ts=10
+  -KH                                              mnist   IF=0.01  a=0.5  K=10  n=3 t=   109 fe=   27 gen=   501 head=   106 gpuMB= 4731 bal=94.47 ts=10
+== E25_anchored_stack/runs.jsonl
+  Ours-A (PC+MC+KH+LA+CSL)                         fmnist  IF=0.01  a=0.5  K=10  n=3 t=   492 fe=   72 gen=   280 head=   127 gpuMB= 2902 bal=78.22 ts=1
+  Ours-A Ts=10                                     fmnist  IF=0.01  a=0.5  K=10  n=3 t=   621 fe=   72 gen=   280 head=   610 gpuMB= 2649 bal=79.67 ts=10
+  Ours-A (PC+MC+KH+LA+CSL)                         fmnist  IF=1.0   a=None K=10  n=3 t=   461 fe=   67 gen=   291 head=    91 gpuMB= 2353 bal=83.24 ts=1
+  Ours-A Ts=10                                     fmnist  IF=1.0   a=None K=10  n=3 t=   339 fe=   67 gen=   291 head=   327 gpuMB= 1952 bal=83.81 ts=10
+  Ours-A (PC+MC+KH+LA+CSL)                         mnist   IF=0.01  a=0.5  K=10  n=3 t=   462 fe=   54 gen=   287 head=   109 gpuMB= 1989 bal=93.11 ts=1
+  Ours-A Ts=10                                     mnist   IF=0.01  a=0.5  K=10  n=3 t=   691 fe=   54 gen=   287 head=   680 gpuMB= 2331 bal=94.82 ts=10
+  Ours-A (PC+MC+KH+LA+CSL)                         mnist   IF=1.0   a=None K=10  n=3 t=   425 fe=   58 gen=   268 head=    87 gpuMB= 2822 bal=96.65 ts=1
+  Ours-A Ts=10                                     mnist   IF=1.0   a=None K=10  n=3 t=   340 fe=   58 gen=   268 head=   328 gpuMB= 2781 bal=97.58 ts=10
+== E22_pc_many_clients/runs.jsonl
+  Ours-PC+MC                                       mnist   IF=0.01  a=0.5  K=100 n=3 t=  1068 fe=   87 gen=   827 head=   148 gpuMB= 1866 bal=89.20 ts=1
+  Ours-A (PC+MC+KH+LA+CSL)                         mnist   IF=0.01  a=0.5  K=100 n=3 t=   326 fe=   87 gen=   827 head=   315 gpuMB= 2379 bal=90.41 ts=1
+  Ours-A Ts=10                                     mnist   IF=0.01  a=0.5  K=100 n=3 t=  2022 fe=   87 gen=   827 head=  2011 gpuMB= 2744 bal=94.30 ts=10
+== E24_kme_generator/runs.jsonl
+  Ours-KME (KME+LA+CSL)                            fmnist  IF=0.01  a=0.5  K=10  n=1 t=   263 fe=   76 gen=   106 head=    72 gpuMB= 2818 bal=75.11 ts=1
+  Ours-KME+MC                                      fmnist  IF=0.01  a=0.5  K=10  n=1 t=    78 fe=   76 gen=   106 head=    72 gpuMB= 2520 bal=75.05 ts=1
+  Ours-KME+KH                                      fmnist  IF=0.01  a=0.5  K=10  n=1 t=   128 fe=   76 gen=   106 head=   116 gpuMB= 2947 bal=75.31 ts=1
+  Ours-PC+MC+KH                                    fmnist  IF=0.01  a=0.5  K=10  n=1 t=   381 fe=   76 gen=   265 head=   104 gpuMB= 1888 bal=77.48 ts=1
+  Ours-KME (KME+LA+CSL)                            fmnist  IF=1.0   a=None K=10  n=1 t=   253 fe=   68 gen=   102 head=    76 gpuMB= 2318 bal=81.76 ts=1
+  Ours-KME+MC                                      fmnist  IF=1.0   a=None K=10  n=1 t=    78 fe=   68 gen=   102 head=    72 gpuMB= 1014 bal=81.65 ts=1
+  Ours-KME+KH                                      fmnist  IF=1.0   a=None K=10  n=1 t=   105 fe=   68 gen=   102 head=    95 gpuMB= 2338 bal=81.70 ts=1
+  Ours-PC+MC+KH                                    fmnist  IF=1.0   a=None K=10  n=1 t=   370 fe=   68 gen=   269 head=    90 gpuMB= 1549 bal=83.46 ts=1
+  Ours-KME (KME+LA+CSL)                            mnist   IF=0.01  a=0.5  K=10  n=1 t=   226 fe=   52 gen=   101 head=    65 gpuMB= 2393 bal=89.88 ts=1
+  Ours-KME+MC                                      mnist   IF=0.01  a=0.5  K=10  n=1 t=    70 fe=   52 gen=   101 head=    64 gpuMB= 1016 bal=90.08 ts=1
+  Ours-KME+KH                                      mnist   IF=0.01  a=0.5  K=10  n=1 t=   137 fe=   52 gen=   101 head=   126 gpuMB= 2374 bal=89.55 ts=1
+  Ours-PC+MC+KH                                    mnist   IF=0.01  a=0.5  K=10  n=1 t=   390 fe=   52 gen=   264 head=   116 gpuMB= 1882 bal=92.91 ts=1
+== F10_combined_method/runs.jsonl
+  +HWA+LA                                          fmnist  IF=0.01  a=0.5  K=10  n=3 t=   408 fe=   70 gen=   259 head=    73 gpuMB= 2885 bal=75.99 ts=1
+  +HWA+LA+CSL                                      fmnist  IF=0.01  a=0.5  K=10  n=3 t=    78 fe=   70 gen=   259 head=    72 gpuMB= 1593 bal=76.37 ts=1
+  GeFL-F                                           fmnist  IF=0.01  a=0.5  K=10  n=3 t=   324 fe=   70 gen=   251 head=    67 gpuMB= 1486 bal=58.74 ts=1
+  +CSL                                             fmnist  IF=0.01  a=0.5  K=10  n=3 t=    75 fe=   70 gen=   251 head=    70 gpuMB= 1486 bal=58.59 ts=1
+  +HWA+LA                                          fmnist  IF=1.0   a=None K=10  n=3 t=   395 fe=   67 gen=   255 head=    68 gpuMB= 1898 bal=82.54 ts=1
+  +HWA+LA+CSL                                      fmnist  IF=1.0   a=None K=10  n=3 t=    74 fe=   67 gen=   255 head=    69 gpuMB= 1487 bal=83.17 ts=1
+  GeFL-F                                           fmnist  IF=1.0   a=None K=10  n=3 t=   324 fe=   67 gen=   251 head=    68 gpuMB= 1487 bal=82.63 ts=1
+  +CSL                                             fmnist  IF=1.0   a=None K=10  n=3 t=    75 fe=   67 gen=   251 head=    69 gpuMB= 1487 bal=83.18 ts=1
+  +HWA+LA                                          mnist   IF=0.01  a=0.5  K=10  n=3 t=   373 fe=   54 gen=   253 head=    60 gpuMB= 2584 bal=87.78 ts=1
+  +HWA+LA+CSL                                      mnist   IF=0.01  a=0.5  K=10  n=3 t=    68 fe=   54 gen=   253 head=    63 gpuMB= 1864 bal=89.87 ts=1
+  GeFL-F                                           mnist   IF=0.01  a=0.5  K=10  n=3 t=   312 fe=   54 gen=   247 head=    59 gpuMB= 1479 bal=74.24 ts=1
+  +CSL                                             mnist   IF=0.01  a=0.5  K=10  n=3 t=    65 fe=   54 gen=   247 head=    60 gpuMB= 1479 bal=76.35 ts=1
+  +HWA+LA                                          mnist   IF=1.0   a=None K=10  n=3 t=   383 fe=   58 gen=   258 head=    61 gpuMB= 1486 bal=95.72 ts=1
+  +HWA+LA+CSL                                      mnist   IF=1.0   a=None K=10  n=3 t=    72 fe=   58 gen=   258 head=    66 gpuMB= 1486 bal=96.71 ts=1
+  GeFL-F                                           mnist   IF=1.0   a=None K=10  n=3 t=   331 fe=   58 gen=   259 head=    66 gpuMB= 1486 bal=95.75 ts=1
+  +CSL                                             mnist   IF=1.0   a=None K=10  n=3 t=    75 fe=   58 gen=   259 head=    69 gpuMB= 1486 bal=96.75 ts=1
+== K01_kaggle_cifar10_svhn__svhn/runs.jsonl
+  +HWA+LA (ours)                                   svhn    IF=0.01  a=0.5  K=10  n=3 t=   843 fe=  111 gen=   587 head=   141 gpuMB=12901 bal=62.45 ts=1
+  +HWA+LA+CSLM                                     svhn    IF=0.01  a=0.5  K=10  n=3 t=   131 fe=  111 gen=   587 head=   128 gpuMB= 2608 bal=49.88 ts=1
+  GeFL-F                                           svhn    IF=0.01  a=0.5  K=10  n=3 t=   693 fe=  111 gen=   579 head=   110 gpuMB= 2485 bal=50.49 ts=1
+  +LA                                              svhn    IF=0.01  a=0.5  K=10  n=3 t=   117 fe=  111 gen=   579 head=   113 gpuMB= 2489 bal=56.44 ts=1
+  FSG+LA                                           svhn    IF=0.01  a=0.5  K=10  n=3 t=   116 fe=  111 gen=     0 head=   113 gpuMB= 2003 bal=44.23 ts=1
+  +HWA+LA (ours)                                   svhn    IF=1.0   a=None K=10  n=3 t=   820 fe=  108 gen=   594 head=   114 gpuMB= 6194 bal=74.52 ts=1
+  GeFL-F                                           svhn    IF=1.0   a=None K=10  n=3 t=   707 fe=  108 gen=   592 head=   111 gpuMB= 2459 bal=74.54 ts=1
+  +CSL (beta=0.5)                                  svhn    IF=1.0   a=None K=10  n=3 t=   114 fe=  108 gen=   592 head=   110 gpuMB= 2440 bal=75.15 ts=1
+  +CSLM (interleaved)                              svhn    IF=1.0   a=None K=10  n=3 t=   119 fe=  108 gen=   592 head=   116 gpuMB= 2440 bal=74.38 ts=1
+== E20_proto_generator/runs.jsonl
+  Ours (HWA+LA+CSL)                                fmnist  IF=0.01  a=0.5  K=10  n=3 t=   480 fe=   74 gen=   316 head=    78 gpuMB= 2653 bal=76.60 ts=1
+  Ours+MC                                          fmnist  IF=0.01  a=0.5  K=10  n=3 t=    85 fe=   74 gen=   316 head=    78 gpuMB= 1701 bal=77.19 ts=1
+  GeFL-F                                           fmnist  IF=0.01  a=0.5  K=10  n=3 t=   364 fe=   74 gen=   288 head=    70 gpuMB= 2808 bal=58.47 ts=1
+  FSG+LA+CSL                                       fmnist  IF=0.01  a=0.5  K=10  n=3 t=    80 fe=   74 gen=     0 head=    73 gpuMB= 1175 bal=73.64 ts=1
+  Ours-PC+ZP (PC+ZP+LA+CSL)                        fmnist  IF=0.01  a=0.5  K=10  n=3 t=   358 fe=   74 gen=   278 head=    75 gpuMB= 1531 bal=76.05 ts=1
+  Ours-PC (PC+LA+CSL)                              fmnist  IF=0.01  a=0.5  K=10  n=3 t=   358 fe=   74 gen=   278 head=    74 gpuMB= 1534 bal=75.96 ts=1
+  Ours-PC+MC                                       fmnist  IF=0.01  a=0.5  K=10  n=3 t=    80 fe=   74 gen=   278 head=    74 gpuMB= 1534 bal=77.56 ts=1
+  Ours (HWA+LA+CSL)                                fmnist  IF=1.0   a=None K=10  n=3 t=   421 fe=   70 gen=   269 head=    75 gpuMB= 2186 bal=83.12 ts=1
+  Ours+MC                                          fmnist  IF=1.0   a=None K=10  n=3 t=    80 fe=   70 gen=   269 head=    74 gpuMB= 1488 bal=83.23 ts=1
+  GeFL-F                                           fmnist  IF=1.0   a=None K=10  n=3 t=   340 fe=   70 gen=   265 head=    69 gpuMB= 1488 bal=82.57 ts=1
+  FSG+LA+CSL                                       fmnist  IF=1.0   a=None K=10  n=3 t=    80 fe=   70 gen=     0 head=    73 gpuMB= 1176 bal=81.76 ts=1
+  Ours-PC+ZP (PC+ZP+LA+CSL)                        fmnist  IF=1.0   a=None K=10  n=3 t=   359 fe=   70 gen=   277 head=    75 gpuMB= 1532 bal=82.74 ts=1
+  Ours-PC (PC+LA+CSL)                              fmnist  IF=1.0   a=None K=10  n=3 t=   357 fe=   70 gen=   278 head=    73 gpuMB= 1534 bal=82.53 ts=1
+  Ours-PC+MC                                       fmnist  IF=1.0   a=None K=10  n=3 t=    81 fe=   70 gen=   278 head=    74 gpuMB= 1534 bal=82.83 ts=1
+  Ours (HWA+LA+CSL)                                mnist   IF=0.01  a=0.5  K=10  n=3 t=   402 fe=   58 gen=   268 head=    69 gpuMB= 2583 bal=90.40 ts=1
+  Ours+MC                                          mnist   IF=0.01  a=0.5  K=10  n=3 t=    75 fe=   58 gen=   268 head=    68 gpuMB= 1479 bal=91.11 ts=1
+  GeFL-F                                           mnist   IF=0.01  a=0.5  K=10  n=3 t=   331 fe=   58 gen=   261 head=    64 gpuMB= 2428 bal=75.25 ts=1
+  FSG+LA+CSL                                       mnist   IF=0.01  a=0.5  K=10  n=3 t=    75 fe=   58 gen=     0 head=    68 gpuMB= 1166 bal=87.72 ts=1
+  Ours-PC+ZP (PC+ZP+LA+CSL)                        mnist   IF=0.01  a=0.5  K=10  n=3 t=   347 fe=   58 gen=   271 head=    70 gpuMB= 1525 bal=91.69 ts=1
+  Ours-PC (PC+LA+CSL)                              mnist   IF=0.01  a=0.5  K=10  n=3 t=   348 fe=   58 gen=   272 head=    70 gpuMB= 1524 bal=90.75 ts=1
+  Ours-PC+MC                                       mnist   IF=0.01  a=0.5  K=10  n=3 t=    75 fe=   58 gen=   272 head=    69 gpuMB= 1524 bal=92.31 ts=1
+== E29_hybrid_generator/runs.jsonl
+  Ours-R Ts=10                                     fmnist  IF=0.01  a=0.5  K=10  n=3 t=   926 fe=   70 gen=   276 head=   568 gpuMB= 2882 bal=79.60 ts=10
+  Ours-R Ts=10                                     fmnist  IF=1.0   a=None K=10  n=3 t=  1301 fe=   83 gen=   432 head=   756 gpuMB= 2675 bal=84.00 ts=10
+  Ours-R Ts=10                                     mnist   IF=0.01  a=0.5  K=10  n=3 t=  1072 fe=   62 gen=   271 head=   726 gpuMB= 2763 bal=95.03 ts=10
+  Ours-R Ts=10                                     mnist   IF=0.01  a=0.5  K=100 n=2 t=  3199 fe=   99 gen=  1001 head=  2086 gpuMB= 2750 bal=94.36 ts=10
+== E26_private_anchoring/runs.jsonl
+  Ours-A Ts=10, DP eps=2                           fmnist  IF=0.01  a=0.5  K=10  n=3 t=   671 fe=   69 gen=   290 head=   303 gpuMB= 2821 bal=65.59 ts=10
+  Ours-A Ts=10, DP eps=8                           fmnist  IF=0.01  a=0.5  K=10  n=3 t=   631 fe=   69 gen=   271 head=   352 gpuMB= 2724 bal=72.77 ts=10
+  Ours-A Ts=10, DP eps=2                           mnist   IF=0.01  a=0.5  K=10  n=3 t=   633 fe=   56 gen=   268 head=   301 gpuMB= 2598 bal=85.06 ts=10
+  Ours-A Ts=10, DP eps=8                           mnist   IF=0.01  a=0.5  K=10  n=3 t=   664 fe=   56 gen=   268 head=   388 gpuMB= 2581 bal=90.36 ts=10
