@@ -119,6 +119,7 @@ C.push(...callout("Honest comparison point (new in this version, Part 6)", [
 C.push(...callout("What changed since version 1", [
   "**Collapse theorem corrected** (Part 2.2): the old \"fewer than half the clients\" rule was wrong in our own data. New exact bound (Theorem 1) and the role of Adam's decay (Lemma 2), checked on the real model.",
   "**New Part 6:** where the remaining error lives (the last layer), a federated fix from exact statistics (exact readout), and the stronger baseline above.",
+  "**New Part 7:** why each failure happens and why each fix works, step by step, with the evidence and what we would have seen if the explanation were wrong.",
   "**New results:** leave-one-out ablation (Part 5.6), SVHN switch (Part 5.7), FashionMNIST at 50 / 100 clients (Part 5.5), covariance correction (Part 8).",
   "**Claims made more precise:** which parts of Ours-A are new and which are known techniques (Parts 4.1, 4.8).",
 ], GREEN));
@@ -126,7 +127,7 @@ C.push(...callout("What changed since version 1", [
 
 // ---------------- HOW TO READ THE NUMBERS (v2)
 C.push(H1("How to read the numbers"));
-C.push(P("This report uses many measurements. Only four of them decide whether the method works; one exists only to compare with the original paper; the rest are *diagnostics*: they explain why something works or fails, and are not goals in themselves. Every accuracy is in percent; a difference between two accuracies is in *points* (79.7 − 58.5 = +21.2 points)."));
+C.push(P("This report uses many measurements. Only four of them decide whether the method works; one exists only to compare with the original paper; the rest are *diagnostics*: they explain why something works or fails (Part 7 walks through each failure), and are not goals in themselves. Every accuracy is in percent; a difference between two accuracies is in *points* (79.7 − 58.5 = +21.2 points)."));
 const gl = (rows, cap) => table(["Measurement", "What it measures, in plain words", "How to read it"], rows, [2.2, 4.4, 3.0], { left: true, cap });
 C.push(H2("A. The numbers that decide whether the method works"));
 C.push(...gl([
@@ -571,11 +572,120 @@ C.push(B("**GeFL-F + recalibration must be a baseline.** Against it Ours-A wins 
 C.push(B("Exact readout is now logged automatically (er_bal) in every new run, at no extra GPU cost."));
 
 // ---------------- PART 7
-C.push(H1("7. Why it works, and its limits"));
-C.push(B("**Removes the cause:** the generator has no class-specific weight, so FedAvg cannot shrink rare classes (holds at 100 clients)."));
-C.push(B("**Smallest correction:** the moment fix changes fake features as little as possible (Proposition 3)."));
-C.push(B("**Targets the transfer error:** fingerprint selection reduces the term that bounds real-data error (Lemma 1)."));
-C.push(B("**Same protocol and privacy model as GeFL-F:** one small extra upload of class sums; formal differential privacy possible."));
+C.push(H1("7. Why it fails, and why each fix works"));
+C.push(P("Parts 4 and 5 say what each part of Ours-A does and how many points it adds. This part says **why**. There are eight failures, in the order they occur. For each one we give: what goes wrong; the cause, step by step; the measurement that shows it; what we would have measured *if the explanation were wrong*; why the fix removes the cause; and how sure we are."));
+C.push(...table(["#", "What goes wrong", "Cause in one line", "Fix", "Before → after"], [
+  ["1", "Rare classes are erased from the generator", "Clients without the class pull its list to zero every step; clients with it push back only rarely", "Holder-weighted averaging, then the mean-anchored generator", "Rare lists 4–10 % → 117–125 % of start; rare fakes recognised 10 % → 93 % (MNIST)"],
+  ["2", "Fakes too narrow and too clean", "The generator learns to output the \"typical\" sample", "Moment correction", "Spread 0.47 → 0.85 of real; separability 0.78 → 0.32 (real 0.30)"],
+  ["3", "Fakes have the wrong shape", "Average and spread are only two numbers", "Sample selection", "Fake-to-real distance 0.089 → 0.071"],
+  ["4", "Each model leans to its client's common classes", "The last 5 epochs of every round are on skewed real data", "Logit adjustment", "Skew 0.64 → 0.44; +3 to +6 points"],
+  ["5", "Ambiguous fakes get a confident label", "A fake drawn as class c can look like two classes", "Consensus labels", "Closer to a real-data judge in every class; +1.4 to +1.6 points"],
+  ["6", "More fake training did not help", "Training longer on wrong fakes teaches the wrong thing longer", "Only after the generator is fixed", "−0.05 → +1.7 points"],
+  ["7", "Ours-A weak on SVHN", "SVHN's class averages are nearly identical", "Automatic switch back to class lists", "54.4 → 65.6"],
+  ["8", "Some error stays in the last layer", "Weights of classes the client lacks have the wrong size (about a quarter of it); the rest unknown", "Exact readout from sums", "Within 0.8 points of the best possible last layer"],
+], [0.3, 2.0, 3.0, 2.0, 2.6], { left: true }));
+
+// 7.1
+C.push(H2("7.1 Rare classes are erased from the generator"));
+C.push(P("**What goes wrong.** The original generator forgets how to draw rare classes. Its fake samples of a rare class look like random classes, so every model trained on them learns nothing about that class, and rare-class accuracy stays at 52 % (MNIST) and 35 % (FashionMNIST)."));
+C.push(P("**The cause, step by step.**"));
+C.push(B("**The generator keeps one list of 512 numbers per class** (its *class list*). To draw a sample of class c it reads list c. A long, distinctive list says \"class c\" clearly; a list near zero says nothing, and the sample comes out as a mix of all classes."));
+C.push(B("**Every training step also applies weight decay**: each number is pulled a little toward zero. It is meant as a mild brake against over-fitting."));
+C.push(B("**A client that has class c** sees it in some of its batches. Each time, training pushes list c to describe class c better, which in practice makes it longer. **A client that does not have class c** never sees it, so the only thing that ever touches list c on that client is the pull toward zero."));
+C.push(B("**The optimiser turns the mild brake into a full step.** Adam divides each update by the typical size of that number's recent updates. A number that only ever receives the small, steady pull is divided by that same small size, so the pull becomes a step as large as real learning. The size of the decay no longer matters, only whether it is there."));
+C.push(B("**Rare classes lose the tug-of-war.** A rare class appears in few batches even on the clients that have it (MNIST's rarest class has 24 samples in the whole federation). Its pushes are small and occasional; the pulls from clients without it come at full size on every step."));
+C.push(B("**The server averages all clients' lists**, pulls outweigh pushes, and list c ends every round shorter than it began. After a few dozen rounds the rare lists are close to zero."));
+C.push(B("**The exact condition (Theorem 1, Part 2.2):** list c shrinks unless the share of clients holding class c is above θ = loss ÷ (gain + loss). Because rare classes gain little, θ is 0.61–0.93: a rare class needs 61–93 % of clients to survive. On MNIST the rarest classes are held by 7 or 8 of 10 clients and are still erased."));
+C.push(...img("w01_erasing.png", 640, "Figure 16. (a) One change at a time on the real generator. (b) Share of rare-class fakes that a judge trained only on real data labels correctly."));
+C.push(P("**How we know.** We trained the real generator four times, changing one thing each time (Figure 16a). Normal training: the three rarest lists end at 4–10 % of their starting length. Decay ten times smaller: *identical* curves. Decay switched off: they grow to 112–120 %. Only clients that hold the class averaged: they grow to 117–125 %. The consequence shows in the fakes (Figure 16b): a judge trained on real data recognises only 10 % (MNIST) and 20 % (FashionMNIST) of the original method's rare-class fakes, against 97 % and 84 % of real samples."));
+C.push(P("**If the explanation were wrong.** If rare classes simply had too little data, switching off the decay would not help, but it restores them fully. If the decay acted as a mild brake (as with plain gradient descent), ten times less decay would mean ten times slower erasing, but the curves are identical, as the optimiser explanation predicts. If the half-the-clients rule of version 1 were right, classes held by 7–9 of 10 clients would be safe, but they are erased."));
+C.push(P("**The fix, and why it removes the cause.**"));
+C.push(B("**Holder-weighted averaging** (first fix): when the server averages list c, only clients that have class c vote, weighted by how many samples they have. The clients that could only pull toward zero no longer count, so the loss term of Theorem 1 is gone and the list can only grow by what holders teach it. Result: rare lists 117–125 % of start; judge recognises 31 % / 71 % of rare fakes; +9.0 points (MNIST), +11.2 (FashionMNIST)."));
+C.push(B("**Mean-anchored generator** (final fix): removes class lists altogether. The class enters as its exact average feature, which each client sends once as a sum (secure aggregation: the server sees only the total). A sum cannot shrink. The generator's own weights are shared by all classes and learn only *how a sample differs from its class average*, which every client trains on every class it has. Result: the judge recognises 93 % / 88 % of rare fakes."));
+C.push(B("**Why the anchor beats holder averaging:** holder averaging still has to *learn* each list from the few rare samples; the class average is exact from the first round."));
+C.push(P("**How sure.** The bound is proven (Appendix A). The cause is tested by changing one thing at a time on the real generator (1 seed; the bound itself is exact). The accuracy consequences hold over 3 seeds and four datasets."));
+
+// 7.2
+C.push(H2("7.2 The fakes are in the right place but too narrow and too clean"));
+C.push(P("**What goes wrong.** After the mean anchor, fakes sit around the right class average, but they are bunched far too tightly: their spread is 0.47 (MNIST) and 0.45 (FashionMNIST) of the real spread. And their classes are separated much more cleanly than real classes: separability 0.78 / 1.35 against 0.30 / 0.60 for real data."));
+C.push(P("**The cause, step by step.**"));
+C.push(B("The generator (a variational autoencoder) learns by rebuilding each real feature from a compressed code. When it is unsure, the output with the lowest error is the *average* of the plausible answers, and averaging removes the sample-to-sample variety."));
+C.push(B("Its random input is meant to put the variety back, but in practice it is under-used. The result is \"textbook\" samples: correct, typical, too similar to each other."));
+C.push(B("**Why that hurts:** a model trained on textbook samples draws its class boundaries to fit tight, well-separated clusters. Real samples spread further and overlap more, so the ones near the edge of a class fall on the wrong side, like learning handwriting only from neat examples and then reading a doctor's note."));
+C.push(...img("w02_narrow.png", 640, "Figure 17. (a) Spread of fake features divided by the spread of real ones (1 = right). (b) How cleanly the fake classes are separated, against real data."));
+C.push(P("**How we know.** Spread and separability are measured directly against the real features (Figure 17). In the leave-one-out ablation, removing moment correction cuts the rare-class spread from 0.93 to 0.59 (MNIST) and costs 0.5–1.0 points, while the judge's recognition of the fakes does *not* fall (FashionMNIST 83.9 vs 79.2). So moment correction does not help by making fakes more recognisable; it helps by giving them the right variety."));
+C.push(P("**If the explanation were wrong.** If narrowness did not matter, correcting only the spread and centre would not change accuracy. It adds 1.6 points on both datasets, and the gain comes with the spread returning to that of real data, not with any change in recognisability."));
+C.push(P("**The fix, and why it removes the cause.** **Moment correction:** for each class, measure the fakes' average and spread (500 samples), then shift every fake so its average equals the exact real average and stretch it so its spread equals the exact real spread (both from the uploaded sums). Of all ways to reach the right average and spread, this one moves the samples the least (Proposition 3), so it keeps whatever shape the generator learned and corrects only the two numbers that were wrong. No training, two numbers per class."));
+C.push(P("**Result.** Spread 0.85 / 0.90; separability 0.32 / 0.61, matching real data (0.30 / 0.60); fake-to-real distance 0.20 → 0.089 (MNIST); +1.6 points on both datasets. **How sure:** measured on 3 seeds; the minimum-change property is proven."));
+
+// 7.3
+C.push(H2("7.3 Right centre and spread, but the wrong shape"));
+C.push(P("**What goes wrong.** Two clouds of points can have the same centre and the same spread and still look different: one may have a sub-cluster the other lacks, or miss a style (for example sevens written with a cross-bar)."));
+C.push(P("**The cause.** The centre and the spread are only two numbers per class; the shape needs many more."));
+C.push(P("**The fix, and why it works.** **Sample selection:** each client also sends, once, a sum of *fingerprints* of its features (6,144 random features that together describe the shape of a class). The server draws four times as many fakes as it needs and keeps the subset whose average fingerprint is closest to the real one: at each step it adds the candidate that best fills what is still missing. A known bound says a model's error on real data is at most its error on fakes plus a constant times the fake-to-real distance (Lemma 1); selection lowers exactly that distance."));
+C.push(...img("w03_shape.png", 520, "Figure 18. Distance between fake and real features after each step (lower is better)."));
+C.push(P("**How we know.** The distance falls from 0.089 to 0.071 (MNIST) and 0.093 to 0.078 (FashionMNIST). Across all runs, lower distance goes with higher real accuracy (correlation −0.69 and −0.47). In the full method, selection helped in 9 of 9 paired tests (+0.7 to +0.8 points)."));
+C.push(P("**What we cannot yet explain.** In the simpler test (train a model only on fakes, test on real data) selection adds nothing (−0.2 / −1.1). Its gain appears only together with the real-data epochs and consensus labels. It is also the smallest part in the ablation (−0.3 to −0.7 when removed). **How sure:** the effect is consistent but small, and its exact route is open."));
+
+// 7.4
+C.push(H2("7.4 Each model leans toward its client's common classes"));
+C.push(P("**What goes wrong.** A client's model predicts the classes that are common *on that client* far too often, and the client's rare classes too rarely."));
+C.push(P("**The cause, step by step.**"));
+C.push(B("Every round ends with 5 epochs on the client's own real data. If 90 % of that data is one class, the cheapest way to lower the training error is to predict that class more often."));
+C.push(B("The balanced fake epochs at the start of the round are partly undone by these 5 skewed epochs, every round."));
+C.push(...img("w04_skew.png", 600, "Figure 19. (a) Correlation between how often a client sees each class and how often its model predicts it (0 = no lean). (b) Balanced accuracy with and without logit adjustment."));
+C.push(P("**How we know.** The correlation between a client's class shares and its model's predictions is 0.64 (MNIST) and 0.67 (FashionMNIST): models predict what their client has."));
+C.push(P("**The fix, and why it removes the cause.** **Logit adjustment:** during the real-data epochs, add the logarithm of the class's share on that client to the model's score for that class before computing the loss. A common class already starts ahead in the score, so the model gains nothing by leaning toward it and stops learning the lean. At test time the head start is removed and the scores are balanced. The client's class shares never leave the client."));
+C.push(P("**Result.** Correlation 0.44 / 0.52; balanced accuracy 92.0 → 95.2 (MNIST) and 75.5 → 79.9 (FashionMNIST); the largest single part in the ablation (−3.0 / −6.2 points when removed). **Note:** correcting the lean after training (bias calibration) recovers most of this too: the job is \"remove the client's skew\", and either tool does it. **How sure:** measured on 3 seeds; an established technique (Menon et al., 2021)."));
+
+// 7.5
+C.push(H2("7.5 Ambiguous fakes get a confident label"));
+C.push(P("**What goes wrong.** Every fake comes with the label it was drawn for. Some fakes look like two classes (a shirt halfway between a T-shirt and a pullover). A hard \"100 % T-shirt\" label teaches the model to be confidently wrong near the boundary between the two."));
+C.push(P("**The fix, and why it works.** **Consensus labels:** the training target becomes half the drawn label plus half the average prediction of the 10 different model types on that same fake. Different architectures make different mistakes, so their average is a better estimate of what the sample really looks like. Clients send only sums of predictions on a shared pool of fakes."));
+C.push(P("**How we know.** Compared with a judge trained on real data, the mixed target is closer than the hard label in every class (total-variation distance 0.100 → 0.092 on MNIST, 0.212 → 0.202 on FashionMNIST). Removing consensus labels costs 1.4–1.6 points (FashionMNIST p = 0.008)."));
+C.push(P("**If the explanation were wrong.** If agreement between models were good evidence of a correct label, trusting it more would help. A Bayesian version that trusted agreement more did *worse* (83.2 vs 84.2): models trained on the same generator agree with the generator, so their agreement is partly circular. Half-and-half worked better than full trust. **How sure:** measured on 3 seeds; the gain is medium-sized and consistent."));
+
+// 7.6
+C.push(H2("7.6 More training on fakes helps only once the fakes are good"));
+C.push(P("**What goes wrong.** The original method trains 1 fake epoch per round. More fake training looks like an easy win, but with the original generator it adds nothing."));
+C.push(P("**The cause.** A model's error has two parts: noise from having little real data, which falls as you add fake data, and bias from fakes that are wrong, which grows the more you rely on them. The best share of fake training falls as the fakes get worse (Proposition 5). With bad fakes, extra fake epochs add bias as fast as they remove noise."));
+C.push(...img("w06_budget.png", 500, "Figure 20. Gain from 10 fake epochs per round instead of 1."));
+C.push(P("**How we know.** Exactly as predicted: −0.05 points with the original generator, +1.7 with ours (MNIST long tail), +3.9 with 100 clients, where each client has less real data and the noise part is larger. **Limit:** on CIFAR-10 and SVHN, where fakes are still worse, 10 epochs give a higher peak but a lower final accuracy than 1. **How sure:** proven model, measured on 3 seeds."));
+
+// 7.7
+C.push(H2("7.7 Why the main method is weak on SVHN"));
+C.push(P("**What goes wrong.** On SVHN, Ours-A with the mean anchor reaches only 54.4, below the simpler holder-weighted averaging plus logit adjustment (62.5)."));
+C.push(P("**The cause, step by step.**"));
+C.push(B("The mean-anchored generator tells classes apart *only* through their class averages: two generated classes can differ at most as much as their averages do."));
+C.push(B("SVHN digits come with varying colours, backgrounds and neighbouring digits. After the frozen feature extractor, the average feature of a \"3\" is almost the same as that of an \"8\"."));
+C.push(B("So the generator receives nearly the same instruction for every class, and its fakes cannot be told apart by class."));
+C.push(...img("w07_svhn.png", 640, "Figure 21. (a) Guessing each real sample's class from the nearest class average: high on MNIST, near chance on SVHN. (b) SVHN long tail: the automatic switch fixes it."));
+C.push(P("**How we know.** Guessing a real sample's class from the nearest class average works 82 % of the time on MNIST, 69 % on FashionMNIST, 41 % on CIFAR-10, and only 12 % on SVHN (chance is 10 %). The prediction is that the anchor fails exactly where this is near chance, and it fails only on SVHN."));
+C.push(P("**The fix.** The server computes how well the class averages separate the classes, from sums it already has. Below a threshold (separability 0.05) it keeps the original class lists, protected by holder-weighted averaging, and still applies moment correction and sample selection. Result: 65.6 under the long tail (+15.1 over the original method) and 77.07 in the balanced setting (above the paper's 76.26). The other three datasets are above the threshold and unaffected. **How sure:** measured on 3 seeds; the threshold was chosen from these four datasets and needs a fifth dataset to be confirmed."));
+
+// 7.8
+C.push(H2("7.8 What still fails: the last layer"));
+C.push(P("**What goes wrong.** Even with Ours-A, each model's last layer loses some accuracy compared with the best last layer for the same model (Part 6): 0.1 points on MNIST, 1.9 on FashionMNIST, 6.2 on CIFAR-10. It does not shrink with more clients."));
+C.push(...img("w08_lastlayer.png", 560, "Figure 22. Accuracy lost in the last layer, split by how much of the class the model's own client has (FashionMNIST, 1 seed, shortened schedule)."));
+C.push(P("**Where it sits (measured).** Almost entirely on classes the model's own client does **not have**: there Ours-A loses 17 points (the original method 74). Classes the client has with 1–20 samples lose 7; classes it has with more than 20 samples lose nothing."));
+C.push(P("**The cause, as far as we know.**"));
+C.push(B("For a class its client lacks, a model's last layer learns that class **only from fakes**. For classes the client has, it also learns from real samples in the last 5 epochs of every round."));
+C.push(B("So the weights for missing classes end up the **wrong size** relative to the others, and those classes are predicted too rarely. Rescaling all class weights to the same size recovers 16–34 % of the loss: this explains about a quarter."));
+C.push(B("**The rest is not explained yet.** Our first explanation, that the fake class averages are slightly off inside each model, was tested and was wrong: it did not predict which classes lose the most (correlation 0.10–0.33, against 0.33–0.90 for the simple \"how much of the class came from fakes\")."));
+C.push(P("**What fixes it anyway.** The exact readout (Part 6.1) sets the last layer from exact sums of real features and never sees a fake. It lands within 0.8 points of the best possible last layer. **How sure:** the location of the error and the fix are measured (1 seed, shortened schedule; consistent with the 3-seed numbers of Part 6); the cause is only a quarter explained."));
+
+// 7.9
+C.push(H2("7.9 Why the dropped ideas failed"));
+C.push(...table(["Idea", "Why it failed"], [
+  ["Server-side ensemble distillation", "It teaches each model on fakes. It cannot pass on anything the fakes do not contain, so it is limited by the same fake-to-real gap (equation 3)."],
+  ["Re-training the last layer on balanced fakes", "Same limit, and the fakes are worse than real data: weaker than logit adjustment (62.0 vs 65.2). The exact readout works because it uses real sums instead of fakes."],
+  ["Gaussian generator from exact statistics", "A model trained on its samples becomes a straight-line classifier. Straight lines work on MNIST but reach only 21 % on SVHN features."],
+  ["Bayesian consensus labels", "Trusted model agreement more; agreement is partly circular (7.5)."],
+  ["Filling each real batch's missing classes with fakes", "Needs good rare-class fakes, which did not exist before the generator was fixed."],
+  ["Feature mixing (MixUp and our variant)", "Lowered accuracy (59.98 vs 60.93). Mixing features after a frozen extractor cannot add the image-level variety that the paper's image mixing adds while training the whole model."],
+  ["Lazy decay (decay only the rows of classes in the batch)", "Removes the same pull toward zero as holder-weighted averaging, so on top of it adds nothing (78.6 vs 79.1)."],
+], [3.0, 6.6], { left: true }));
+
 C.push(H2("Limitations"));
 C.push(B("SVHN: class means carry no class information, so Ours-A is below GeFL-F in the balanced setting (74.4 vs 75.8)."));
 C.push(B("Balanced data: gains are +1 to +2 points; the method is built for imbalance."));
