@@ -313,24 +313,24 @@ def bars(name, title, groups, series, ylim, ylabel="balanced accuracy (%)", w=10
 
 
 def fig_results():
-    bars("f08_longtail.png", "Long-tailed clients (IF = 100, Dirichlet 0.5, K = 10, 3 seeds)",
+    bars("f08_longtail.png", "Long tail (imbalance 100 : 1, Dirichlet 0.5, 10 clients, 3 seeds)",
          ["MNIST", "FashionMNIST", "CIFAR-10", "SVHN"],
          [("GeFL-F", [75.25, 58.47, 33.74, 50.49], NEUT),
-          ("GeFL-F + LA", [78.92, 64.78, 37.30, 56.44], "#adb5bd"),
-          ("+ HWA + LA", [87.89, 76.02, 40.73, 62.45], "#74c0fc"),
-          ("Gaussian from statistics (FSG) + LA", [87.04, 73.60, 44.17, 44.23], "#ffc078"),
+          ("GeFL-F + logit adjustment", [78.92, 64.78, 37.30, 56.44], "#adb5bd"),
+          ("+ holder-weighted averaging + logit adjustment", [87.89, 76.02, 40.73, 62.45], "#74c0fc"),
+          ("Gaussian generator + logit adjustment", [87.04, 73.60, 44.17, 44.23], "#ffc078"),
           ("Ours-A", [94.82, 79.67, 44.38, 54.41], OURS)], (0, 105))
-    bars("f09_iid.png", "Paper's own balanced setting: best_mean_acc vs the best of the paper's ten methods",
-         ["MNIST K=10", "MNIST K=50", "MNIST K=100", "FMNIST K=10", "FMNIST K=50", "CIFAR-10 K=10", "SVHN K=10"],
+    bars("f09_iid.png", "Paper's own balanced setting: paper's accuracy vs the best of its ten methods",
+         ["MNIST\n10 clients", "MNIST\n50 clients", "MNIST\n100 clients", "FashionMNIST\n10 clients", "FashionMNIST\n50 clients", "CIFAR-10\n10 clients", "SVHN\n10 clients"],
          [("GeFL-F (paper)", [95.47, 95.04, 94.63, 83.14, 82.21, 55.86, 76.26], NEUT),
           ("best of 10 methods in paper", [96.44, 95.04, 94.63, 84.28, 82.96, 59.36, 76.26], "#ffa8a8"),
-          ("Ours-A", [97.62, 96.93, 96.77, 83.96, 82.96, 60.93, 74.38], OURS)], (50, 102), ylabel="best_mean_acc (%)")
+          ("Ours-A", [97.62, 96.93, 96.77, 83.96, 82.96, 60.93, 74.38], OURS)], (50, 102), ylabel="paper's accuracy (%)")
     bars("f10_ablation.png", "Building the method on the same seeds (MNIST / FashionMNIST, long tail)",
-         ["GeFL-F", "+LA", "+HWA", "+CSL", "mean anchor\n(replaces HWA)", "+MC", "+KH", "+T_s=10\n= Ours-A"],
+         ["GeFL-F", "+ logit\nadjustment", "+ holder\naveraging", "+ consensus\nlabels", "mean anchor\n(replaces holder\xa0averaging)", "+ moment\ncorrection", "+ sample\nselection", "+ 10 synthetic\nepochs = Ours-A"],
          [("MNIST", [75.25, 78.92, 87.89, 90.40, 90.75, 92.31, 93.11, 94.82], OURS),
           ("FashionMNIST", [58.47, 64.78, 76.02, 76.60, 75.96, 77.56, 78.22, 79.67], "#e8590c")], (50, 100), h=3.4)
-    bars("f11_scaling_privacy.png", "(a) More clients: MNIST long tail, K = 100       (b) Formal privacy on every Ours-A statistic, long tail, K = 10",
-         ["K=100\nMNIST", "exact\nMNIST", "ε = 8\nMNIST", "ε = 2\nMNIST", "exact\nFMNIST", "ε = 8\nFMNIST", "ε = 2\nFMNIST"],
+    bars("f11_scaling_privacy.png", "(a) More clients: MNIST long tail, 100 clients       (b) Formal privacy on every Ours-A statistic, long tail, 10 clients",
+         ["100 clients\nMNIST", "no noise\nMNIST", "ε = 8\nMNIST", "ε = 2\nMNIST", "no noise\nFashionMNIST", "ε = 8\nFashionMNIST", "ε = 2\nFashionMNIST"],
          [("GeFL-F (no formal privacy)", [75.98, 75.25, 75.25, 75.25, 58.47, 58.47, 58.47], NEUT),
           ("Ours-A", [94.30, 94.82, 90.36, 85.06, 79.67, 72.77, 65.59], OURS)], (40, 102), h=3.3)
     bars("f12_svhn.png", "SVHN: where class means carry no class information (F = 0.01)",
@@ -359,7 +359,7 @@ EQ = {
     "eq_bbc": r"$b \leftarrow b - \log\left(C\ \bar q(b)\right),\qquad \bar q_c(b) = \mathbb{E}_{\tilde h\sim \mathrm{balanced}}\ \mathrm{softmax}(f(\tilde h)+b)_c$",
     "eq_mixup": r"$\mathbb{E}_{Q}\,\ell_{mix}\ \approx\ \Psi\left(\{\pi_c,\ \mu_c,\ \Sigma_c\}_{c=1}^{C}\right)\ +\ O\left(\mathbb{E}(1-\lambda)^3\|x'-x\|^3\right)$",
     "eq_dp": r"$\sigma_{rel} = \sqrt{2/\rho},\qquad \rho = \left(\sqrt{\log(1/\delta)+\varepsilon}-\sqrt{\log(1/\delta)}\right)^2\quad \mathrm{(zCDP,\ split\ over\ 4\ releases)}$",
-    "eq_lda": r"$\mathrm{FSG}:\ \tilde h\sim\mathcal{N}(m_c,\Sigma_{pooled})\ \Rightarrow\ \mathrm{Bayes\ head} = \arg\max_c\ m_c^\top\Sigma^{-1}h-\frac{1}{2}m_c^\top\Sigma^{-1}m_c\ \ (\mathrm{LDA})$",
+    "eq_lda": r"$\mathrm{Gaussian\ generator}:\ \tilde h\sim\mathcal{N}(m_c,\Sigma_{pooled})\ \Rightarrow\ \mathrm{Bayes\ head} = \arg\max_c\ m_c^\top\Sigma^{-1}h-\frac{1}{2}m_c^\top\Sigma^{-1}m_c$",
     "eq_tv": r"$R_{real}(h)\ \leq\ R_{syn}(h) + \ell_{\max}\cdot\mathrm{TV}(p_{syn},\ p_{real})$",
 }
 

@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 from make_figures import save, INK, MUTED, BAD, GOOD, NEUT, OURS
 
 ROWS = {  # dataset: [(method, head, oracle)]
-    "MNIST LT": [("GeFL-F", 74.2, 90.7), ("+ HWA + LA", 87.8, 92.4), ("Ours-A", 94.8, 94.9)],
-    "FashionMNIST LT": [("GeFL-F", 58.7, 79.2), ("+ HWA + LA", 76.0, 80.1), ("Ours-A", 79.7, 81.6)],
+    "MNIST, long tail": [("GeFL-F", 74.2, 90.7), ("+ holder averaging\n+ logit adjustment", 87.8, 92.4), ("Ours-A", 94.8, 94.9)],
+    "FashionMNIST, long tail": [("GeFL-F", 58.7, 79.2), ("+ holder averaging\n+ logit adjustment", 76.0, 80.1), ("Ours-A", 79.7, 81.6)],
 }
 
 
