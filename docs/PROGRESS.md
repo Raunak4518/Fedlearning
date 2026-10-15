@@ -41,6 +41,7 @@ significant. **FIX DRAFT** = data exist but the draft quotes a different number.
 | 14 | Component ablation of the final method (§5.11) | T15_ablation, F04_ablation | K09 (+ K14 pending) | WEAK until K14: every removal hurts on 30/30 seeds, but no single component survives Holm with n = 3 |
 | 15 | Generator-agnostic (DDPM-F) (§5.8) | T16_ddpm | F11, K04 SVHN | WEAK: FMNIST 1–2 seeds; SVHN shows +CSL +0.5 (p = 0.045); our DDPM-F is 6.5 below the paper's SVHN CVAE number |
 | 16 | **New: MC-B** (exact covariance where data suffice) | T11, T15, F04 | E32 (+ K14 pending) | PROMISING: FMNIST LT 81.57 (= oracle 81.55, p = 0.03 paired vs Ours-A); **FMNIST IID 85.75, above the paper's best of all ten methods (84.28)**; MNIST LT unstable (seed 2: −2.7) |
+| 18 | **New (T03): GeFL-F's long-tail residual is mostly a readout gap; exact-statistics readout (ER) closes it** | `docs/research/readout_report.md` | T03 (CPU, 1 seed, reduced schedule), oracle numbers of all runs | ER validated (9/9 runs within 0.8 of oracle); mechanism open; paper must add the GeFL-F + recalibration baseline (CCVR/CReFF/Fed3R) |
 | 17 | VCT beats MixUp (target: GeFL + MixUp 62.67 on CIFAR-10 IID) | T13_cifar_svhn | K13 | **NEGATIVE**: VCT 60.29 vs MixUp 59.98 (IID), 45.65 vs 46.20 (LT); neither reaches 62.67. Move to "what did not work" |
 
 ## 2. Draft corrections needed (from `docs/paper_assets/CHECK.md`)

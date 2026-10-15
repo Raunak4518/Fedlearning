@@ -153,7 +153,15 @@ as analysis; claim ER only as "the known classifier-recalibration principle, ext
   $(1-\alpha)$ alone.
 * **Supported (post hoc, not pre-registered).** The gap concentrates on classes the client does not hold and grows
   with the client's lack of real evidence for the class, also within a class (ρ 0.37-0.79).
-* **Under test (pre-registered T03b).** H-R′: the unheld-class readout error is a *scale* (weight-norm) error.
+* **Partly supported (pre-registered T03b).** H-R′, the unheld-class readout error is a *scale* (weight-norm) error:
+  the norm deficit tracks the per-class gap (ρ 0.44-0.69, Q1 pass), but τ-normalisation recovers only 16-34 % of
+  the gap (Q2 fail, needed ≥ 50 %). Scale is about a quarter of the error; the rest is in the weight *direction*.
+* **Open, leading hypothesis (H-R″, untested): source–label confounding.** On client $k$ an unheld class is seen
+  *only* as synthetic features, held classes mostly as real ones. A discriminative readout can therefore use
+  "looks synthetic" as evidence for the unheld class; at test time real samples of that class look real and are
+  pulled toward held classes. This predicts the per-class gap from the *separability* of real vs synthetic class-$c$
+  embeddings (a domain classifier), not from their mean distance — consistent with ρ(‖Δ‖) being weak while
+  (1 − α) is strong. It also says ER works because the exact readout never sees synthetic data.
 
 ## 8. Algorithm (ER)
 
@@ -198,3 +206,54 @@ Recall lost by the head relative to the oracle, by the client's count of the cla
 Caveats: one seed, reduced schedule (larger gaps than the full schedule; there the oracle gap of Ours-A is 0.1
 MNIST, 1.9 FMNIST, 6.2 CIFAR-10 LT). The ER gains above are therefore upper-end; the full-schedule estimate is the
 oracle gap in §2.
+
+### T03b (pre-registered follow-up, FMNIST)
+
+| run | head | oracle | ER-LDA | τ-norm | τ-norm share of gap | ρ(norm deficit) |
+|---|---|---|---|---|---|---|
+| GeFL-F | 61.2 | 78.7 | **79.2** | 65.7 | 26 % | 0.69 |
+| + HWA + LA | 73.1 | 79.4 | **80.0** | 74.2 | 16 % | 0.45 |
+| Ours-A | 75.7 | 80.7 | **80.3** | 77.4 | 34 % | 0.44 |
+
+Q1 pass, Q2 fail, Q3 pass (the T03 numbers reproduce to within 0.2: same seed, same code).
+
+## 10. Interpretation: what the evidence establishes
+
+**Established (1 seed, reduced schedule, CPU; consistent with the 3-seed full-schedule oracle numbers in §2):**
+1. The residual error of every GeFL-F variant under the long tail splits into a readout gap and a representation
+   gap. The readout gap does not shrink with more clients; the representation gap does.
+2. The readout gap is not prior bias: offsets (LA, BBC) leave it in place, as Lemma R1 predicts.
+3. It sits on classes a client does not hold (and, less, on classes it holds with few samples).
+4. A closed-form readout from exact federated statistics of real embeddings (ER) closes it: within 0.8 points of
+   the pooled-real oracle in 9/9 runs, +18 on plain GeFL-F, +4.7 / +1.8 on Ours-A at this schedule.
+
+**Not established:** the mechanism of the readout error. The synthetic mean-mismatch account (H-R) is falsified;
+weight-norm mis-scaling (H-R′) explains about a quarter; source–label confounding (H-R″) is a hypothesis.
+
+**The consequence that matters most for the paper.** Classifier recalibration from federated statistics is
+published (CCVR, CReFF, Fed3R). Applied to plain GeFL-F it reaches 90.7 / 79.2 / 64.8 (MNIST / FMNIST / SVHN LT,
+full-schedule oracle, 3 seeds), within +4.1 / +0.5 / +0.8 of the final method's head. With ER on both sides the
+final method keeps an advantage of +4.2 / +2.4 / +3.6 (oracle vs oracle). The paper must report "GeFL-F +
+recalibration" as a baseline and state the method's advantage against it, not only against GeFL-F.
+
+## 11. Decision
+
+* **ER: provisionally accept** as the classifier-side instance of exact-statistics anchoring, presented honestly
+  as the known recalibration principle extended to heterogeneous heads (cross-architecture statistics). Logged
+  automatically as `er_bal` in every run from now on (K14, K15 included) at no extra GPU cost.
+* **Readout-bias mechanism: revise.** H-R rejected; H-R′ partial; H-R″ to be tested before any mechanistic claim.
+* **Paper: add the "GeFL-F + recalibration" baseline** and restate the advantage of the generator-side
+  contributions against it.
+
+## 12. Best next experiment
+
+**CIFAR-10 LT and SVHN LT, 3 seeds: GeFL-F and the final method (Ours-A; rows + MC + KH on SVHN), with `er_bal`
+logged.** It is where the readout gap is largest (6.2 on CIFAR-10) and where the threat to the paper is greatest
+(the recalibrated-GeFL-F bound is unknown on CIFAR-10 and within 0.8 on SVHN). About 6 GPU-hours (≈ 3 h on Kaggle
+T4 × 2). It re-runs existing configurations only to log the new metric, so it is a deliberate exception to the
+ledger's no-duplicates rule and needs the user's go-ahead.
+
+**Cheapest mechanism test (CPU, ≈ 1 h):** H-R″ — add a per-class real-vs-synthetic domain classifier in each head's
+embedding to the T03 harness; pre-register that its accuracy predicts the per-class gap better than (1 − α), and
+that mixing synthetic samples of *held* classes into the real phase (breaking the confound) shrinks the unheld-class
+gap.

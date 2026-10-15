@@ -1,1 +1,4 @@
 23:47:46 loading fmnist
+00:06:26 [T03] fmnist GeFL-F: head 61.19 | oracle 78.67 | ER-LDA 79.22 | tau-norm 65.73 | rho(wdef)=0.69 | bbc 64.97 | rho(B)=0.62 rho(1-a)=0.76 rho(D)=0.31
+00:24:32 [T03] fmnist +HWA+LA: head 73.12 | oracle 79.43 | ER-LDA 80.03 | tau-norm 74.15 | rho(wdef)=0.45 | bbc 73.90 | rho(B)=0.43 rho(1-a)=0.58 rho(D)=0.16
+00:44:25 [T03] fmnist Ours-A Ts=1: head 75.66 | oracle 80.70 | ER-LDA 80.31 | tau-norm 77.36 | rho(wdef)=0.44 | bbc 77.89 | rho(B)=0.41 rho(1-a)=0.57 rho(D)=0.10
