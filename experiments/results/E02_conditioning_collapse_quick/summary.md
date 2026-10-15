@@ -15,6 +15,15 @@ Hypothesis: GeFL-F tail rows collapse (norm ratio << 1, low tail fidelity); HWA 
 | GeFL-F | 1 | 0.56 ± 0.00 | 0.81 ± 0.00 | 20.92 ± 0.00 | 72.78 ± 0.00 | 57.91 ± 0.00 | 39.40 ± 0.00 | - |
 | +LCD | 1 | 0.79 ± 0.00 | 1.14 ± 0.00 | 24.58 ± 0.00 | 74.56 ± 0.00 | 60.69 ± 0.00 | 45.33 ± 0.00 | n<2 |
 
+| label | seed | cond_norm_tail_over_head_end | cond_norm_tail_rel_init | fidelity_tail | fidelity_head | final_bal | final_tail |
+|---|---|---|---|---|---|---|---|
+| +NOWD+HWA | 0 | 1.02 | 1.59 | 42.25 | 77.11 | 63.33 | 51.92 |
+| +HWA | 0 | 1.00 | 1.55 | 41.08 | 75.44 | 63.43 | 52.20 |
+| +HWA+LCD | 0 | 0.86 | 1.34 | 31.92 | 77.33 | 62.23 | 49.37 |
+| +NOWD | 0 | 0.90 | 1.33 | 32.67 | 75.22 | 62.55 | 49.93 |
+| GeFL-F | 0 | 0.56 | 0.81 | 20.92 | 72.78 | 57.91 | 39.40 |
+| +LCD | 0 | 0.79 | 1.14 | 24.58 | 74.56 | 60.69 | 45.33 |
+
 ## mnist  IF=0.01  alpha=0.5  K=10
 
 | label | n | cond_norm_tail_over_head_end | cond_norm_tail_rel_init | fidelity_tail | fidelity_head | final_bal | final_tail | p vs GeFL-F (cond_norm_tail_over_head_end) |
@@ -25,4 +34,13 @@ Hypothesis: GeFL-F tail rows collapse (norm ratio << 1, low tail fidelity); HWA 
 | +NOWD | 1 | 0.83 ± 0.00 | 1.12 ± 0.00 | 19.58 ± 0.00 | 72.33 ± 0.00 | 69.87 ± 0.00 | 46.73 ± 0.00 | n<2 |
 | GeFL-F | 1 | 0.22 ± 0.00 | 0.30 ± 0.00 | 15.00 ± 0.00 | 70.89 ± 0.00 | 68.29 ± 0.00 | 44.39 ± 0.00 | - |
 | +LCD | 1 | 0.79 ± 0.00 | 1.06 ± 0.00 | 17.67 ± 0.00 | 70.56 ± 0.00 | 69.66 ± 0.00 | 45.82 ± 0.00 | n<2 |
+
+| label | seed | cond_norm_tail_over_head_end | cond_norm_tail_rel_init | fidelity_tail | fidelity_head | final_bal | final_tail |
+|---|---|---|---|---|---|---|---|
+| +NOWD+HWA | 0 | 0.73 | 1.19 | 22.17 | 77.78 | 70.75 | 47.88 |
+| +HWA | 0 | 0.71 | 1.15 | 21.00 | 77.56 | 70.70 | 47.87 |
+| +HWA+LCD | 0 | 0.69 | 1.12 | 21.25 | 76.11 | 70.28 | 46.91 |
+| +NOWD | 0 | 0.83 | 1.12 | 19.58 | 72.33 | 69.87 | 46.73 |
+| GeFL-F | 0 | 0.22 | 0.30 | 15.00 | 70.89 | 68.29 | 44.39 |
+| +LCD | 0 | 0.79 | 1.06 | 17.67 | 70.56 | 69.66 | 45.82 |
 

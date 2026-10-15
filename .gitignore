@@ -19,3 +19,6 @@ experiments/results/logs/
 
 # Built experiment scripts (core.py + specs/*.py); regenerate with: python experiments/build.py
 experiments/[EFK][0-9][0-9]_*.py
+
+# Saved per-run models (large): keep the zip outside git (e.g. Drive / Kaggle dataset)
+experiments/results/*/models/
