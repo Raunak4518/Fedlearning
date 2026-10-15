@@ -71,3 +71,22 @@
 5. Do **not** copy GPT's statement that the gate statistic is ≥ 0.14 outside SVHN. It repeats an error in our own draft.
 
 Sources: [FedNPC supplement (CVPR 2026 Findings)](https://openaccess.thecvf.com/content/CVPR2026F/supplemental/Gao_FedNPC_Stochastic_Noise-driven_CVPRF_2026_supplemental.pdf); [CCVR](https://arxiv.org/abs/2106.05001v2).
+
+## 6. Full read of every file in the package (added after a second pass)
+
+| File | What it contains | Anything new beyond §§2–4? |
+|---|---|---|
+| `NeurIPS_100_Reviewer_Package_All_Branches.md` (1,994 lines) | Verdict; branch inventory; research state; contradictions; 43 issue write-ups; maths summary; evidence ledger; novelty map; cross-examination; dashboard; 100 reviews | The narrative sections restate the issue database. Its maths summary and novelty map match ours, except that it repeats the wrong gate values (§2). |
+| `NeurIPS_ESA_Review_Data_All_Branches.json` | The same data as the CSVs (issues, reviewers, cross-review, statistics, verdict) | No |
+| `NeurIPS_Master_Issue_Database_All_Branches.csv` | 43 issues | Covered in §§2–4 |
+| `NeurIPS_100_Reviewer_Scores_All_Branches.csv`, `NeurIPS_Review_Dashboard_All_Branches.csv` | Scores (overall 2/6: 84×, 3/6: 10×, 1/6: 6×) and per-panel averages | No |
+| `NeurIPS_Issue_CrossReview_All_Branches.csv` (96 rows) | Challenge and disposition per issue: 63 "survives with narrower claim", 20 "survives, needs fix", 7 "partly resolved by limitation", 6 "narrower form" | None withdrawn |
+| `NeurIPS_Branch_Inventory…csv`, `NeurIPS_Branch_Delta…csv` | Branch tips and the 15 most important files that differ between branches | Branch tips confirmed with `git ls-remote`: `main` = `revision/adam-collapse-drift` = `f9f4b44` |
+
+**How the 100 reviews are built.** They are generated from one template. Every review cites only issue IDs from the database, and none adds a new issue. They share 10 distinct strength sentences, and each review's weakness paragraph is assembled from its issue entries. Eight database issues are never cited by any reviewer: THEORY-05, SYS-02, METRIC-01, CONS-01, EXP-04, EXP-07, EXP-09, KME-01.
+
+**Reviewer questions that add something not in our dossier:**
+- **R033: is per-client optimiser state handled as in the reference GeFL-F?** Checked; consistent. Our port of the reference generator update (`utils/localUpdateGen.py:17`) says each client keeps its optimizer momentum between rounds, "as in the original repo". `experiments/core.py` `GenClient` does the same. (The authors' original repository itself was not opened.)
+- **R054: test moment correction on a multimodal class distribution.** R055: report sensitivity to the herding pool multiplier and the random-feature dimension. Both are valid, cheap robustness checks on the head stage only. Added to the dossier's test list as optional.
+- **R041 / R045 / R057: concept shift, a trainable feature extractor, different domains.** These fall under our scope issue F14.
+- **R026: uncertainty of the exact statistics when the rarest class has 24 samples.** This connects to the privacy finding (membership attack) and to the MC-B instability on MNIST.
