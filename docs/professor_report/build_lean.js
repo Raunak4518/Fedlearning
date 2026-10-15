@@ -114,7 +114,7 @@ C.push(...table(["Result (3 seeds, same seeds and splits for every method)", "Ge
 ], [5, 1.2, 2.4, 1.0], { highlight: [0, 1, 2, 4, 5, 6] }));
 C.push(...callout("Honest comparison point (new in this version, Part 6)", [
   "Most of GeFL-F's long-tail loss sits in the **last layer** of each head. Re-fitting only that layer on real data (a known fix: CCVR, CReFF, Fed3R) lifts GeFL-F to 90.7 / 79.2 / 64.8 (MNIST / FashionMNIST / SVHN, long tail).",
-  "Ours-A still beats this stronger baseline (94.8 / 79.7 / 65.6), but by **+4.1 / +0.5 / +0.8**, not +20. The paper must report it.",
+  "Ours-A still beats this stronger baseline (94.8 / 79.7 / 65.6), but by **+4.1 / +0.5 / +0.8** (p = 0.01 / 0.35 / 0.29), not +20. The paper must report it.",
 ]));
 C.push(...callout("What changed since version 1", [
   "**Collapse theorem corrected** (Part 2.2): the old \"fewer than half the clients\" rule was wrong in our own data. New exact bound (Theorem 1) and the role of Adam's decay (Lemma 2), checked on the real model.",
@@ -227,8 +227,8 @@ C.push(...img("f05_problem.png", 640, "Figure 5. (a) GeFL-F's accuracy under the
 C.push(H2("2.2 Diagnosis: the conditioning-row recursion"));
 C.push(P("Write r_c for the generator's row of class c. In one round, m_c of the K clients hold class c and K − m_c do not. A holder's local training changes the row's length by +G_k (data pull it outward); a non-holder sees no class-c data, only the weight-decay gradient, and shortens it by D_k. FedAvg then takes the plain average of the K rows. With p_c = m_c / K, Ḡ_c the average holder gain and D̄_c the average non-holder loss:"));
 C.push(eq("eq_collapse", "Theorem 1"));
-C.push(B("**Theorem 1 (exact, no assumption on the optimiser).** The row's length after averaging is at most the right-hand side, with equality when all client rows point the same way. It shrinks whenever the holder share is below θ_c."));
-C.push(B("**Lemma 2 (why the loss D̄ is large).** Adam divides the gradient by its own running size, so the decay gradient λ·r_c becomes a step of about the learning rate η per coordinate, **whatever λ is** (10⁻⁴ or 10⁻³ give the same step). Only λ = 0 removes it. With plain stochastic gradient descent the same decay would be about 1,000 times weaker here."));
+C.push(B("**Theorem 1 (exact, no assumption on the optimiser).** The row's length after averaging is at most the right-hand side, with equality when all client rows point the same way. It shrinks whenever the holder share is below θ_c. Because Ḡ and D̄ are only known after the round, θ_c explains a measured shrinkage after the fact; it does not predict it in advance. A class held by every client can still shrink if the holders' updates point in different directions."));
+C.push(B("**Lemma 2 (why the loss D̄ is large).** Adam divides the gradient by its own running size, so the decay gradient λ·r_c becomes a step of about the learning rate η per coordinate, **whatever λ is** (10⁻⁴ or 10⁻³ give the same step), as long as λ·|r| is much larger than Adam's ε. Only λ = 0 removes it. Adam's running averages are kept per client across rounds, so a single step can also exceed η. With plain stochastic gradient descent the same decay would be about 1,000 times weaker here."));
 C.push(B("**Consequence.** Rare classes appear in few batches, so their holders gain little (Ḡ small) while non-holders lose a full step: θ_c is close to 1, not ½. The version-1 rule \"rows shrink when fewer than half the clients hold the class\" is the special case Ḡ = D̄, and it is too optimistic."));
 C.push(P("Figure 5(c) plots θ against Ḡ / D̄. Measured on MNIST long tail: Ḡ / D̄ = 0.07–0.64, so θ = 0.61–0.93; the K/2 rule would predict no collapse at all."));
 C.push(H2("2.3 Evidence"));
@@ -458,7 +458,7 @@ C.push(...table(["Method (imbalance 100 : 1, Dirichlet 0.5, 10 clients; balanced
   ["**Ours-A with the SVHN switch** (class rows + holder-weighted averaging + moment correction + sample selection when class means are uninformative)", "94.82", "79.67", "44.38", "**65.60**"],
   ["oracle: Ours-A's heads, last layer re-fit on pooled real data", "94.93", "81.55", "50.64", "59.13 / 68.4 (switch)"],
 ], [4.6, 1.2, 1.4, 1.2, 1.2], { highlight: [6, 7], bad: [5] }));
-C.push(P("The red row is the strongest baseline we found, and it is new in this version: it shows how much of GeFL-F's loss a known classifier recalibration would recover. Ours-A beats it by +4.1 (MNIST), +0.5 (FashionMNIST) and +0.8 (SVHN with the switch). On FashionMNIST the margin is within noise; on CIFAR-10 the number is not yet logged (Part 8)."));
+C.push(P("The red row is the strongest baseline we found, and it is new in this version: it shows how much of GeFL-F's loss a known classifier recalibration would recover. Ours-A beats it by +4.1 (MNIST, p = 0.01), +0.5 (FashionMNIST, p = 0.35) and +0.8 (SVHN with the switch, p = 0.29). Only the MNIST margin is significant; on CIFAR-10 the number is not yet logged (Part 8)."));
 C.push(P("Tail recall: 51.9 → 91.1 (MNIST), 35.4 → 73.6 (FashionMNIST). SVHN is the weak case (Part 5.7)."));
 C.push(...img("f08_longtail.png", 640, "Figure 11. Long-tailed clients: Ours-A against GeFL-F and the strongest alternatives."));
 C.push(H2("5.3 The paper's own balanced setting, against all ten of its methods"));
@@ -468,12 +468,12 @@ C.push(...table(["best_mean_acc, balanced", "GeFL-F (paper)", "Best of the paper
   ["MNIST, 100 clients", "94.63", "94.63 (GeFL-F, original generator)", "94.88", "**96.77**", "+2.14"],
   ["FashionMNIST, 10 clients", "83.14", "84.28 (GeFL-F, diffusion generator)", "82.76", "83.96", "−0.32"],
   ["FashionMNIST, 50 clients", "82.21", "82.96 (GeFL-F, diffusion generator)", "81.50", "**82.96**", "±0.00"],
-  ["CIFAR-10, 10 clients", "55.86", "59.36 (GeFL, diffusion)", "59.10", "**60.93**", "+1.57"],
+  ["CIFAR-10, 10 clients (final round: Ours-A 56.82 vs our GeFL-F 56.68)", "55.86", "59.36 (GeFL, diffusion)", "59.10", "**60.93**", "+1.57"],
   ["SVHN, 10 clients (mean anchor)", "76.26", "76.26 (GeFL-F, original generator)", "75.82", "74.38", "−1.88"],
   ["SVHN, 10 clients (with the switch to class rows)", "76.26", "76.26 (GeFL-F, original generator)", "75.82", "**77.07**", "+0.81"],
   ["FashionMNIST, 10 clients, with covariance correction (covariance version)", "83.14", "84.28 (GeFL-F, diffusion generator)", "82.76", "**85.75**", "+1.47"],
 ], [2.0, 1.2, 2.2, 1.2, 1.0, 1.1], { highlight: [0, 1, 2, 5, 7, 8] }));
-C.push(P("Above the best of the paper's 10 methods on MNIST (all client counts), CIFAR-10 and, with the switch, SVHN; level on FashionMNIST with the main method and above it with covariance correction. Note: best_mean_acc picks each architecture's best round on the test set, which flatters every method equally; our long-tail results use the final round instead."));
+C.push(P("On the paper's metric, above the best of its 10 methods on MNIST (all client counts), CIFAR-10 and, with the switch, SVHN; level on FashionMNIST with the main method and above it with covariance correction. Two cautions: the paper's numbers are single published values without error bars, and best_mean_acc picks the best round on the test set. At the final round the CIFAR-10 gain over our GeFL-F is only +0.14, so we claim no balanced-data gain there; on MNIST it survives (97.58 vs 95.75)."));
 C.push(...img("f09_iid.png", 640, "Figure 12. The paper's balanced setting: Ours-A against the paper's GeFL-F and the best of its ten methods."));
 C.push(H2("5.4 Data augmentation (paper's Table IV), and why MixUp does not transfer"));
 C.push(...table(["CIFAR-10, balanced, 10 clients", "Accuracy"], [
@@ -494,10 +494,10 @@ C.push(...table(["Long tail, 10 clients", "GeFL-F (no formal guarantee)", "Ours-
   ["MNIST", "75.25", "94.82", "90.36", "85.06"],
   ["FashionMNIST", "58.47", "79.67", "72.77", "65.59"],
 ], [2.2, 2.4, 1.4, 1.4, 1.4]));
-C.push(P("Privacy costs 4.5–6.9 points at ε = 8 and 9.8–14.1 at ε = 2, mostly on the rarest classes; still +7 to +15 over GeFL-F."));
+C.push(P("Privacy costs 4.5–6.9 points at ε = 8 and 9.8–14.1 at ε = 2, mostly on the rarest classes; at ε = 2 still +9.8 (MNIST) and +7.1 (FashionMNIST, p = 0.084, not significant) over GeFL-F. The guarantee covers only the four added class statistics; the generator's and heads' federated training, the consensus-label sums and the switch's inputs are not private, and secure aggregation is simulated."));
 C.push(H2("5.6 What each component contributes"));
 C.push(...img("f10_ablation.png", 640, "Figure 14. Adding components one at a time on the same seeds (long tail)."));
-C.push(P("Each step adds on the same seeds. Kernel herding helped in all 9 paired tests (p = 0.004)."));
+C.push(P("Each step adds on the same seeds. Kernel herding's own effect is small: removing it costs 0.71 (MNIST, p = 0.06) and 0.30 (FashionMNIST, p = 0.10) in the leave-one-out ablation below, and it does not improve train-on-fake, test-on-real accuracy."));
 C.push(H3("Leave-one-out ablation (K09: remove one part from the full Ours-A; long tail, 3 seeds, paired)"));
 C.push(...table(["Removed", "MNIST (change, points)", "FashionMNIST (change, points)", "Reading"], [
   ["Mean-anchored generator (back to original generator + holder-weighted averaging)", "−4.72 (p = 0.02)", "−0.67", "large on MNIST, small on FashionMNIST"],
@@ -506,14 +506,14 @@ C.push(...table(["Removed", "MNIST (change, points)", "FashionMNIST (change, poi
   ["Moment correction", "−0.96 (p = 0.03)", "−0.49", "small; works through the spread"],
   ["Sample selection", "−0.71", "−0.30", "small"],
 ], [2.6, 2.0, 2.2, 2.8]));
-C.push(P("Full Ours-A in this run: 95.18 ± 0.08 (MNIST), 79.79 ± 0.31 (FashionMNIST). All 30 seed-level differences are negative (every part, every seed, both datasets; sign test p = 2·10⁻⁹). With 3 seeds no single part survives a multiple-test correction; two more seeds (job K14, ready) are needed for per-part significance."));
+C.push(P("Full Ours-A in this run: 95.18 ± 0.08 (MNIST), 79.79 ± 0.31 (FashionMNIST). All 30 seed-level differences are negative, but they share one reference run per dataset and seed, so they are not 30 independent tests: the correct cluster-level sign test gives p = 0.031 (not 2·10⁻⁹). With 3 seeds no single part survives a multiple-test correction; two more seeds (job K14, ready) are needed for per-part significance."));
 C.push(H2("5.7 The weak case: SVHN"));
 C.push(...table(["SVHN", "GeFL-F", "+ holder-weighted averaging + logit adjustment", "Ours-A"], [
   ["Long tail, balanced accuracy", "50.49", "62.45", "54.41"],
   ["Balanced setting, paper's accuracy (best_mean_acc)", "75.82", "75.64", "74.38"],
 ], [3.8, 1.6, 1.6, 1.6]));
 C.push(P("SVHN's class means are almost identical (nearest-mean accuracy 12 %, chance 10 %), so a mean-anchored generator cannot separate its classes."));
-C.push(P("**Switch (implemented):** the server measures how well the exact class means separate the classes (F, from the same sums). When F < 0.05 it keeps GeFL-F's class rows, protected by holder-weighted averaging, and still applies moment correction and sample selection. On SVHN this gives **65.60 ± 1.50** under the long tail (+15.1 over GeFL-F) and **77.07 ± 0.19** in the balanced setting (above the paper's 76.26). MNIST, FashionMNIST and CIFAR-10 are unaffected (F = 0.07–0.60)."));
+C.push(P("**Switch (implemented):** the server measures how well the exact class means separate the classes (F, from the same sums). When F < 0.05 it keeps GeFL-F's class rows, protected by holder-weighted averaging, and still applies moment correction and sample selection. On SVHN this gives **65.60 ± 1.50** under the long tail (+15.1 over GeFL-F) and **77.07 ± 0.19** in the balanced setting (above the paper's 76.26). MNIST and FashionMNIST are far from the threshold (F = 0.25–0.71). CIFAR-10 is close to it (F = 0.055–0.078) and only its anchor branch has been run. The threshold was chosen after SVHN failed, so it is a heuristic, not a tuned or validated rule."));
 C.push(H2("5.8 Mechanism measurements"));
 C.push(...table(["Quantity (long tail)", "GeFL-F", "Ours-A"], [
   ["Tail fidelity (referee accuracy on synthetic tail features), MNIST / FashionMNIST", "10.3 / 19.9 %", "88.6 / 78.7 %"],
@@ -692,6 +692,9 @@ C.push(B("Balanced data: gains are +1 to +2 points; the method is built for imba
 C.push(B("The frozen feature extractor limits every method (CIFAR-10 oracle ≈ 51 under the long tail)."));
 C.push(B("On CIFAR-10 and SVHN, 10 fake epochs give a higher peak but a lower final accuracy than 1."));
 C.push(B("Against a known last-layer recalibration of GeFL-F, the margin is large only on MNIST (+4.1); on FashionMNIST it is +0.5 (Part 6)."));
+C.push(B("No validation split: the number of fake epochs, the label mixing weight, the logit-adjustment strength and the switch threshold were chosen on the reported test sets. GPU training was not bit-deterministic; seeds fix the splits only."));
+C.push(B("Scope: at 10 clients each architecture has exactly one client; the rare classes are always classes 6–9 and are held by 6–8 of 10 clients; CIFAR-10's real imbalance after subsampling is 48 : 1. No dedicated long-tail federated method (FedLC/FedRoD-style losses, FedRS, CCVR, FedProto) has been run on the same extractor yet."));
+C.push(B("Cost: Ours-A is 2.2–2.8× slower than GeFL-F end to end (kernel herding is 83–88% of the head stage); the minimal variant adds only 1.9%."));
 C.push(B("Per-component significance needs 2 more seeds (K14); the collapse test T01 has 1 seed (the bound itself is exact)."));
 C.push(B("Two audit points to state: averaging BatchNorm running variances drops the between-client part of the variance; best_mean_acc selects the best round on the test set."));
 
@@ -699,7 +702,7 @@ C.push(B("Two audit points to state: averaging BatchNorm running variances drops
 C.push(H1("8. Status and next steps"));
 C.push(...table(["Item", "Why", "Status"], [
   ["Automatic switch to class rows when class means are weak", "fix SVHN", "**done**: SVHN 54.4 → 65.6 (long tail), 77.07 (balanced)"],
-  ["Leave-one-out ablation (K09)", "prove each part is needed", "**done**: 30/30 negative; per-part significance needs K14"],
+  ["Leave-one-out ablation (K09)", "prove each part is needed", "**done**: every removal hurts (cluster sign test p = 0.031); per-part significance needs K14"],
   ["FashionMNIST at 50 / 100 clients", "complete the grid", "**done**: 79.5 / 79.0"],
   ["Collapse theorem rewritten and tested (T01)", "the version-1 rule was wrong", "**done** (1 seed)"],
   ["Last-layer analysis and exact readout (T03)", "where the remaining error is", "**done** (1 seed, short schedule); mechanism open"],

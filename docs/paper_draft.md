@@ -43,8 +43,9 @@ consensus soft labels (as in FedMD and FedDF). A larger synthetic budget pays of
 Under a 100:1 long tail with Dirichlet(0.5) clients (10 clients, one per architecture; final-round balanced
 accuracy, 3 seeds):
 * MNIST 75.3 → 94.8 and FashionMNIST 58.5 → 79.7 (p ≤ 0.011); tail recall 52 → 91 and 35 → 74;
-* against GeFL-F with its last layer re-fit on real data (above), the margin is +3.6 on MNIST (p = 0.03) and +0.7 on
-  FashionMNIST (p = 0.23); with the refit applied to both methods it is +4.2 and +2.4;
+* against GeFL-F with its last layer re-fit on real data (above; reference runs F10, same splits), the margin is
+  +4.1 on MNIST (p = 0.01) and +0.5 on FashionMNIST (p = 0.35, not significant); with the refit applied to both
+  methods it is +4.2 and +2.4;
 * with 100 clients on MNIST it holds at 94.3 (GeFL-F 76.0);
 * on CIFAR-10 (effective imbalance 48:1) it reaches 44.4 with 10 synthetic epochs and 46.1 with 1 (GeFL-F 33.7); the
   number of synthetic epochs was chosen per dataset on test results, and a validation-selected rule is pending.
@@ -844,8 +845,10 @@ GeFL-F is the next paragraph.
 
 **Against a recalibrated GeFL-F (the decisive comparison).** Re-fitting only the last layer of *plain GeFL-F's*
 heads on pooled real embeddings (the same oracle) gives 90.7 / 79.2 / 64.8 balanced accuracy on MNIST / FMNIST /
-SVHN under the long tail. Ours-A's margin over that refit is +3.6 ($p = 0.03$), +0.7 ($p = 0.23$) and +0.8
-($p = 0.29$), and oracle against oracle it is +4.2 / +2.4 / +3.6. Most of GeFL-F's long-tail loss is therefore a
+SVHN under the long tail (GeFL-F reference runs F10 and K01, same splits and seeds). Ours-A's margin over that refit
+is +4.1 ($p = 0.01$), +0.5 ($p = 0.35$) and +0.8 ($p = 0.29$; SVHN with the rows branch), and oracle against oracle
+it is +4.2 / +2.4 / +3.6. Against the other GeFL-F replicate (E20) the first two margins are +3.6 ($p = 0.03$) and
++0.7 ($p = 0.23$). Most of GeFL-F's long-tail loss is therefore a
 *readout* failure that a last-layer recalibration largely repairs. The oracle uses pooled real data and is not
 federated; an exact federated readout (ER, an LDA readout from secure-aggregated embedding sums) came within 0.8 of
 it in a one-seed, reduced-schedule pilot (T03; `docs/research/readout_report.md`). Until a federated recalibration

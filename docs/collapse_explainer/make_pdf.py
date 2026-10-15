@@ -199,7 +199,10 @@ def build():
               P("<b>Why it is true.</b> The length of an average is at most the average of the lengths (triangle "
                 "inequality). Write each client's length as old length plus its change, split the clients into "
                 "holders and non-holders, done. Three lines; no assumption about the optimiser, the data or the "
-                "network. It is exact."),
+                "network. It is exact. But G and D are only known after the round, so θ<sub>c</sub> explains a "
+                "measured shrinkage after the fact; it does not predict it in advance. Nor does holding a class "
+                "protect it: even a class held by every client can shrink if the holders' changes point in "
+                "different directions."),
               P("<b>Why our first version (\"shrinks if fewer than half the clients hold the class\") was wrong.</b> "
                 "That rule is the special case G = D: every holder would have to grow the row exactly as fast as a "
                 "non-holder shrinks it. In reality holders grow it much more slowly (G is 7 % to 64 % of D in our "
@@ -208,7 +211,9 @@ def build():
               P("<b>Lemma 2: the size of the weight decay does not matter, only whether it is there.</b> If every "
                 "gradient a non-holder sees is λ·row, then multiplying λ by 10 multiplies Adam's running mean and "
                 "its running root-mean-square both by 10, and their ratio, which sets the step, stays the same. "
-                "So D is the same for λ = 0.0001 and λ = 0.001. With λ = 0 the gradient is exactly zero and the "
+                "So D is the same for λ = 0.0001 and λ = 0.001, as long as λ·row is much larger than Adam's small "
+                "constant ε (true here); Adam's running averages also persist per client across rounds, so a single "
+                "step is not strictly bounded by the learning rate. With λ = 0 the gradient is exactly zero and the "
                 "row is untouched (D = 0). With plain SGD the same decay would remove only about "
                 "steps × 0.001 × 0.001 of the row, roughly 1000 times less.")]
 
@@ -238,7 +243,7 @@ def build():
     story += [P("4. Evidence that it is real", "h1"), table(rows, [8.2, 8.8]), Spacer(1, 6),
               P("Across seeds, datasets and numbers of clients (F01, F04, K03; full schedule): the collapse gets "
                 "worse as K grows, because each tail class has more non-holders, and HWA prevents it at every K. "
-                "Both are predictions of Theorem 1."),
+                "Both are consistent with Theorem 1 (which explains, rather than predicts, them)."),
               table(scal, [7.0, 3.3, 3.3, 3.4]), Spacer(1, 6),
               Image(os.path.join(FIG, "F01_collapse.png"), width=17 * cm, height=17 * cm * 683 / 2013),
               P("(a) tail/head row length over rounds; (b) every class-round: the bound (x) against what happened (y), "
