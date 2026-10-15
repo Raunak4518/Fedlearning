@@ -1,0 +1,22 @@
+\begin{tabular}{lccccc}
+\toprule
+ & MNIST & FMNIST & SVHN & CIFAR10 & CIFAR100 \\
+\midrule
+minimal, heads as trained & 90.07 $\pm$ 0.43 & 76.71 $\pm$ 0.25 & 62.44 $\pm$ 2.54 & -- & -- \\
+minimal, BBC & 90.49 $\pm$ 0.50 & 78.37 $\pm$ 0.15 & 64.06 $\pm$ 2.34 & -- & -- \\
+minimal, ER (LDA, all clients) & 92.41 $\pm$ 0.40 & 80.63 $\pm$ 0.04 & 66.36 $\pm$ 1.03 & -- & -- \\
+minimal, Fed3R (all clients) & 77.22 $\pm$ 0.10 & 72.02 $\pm$ 0.38 & 45.37 $\pm$ 1.45 & -- & -- \\
+minimal, FedNCM (all clients) & 90.11 $\pm$ 0.40 & 76.72 $\pm$ 0.48 & 62.62 $\pm$ 1.06 & -- & -- \\
+minimal, CCVR (all clients) & 94.05 $\pm$ 0.16 & 81.75 $\pm$ 0.41 & 66.87 $\pm$ 1.82 & -- & -- \\
+minimal, CCVR (own clients) & 81.06 $\pm$ 0.98 & 69.63 $\pm$ 1.61 & 48.64 $\pm$ 0.48 & -- & -- \\
+minimal, oracle: pooled-real refit & 93.76 $\pm$ 0.24 & 81.12 $\pm$ 0.40 & 67.30 $\pm$ 1.62 & -- & -- \\
+ours (gated), heads as trained & 95.10 $\pm$ 0.17 & 80.06 $\pm$ 0.14 & 65.42 $\pm$ 1.42 & -- & -- \\
+ours (gated), BBC & 95.36 $\pm$ 0.15 & 80.83 $\pm$ 0.06 & 66.73 $\pm$ 1.46 & -- & -- \\
+ours (gated), ER (LDA, all clients) & 94.35 $\pm$ 0.18 & 81.49 $\pm$ 0.46 & 66.65 $\pm$ 0.60 & -- & -- \\
+ours (gated), Fed3R (all clients) & 81.06 $\pm$ 0.63 & 73.57 $\pm$ 0.56 & 45.88 $\pm$ 1.21 & -- & -- \\
+ours (gated), FedNCM (all clients) & 93.31 $\pm$ 0.29 & 78.60 $\pm$ 0.18 & 63.79 $\pm$ 1.12 & -- & -- \\
+ours (gated), CCVR (all clients) & 95.52 $\pm$ 0.12 & 82.56 $\pm$ 0.43 & 67.16 $\pm$ 1.33 & -- & -- \\
+ours (gated), CCVR (own clients) & 91.26 $\pm$ 0.59 & 75.32 $\pm$ 0.53 & 51.61 $\pm$ 0.60 & -- & -- \\
+ours (gated), oracle: pooled-real refit & 95.25 $\pm$ 0.03 & 81.85 $\pm$ 0.40 & 68.26 $\pm$ 1.29 & -- & -- \\
+\bottomrule
+\end{tabular}

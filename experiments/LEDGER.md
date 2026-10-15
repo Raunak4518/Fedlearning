@@ -183,6 +183,7 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | +LA | E03_method_components_quick | 0 |
 | +LA | E12_confirmation_quick | 0,1,2 |
 | +LA | F01_main_longtail | 0,1,2 |
+| +LA | K16_kaggle_recalibration__fmnist_lt | 0,1,2 |
 | +LCD | E02_conditioning_collapse_quick | 0 |
 | +LCD | E03_method_components_quick | 0 |
 | +LCD+LA | E12_confirmation_quick | 0,1,2 |
@@ -220,6 +221,7 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | GeFL-F | F01_main_longtail | 0,1,2 |
 | GeFL-F | F10_combined_method | 0,1,2 |
 | GeFL-F | K02_kaggle_regimes_privacy_ablations | 0,1,2 |
+| GeFL-F | K16_kaggle_recalibration__fmnist_lt | 0,1,2 |
 | GeFL-F | T03_exact_readout (quick) | 0 |
 | HWA weights = counts n | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | HWA weights = uniform over holders | K02_kaggle_regimes_privacy_ablations | 0,1 |
@@ -233,6 +235,7 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | LG-FedAvg+LA | E03_method_components_quick | 0 |
 | LG-FedAvg+LA | E12_confirmation_quick | 0,1,2 |
 | LG-FedAvg+LA | F01_main_longtail | 0,1,2 |
+| Minimal (HWA+LA+CSL) | K16_kaggle_recalibration__fmnist_lt | 0,1,2 |
 | Ours | K02_kaggle_regimes_privacy_ablations | 0,1,2 |
 | Ours (HWA+LA+CSL) | E15_server_distillation_quick | 0 |
 | Ours (HWA+LA+CSL) | E16_csl_synthetic_budget | 0,1,2 |
@@ -240,6 +243,7 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Ours (HWA+LA+CSL) Ts=10 | E16_csl_synthetic_budget | 0,1,2 |
 | Ours (HWA+LA+CSL) Ts=5 | E16_csl_synthetic_budget | 0,1,2 |
 | Ours (HWA+LCD+PCM+LA) | E03_method_components_quick | 0 |
+| Ours (gated) | K16_kaggle_recalibration__fmnist_lt | 0,1,2 |
 | Ours+BCR | E03_method_components_quick | 0 |
 | Ours+LAFE | E03_method_components_quick | 0 |
 | Ours+MC | E20_proto_generator | 0,1,2 |
@@ -419,6 +423,7 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | +LA | E03_method_components_quick | 0 |
 | +LA | E12_confirmation_quick | 0,1,2 |
 | +LA | F01_main_longtail | 0,1,2 |
+| +LA | K16_kaggle_recalibration__mnist_lt | 0,1,2 |
 | +LCD | E02_conditioning_collapse_quick | 0 |
 | +LCD | E03_method_components_quick | 0 |
 | +LCD+LA | E12_confirmation_quick | 0,1,2 |
@@ -453,6 +458,7 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | GeFL-F | F01_main_longtail | 0,1,2 |
 | GeFL-F | F10_combined_method | 0,1,2 |
 | GeFL-F | K02_kaggle_regimes_privacy_ablations | 0,1,2 |
+| GeFL-F | K16_kaggle_recalibration__mnist_lt | 0,1,2 |
 | GeFL-F | T03_exact_readout (quick) | 0 |
 | HWA weights = counts n | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | HWA weights = uniform over holders | K02_kaggle_regimes_privacy_ablations | 0,1 |
@@ -465,6 +471,7 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | LG-FedAvg+LA | E03_method_components_quick | 0 |
 | LG-FedAvg+LA | E12_confirmation_quick | 0,1,2 |
 | LG-FedAvg+LA | F01_main_longtail | 0,1,2 |
+| Minimal (HWA+LA+CSL) | K16_kaggle_recalibration__mnist_lt | 0,1,2 |
 | Ours | K02_kaggle_regimes_privacy_ablations | 0,1,2 |
 | Ours (HWA+LA+CSL) | E16_csl_synthetic_budget | 0,1,2 |
 | Ours (HWA+LA+CSL) | E18_bayesian_csl | 0,1,2 |
@@ -473,6 +480,7 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Ours (HWA+LA+CSL) Ts=10 | E18_bayesian_csl | 0,1,2 |
 | Ours (HWA+LA+CSL) Ts=5 | E16_csl_synthetic_budget | 0,1,2 |
 | Ours (HWA+LCD+PCM+LA) | E03_method_components_quick | 0 |
+| Ours (gated) | K16_kaggle_recalibration__mnist_lt | 0,1,2 |
 | Ours+BCR | E03_method_components_quick | 0 |
 | Ours+LAFE | E03_method_components_quick | 0 |
 | Ours+MC | E20_proto_generator | 0,1,2 |
@@ -568,8 +576,12 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | +HWA+LA (ours) | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
 | +HWA+LA+CSLM | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
 | +LA | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
+| +LA | K16_kaggle_recalibration__svhn_lt | 0,1,2 |
 | FSG+LA | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
 | GeFL-F | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
+| GeFL-F | K16_kaggle_recalibration__svhn_lt | 0,1,2 |
+| Minimal (HWA+LA+CSL) | K16_kaggle_recalibration__svhn_lt | 0,1,2 |
+| Ours (gated) | K16_kaggle_recalibration__svhn_lt | 0,1,2 |
 | Ours+MC+KH (CVAE+HWA) | K10_kaggle_hybrid_svhn_cifar10__svhn | 0,1,2 |
 | Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__svhn | 0,1,2 |
 | Ours-A (PC+MC+KH+LA+CSL) | K11_kaggle_covariance_anchoring__svhn | 0,1,2 |
@@ -617,7 +629,59 @@ COMPLETE = every planned run is in the folder. PARTIAL lists the missing (label:
 | NB37_ablation_seeds_mcb_fmnist | K14_kaggle_ablation_seeds_mcb --datasets fmnist | K14_kaggle_ablation_seeds_mcb__fmnist | 14 | 0 | NOT RUN |
 | NB38_collapse_fixes_mnist | K15_kaggle_collapse_fixes --datasets mnist | K15_kaggle_collapse_fixes__mnist | 30 | 0 | NOT RUN |
 | NB39_collapse_fixes_fmnist | K15_kaggle_collapse_fixes --datasets fmnist | K15_kaggle_collapse_fixes__fmnist | 30 | 0 | NOT RUN |
+| NB40_recalib_mnist_lt | K16_kaggle_recalibration --datasets mnist --IF 0.01 | K16_kaggle_recalibration__mnist_lt | 12 | 12 | COMPLETE |
+| NB41_recalib_fmnist_lt | K16_kaggle_recalibration --datasets fmnist --IF 0.01 | K16_kaggle_recalibration__fmnist_lt | 12 | 12 | COMPLETE |
+| NB42_recalib_svhn_lt | K16_kaggle_recalibration --datasets svhn --IF 0.01 | K16_kaggle_recalibration__svhn_lt | 12 | 12 | COMPLETE |
+| NB43_recalib_cifar10_lt | K16_kaggle_recalibration --datasets cifar10 --IF 0.01 | K16_kaggle_recalibration__cifar10_lt | 12 | 0 | NOT RUN |
+| NB44_recalib_cifar100_lt | K16_kaggle_recalibration --datasets cifar100 --IF 0.01 | K16_kaggle_recalibration__cifar100_lt | 12 | 0 | NOT RUN |
+| NB45_recalib_mnist_fmnist_iid | K16_kaggle_recalibration --datasets mnist fmnist --IF 1.0 | K16_kaggle_recalibration__mnist_fmnist_iid | 24 | 0 | NOT RUN |
+| NB46_recalib_svhn_iid | K16_kaggle_recalibration --datasets svhn --IF 1.0 | K16_kaggle_recalibration__svhn_iid | 12 | 0 | NOT RUN |
+| NB47_recalib_cifar10_iid | K16_kaggle_recalibration --datasets cifar10 --IF 1.0 | K16_kaggle_recalibration__cifar10_iid | 12 | 0 | NOT RUN |
+| NB48_recalib_cifar100_iid | K16_kaggle_recalibration --datasets cifar100 --IF 1.0 | K16_kaggle_recalibration__cifar100_iid | 12 | 0 | NOT RUN |
 | NB6_svhn_diffusion | K04_kaggle_ddpm_cifar10_svhn --datasets svhn | K04_kaggle_ddpm_cifar10_svhn__svhn | 9 | 9 | COMPLETE |
 | NB7_cifar10_diffusion_seed0 | K04_kaggle_ddpm_cifar10_svhn --datasets cifar10 --seeds 0 | K04_kaggle_ddpm_cifar10_svhn__cifar10_s0 | 3 | 0 | NOT RUN |
 | NB8_cifar10_diffusion_seed1 | K04_kaggle_ddpm_cifar10_svhn --datasets cifar10 --seeds 1 | K04_kaggle_ddpm_cifar10_svhn__cifar10_s1 | 3 | 0 | NOT RUN |
+| (local) | E00_paper_parity  | E00_paper_parity | 36 | 0 | QUICK ONLY |
+| (local) | E01_imbalance_gap  | E01_imbalance_gap | 48 | 0 | QUICK ONLY |
+| (local) | E02_conditioning_collapse  | E02_conditioning_collapse | 36 | 0 | QUICK ONLY |
+| (local) | E03_method_components  | E03_method_components | 126 | 0 | QUICK ONLY |
+| (local) | E04_client_scaling  | E04_client_scaling | 45 | 0 | NOT RUN |
+| (local) | E05_datasets  | E05_datasets | 36 | 0 | NOT RUN |
+| (local) | E06_iid_paper_setting  | E06_iid_paper_setting | 45 | 0 | NOT RUN |
+| (local) | E07_ablations  | E07_ablations | 34 | 0 | NOT RUN |
+| (local) | E08_generators  | E08_generators | 24 | 0 | NOT RUN |
+| (local) | E09_oracles  | E09_oracles | 24 | 0 | NOT RUN |
+| (local) | E10_cifar10_track2  | E10_cifar10_track2 | 12 | 0 | NOT RUN |
+| (local) | E11_privacy_cost  | E11_privacy_cost | 36 | 0 | NOT RUN |
+| (local) | E12_confirmation  | E12_confirmation | 147 | 0 | QUICK ONLY |
+| (local) | E13_sufficient_statistics  | E13_sufficient_statistics | 72 | 0 | QUICK ONLY |
+| (local) | E14_relative_hybrid  | E14_relative_hybrid | 105 | 0 | QUICK ONLY |
+| (local) | E15_server_distillation  | E15_server_distillation | 84 | 0 | QUICK ONLY |
+| (local) | E16_csl_synthetic_budget  | E16_csl_synthetic_budget | 78 | 75 | PARTIAL - missing Ours (HWA+LA+CSL) Ts=10 mnist IF=1.0 K=10: s0,1,2 |
+| (local) | E17_budget_more_clients  | E17_budget_more_clients | 21 | 0 | NOT RUN |
+| (local) | E18_bayesian_csl  | E18_bayesian_csl | 24 | 24 | COMPLETE |
+| (local) | E19_csl_response_surface  | E19_csl_response_surface | 40 | 0 | NOT RUN |
+| (local) | E20_proto_generator  | E20_proto_generator | 63 | 63 | COMPLETE |
+| (local) | E21_pc_mc_budget  | E21_pc_mc_budget | 27 | 0 | NOT RUN |
+| (local) | E22_pc_many_clients  | E22_pc_many_clients | 9 | 9 | COMPLETE |
+| (local) | E23_heldclass_alignment  | E23_heldclass_alignment | 27 | 0 | NOT RUN |
+| (local) | E24_kme_generator  | E24_kme_generator | 36 | 12 | PARTIAL - missing Ours-KME (KME+LA+CSL) fmnist IF=0.01 K=10: s1,2; Ours-KME (KME+LA+CSL) fmnist IF=1.0 K=10: s1,2; Ours-KME (KME+LA+CSL) mnist IF=0.01 K=10: s1,2; Ours-KME+KH fmnist IF=0.01 K=10: s1,2; Ours-KME+KH fmnist IF=1.0 K=10: s1,2; Ours-KME+KH mnist IF=0.01 K=10: s1,2; Ours-KME+MC fmnist IF=0.01 K=10: s1,2; Ours-KME+MC fmnist IF=1.0 K=10: s1,2; Ours-KME+MC mnist IF=0.01 K=10: s1,2; Ours-PC+MC+KH fmnist IF=0.01 K=10: s1,2; Ours-PC+MC+KH fmnist IF=1.0 K=10: s1,2; Ours-PC+MC+KH mnist IF=0.01 K=10: s1,2 |
+| (local) | E25_anchored_stack  | E25_anchored_stack | 24 | 24 | COMPLETE |
+| (local) | E26_private_anchoring  | E26_private_anchoring | 12 | 12 | COMPLETE |
+| (local) | E27_final_iid_many_clients  | E27_final_iid_many_clients | 9 | 9 | COMPLETE |
+| (local) | E29_hybrid_generator  | E29_hybrid_generator | 11 | 11 | COMPLETE |
+| (local) | E30_covariance_anchoring  | E30_covariance_anchoring | 12 | 0 | NOT RUN |
+| (local) | E31_covariance_anchoring_mnist_fmnist  | E31_covariance_anchoring_mnist_fmnist | 9 | 9 | COMPLETE |
+| (local) | E32_moment_anchor_bayes  | E32_moment_anchor_bayes | 9 | 9 | COMPLETE |
+| (local) | F01_main_longtail  | F01_main_longtail | 54 | 48 | PARTIAL - missing MIX+HWA+LA fmnist IF=0.01 K=10: s0,1,2; MIX+HWA+LA mnist IF=0.01 K=10: s0,1,2 |
+| (local) | F02_paper_setting  | F02_paper_setting | 45 | 0 | NOT RUN |
+| (local) | F03_regimes  | F03_regimes | 36 | 0 | NOT RUN |
+| (local) | F04_clients  | F04_clients | 42 | 29 | PARTIAL - missing +HWA+LA+CSL mnist IF=0.01 K=50: s0,1,2; +HWA+LA+CSL mnist IF=0.01 K=100: s2; FSG+LA+CSL mnist IF=0.01 K=50: s0,1,2; FSG+LA+CSL mnist IF=0.01 K=100: s1,2; MIX+HWA+LA+CSL mnist IF=0.01 K=50: s0,1,2; MIX+HWA+LA+CSL mnist IF=0.01 K=100: s2 |
+| (local) | F05_harder_datasets  | F05_harder_datasets | 24 | 0 | NOT RUN |
+| (local) | F06_mechanism  | F06_mechanism | 30 | 0 | NOT RUN |
+| (local) | F07_privacy  | F07_privacy | 30 | 0 | NOT RUN |
+| (local) | F08_ablations  | F08_ablations | 40 | 0 | NOT RUN |
+| (local) | F09_consensus_paper_setting  | F09_consensus_paper_setting | 144 | 22 | PARTIAL - missing +CSL (beta=0.5) cifar10 IF=1.0 K=10: s0,1,2; +CSL (beta=0.5) cifar10 IF=1.0 K=50: s0,1,2; +CSL (beta=0.5) cifar10 IF=1.0 K=100: s0,1,2; +CSL (beta=0.5) fmnist IF=1.0 K=50: s0,1,2; +CSL (beta=0.5) fmnist IF=1.0 K=100: s0,1,2; +CSL (beta=0.5) mnist IF=1.0 K=50: s1,2; +CSL (beta=0.5) mnist IF=1.0 K=100: s1,2; +CSL (beta=0.5) svhn IF=1.0 K=10: s0,1,2; +CSL (beta=0.5) svhn IF=1.0 K=50: s0,1,2; +CSL (beta=0.5) svhn IF=1.0 K=100: s0,1,2; +CSL (beta=1) cifar10 IF=1.0 K=10: s0,1,2; +CSL (beta=1) cifar10 IF=1.0 K=50: s0,1,2; +CSL (beta=1) cifar10 IF=1.0 K=100: s0,1,2; +CSL (beta=1) fmnist IF=1.0 K=10: s0,1,2; +CSL (beta=1) fmnist IF=1.0 K=50: s0,1,2; +CSL (beta=1) fmnist IF=1.0 K=100: s0,1,2; +CSL (beta=1) mnist IF=1.0 K=10: s1,2; +CSL (beta=1) mnist IF=1.0 K=50: s1,2; +CSL (beta=1) mnist IF=1.0 K=100: s1,2; +CSL (beta=1) svhn IF=1.0 K=10: s0,1,2; +CSL (beta=1) svhn IF=1.0 K=50: s0,1,2; +CSL (beta=1) svhn IF=1.0 K=100: s0,1,2; +CSLM (interleaved) cifar10 IF=1.0 K=10: s0,1,2; +CSLM (interleaved) cifar10 IF=1.0 K=50: s0,1,2; +CSLM (interleaved) cifar10 IF=1.0 K=100: s0,1,2; +CSLM (interleaved) fmnist IF=1.0 K=10: s0,1,2; +CSLM (interleaved) fmnist IF=1.0 K=50: s0,1,2; +CSLM (interleaved) fmnist IF=1.0 K=100: s0,1,2; +CSLM (interleaved) mnist IF=1.0 K=10: s1,2; +CSLM (interleaved) mnist IF=1.0 K=50: s1,2; +CSLM (interleaved) mnist IF=1.0 K=100: s1,2; +CSLM (interleaved) svhn IF=1.0 K=10: s0,1,2; +CSLM (interleaved) svhn IF=1.0 K=50: s0,1,2; +CSLM (interleaved) svhn IF=1.0 K=100: s0,1,2; GeFL-F cifar10 IF=1.0 K=10: s0,1,2; GeFL-F cifar10 IF=1.0 K=50: s0,1,2; GeFL-F cifar10 IF=1.0 K=100: s0,1,2; GeFL-F fmnist IF=1.0 K=50: s0,1,2; GeFL-F fmnist IF=1.0 K=100: s0,1,2; GeFL-F mnist IF=1.0 K=50: s1,2; GeFL-F mnist IF=1.0 K=100: s1,2; GeFL-F svhn IF=1.0 K=10: s0,1,2; GeFL-F svhn IF=1.0 K=50: s0,1,2; GeFL-F svhn IF=1.0 K=100: s0,1,2 |
+| (local) | F10_combined_method  | F10_combined_method | 48 | 48 | COMPLETE |
+| (local) | F11_ddpm_generator  | F11_ddpm_generator | 36 | 4 | PARTIAL - missing +CSL (DDPM-F) fmnist IF=1.0 K=10: s1,2; +CSL (DDPM-F) mnist IF=1.0 K=10: s0,1,2; +LA (DDPM-F) fmnist IF=0.01 K=10: s0,1,2; +LA (DDPM-F) mnist IF=0.01 K=10: s0,1,2; GeFL-F (DDPM-F) fmnist IF=0.01 K=10: s0,1,2; GeFL-F (DDPM-F) fmnist IF=1.0 K=10: s1,2; GeFL-F (DDPM-F) mnist IF=0.01 K=10: s0,1,2; GeFL-F (DDPM-F) mnist IF=1.0 K=10: s0,1,2; Ours (DDPM-F) fmnist IF=0.01 K=10: s0,1,2; Ours (DDPM-F) fmnist IF=1.0 K=10: s2; Ours (DDPM-F) mnist IF=0.01 K=10: s0,1,2; Ours (DDPM-F) mnist IF=1.0 K=10: s0,1,2 |
 

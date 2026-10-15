@@ -310,3 +310,99 @@ T18_collapse_fixes_rows,+ HWA + LA,MNIST K=100,0.8634,0.0269,3,"{""0"": 0.8568, 
 T18_collapse_fixes_rows,+ HWA + LA,FMNIST K=10,1.0122,0.1484,3,"{""0"": 1.1483, ""1"": 1.0343, ""2"": 0.8541}",,,,F01_main_longtail :: +HWA+LA :: fmnist IF=0.01 K=10
 T18_collapse_fixes_rows,+ HWA + LA,FMNIST K=50,0.923,0.0955,3,"{""0"": 0.9488, ""1"": 1.0029, ""2"": 0.8173}",,,,K03_kaggle_client_scaling__K50 :: +HWA+LA :: fmnist IF=0.01 K=50
 T18_collapse_fixes_rows,+ HWA + LA,FMNIST K=100,0.9326,0.0317,3,"{""1"": 0.9569, ""0"": 0.9443, ""2"": 0.8967}",,,,K03_kaggle_client_scaling__K100 :: +HWA+LA :: fmnist IF=0.01 K=100
+T19_readouts_gefl,"GeFL-F, heads as trained",MNIST,74.4849,1.6746,3,"{""0"": 75.3228, ""1"": 72.5567, ""2"": 75.5751}",,,,K16_kaggle_recalibration__mnist_lt :: GeFL-F :: mnist IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, heads as trained",FMNIST,59.1597,2.8391,3,"{""0"": 61.796, ""1"": 59.529, ""2"": 56.154}",,,,K16_kaggle_recalibration__fmnist_lt :: GeFL-F :: fmnist IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, heads as trained",SVHN,49.6153,3.0361,3,"{""0"": 51.9848, ""1"": 50.6682, ""2"": 46.1929}",,,,K16_kaggle_recalibration__svhn_lt :: GeFL-F :: svhn IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, BBC",MNIST,78.3232,1.3025,3,"{""0"": 78.2409, ""1"": 77.0639, ""2"": 79.6649}",,,,K16_kaggle_recalibration__mnist_lt :: GeFL-F :: mnist IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, BBC",FMNIST,63.242,3.4411,3,"{""0"": 67.037, ""1"": 62.364, ""2"": 60.325}",,,,K16_kaggle_recalibration__fmnist_lt :: GeFL-F :: fmnist IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, BBC",SVHN,55.5135,1.194,3,"{""0"": 56.2073, ""1"": 56.1984, ""2"": 54.1348}",,,,K16_kaggle_recalibration__svhn_lt :: GeFL-F :: svhn IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, ER (LDA, all clients)",MNIST,90.4097,0.5157,3,"{""0"": 90.8436, ""1"": 89.8395, ""2"": 90.5459}",,,,K16_kaggle_recalibration__mnist_lt :: GeFL-F :: mnist IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, ER (LDA, all clients)",FMNIST,79.2763,0.4022,3,"{""0"": 79.503, ""1"": 79.514, ""2"": 78.812}",,,,K16_kaggle_recalibration__fmnist_lt :: GeFL-F :: fmnist IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, ER (LDA, all clients)",SVHN,64.6722,0.8084,3,"{""0"": 64.0071, ""1"": 65.572, ""2"": 64.4374}",,,,K16_kaggle_recalibration__svhn_lt :: GeFL-F :: svhn IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, Fed3R (all clients)",MNIST,75.0852,0.3947,3,"{""0"": 75.0075, ""1"": 74.7351, ""2"": 75.5129}",,,,K16_kaggle_recalibration__mnist_lt :: GeFL-F :: mnist IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, Fed3R (all clients)",FMNIST,68.1987,1.4929,3,"{""0"": 69.039, ""1"": 69.082, ""2"": 66.475}",,,,K16_kaggle_recalibration__fmnist_lt :: GeFL-F :: fmnist IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, Fed3R (all clients)",SVHN,44.8176,1.3203,3,"{""0"": 43.4361, ""1"": 46.0668, ""2"": 44.95}",,,,K16_kaggle_recalibration__svhn_lt :: GeFL-F :: svhn IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, FedNCM (all clients)",MNIST,87.1831,0.7905,3,"{""0"": 86.607, ""1"": 86.858, ""2"": 88.0843}",,,,K16_kaggle_recalibration__mnist_lt :: GeFL-F :: mnist IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, FedNCM (all clients)",FMNIST,74.1087,1.0626,3,"{""0"": 74.748, ""1"": 74.696, ""2"": 72.882}",,,,K16_kaggle_recalibration__fmnist_lt :: GeFL-F :: fmnist IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, FedNCM (all clients)",SVHN,60.48,1.0082,3,"{""0"": 60.278, ""1"": 61.5739, ""2"": 59.5881}",,,,K16_kaggle_recalibration__svhn_lt :: GeFL-F :: svhn IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, CCVR (all clients)",MNIST,91.9125,0.4506,3,"{""0"": 92.2017, ""1"": 91.3933, ""2"": 92.1424}",,,,K16_kaggle_recalibration__mnist_lt :: GeFL-F :: mnist IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, CCVR (all clients)",FMNIST,80.487,0.3006,3,"{""0"": 80.322, ""1"": 80.834, ""2"": 80.305}",,,,K16_kaggle_recalibration__fmnist_lt :: GeFL-F :: fmnist IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, CCVR (all clients)",SVHN,64.8059,1.3154,3,"{""0"": 63.3055, ""1"": 65.7611, ""2"": 65.3509}",,,,K16_kaggle_recalibration__svhn_lt :: GeFL-F :: svhn IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, CCVR (own clients)",MNIST,75.2659,1.085,3,"{""0"": 76.0908, ""1"": 74.0368, ""2"": 75.67}",,,,K16_kaggle_recalibration__mnist_lt :: GeFL-F :: mnist IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, CCVR (own clients)",FMNIST,61.4293,2.9919,3,"{""0"": 64.302, ""1"": 61.655, ""2"": 58.331}",,,,K16_kaggle_recalibration__fmnist_lt :: GeFL-F :: fmnist IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, CCVR (own clients)",SVHN,49.4099,2.886,3,"{""0"": 51.7192, ""1"": 50.336, ""2"": 46.1745}",,,,K16_kaggle_recalibration__svhn_lt :: GeFL-F :: svhn IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, oracle: pooled-real refit",MNIST,91.148,0.5532,3,"{""0"": 91.4273, ""1"": 90.5109, ""2"": 91.5059}",,,,K16_kaggle_recalibration__mnist_lt :: GeFL-F :: mnist IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, oracle: pooled-real refit",FMNIST,79.2633,0.3899,3,"{""0"": 79.096, ""1"": 79.709, ""2"": 78.985}",,,,K16_kaggle_recalibration__fmnist_lt :: GeFL-F :: fmnist IF=0.01 K=10
+T19_readouts_gefl,"GeFL-F, oracle: pooled-real refit",SVHN,64.2783,0.7385,3,"{""0"": 63.5161, ""1"": 64.9906, ""2"": 64.328}",,,,K16_kaggle_recalibration__svhn_lt :: GeFL-F :: svhn IF=0.01 K=10
+T19_readouts_gefl,"+ LA, heads as trained",MNIST,79.1829,2.5916,3,"{""0"": 78.5743, ""1"": 76.9497, ""2"": 82.0247}",,,,K16_kaggle_recalibration__mnist_lt :: +LA :: mnist IF=0.01 K=10
+T19_readouts_gefl,"+ LA, heads as trained",FMNIST,65.198,3.1784,3,"{""0"": 67.956, ""1"": 65.916, ""2"": 61.722}",,,,K16_kaggle_recalibration__fmnist_lt :: +LA :: fmnist IF=0.01 K=10
+T19_readouts_gefl,"+ LA, heads as trained",SVHN,55.5486,1.3415,3,"{""0"": 56.5664, ""1"": 56.051, ""2"": 54.0284}",,,,K16_kaggle_recalibration__svhn_lt :: +LA :: svhn IF=0.01 K=10
+T19_readouts_gefl,"+ LA, BBC",MNIST,79.6008,2.0031,3,"{""0"": 79.2548, ""1"": 77.7932, ""2"": 81.7544}",,,,K16_kaggle_recalibration__mnist_lt :: +LA :: mnist IF=0.01 K=10
+T19_readouts_gefl,"+ LA, BBC",FMNIST,64.668,3.3196,3,"{""0"": 68.326, ""1"": 63.831, ""2"": 61.847}",,,,K16_kaggle_recalibration__fmnist_lt :: +LA :: fmnist IF=0.01 K=10
+T19_readouts_gefl,"+ LA, BBC",SVHN,55.9703,0.8871,3,"{""0"": 56.3967, ""1"": 56.5636, ""2"": 54.9505}",,,,K16_kaggle_recalibration__svhn_lt :: +LA :: svhn IF=0.01 K=10
+T19_readouts_gefl,"+ LA, ER (LDA, all clients)",MNIST,90.3687,0.7789,3,"{""0"": 90.8176, ""1"": 89.4692, ""2"": 90.8192}",,,,K16_kaggle_recalibration__mnist_lt :: +LA :: mnist IF=0.01 K=10
+T19_readouts_gefl,"+ LA, ER (LDA, all clients)",FMNIST,79.489,0.5425,3,"{""0"": 79.891, ""1"": 79.704, ""2"": 78.872}",,,,K16_kaggle_recalibration__fmnist_lt :: +LA :: fmnist IF=0.01 K=10
+T19_readouts_gefl,"+ LA, ER (LDA, all clients)",SVHN,64.5282,1.0396,3,"{""0"": 63.7187, ""1"": 65.7006, ""2"": 64.1652}",,,,K16_kaggle_recalibration__svhn_lt :: +LA :: svhn IF=0.01 K=10
+T19_readouts_gefl,"+ LA, Fed3R (all clients)",MNIST,75.3638,1.4131,3,"{""0"": 75.0228, ""1"": 74.1523, ""2"": 76.9162}",,,,K16_kaggle_recalibration__mnist_lt :: +LA :: mnist IF=0.01 K=10
+T19_readouts_gefl,"+ LA, Fed3R (all clients)",FMNIST,68.414,1.599,3,"{""0"": 69.124, ""1"": 69.535, ""2"": 66.583}",,,,K16_kaggle_recalibration__fmnist_lt :: +LA :: fmnist IF=0.01 K=10
+T19_readouts_gefl,"+ LA, Fed3R (all clients)",SVHN,44.8036,1.479,3,"{""0"": 43.2274, ""1"": 46.1609, ""2"": 45.0224}",,,,K16_kaggle_recalibration__svhn_lt :: +LA :: svhn IF=0.01 K=10
+T19_readouts_gefl,"+ LA, FedNCM (all clients)",MNIST,87.4193,1.2078,3,"{""0"": 87.0615, ""1"": 86.4308, ""2"": 88.7657}",,,,K16_kaggle_recalibration__mnist_lt :: +LA :: mnist IF=0.01 K=10
+T19_readouts_gefl,"+ LA, FedNCM (all clients)",FMNIST,74.4217,1.075,3,"{""0"": 75.096, ""1"": 74.987, ""2"": 73.182}",,,,K16_kaggle_recalibration__fmnist_lt :: +LA :: fmnist IF=0.01 K=10
+T19_readouts_gefl,"+ LA, FedNCM (all clients)",SVHN,60.7397,1.1323,3,"{""0"": 60.5778, ""1"": 61.9443, ""2"": 59.6971}",,,,K16_kaggle_recalibration__svhn_lt :: +LA :: svhn IF=0.01 K=10
+T19_readouts_gefl,"+ LA, CCVR (all clients)",MNIST,92.1987,0.6437,3,"{""0"": 92.21, ""1"": 91.5493, ""2"": 92.8366}",,,,K16_kaggle_recalibration__mnist_lt :: +LA :: mnist IF=0.01 K=10
+T19_readouts_gefl,"+ LA, CCVR (all clients)",FMNIST,80.61,0.4016,3,"{""0"": 80.523, ""1"": 81.048, ""2"": 80.259}",,,,K16_kaggle_recalibration__fmnist_lt :: +LA :: fmnist IF=0.01 K=10
+T19_readouts_gefl,"+ LA, CCVR (all clients)",SVHN,64.8556,1.4049,3,"{""0"": 63.2536, ""1"": 65.8776, ""2"": 65.4356}",,,,K16_kaggle_recalibration__svhn_lt :: +LA :: svhn IF=0.01 K=10
+T19_readouts_gefl,"+ LA, CCVR (own clients)",MNIST,73.0361,1.7867,3,"{""0"": 74.6814, ""1"": 71.1355, ""2"": 73.2914}",,,,K16_kaggle_recalibration__mnist_lt :: +LA :: mnist IF=0.01 K=10
+T19_readouts_gefl,"+ LA, CCVR (own clients)",FMNIST,60.549,3.28,3,"{""0"": 63.795, ""1"": 60.616, ""2"": 57.236}",,,,K16_kaggle_recalibration__fmnist_lt :: +LA :: fmnist IF=0.01 K=10
+T19_readouts_gefl,"+ LA, CCVR (own clients)",SVHN,47.0491,2.9326,3,"{""0"": 49.3825, ""1"": 48.0075, ""2"": 43.7572}",,,,K16_kaggle_recalibration__svhn_lt :: +LA :: svhn IF=0.01 K=10
+T19_readouts_gefl,"+ LA, oracle: pooled-real refit",MNIST,91.4421,0.9008,3,"{""0"": 91.4524, ""1"": 90.5361, ""2"": 92.3377}",,,,K16_kaggle_recalibration__mnist_lt :: +LA :: mnist IF=0.01 K=10
+T19_readouts_gefl,"+ LA, oracle: pooled-real refit",FMNIST,79.4323,0.4056,3,"{""0"": 79.424, ""1"": 79.842, ""2"": 79.031}",,,,K16_kaggle_recalibration__fmnist_lt :: +LA :: fmnist IF=0.01 K=10
+T19_readouts_gefl,"+ LA, oracle: pooled-real refit",SVHN,64.2971,0.8925,3,"{""0"": 63.4045, ""1"": 65.1895, ""2"": 64.2974}",,,,K16_kaggle_recalibration__svhn_lt :: +LA :: svhn IF=0.01 K=10
+T20_readouts_ours,"minimal, heads as trained",MNIST,90.0749,0.4264,3,"{""0"": 89.6256, ""1"": 90.474, ""2"": 90.1251}",,,,K16_kaggle_recalibration__mnist_lt :: Minimal (HWA+LA+CSL) :: mnist IF=0.01 K=10
+T20_readouts_ours,"minimal, heads as trained",FMNIST,76.7143,0.2542,3,"{""0"": 76.616, ""1"": 76.524, ""2"": 77.003}",,,,K16_kaggle_recalibration__fmnist_lt :: Minimal (HWA+LA+CSL) :: fmnist IF=0.01 K=10
+T20_readouts_ours,"minimal, heads as trained",SVHN,62.4431,2.5443,3,"{""0"": 60.0445, ""1"": 62.1733, ""2"": 65.1116}",,,,K16_kaggle_recalibration__svhn_lt :: Minimal (HWA+LA+CSL) :: svhn IF=0.01 K=10
+T20_readouts_ours,"minimal, BBC",MNIST,90.4901,0.5042,3,"{""0"": 89.9111, ""1"": 90.8316, ""2"": 90.7277}",,,,K16_kaggle_recalibration__mnist_lt :: Minimal (HWA+LA+CSL) :: mnist IF=0.01 K=10
+T20_readouts_ours,"minimal, BBC",FMNIST,78.3713,0.1455,3,"{""0"": 78.228, ""1"": 78.519, ""2"": 78.367}",,,,K16_kaggle_recalibration__fmnist_lt :: Minimal (HWA+LA+CSL) :: fmnist IF=0.01 K=10
+T20_readouts_ours,"minimal, BBC",SVHN,64.0648,2.3386,3,"{""0"": 61.8795, ""1"": 63.7838, ""2"": 66.5312}",,,,K16_kaggle_recalibration__svhn_lt :: Minimal (HWA+LA+CSL) :: svhn IF=0.01 K=10
+T20_readouts_ours,"minimal, ER (LDA, all clients)",MNIST,92.4092,0.4034,3,"{""0"": 92.5004, ""1"": 91.968, ""2"": 92.7592}",,,,K16_kaggle_recalibration__mnist_lt :: Minimal (HWA+LA+CSL) :: mnist IF=0.01 K=10
+T20_readouts_ours,"minimal, ER (LDA, all clients)",FMNIST,80.6283,0.0436,3,"{""0"": 80.583, ""1"": 80.67, ""2"": 80.632}",,,,K16_kaggle_recalibration__fmnist_lt :: Minimal (HWA+LA+CSL) :: fmnist IF=0.01 K=10
+T20_readouts_ours,"minimal, ER (LDA, all clients)",SVHN,66.3649,1.0299,3,"{""0"": 65.1925, ""1"": 66.7783, ""2"": 67.1239}",,,,K16_kaggle_recalibration__svhn_lt :: Minimal (HWA+LA+CSL) :: svhn IF=0.01 K=10
+T20_readouts_ours,"minimal, Fed3R (all clients)",MNIST,77.2233,0.0953,3,"{""0"": 77.1145, ""1"": 77.2927, ""2"": 77.2626}",,,,K16_kaggle_recalibration__mnist_lt :: Minimal (HWA+LA+CSL) :: mnist IF=0.01 K=10
+T20_readouts_ours,"minimal, Fed3R (all clients)",FMNIST,72.017,0.3767,3,"{""0"": 72.445, ""1"": 71.736, ""2"": 71.87}",,,,K16_kaggle_recalibration__fmnist_lt :: Minimal (HWA+LA+CSL) :: fmnist IF=0.01 K=10
+T20_readouts_ours,"minimal, Fed3R (all clients)",SVHN,45.3681,1.4514,3,"{""0"": 43.6921, ""1"": 46.1992, ""2"": 46.213}",,,,K16_kaggle_recalibration__svhn_lt :: Minimal (HWA+LA+CSL) :: svhn IF=0.01 K=10
+T20_readouts_ours,"minimal, FedNCM (all clients)",MNIST,90.115,0.402,3,"{""0"": 89.7092, ""1"": 90.1228, ""2"": 90.513}",,,,K16_kaggle_recalibration__mnist_lt :: Minimal (HWA+LA+CSL) :: mnist IF=0.01 K=10
+T20_readouts_ours,"minimal, FedNCM (all clients)",FMNIST,76.7183,0.4769,3,"{""0"": 76.976, ""1"": 77.011, ""2"": 76.168}",,,,K16_kaggle_recalibration__fmnist_lt :: Minimal (HWA+LA+CSL) :: fmnist IF=0.01 K=10
+T20_readouts_ours,"minimal, FedNCM (all clients)",SVHN,62.6215,1.0558,3,"{""0"": 61.4152, ""1"": 63.072, ""2"": 63.3772}",,,,K16_kaggle_recalibration__svhn_lt :: Minimal (HWA+LA+CSL) :: svhn IF=0.01 K=10
+T20_readouts_ours,"minimal, CCVR (all clients)",MNIST,94.05,0.1581,3,"{""0"": 93.9744, ""1"": 93.9438, ""2"": 94.2316}",,,,K16_kaggle_recalibration__mnist_lt :: Minimal (HWA+LA+CSL) :: mnist IF=0.01 K=10
+T20_readouts_ours,"minimal, CCVR (all clients)",FMNIST,81.7473,0.4149,3,"{""0"": 81.307, ""1"": 82.131, ""2"": 81.804}",,,,K16_kaggle_recalibration__fmnist_lt :: Minimal (HWA+LA+CSL) :: fmnist IF=0.01 K=10
+T20_readouts_ours,"minimal, CCVR (all clients)",SVHN,66.8675,1.8219,3,"{""0"": 64.9363, ""1"": 67.1107, ""2"": 68.5556}",,,,K16_kaggle_recalibration__svhn_lt :: Minimal (HWA+LA+CSL) :: svhn IF=0.01 K=10
+T20_readouts_ours,"minimal, CCVR (own clients)",MNIST,81.0603,0.9792,3,"{""0"": 79.9296, ""1"": 81.6254, ""2"": 81.6258}",,,,K16_kaggle_recalibration__mnist_lt :: Minimal (HWA+LA+CSL) :: mnist IF=0.01 K=10
+T20_readouts_ours,"minimal, CCVR (own clients)",FMNIST,69.633,1.6113,3,"{""0"": 71.086, ""1"": 67.9, ""2"": 69.913}",,,,K16_kaggle_recalibration__fmnist_lt :: Minimal (HWA+LA+CSL) :: fmnist IF=0.01 K=10
+T20_readouts_ours,"minimal, CCVR (own clients)",SVHN,48.642,0.4849,3,"{""0"": 48.3286, ""1"": 49.2005, ""2"": 48.3969}",,,,K16_kaggle_recalibration__svhn_lt :: Minimal (HWA+LA+CSL) :: svhn IF=0.01 K=10
+T20_readouts_ours,"minimal, oracle: pooled-real refit",MNIST,93.7564,0.239,3,"{""0"": 93.7192, ""1"": 93.5382, ""2"": 94.0118}",,,,K16_kaggle_recalibration__mnist_lt :: Minimal (HWA+LA+CSL) :: mnist IF=0.01 K=10
+T20_readouts_ours,"minimal, oracle: pooled-real refit",FMNIST,81.1193,0.3952,3,"{""0"": 80.837, ""1"": 81.571, ""2"": 80.95}",,,,K16_kaggle_recalibration__fmnist_lt :: Minimal (HWA+LA+CSL) :: fmnist IF=0.01 K=10
+T20_readouts_ours,"minimal, oracle: pooled-real refit",SVHN,67.2993,1.6225,3,"{""0"": 65.7772, ""1"": 67.1143, ""2"": 69.0064}",,,,K16_kaggle_recalibration__svhn_lt :: Minimal (HWA+LA+CSL) :: svhn IF=0.01 K=10
+T20_readouts_ours,"ours (gated), heads as trained",MNIST,95.0968,0.1731,3,"{""0"": 94.9459, ""1"": 95.0589, ""2"": 95.2857}",,,,K16_kaggle_recalibration__mnist_lt :: Ours (gated) :: mnist IF=0.01 K=10
+T20_readouts_ours,"ours (gated), heads as trained",FMNIST,80.0617,0.1401,3,"{""0"": 80.119, ""1"": 80.164, ""2"": 79.902}",,,,K16_kaggle_recalibration__fmnist_lt :: Ours (gated) :: fmnist IF=0.01 K=10
+T20_readouts_ours,"ours (gated), heads as trained",SVHN,65.4158,1.4218,3,"{""0"": 63.9327, ""1"": 65.5477, ""2"": 66.7671}",,,,K16_kaggle_recalibration__svhn_lt :: Ours (gated) :: svhn IF=0.01 K=10
+T20_readouts_ours,"ours (gated), BBC",MNIST,95.3559,0.151,3,"{""0"": 95.2559, ""1"": 95.2823, ""2"": 95.5297}",,,,K16_kaggle_recalibration__mnist_lt :: Ours (gated) :: mnist IF=0.01 K=10
+T20_readouts_ours,"ours (gated), BBC",FMNIST,80.826,0.0582,3,"{""0"": 80.788, ""1"": 80.893, ""2"": 80.797}",,,,K16_kaggle_recalibration__fmnist_lt :: Ours (gated) :: fmnist IF=0.01 K=10
+T20_readouts_ours,"ours (gated), BBC",SVHN,66.7295,1.4612,3,"{""0"": 65.2428, ""1"": 66.7817, ""2"": 68.1639}",,,,K16_kaggle_recalibration__svhn_lt :: Ours (gated) :: svhn IF=0.01 K=10
+T20_readouts_ours,"ours (gated), ER (LDA, all clients)",MNIST,94.3494,0.1778,3,"{""0"": 94.4275, ""1"": 94.1459, ""2"": 94.4746}",,,,K16_kaggle_recalibration__mnist_lt :: Ours (gated) :: mnist IF=0.01 K=10
+T20_readouts_ours,"ours (gated), ER (LDA, all clients)",FMNIST,81.491,0.4634,3,"{""0"": 81.125, ""1"": 81.336, ""2"": 82.012}",,,,K16_kaggle_recalibration__fmnist_lt :: Ours (gated) :: fmnist IF=0.01 K=10
+T20_readouts_ours,"ours (gated), ER (LDA, all clients)",SVHN,66.6501,0.5959,3,"{""0"": 65.9695, ""1"": 67.0777, ""2"": 66.9031}",,,,K16_kaggle_recalibration__svhn_lt :: Ours (gated) :: svhn IF=0.01 K=10
+T20_readouts_ours,"ours (gated), Fed3R (all clients)",MNIST,81.0641,0.6275,3,"{""0"": 80.368, ""1"": 81.5864, ""2"": 81.2379}",,,,K16_kaggle_recalibration__mnist_lt :: Ours (gated) :: mnist IF=0.01 K=10
+T20_readouts_ours,"ours (gated), Fed3R (all clients)",FMNIST,73.5663,0.5638,3,"{""0"": 74.095, ""1"": 72.973, ""2"": 73.631}",,,,K16_kaggle_recalibration__fmnist_lt :: Ours (gated) :: fmnist IF=0.01 K=10
+T20_readouts_ours,"ours (gated), Fed3R (all clients)",SVHN,45.8751,1.2149,3,"{""0"": 44.4746, ""1"": 46.6454, ""2"": 46.5053}",,,,K16_kaggle_recalibration__svhn_lt :: Ours (gated) :: svhn IF=0.01 K=10
+T20_readouts_ours,"ours (gated), FedNCM (all clients)",MNIST,93.306,0.295,3,"{""0"": 92.9816, ""1"": 93.5579, ""2"": 93.3787}",,,,K16_kaggle_recalibration__mnist_lt :: Ours (gated) :: mnist IF=0.01 K=10
+T20_readouts_ours,"ours (gated), FedNCM (all clients)",FMNIST,78.6007,0.177,3,"{""0"": 78.54, ""1"": 78.462, ""2"": 78.8}",,,,K16_kaggle_recalibration__fmnist_lt :: Ours (gated) :: fmnist IF=0.01 K=10
+T20_readouts_ours,"ours (gated), FedNCM (all clients)",SVHN,63.7885,1.1177,3,"{""0"": 62.5731, ""1"": 64.0204, ""2"": 64.7721}",,,,K16_kaggle_recalibration__svhn_lt :: Ours (gated) :: svhn IF=0.01 K=10
+T20_readouts_ours,"ours (gated), CCVR (all clients)",MNIST,95.5248,0.1207,3,"{""0"": 95.5195, ""1"": 95.648, ""2"": 95.4069}",,,,K16_kaggle_recalibration__mnist_lt :: Ours (gated) :: mnist IF=0.01 K=10
+T20_readouts_ours,"ours (gated), CCVR (all clients)",FMNIST,82.5587,0.4286,3,"{""0"": 82.066, ""1"": 82.764, ""2"": 82.846}",,,,K16_kaggle_recalibration__fmnist_lt :: Ours (gated) :: fmnist IF=0.01 K=10
+T20_readouts_ours,"ours (gated), CCVR (all clients)",SVHN,67.1618,1.3318,3,"{""0"": 65.7617, ""1"": 67.3113, ""2"": 68.4126}",,,,K16_kaggle_recalibration__svhn_lt :: Ours (gated) :: svhn IF=0.01 K=10
+T20_readouts_ours,"ours (gated), CCVR (own clients)",MNIST,91.2643,0.5939,3,"{""0"": 90.5867, ""1"": 91.6941, ""2"": 91.5122}",,,,K16_kaggle_recalibration__mnist_lt :: Ours (gated) :: mnist IF=0.01 K=10
+T20_readouts_ours,"ours (gated), CCVR (own clients)",FMNIST,75.3213,0.5258,3,"{""0"": 75.923, ""1"": 74.95, ""2"": 75.091}",,,,K16_kaggle_recalibration__fmnist_lt :: Ours (gated) :: fmnist IF=0.01 K=10
+T20_readouts_ours,"ours (gated), CCVR (own clients)",SVHN,51.6082,0.5994,3,"{""0"": 52.0636, ""1"": 51.832, ""2"": 50.9291}",,,,K16_kaggle_recalibration__svhn_lt :: Ours (gated) :: svhn IF=0.01 K=10
+T20_readouts_ours,"ours (gated), oracle: pooled-real refit",MNIST,95.2525,0.0327,3,"{""0"": 95.2507, ""1"": 95.2208, ""2"": 95.286}",,,,K16_kaggle_recalibration__mnist_lt :: Ours (gated) :: mnist IF=0.01 K=10
+T20_readouts_ours,"ours (gated), oracle: pooled-real refit",FMNIST,81.8457,0.3955,3,"{""0"": 81.391, ""1"": 82.036, ""2"": 82.11}",,,,K16_kaggle_recalibration__fmnist_lt :: Ours (gated) :: fmnist IF=0.01 K=10
+T20_readouts_ours,"ours (gated), oracle: pooled-real refit",SVHN,68.2565,1.2904,3,"{""0"": 66.9804, ""1"": 68.2285, ""2"": 69.5607}",,,,K16_kaggle_recalibration__svhn_lt :: Ours (gated) :: svhn IF=0.01 K=10

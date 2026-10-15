@@ -1,0 +1,22 @@
+\begin{tabular}{lccccc}
+\toprule
+ & MNIST & FMNIST & SVHN & CIFAR10 & CIFAR100 \\
+\midrule
+GeFL-F, heads as trained & 74.48 $\pm$ 1.67 & 59.16 $\pm$ 2.84 & 49.62 $\pm$ 3.04 & -- & -- \\
+GeFL-F, BBC & 78.32 $\pm$ 1.30 & 63.24 $\pm$ 3.44 & 55.51 $\pm$ 1.19 & -- & -- \\
+GeFL-F, ER (LDA, all clients) & 90.41 $\pm$ 0.52 & 79.28 $\pm$ 0.40 & 64.67 $\pm$ 0.81 & -- & -- \\
+GeFL-F, Fed3R (all clients) & 75.09 $\pm$ 0.39 & 68.20 $\pm$ 1.49 & 44.82 $\pm$ 1.32 & -- & -- \\
+GeFL-F, FedNCM (all clients) & 87.18 $\pm$ 0.79 & 74.11 $\pm$ 1.06 & 60.48 $\pm$ 1.01 & -- & -- \\
+GeFL-F, CCVR (all clients) & 91.91 $\pm$ 0.45 & 80.49 $\pm$ 0.30 & 64.81 $\pm$ 1.32 & -- & -- \\
+GeFL-F, CCVR (own clients) & 75.27 $\pm$ 1.09 & 61.43 $\pm$ 2.99 & 49.41 $\pm$ 2.89 & -- & -- \\
+GeFL-F, oracle: pooled-real refit & 91.15 $\pm$ 0.55 & 79.26 $\pm$ 0.39 & 64.28 $\pm$ 0.74 & -- & -- \\
++ LA, heads as trained & 79.18 $\pm$ 2.59 & 65.20 $\pm$ 3.18 & 55.55 $\pm$ 1.34 & -- & -- \\
++ LA, BBC & 79.60 $\pm$ 2.00 & 64.67 $\pm$ 3.32 & 55.97 $\pm$ 0.89 & -- & -- \\
++ LA, ER (LDA, all clients) & 90.37 $\pm$ 0.78 & 79.49 $\pm$ 0.54 & 64.53 $\pm$ 1.04 & -- & -- \\
++ LA, Fed3R (all clients) & 75.36 $\pm$ 1.41 & 68.41 $\pm$ 1.60 & 44.80 $\pm$ 1.48 & -- & -- \\
++ LA, FedNCM (all clients) & 87.42 $\pm$ 1.21 & 74.42 $\pm$ 1.07 & 60.74 $\pm$ 1.13 & -- & -- \\
++ LA, CCVR (all clients) & 92.20 $\pm$ 0.64 & 80.61 $\pm$ 0.40 & 64.86 $\pm$ 1.40 & -- & -- \\
++ LA, CCVR (own clients) & 73.04 $\pm$ 1.79 & 60.55 $\pm$ 3.28 & 47.05 $\pm$ 2.93 & -- & -- \\
++ LA, oracle: pooled-real refit & 91.44 $\pm$ 0.90 & 79.43 $\pm$ 0.41 & 64.30 $\pm$ 0.89 & -- & -- \\
+\bottomrule
+\end{tabular}

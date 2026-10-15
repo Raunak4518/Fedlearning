@@ -30,10 +30,12 @@ import matplotlib.pyplot as plt  # noqa: E402
 HERE = os.path.dirname(os.path.abspath(__file__))
 RES = os.path.join(HERE, "results")
 OUT = os.path.normpath(os.path.join(HERE, "..", "docs", "paper_assets"))
-PCT = ("final", "best", "oracle", "fidelity", "referee", "bbc", "ncm")
+PCT = ("final", "best", "oracle", "fidelity", "referee", "bbc", "ncm", "er_", "fed3r", "ccvr")
 
 
 def pct(metric):
+    if metric.endswith(("_nll", "_brier")):
+        return 1.0
     return 100.0 if metric.startswith(PCT) else 1.0
 
 
@@ -383,6 +385,19 @@ for _tid, _metric, _title in [("T17_collapse_fixes", "final_bal", "balanced accu
            ("+ lazy decay + LA", [C(f"K15_kaggle_collapse_fixes__{ds}", "+LCD+LA", ds, LT, K, _metric) for ds, K in _KS]),
            ("+ HWA + LA", [_ref(ds, K, "+HWA+LA", _metric) for ds, K in _KS])],
           ref="+ HWA + LA", note="Rows 3-6 fill in when K15 (NB38 / NB39) results are copied back.")
+
+# K16 (action plan B1, Gate 1): every method's trained heads under every readout, long tail, K = 10
+_K16DS = ["mnist", "fmnist", "svhn", "cifar10", "cifar100"]
+_K16RO = [("heads as trained", "final"), ("BBC", "bbc"), ("ER (LDA, all clients)", "er"), ("Fed3R (all clients)", "fed3r"),
+          ("FedNCM (all clients)", "ncm"), ("CCVR (all clients)", "ccvr"), ("CCVR (own clients)", "ccvr_own"),
+          ("oracle: pooled-real refit", "oracle")]
+for _tid, _labs in [("T19_readouts_gefl", [("GeFL-F", "GeFL-F"), ("+ LA", "+LA")]),
+                    ("T20_readouts_ours", [("minimal", "Minimal (HWA+LA+CSL)"), ("ours (gated)", "Ours (gated)")])]:
+    table(_tid, "5.11", "Balanced accuracy under every readout, long tail (K16; same trained heads per row group)",
+          [d.upper() for d in _K16DS],
+          [(f"{_n}, {_ro}", [C(f"K16_kaggle_recalibration__{d}_lt", _l, d, LT, metric=f"{_m}_bal") for d in _K16DS])
+           for _n, _l in _labs for _ro, _m in _K16RO],
+          note="CIFAR-10 / CIFAR-100 columns fill in when NB43 / NB44 results are copied back.")
 
 MERGED = {"K09+K14:mnist": ["K09_kaggle_ablation_final__mnist", "K14_kaggle_ablation_seeds_mcb__mnist"],
           "K09+K14:fmnist": ["K09_kaggle_ablation_final__fmnist", "K14_kaggle_ablation_seeds_mcb__fmnist"],
