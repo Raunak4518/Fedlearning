@@ -197,18 +197,22 @@ def fig_problem():
         ax2.spines[s].set_visible(False)
     ax3 = fig.add_axes([0.73, 0.16, 0.25, 0.68])
     import numpy as np
-    mc = np.linspace(0, 1, 50)
-    ax3.plot(mc, 2 * mc - 1, color=INK)
-    ax3.axhline(0, color=MUTED, lw=0.8)
-    ax3.axvline(0.5, color=MUTED, lw=0.8, ls="--")
-    ax3.fill_between(mc, 2 * mc - 1, 0, where=mc < 0.5, color=BAD, alpha=0.18)
-    ax3.text(0.08, -0.55, "row shrinks\nevery round", color=BAD, fontsize=8)
-    ax3.text(0.62, 0.35, "row can grow", color=GOOD, fontsize=8)
-    ax3.set_xlabel("share of clients holding class c,  m_c / K")
-    ax3.set_ylabel("max Δ|w_c|  /  (Sη)")
-    ax3.set_title("(c) Proposition 1: the collapse bound", fontsize=9, loc="left")
-    for s in ["top", "right"]:
-        ax3.spines[s].set_visible(False)
+    ratio = np.linspace(0.02, 1.5, 200)                      # Gbar / Dbar
+    theta = 1 / (1 + ratio)
+    ax3.plot(ratio, theta, color=INK)
+    ax3.fill_between(ratio, 0, theta, color=BAD, alpha=0.10)
+    ax3.text(1.0, 0.75, "row can grow", color=GOOD, fontsize=7.5)
+    ax3.axhline(0.5, color=MUTED, lw=0.8, ls="--")
+    ax3.text(1.02, 0.52, "old rule: K/2", color=MUTED, fontsize=7)
+    ax3.axvspan(0.07, 0.64, ymax=0.06, color=BAD, alpha=0.6)
+    ax3.text(0.09, 0.08, "measured range", color=BAD, fontsize=7)
+    ax3.text(0.12, 0.35, "row shrinks:\nholder share < θ", color=BAD, fontsize=7.5)
+    ax3.set_xlabel("holder gain / non-holder loss,  Ḡ / D̄")
+    ax3.set_ylabel("threshold θ on m_c / K")
+    ax3.set_ylim(0, 1.0)
+    ax3.set_title("(c) Theorem 1: the collapse threshold", fontsize=9, loc="left")
+    for s_ in ["top", "right"]:
+        ax3.spines[s_].set_visible(False)
     save(fig, "f05_problem.png")
 
 
@@ -338,7 +342,7 @@ def fig_results():
 
 # ---------------------------------------------------------------- equations
 EQ = {
-    "eq_collapse": r"$\Delta|w_c|\ \leq\ \left(\frac{2\,m_c}{K}-1\right)S\,\eta \quad <\ 0\quad \mathrm{whenever}\quad m_c < K/2$",
+    "eq_collapse": r"$\|r_c^{+}\|\ \leq\ \|r_c\| + p_c\,\bar G_c - (1-p_c)\,\bar D_c,\qquad \mathrm{shrinks\ whenever}\ \ p_c=\frac{m_c}{K} < \theta_c=\frac{\bar D_c}{\bar G_c+\bar D_c}$",
     "eq_cvae": r"$\mathcal{L}_G = \|\hat h - h\|_2^2 + \mathrm{KL}\left(q(z\,|\,h,y)\ \|\ \mathcal{N}(0,I)\right),\qquad \hat h = \mathrm{dec}(z,\ W^\top e_y)$",
     "eq_fedavg": r"$\theta^{(r+1)} = \sum_{k=1}^{K} \frac{n_k}{n}\,\theta_k^{(r)},\qquad W_c^{(r+1)} = \frac{1}{K}\sum_{k} W_{c,k}^{(r)}\ \ \mathrm{(flat)}$",
     "eq_hwa": r"$w_c \leftarrow \frac{\sum_k E(n_{kc})\, w_c^{(k)}}{\sum_k E(n_{kc})},\qquad E(n)=\frac{1-\beta^{\,n}}{1-\beta},\ \ \beta = 0.999$",
