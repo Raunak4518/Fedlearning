@@ -23,17 +23,18 @@ are the starting point for any new work:
 | `docs/review/` | The adversarial review: dossier, ten reviewer reports, recomputation scripts, the GPT review package and its comparison, and the action plan |
 | `docs/professor_report/` | Professor handout (Word + PDF) and the scripts that build its figures |
 | `docs/collapse_explainer/` | Plain-language PDF on the collapse result |
-| `experiments/core.py` | **The whole pipeline**: data, partitions, feature extractor, generators, heads, every method component, metrics |
+| `experiments/core.py` | **The whole pipeline**: data (MNIST, FashionMNIST, SVHN, CIFAR-10, CIFAR-100), partitions, feature extractor, generators, heads, every method component, metrics and post-hoc readouts |
 | `experiments/specs/` | One file per experiment (arms, datasets, seeds) |
 | `experiments/build.py` | Builds a standalone script `experiments/<name>.py` = `core.py` + `specs/<name>.py` (built scripts are not committed) |
 | `experiments/results/<job>/` | Raw results: `runs.jsonl` (one record per run and seed) and `summary.md` |
+| `models/<job>/` (not in git) | Trained models, kept apart from the results: `fe/`, `gen/`, `heads/`, `index.jsonl`. Kaggle notebooks zip them as `<folder>__models.zip`; re-evaluate them without training with `--from_models models/<job>` |
 | `experiments/LEDGER.md`, `experiments/ledger.py` | Every completed run and every planned job's status; `--check` finds duplicates before anything new is run |
 | `experiments/paper_assets.py` | Regenerates `docs/paper_assets/` from the raw results |
 | `experiments/make_kaggle_notebooks.py` | Writes Kaggle notebooks for named jobs |
 | `experiments/T01_*`, `T02_*`, `T03_*` | Small CPU mechanism tests (collapse bound, dilution rates, exact readout) |
 | `experiments/D01_component_evidence.py` | Per-component mechanism measurements |
 | `experiments/reference_check/` | Parity check of our GeFL-F against the authors' released code |
-| `kaggle_notebooks/` | Notebooks that are ready but **not yet run** (K14: NB36–37; K15: NB38–39) |
+| `kaggle_notebooks/` | Notebooks that are ready but **not yet run** (K14: NB36–37; K15: NB38–39; K16: NB40–48) |
 
 ## Common commands
 
@@ -46,6 +47,8 @@ python experiments/ledger.py                                  # refresh LEDGER.m
 python experiments/ledger.py --check K15_kaggle_collapse_fixes --datasets mnist  # duplicate check for a job
 python experiments/paper_assets.py                            # regenerate tables, figures, numbers.csv, CHECK.md
 python experiments/make_kaggle_notebooks.py                   # list jobs; then name the ones to write, e.g. NB38 NB39
+python experiments/K16_kaggle_recalibration.py --datasets mnist --from_models models/K16_kaggle_recalibration --out_dir experiments/results
+                                                              # re-evaluate saved models (new readouts/metrics), no training
 ```
 
 Results from Kaggle go into `experiments/results/<folder>/` (`summary.md` + `runs.jsonl`). After adding results, rerun

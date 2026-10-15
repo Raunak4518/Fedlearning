@@ -1,6 +1,6 @@
 # Project progress: what is done, what each claim rests on, what is left
 
-*Last updated 2026-10-15 (after the adversarial review; the plan is `docs/review/action_plan.md`). Regenerate the numbers with `python experiments/paper_assets.py` and the run ledger with
+*Last updated 2026-10-15 (K16 built; after the adversarial review; the plan is `docs/review/action_plan.md`). Regenerate the numbers with `python experiments/paper_assets.py` and the run ledger with
 `python experiments/ledger.py`; update this file by hand only for decisions and status.*
 
 ## 0. How to use the records (so nothing is run or drawn twice)
@@ -60,7 +60,7 @@ on new seeds (see the action plan).
 |---|---|---|---|
 | **NB38 / NB39 (K15)**, existing fixes for row collapse vs HWA, K = 10/50/100: AdamW matched (1e-3), no decay on class rows, lazy decay; AdamW 1e-2 at K = 10 | the question a reviewer asks first: is HWA better than just fixing the optimiser? Pre-registered predictions in `docs/collapse_explainer/collapse_theorem_explained.pdf` §8; tables T17/T18 fill in automatically | ~3.3 h each, T4 × 2 (60 runs) | ready in `kaggle_notebooks/`, not run; references reused (0 duplicates) |
 | NB36 / NB37 (K14), seeds 3–4 | per-component significance (claim 14) and MC-B stability on MNIST (claim 16) | ~2 h each, T4 × 2 | ready in `kaggle_notebooks/`, not run |
-| **B1 ("K16")**: GeFL-F and Ours-A re-run with models saved and the exact readout logged, MNIST / FMNIST / CIFAR-10 / SVHN long tail | the decisive baseline: GeFL-F + federated recalibration (reviewer objection F1) | ~8–12 GPU h | **needs approval (D2)**: re-runs existing configurations because no models were saved before commit 9a16e54 |
+| **K16 = B1 (NB40–NB48)**: GeFL-F, + LA, minimal variant, our gated method; every trained head evaluated under 8 readouts (ER, Fed3R, FedNCM, CCVR, each with all clients or own clients) plus BBC and the oracle; MNIST, FMNIST, SVHN, CIFAR-10 and **CIFAR-100** (new), long tail and IID | Gate 1: the recalibrated-baseline comparison (reviewer objection F1); CIFAR-100 answers "only 10 classes" | long tail ≈ 13 h wall on T4 × 2 (NB40–44), IID ≈ 14.5 h (NB45–48) | approved (D2); ready, not run. 36 of 120 runs repeat old configurations on purpose (no models were saved before); run the long-tail notebooks first |
 | T01 extra seeds (local CPU or Kaggle) | claim 1 has 1 seed | ~1.5 h per seed on CPU | optional; theorem itself is exact, the seeds only add robustness |
 
 **Optional (only if the paper keeps the corresponding claim):**

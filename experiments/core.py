@@ -62,10 +62,35 @@ DATASETS = {
                     latent=50, augment=True,
                     paper={"cvae": (55.86, 53.19, 51.46), "dcgan": (54.82, 53.80, 53.95),
                            "fedprox": (55.10, 54.95, 52.71)}),
+    # Not in the GeFL paper: the many-class check. CIFAR-10's FE, heads with 100 outputs and CIFAR-10's
+    # rounds. frac = 0.22 gives the standard CIFAR-100-LT shape at IF = 100 (about 480 images in the
+    # largest class, 5 in the smallest, about 10.5k in total) with the total data budget fixed.
+    "cifar100": dict(in_ch=3, norm=((0.5071, 0.4865, 0.4409), (0.2673, 0.2564, 0.2762)),
+                     header_bn=False, fe="cifar10", frac=0.22, B=128, T_FE=50, T_KA=200, T_TN=100,
+                     latent=50, augment=True, C=100, paper=None),
 }
 HEADER_WIDTHS = [(16,), (16, 32), (20, 40), (10, 20), (16, 32, 64), (20, 40, 80),
                  (10, 20, 40), (16, 32, 64, 128), (20, 40, 80, 100), (10, 20, 40, 80)]
-NUM_CLASSES = 10
+NUM_CLASSES = 10  # set per dataset by set_num_classes() (DATASETS[ds]["C"], default 10)
+
+
+def set_num_classes(ds):
+    global NUM_CLASSES
+    NUM_CLASSES = DATASETS[ds].get("C", 10)
+
+
+# Class groups by frequency rank (classes are ordered from most to least frequent under the long tail):
+# head = first 30%, medium = next 30%, tail = last 40% (for C = 10: 0-2, 3-5, 6-9).
+def HEAD():
+    return slice(0, int(round(0.3 * NUM_CLASSES)))
+
+
+def MED():
+    return slice(int(round(0.3 * NUM_CLASSES)), int(round(0.6 * NUM_CLASSES)))
+
+
+def TAIL():
+    return slice(int(round(0.6 * NUM_CLASSES)), NUM_CLASSES)
 
 
 def log(msg):
@@ -151,6 +176,21 @@ def load_dataset(name, root):
                 x = np.stack([np.array(Image.open(io.BytesIO(im["bytes"])).convert("RGB")) for im in t["img"]])
                 return torch.from_numpy(x).permute(0, 3, 1, 2), torch.tensor(t["label"])
             (xtr, ytr), (xte, yte) = read("train"), read("test")
+        elif name == "cifar100" and not os.path.isdir(os.path.join(root, "cifar-100-python")) and \
+                _fetch_hf(root, "cifar100_hf", "https://huggingface.co/datasets/uoft-cs/cifar100/resolve/main/cifar100/"):
+            import io
+            import pyarrow.parquet as pq
+            from PIL import Image
+
+            def read(split):
+                t = pq.read_table(os.path.join(root, "cifar100_hf", f"{split}.parquet")).to_pydict()
+                x = np.stack([np.array(Image.open(io.BytesIO(im["bytes"])).convert("RGB")) for im in t["img"]])
+                return torch.from_numpy(x).permute(0, 3, 1, 2), torch.tensor(t["fine_label"])
+            (xtr, ytr), (xte, yte) = read("train"), read("test")
+        elif name == "cifar100":
+            tr, te = tvd.CIFAR100(root, train=True, download=True), tvd.CIFAR100(root, train=False, download=True)
+            xtr, ytr = torch.from_numpy(tr.data).permute(0, 3, 1, 2), torch.tensor(tr.targets)
+            xte, yte = torch.from_numpy(te.data).permute(0, 3, 1, 2), torch.tensor(te.targets)
         elif name == "cifar10":
             tr, te = tvd.CIFAR10(root, train=True, download=True), tvd.CIFAR10(root, train=False, download=True)
             xtr, ytr = torch.from_numpy(tr.data).permute(0, 3, 1, 2), torch.tensor(tr.targets)
@@ -197,7 +237,7 @@ def make_partition(ytr, K, frac, IF, alpha, seed, min_size=10):
     the long-tail profile n_c ~ IF^(c/(C-1)) is rescaled to keep that total,
     capped at what each class has (plan section 2.2). alpha=None -> IID equal
     shards; otherwise Dirichlet(alpha) per class. Also returns 2000 held-out
-    images (200/class) never given to any client, for the referee and MND."""
+    images (200/class; 2000 // C per class when C > 10) never given to any client, for the referee and MND."""
     rng = np.random.RandomState(seed)
     y = ytr.cpu().numpy()
     C = NUM_CLASSES
@@ -206,8 +246,9 @@ def make_partition(ytr, K, frac, IF, alpha, seed, min_size=10):
     prof = mu ** np.arange(C)
     want = np.floor(n_total * prof / prof.sum()).astype(int)
     by_class = [rng.permutation(np.where(y == c)[0]) for c in range(C)]
-    heldout = np.concatenate([bc[:200] for bc in by_class])
-    pools = [bc[200:200 + min(want[c], len(bc) - 200)] for c, bc in enumerate(by_class)]
+    nh = min(200, 2000 // C)
+    heldout = np.concatenate([bc[:nh] for bc in by_class])
+    pools = [bc[nh:nh + min(want[c], len(bc) - nh)] for c, bc in enumerate(by_class)]
     if alpha is None:
         allidx = rng.permutation(np.concatenate(pools))
         parts = [p.tolist() for p in np.array_split(allidx, K)]
@@ -280,8 +321,9 @@ class PaperFE(nn.Module):
 
 
 class PaperHeader(nn.Module):
-    def __init__(self, widths, in_ch, bn, C=NUM_CLASSES, S=16):
+    def __init__(self, widths, in_ch, bn, C=None, S=16):
         super().__init__()
+        C = C or NUM_CLASSES
         layers, ci, s = [], in_ch, S
         for w in widths:
             layers.append(nn.Conv2d(ci, w, 3, 1, 1))
@@ -305,8 +347,9 @@ class PaperCVAE(nn.Module):
     same layer split so that row r is the only class-r-specific parameter."""
     kind = "cvae"
 
-    def __init__(self, in_ch, latent, C=NUM_CLASSES, S=16):
+    def __init__(self, in_ch, latent, C=None, S=16):
         super().__init__()
+        C = C or NUM_CLASSES
         n = int(round(math.log2(S)))
         widths = [min(64 * 2 ** i, 512) for i in range(n)]
         enc, ci = [], in_ch + 1
@@ -442,8 +485,9 @@ class PaperDCGAN(nn.Module):
     (sigmoid + BCE in the paper == BCE-with-logits)."""
     kind = "dcgan"
 
-    def __init__(self, in_ch, dg=128, dd=128, C=NUM_CLASSES, S=16):
+    def __init__(self, in_ch, dg=128, dd=128, C=None, S=16):
         super().__init__()
+        C = C or NUM_CLASSES
         self.C, self.S = C, S
         self.g_z = nn.ConvTranspose2d(100, 2 * dg, 4, 1, 0)
         self.g_z_bn = nn.BatchNorm2d(2 * dg)
@@ -740,21 +784,60 @@ def build_headers(ctx, in_ch):
     return [PaperHeader(HEADER_WIDTHS[g], in_ch, ctx.spec["header_bn"]).to(DEV) for g in range(10)]
 
 
+def _ece(prob, yte, bins=15):
+    """Expected calibration error of the top-label confidence (Guo et al., 2017), equal-width bins."""
+    conf, pred = prob.max(1)
+    acc = (pred == yte).float()
+    edges = torch.linspace(0, 1, bins + 1, device=prob.device)
+    e = torch.zeros((), device=prob.device)
+    for i in range(bins):
+        sel = (conf > edges[i]) & (conf <= edges[i + 1])
+        if sel.any():
+            e += sel.float().mean() * (conf[sel].mean() - acc[sel].mean()).abs()
+    return float(e)
+
+
+def _class_metrics(logits, yte, C, prior=None):
+    """Everything computed from one head's test logits. recall per class; macro-F1; G-mean of the
+    class recalls (each floored at 0.01 so one missed class does not zero it); ECE, NLL (true-class
+    probability floored at 1e-6) and Brier score of the softmax; and, when the head's own clients' label prior is given, the accuracy on
+    test data re-weighted to that prior (what the head's own clients would see)."""
+    prob = logits.float().softmax(1)
+    pred = prob.argmax(1)
+    correct = pred == yte
+    ny = torch.bincount(yte, minlength=C).float()
+    tp = torch.bincount(yte[correct], minlength=C).float()
+    npred = torch.bincount(pred, minlength=C).float()
+    rec_t = tp / ny.clamp(min=1)
+    f1 = (2 * tp / (ny + npred).clamp(min=1)).mean()
+    oh = F.one_hot(yte, C).float()
+    out = dict(acc=float(correct.float().mean()), recall=rec_t.cpu().numpy(), f1=float(f1),
+               gmean=float(torch.exp(torch.log(rec_t.clamp(min=0.01)).mean())),
+               ece=_ece(prob, yte), nll=float(-prob.gather(1, yte[:, None]).clamp(min=1e-6).log().mean()),
+               brier=float((prob - oh).pow(2).sum(1).mean()))
+    if prior is not None:
+        out["local"] = float((torch.as_tensor(prior, device=rec_t.device, dtype=torch.float32) * rec_t).sum())
+    return out
+
+
 @torch.no_grad()
 def eval_headers(ctx, headers, feats_te, yte):
-    """Per-architecture plain accuracy and per-class recall (test sets of
-    MNIST/FMNIST/CIFAR-10 are balanced; SVHN's is not, hence both)."""
+    """Per-architecture accuracy, per-class recall and the metrics of _class_metrics (test sets of
+    MNIST/FMNIST/CIFAR-10/100 are balanced; SVHN's is not, hence both accuracy and balanced accuracy)."""
     out = {}
     C = NUM_CLASSES
     prob_sum = None
+    counts = ctx.part["counts"] if hasattr(ctx, "part") else None  # _Sub (one group) carries no partition
     for g in ctx.groups:
         h = headers[g]
         h.eval()
         logits = torch.cat([h(feats_te[s:s + 2000]) for s in range(0, len(yte), 2000)])
         prob_sum = logits.softmax(1) if prob_sum is None else prob_sum + logits.softmax(1)
-        correct = (logits.argmax(1) == yte)
-        rec = torch.stack([correct[yte == c].float().mean() for c in range(C)]).cpu().numpy()
-        out[g] = dict(acc=float(correct.float().mean()), recall=rec)
+        prior = None
+        if counts is not None:
+            own = counts[[k for k in range(ctx.K) if ctx.arch[k] == g]].sum(0).astype(np.float64)
+            prior = own / max(own.sum(), 1.0)
+        out[g] = _class_metrics(logits, yte, C, prior=prior)
         h.train()
     if len(ctx.groups) > 1:
         # diagnostic only: the averaged-softmax ensemble of all architectures,
@@ -765,14 +848,25 @@ def eval_headers(ctx, headers, feats_te, yte):
     return out
 
 
+EXTRA_METRICS = ("f1", "gmean", "ece", "nll", "brier", "local")
+
+
 def summarize_eval(ev):
+    """Means over architectures (each architecture's head counts once, as in the paper's mean accuracy).
+    worst = the worst class of the mean recall; worst_arch = the balanced accuracy of the weakest
+    architecture; rec_std = spread of the class recalls (lower = fairer across classes)."""
     ens = ev.get("_ens")
     ev = {g: v for g, v in ev.items() if g != "_ens"}
     accs = np.array([v["acc"] for v in ev.values()])
     rec = np.stack([v["recall"] for v in ev.values()]).mean(0)
-    out = dict(acc=float(accs.mean()), bal=float(rec.mean()), head=float(rec[0:3].mean()),
-               medium=float(rec[3:6].mean()), tail=float(rec[6:10].mean()), worst=float(rec.min()),
+    out = dict(acc=float(accs.mean()), bal=float(rec.mean()), head=float(rec[HEAD()].mean()),
+               medium=float(rec[MED()].mean()), tail=float(rec[TAIL()].mean()), worst=float(rec.min()),
+               worst_arch=float(min(np.mean(v["recall"]) for v in ev.values())), rec_std=float(rec.std()),
                recall=rec.tolist())
+    for k in EXTRA_METRICS:
+        xs = [v[k] for v in ev.values() if k in v]
+        if xs:
+            out[k] = float(np.mean(xs))
     if ens is not None:
         out.update(ens_acc=ens["acc"], ens_bal=float(np.mean(ens["recall"])))
     return out
@@ -2155,6 +2249,174 @@ def classifier_oracle(ctx, headers, feats, ys_list, feats_te, steps=300):
     return summarize_eval(eval_headers(ctx, hs, feats_te, ctx.data["yte"]))
 
 
+# ----- post-hoc readouts: new last layers for the trained heads, computed from what a server can hold
+class _FnHead(nn.Module):
+    """A trained head whose last layer is replaced by fn(embedding) -> logits."""
+
+    def __init__(self, h, fn):
+        super().__init__()
+        self.h, self.fn = h, fn
+
+    def embed(self, x):
+        return self.h.embed(x)
+
+    def forward(self, x):
+        return self.fn(self.h.embed(x))
+
+
+@torch.no_grad()
+def _embeds(h, feats, ys_list, idx):
+    E = torch.cat([torch.cat([h.embed(feats[k][i:i + 4096]) for i in range(0, len(feats[k]), 4096)]) for k in idx])
+    return E, torch.cat([ys_list[k] for k in idx])
+
+
+def readout_heads(ctx, headers, feats, ys_list, kind, scope):
+    """Per architecture g, a new last layer for head g from the real features of its own clients
+    (scope "own": the protocol of CCVR / Fed3R / FedNCM applied per architecture) or of every client
+    passed through head g's body (scope "all": needs head g's body broadcast to every client, as in ER).
+    Every statistic is a per-class sum (counts, sums of e, sums of e e^T), so it can be secure-aggregated;
+    here the sums are formed directly.
+      lda   : ER, uniform-prior LDA with the pooled within-class covariance shrunk by 0.1 (T03)
+      ridge : Fed3R (Fanì et al., 2024): closed-form ridge regression onto one-hot labels
+      ncm   : FedNCM (Legate et al., 2023): cosine similarity to the normalised class means
+      ccvr  : CCVR (Luo et al., 2021): per-class Gaussians N(mu_c, Sigma_c) of the embeddings, an equal
+              number of virtual features per class, the last layer fine-tuned on them by cross-entropy
+    A class with no sample in scope gets no logit mass (lda / ncm) or no virtual features (ccvr)."""
+    import copy
+    C = NUM_CLASSES
+    hs = {}
+    for g in ctx.groups:
+        h = copy.deepcopy(headers[g])
+        h.eval()
+        idx = list(range(ctx.K)) if scope == "all" else [k for k in range(ctx.K) if ctx.arch[k] == g]
+        E, Y = _embeds(h, feats, ys_list, idx)
+        d = E.shape[1]
+        n = torch.bincount(Y, minlength=C).double()
+        Ed = E.double()
+        mu = torch.zeros(C, d, dtype=torch.float64, device=DEV).index_add_(0, Y, Ed) / n[:, None].clamp(min=1)
+        absent = n == 0
+        if kind == "lda":
+            M = Ed.T @ Ed
+            Sw = (M - (mu.T * n) @ mu) / max(float(n.sum()) - int((~absent).sum()), 1.0)
+            Sw = (Sw + Sw.T) / 2
+            Ss = 0.9 * Sw + 0.1 * torch.trace(Sw) / d * torch.eye(d, dtype=torch.float64, device=DEV)
+            W = mu @ torch.linalg.inv(Ss)
+            b = -0.5 * (W * mu).sum(1)
+            b[absent] = -1e4
+            with torch.no_grad():
+                h.fc.weight.copy_(W.float())
+                h.fc.bias.copy_(b.float())
+            hs[g] = h
+        elif kind == "ridge":
+            Ea = torch.cat([Ed, torch.ones(len(Ed), 1, dtype=torch.float64, device=DEV)], 1)
+            A = Ea.T @ Ea
+            lam = 1e-2 * torch.trace(A) / A.shape[0]
+            Bm = Ea.T @ F.one_hot(Y, C).double()
+            W = torch.linalg.solve(A + lam * torch.eye(A.shape[0], dtype=torch.float64, device=DEV), Bm)
+            with torch.no_grad():
+                h.fc.weight.copy_(W[:d].T.float())
+                h.fc.bias.copy_(W[d].float())
+            hs[g] = h
+        elif kind == "ncm":
+            mn = F.normalize(mu.float(), dim=1)
+            mask = torch.where(absent, torch.full((C,), -1e4, device=DEV), torch.zeros(C, device=DEV))
+            hs[g] = _FnHead(h, lambda e, mn=mn, mask=mask: 10.0 * F.normalize(e, dim=1) @ mn.T + mask)
+        elif kind == "ccvr":
+            nv = max(100, 20000 // C)
+            xs, ys = [], []
+            for c in range(C):
+                Ec = Ed[Y == c]
+                if len(Ec) == 0:
+                    continue
+                z = torch.randn(nv, d, dtype=torch.float64, device=DEV)
+                if len(Ec) > 1:
+                    S = torch.cov(Ec.T) if d > 1 else Ec.var().view(1, 1)
+                    S = (S + S.T) / 2 + 1e-5 * (torch.trace(S) / d + 1e-8) * torch.eye(d, dtype=torch.float64, device=DEV)
+                    ev_, V = torch.linalg.eigh(S)
+                    xs.append(mu[c] + (z * ev_.clamp(min=0).sqrt()) @ V.T)
+                else:
+                    xs.append(mu[c].expand(nv, d))
+                ys.append(torch.full((nv,), c, dtype=torch.long, device=DEV))
+            X, Yv = torch.cat(xs).float(), torch.cat(ys)
+            opt = torch.optim.SGD(h.fc.parameters(), lr=0.01, momentum=0.9)
+            for _ in range(10):
+                for bidx in batches(len(X), 256):
+                    loss = F.cross_entropy(h.fc(X[bidx]), Yv[bidx])
+                    opt.zero_grad(set_to_none=True)
+                    loss.backward()
+                    opt.step()
+            hs[g] = h
+        else:
+            raise ValueError(kind)
+    return hs
+
+
+READOUTS = {"er": ("lda", "all"), "er_own": ("lda", "own"), "fed3r": ("ridge", "all"), "fed3r_own": ("ridge", "own"),
+            "ncm": ("ncm", "all"), "ncm_own": ("ncm", "own"), "ccvr": ("ccvr", "all"), "ccvr_own": ("ccvr", "own")}
+EVAL_KEYS = ("bal", "acc", "head", "medium", "tail", "worst", "worst_arch", "rec_std") + EXTRA_METRICS + ("ens_bal",)
+
+
+def flat_eval(prefix, ev):
+    """{prefix}_{metric} for every scalar of summarize_eval (fractions; ece / nll / brier as they are)."""
+    out = {f"{prefix}_{k}": ev[k] for k in EVAL_KEYS if ev.get(k) is not None}
+    out[f"{prefix}_recall"] = [round(v, 4) for v in ev["recall"]]
+    return out
+
+
+def evaluate_trained(ctx, cfg, m, s1, headers, G, res):
+    """Readouts and diagnostics on trained heads (shared by run_one and the --from_models re-evaluation).
+    Always: the pooled-real oracle and ER; cfg["readouts"] adds any of READOUTS; BBC when G exists."""
+    yte = ctx.data["yte"]
+    orc = classifier_oracle(ctx, headers, s1["feats"], s1["ys"], s1["feats_te"])
+    res.update(flat_eval("oracle", orc))
+    for nm in ["er"] + [r for r in (cfg.get("readouts") or []) if r != "er"]:
+        try:  # diagnostics, never allowed to break a run
+            set_seed(ctx.seed + 3000)
+            hs = readout_heads(ctx, headers, s1["feats"], s1["ys"], *READOUTS[nm])
+            res.update(flat_eval(nm, summarize_eval(eval_headers(ctx, hs, s1["feats_te"], yte))))
+        except Exception as e:  # pragma: no cover
+            res[f"{nm}_error"] = repr(e)[:200]
+    if G is not None:
+        bb = balanced_bias_calibration(ctx, headers, G, s1["feats_te"])
+        res.update(flat_eval("bbc", bb))
+        # gate (no test data): apply BBC only when the federation's GLOBAL label
+        # distribution is imbalanced, read off the exact aggregated class counts
+        glob_n = ctx.part["counts"].sum(0)
+        res["global_imbalance"] = float(glob_n.max() / max(glob_n.min(), 1))
+        res["bbc_applied"] = bool(res["global_imbalance"] > 2.0)
+        gh, gu = synreal_gap(ctx, headers, G, s1["feats_te"])
+        res.update(gap_held=gh, gap_unheld=gu)
+
+
+def wrap_sampler(ctx, m, G, s1, res):
+    """The stage-(iii) sampler: MC-S / MC moment correction and kernel herding on top of the trained G."""
+    if G is not None and m["head"].get("mcs") and not _STAT_DP:
+        G = CovCalibratedGen(G, s1["feats"], s1["ys"], k=m["head"].get("mcs_k", 256), prior=m["head"].get("mcs_prior", "pooled"))
+        res["mcs_k"] = G.k
+        if s1.get("ref") is not None:
+            fmc = referee_fidelity(s1["ref"], G)
+            res["fidelity_tail_mc"], res["fidelity_mc"] = float(fmc[TAIL()].mean()), fmc.round(3).tolist()
+        smc = sample_spread(G, s1["feats"], s1["ys"])
+        res["spread_tail_mc"] = float(np.nanmean(smc[TAIL()]))
+    elif G is not None and (m["head"].get("mc") or m["head"].get("mcs")):
+        G = MomentCalibratedGen(G, s1["feats"], s1["ys"])
+        if s1.get("ref") is not None:
+            fmc = referee_fidelity(s1["ref"], G)
+            res["fidelity_tail_mc"], res["fidelity_mc"] = float(fmc[TAIL()].mean()), fmc.round(3).tolist()
+        smc = sample_spread(G, s1["feats"], s1["ys"])
+        res["spread_tail_mc"], res["mc_scale"] = float(np.nanmean(smc[TAIL()])), G.scale.cpu().numpy().round(3).tolist()
+        res["mc_classes_used"] = int(G.use.sum())
+    if G is not None and m["head"].get("kh"):
+        phi_, mu_, use_ = federated_kme(ctx, s1["feats"], s1["ys"])
+        G = HerdedGen(G, phi_, mu_, use=use_)
+        res["kh_classes_used"] = int(use_.sum())
+        if s1.get("ref") is not None:
+            fkh = referee_fidelity(s1["ref"], G)
+            res["fidelity_tail_kh"] = float(fkh[TAIL()].mean())
+        res["spread_tail_kh"] = float(np.nanmean(sample_spread(G, s1["feats"], s1["ys"])[TAIL()]))
+    return G
+
+
 # ---------------------------------------------------------------- experiment runner
 def default_cfg():
     return dict(quick=False, seeds=[0, 1, 2], data_root="./data", out_dir="./results",
@@ -2208,6 +2470,7 @@ def run_one(cfg, run, cache, data_cache):
     ds, seed, K = run["dataset"], run["seed"], run["K"]
     m = run["m"]
     spec = DATASETS[ds]
+    set_num_classes(ds)
     if ds not in data_cache:
         log(f"loading {ds}")
         data_cache.clear()
@@ -2222,7 +2485,7 @@ def run_one(cfg, run, cache, data_cache):
     t0 = time.time()
     tracker = Tracker()
     res = dict(n_train=int(sum(ctx.sizes)), min_client=int(min(ctx.sizes)),
-               tail_holders=int((part["counts"][:, 6:] > 0).sum(0).min()))
+               tail_holders=int((part["counts"][:, TAIL()] > 0).sum(0).min()))
 
     # ---- baselines without a generator: LG-FedAvg / FedAvg (grouped)
     if m["pipeline"] in ("lg_fedavg", "fedavg_grouped"):
@@ -2350,12 +2613,12 @@ def run_one(cfg, run, cache, data_cache):
         if s2.get("n_gauss") is not None:
             res["n_gauss_classes"] = s2["n_gauss"]
         nr = s2["norms"]
-        res["cond_norm_tail_over_head_end"] = float(nr[-1, 6:].mean() / max(nr[-1, :3].mean(), 1e-12))
-        res["cond_norm_tail_rel_init"] = float(nr[-1, 6:].mean() / max(nr[0, 6:].mean(), 1e-12))
+        res["cond_norm_tail_over_head_end"] = float(nr[-1, TAIL()].mean() / max(nr[-1, HEAD()].mean(), 1e-12))
+        res["cond_norm_tail_rel_init"] = float(nr[-1, TAIL()].mean() / max(nr[0, TAIL()].mean(), 1e-12))
         res["cond_norms_end"] = nr[-1].round(4).tolist()
         if s2["fid"] is not None:
-            res["fidelity_head"] = float(s2["fid"][:3].mean())
-            res["fidelity_tail"] = float(s2["fid"][6:].mean())
+            res["fidelity_head"] = float(s2["fid"][HEAD()].mean())
+            res["fidelity_tail"] = float(s2["fid"][TAIL()].mean())
             res["fidelity"] = s2["fid"].round(3).tolist()
         if s2["mnd"] is not None:
             res["feature_mnd"] = s2["mnd"]
@@ -2363,7 +2626,7 @@ def run_one(cfg, run, cache, data_cache):
             res["stage1_agree"] = s2["agree"].round(4).tolist()
         if s2.get("spread") is not None:
             res["spread_ratio"] = s2["spread"].round(4).tolist()
-            res["spread_tail"] = float(np.nanmean(s2["spread"][6:]))
+            res["spread_tail"] = float(np.nanmean(s2["spread"][TAIL()]))
         if m["head"]["gen_update"] and s2["clients"] is not None:
             gen_state = (dict(s2["g_sd"]), s2["clients"], m["gen"], s2["W"])
             import copy
@@ -2371,30 +2634,7 @@ def run_one(cfg, run, cache, data_cache):
 
     # ---- stage (iii)
     t3 = time.time()
-    if G is not None and m["head"].get("mcs") and not _STAT_DP:
-        G = CovCalibratedGen(G, s1["feats"], s1["ys"], k=m["head"].get("mcs_k", 256), prior=m["head"].get("mcs_prior", "pooled"))
-        res["mcs_k"] = G.k
-        if s1["ref"] is not None:
-            fmc = referee_fidelity(s1["ref"], G)
-            res["fidelity_tail_mc"], res["fidelity_mc"] = float(fmc[6:].mean()), fmc.round(3).tolist()
-        smc = sample_spread(G, s1["feats"], s1["ys"])
-        res["spread_tail_mc"] = float(np.nanmean(smc[6:]))
-    elif G is not None and (m["head"].get("mc") or m["head"].get("mcs")):
-        G = MomentCalibratedGen(G, s1["feats"], s1["ys"])
-        if s1["ref"] is not None:
-            fmc = referee_fidelity(s1["ref"], G)
-            res["fidelity_tail_mc"], res["fidelity_mc"] = float(fmc[6:].mean()), fmc.round(3).tolist()
-        smc = sample_spread(G, s1["feats"], s1["ys"])
-        res["spread_tail_mc"], res["mc_scale"] = float(np.nanmean(smc[6:])), G.scale.cpu().numpy().round(3).tolist()
-        res["mc_classes_used"] = int(G.use.sum())
-    if G is not None and m["head"].get("kh"):
-        phi_, mu_, use_ = federated_kme(ctx, s1["feats"], s1["ys"])
-        G = HerdedGen(G, phi_, mu_, use=use_)
-        res["kh_classes_used"] = int(use_.sum())
-        if s1["ref"] is not None:
-            fkh = referee_fidelity(s1["ref"], G)
-            res["fidelity_tail_kh"] = float(fkh[6:].mean())
-        res["spread_tail_kh"] = float(np.nanmean(sample_spread(G, s1["feats"], s1["ys"])[6:]))
+    G = wrap_sampler(ctx, m, G, s1, res)
     if G is not None and cfg.get("mnd", False) and (m["head"].get("mc") or m["head"].get("mcs") or m["head"].get("kh")):
         res["feature_mnd_final"] = feature_mnd(ctx, G, s1["fe"])  # memorisation of the sampler heads train on
     set_seed(seed + 2000)
@@ -2410,23 +2650,7 @@ def run_one(cfg, run, cache, data_cache):
         for c, snap in zip(s2["clients"], opt_snapshot):
             for o, sd in zip(c.opts, snap):
                 o.load_state_dict(sd)
-    orc = classifier_oracle(ctx, headers, s1["feats"], s1["ys"], s1["feats_te"])
-    try:  # exact-statistics readout (T03); diagnostic, never allowed to break a run
-        er = exact_readout(ctx, headers, s1["feats"], s1["ys"], s1["feats_te"])
-        res.update(er_bal=er["bal"], er_tail=er["tail"], er_ens_bal=er.get("ens_bal"))
-    except Exception as e:  # pragma: no cover
-        res["er_error"] = repr(e)[:200]
-    res.update(oracle_bal=orc["bal"], oracle_tail=orc["tail"])
-    if G is not None:
-        bb = balanced_bias_calibration(ctx, headers, G, s1["feats_te"])
-        res.update(bbc_bal=bb["bal"], bbc_tail=bb["tail"], bbc_acc=bb["acc"])
-        # gate (no test data): apply BBC only when the federation's GLOBAL label
-        # distribution is imbalanced, read off the exact aggregated class counts
-        glob_n = ctx.part["counts"].sum(0)
-        res["global_imbalance"] = float(glob_n.max() / max(glob_n.min(), 1))
-        res["bbc_applied"] = bool(res["global_imbalance"] > 2.0)
-        gh, gu = synreal_gap(ctx, headers, G, s1["feats_te"])
-        res.update(gap_held=gh, gap_unheld=gu)
+    evaluate_trained(ctx, cfg, m, s1, headers, G, res)
     if s1["ref"] is not None:
         with torch.no_grad():
             res["referee_test_acc"] = float((s1["ref"](s1["feats_te"]).argmax(1) == data["yte"]).float().mean())
@@ -2434,8 +2658,9 @@ def run_one(cfg, run, cache, data_cache):
         # trained feature extractor and heads (and optionally the generator), so later readouts, baselines and
         # attacks need no re-run; main() writes them to <out_dir>/models/ and removes this key from the record
         cpu = lambda sd: {k: v.detach().cpu() for k, v in sd.items()}
-        res["_models"] = dict(fe=cpu(s1["fe"].state_dict()), heads=[cpu(h.state_dict()) for h in headers],
+        res["_models"] = dict(fe=cpu(s1["fe"].state_dict()), fe_key=k1, heads=[cpu(h.state_dict()) for h in headers],
                               gen=cpu(s2["g_sd"]) if (cfg.get("save_gen") and m["gen"] is not None) else None,
+                              gen_key=key_of(run, cfg, 2) if m["gen"] is not None else None,
                               method=m, gate_branch=res.get("gate_branch"))
     res["time_s"] = time.time() - t0
     if DEV == "cuda":
@@ -2450,12 +2675,54 @@ def finish(res, tracker, G):
                final_tail=last["tail"], final_worst=last["worst"], best_mean_acc=last["best_mean_acc"],
                final_recall=[round(v, 4) for v in last["recall"]],
                final_ens_acc=last.get("ens_acc"), final_ens_bal=last.get("ens_bal"))
+    for k in EXTRA_METRICS + ("worst_arch", "rec_std"):
+        if last.get(k) is not None:
+            res["final_" + k] = last[k]
     res["history"] = [{k: (round(v, 4) if isinstance(v, float) else v) for k, v in h.items() if k != "recall"}
                       for h in tracker.hist]
     return res
 
 
-SCALAR_FIELDS = ["er_bal", "er_tail", "final_bal", "final_acc", "final_ens_acc", "final_ens_bal", "final_tail", "final_head", "final_medium", "final_worst", "n_gauss_classes",
+def reeval_one(cfg, run, mdir, data_cache):
+    """--from_models: rebuild the run's data split from its seed, load its saved FE, heads and (if saved)
+    generator, and recompute every final metric and readout without training anything."""
+    ds, seed, K = run["dataset"], run["seed"], run["K"]
+    spec = DATASETS[ds]
+    set_num_classes(ds)
+    t0 = time.time()
+    M = torch.load(os.path.join(mdir, "heads", safe_name(run_id(run)) + ".pt"), map_location=DEV)
+    if ds not in data_cache:
+        data_cache.clear()
+        data_cache[ds] = load_dataset(ds, cfg["data_root"])
+    data = data_cache[ds]
+    frac = spec["frac"] * (cfg["quick_frac"].get(ds, 1.0) if cfg["quick"] else 1.0)
+    part = make_partition(data["ytr"], K, frac, run["IF"], run["alpha"], seed)
+    data, part = localize(data, part)
+    ctx = Ctx(cfg, data, ds, part, K, seed)
+    fe = PaperFE(spec["in_ch"], spec["fe"]).to(DEV)
+    fe.load_state_dict(torch.load(os.path.join(mdir, M["fe_file"]), map_location=DEV))
+    feats = [compute_features(fe, data["xtr"][p]) for p in part["parts"]]
+    ys_list = [data["ytr"][p] for p in part["parts"]]
+    s1 = dict(fe=fe, feats=feats, ys=ys_list, feats_te=compute_features(fe, data["xte"]), ref=None)
+    headers = build_headers(ctx, feats[0].shape[1])
+    for h, sd in zip(headers, M["heads"]):
+        h.load_state_dict(sd)
+    global _STAT_DP
+    _STAT_DP = None
+    m, G, res = M["method"], None, dict(reeval_of=M.get("run_id"), gate_branch=M.get("gate_branch"))
+    if M.get("gen_file") and m["gen"] is not None and m["gen"]["type"] in ("cvae", "pcvae", "dcgan", "ddpm"):
+        proto = class_prototypes(feats, ys_list) if m["gen"]["type"] == "pcvae" else None
+        G = make_gen(ctx, m["gen"], feats[0].shape[1], feats[0].shape[1:], proto)
+        G.load_state_dict(torch.load(os.path.join(mdir, M["gen_file"]), map_location=DEV))
+        set_seed(seed + 2000)
+        G = wrap_sampler(ctx, m, G, s1, res)
+    res.update(flat_eval("final", summarize_eval(eval_headers(ctx, headers, s1["feats_te"], data["yte"]))))
+    evaluate_trained(ctx, cfg, m, s1, headers, G, res)
+    res["time_s"] = time.time() - t0
+    return res
+
+
+SCALAR_FIELDS = ["final_f1", "final_gmean", "final_ece", "final_nll", "final_worst_arch", "er_bal", "er_tail", "final_bal", "final_acc", "final_ens_acc", "final_ens_bal", "final_tail", "final_head", "final_medium", "final_worst", "n_gauss_classes",
                  "best_mean_acc", "oracle_bal", "oracle_tail", "fidelity_head", "fidelity_tail",
                  "cond_norm_tail_over_head_end", "cond_norm_tail_rel_init", "feature_mnd", "referee_test_acc",
                  "time_s", "fe_time_s", "gen_time_s", "head_time_s", "n_train", "min_client", "tail_holders"]
@@ -2463,6 +2730,38 @@ SCALAR_FIELDS = ["er_bal", "er_tail", "final_bal", "final_acc", "final_ens_acc",
 
 def run_id(run):
     return f"{run['label']}|{run['dataset']}|IF{run['IF']}|a{run['alpha']}|K{run['K']}|s{run['seed']}"
+
+
+def safe_name(rid):
+    return "".join(ch if ch.isalnum() or ch in "-_.=" else "_" for ch in rid)
+
+
+def save_models(mroot, rid, models, res):
+    """Models go to their own folder tree (default <out_dir>/../models/<exp>/), separate from the results,
+    so it can be zipped and re-uploaded on its own (e.g. as a Kaggle dataset) and used with --from_models:
+        fe/<dataset>_s<seed>_<hash>.pt     feature extractor (one per stage-(i) setting, shared by arms)
+        gen/<dataset>_s<seed>_<hash>.pt    trained generator before MC / KH (one per stage-(ii) setting)
+        heads/<run id>.pt                   the run's ten heads + method + the names of its FE and generator files
+        index.jsonl                         one line per run: run id -> files"""
+    import hashlib
+    hk = lambda k: hashlib.sha1(k.encode()).hexdigest()[:12]
+    tag = f"{res.get('_ds', 'x')}_s{res.get('_seed', 0)}"
+    for sub in ("fe", "gen", "heads"):
+        os.makedirs(os.path.join(mroot, sub), exist_ok=True)
+    fe_file = f"fe/{tag}_{hk(models['fe_key'])}.pt"
+    if not os.path.exists(os.path.join(mroot, fe_file)):
+        torch.save(models["fe"], os.path.join(mroot, fe_file))
+    gen_file = None
+    if models.get("gen") is not None:
+        gen_file = f"gen/{tag}_{hk(models['gen_key'])}.pt"
+        if not os.path.exists(os.path.join(mroot, gen_file)):
+            torch.save(models["gen"], os.path.join(mroot, gen_file))
+    heads_file = f"heads/{safe_name(rid)}.pt"
+    torch.save(dict(run_id=rid, heads=models["heads"], method=models["method"], gate_branch=models["gate_branch"],
+                    fe_file=fe_file, gen_file=gen_file, code_commit=code_commit()), os.path.join(mroot, heads_file))
+    with open(os.path.join(mroot, "index.jsonl"), "a", encoding="utf-8") as f:
+        f.write(json.dumps(dict(run_id=rid, heads=heads_file, fe=fe_file, gen=gen_file)) + "\n")
+    return heads_file
 
 
 def group_key(run):
@@ -2483,7 +2782,10 @@ def paired_t(a, b):
 
 def _pct_scale(mtr):
     """Metrics stored as fractions are printed in %; counts, ratios and F as they are."""
-    return 100.0 if mtr.startswith(("final", "best", "oracle", "fidelity", "referee", "bbc", "method", "ncm")) else 1.0
+    if mtr.endswith(("_nll", "_brier")):
+        return 1.0
+    return 100.0 if mtr.startswith(("final", "best", "oracle", "fidelity", "referee", "bbc", "method", "ncm", "er_",
+                                    "fed3r", "ccvr")) else 1.0
 
 
 def write_summary(exp, rows, out_dir, cfg):
@@ -2499,8 +2801,8 @@ def write_summary(exp, rows, out_dir, cfg):
     for setting, labels in by.items():
         ds, IF, alpha, K = setting
         lines.append(f"## {ds}  IF={IF}  alpha={alpha}  K={K}")
-        paper = DATASETS[ds]["paper"]["cvae"]
-        if IF == 1.0 and alpha is None and K in (10, 50, 100):
+        paper = (DATASETS[ds]["paper"] or {}).get("cvae")
+        if paper and IF == 1.0 and alpha is None and K in (10, 50, 100):
             lines.append(f"Paper Figure 4 GeFL-F (CVAE-F): {paper[[10, 50, 100].index(K)]}%")
         lines.append("")
         lines.append("| label | n | " + " | ".join(metrics) + (f" | p vs {ref} ({metrics[0]})" if ref else "") + " |")
@@ -2575,7 +2877,11 @@ def main(exp):
     ap.add_argument("--deterministic", action="store_true",
                     help="deterministic cuDNN/cuBLAS kernels (slower); same seed then gives the same run")
     ap.add_argument("--no_save_models", action="store_true", help="do not save trained FE + heads per run")
-    ap.add_argument("--save_gen", action="store_true", help="also save the stage-(ii) generator per run (~24 MB)")
+    ap.add_argument("--save_gen", action="store_true", help="also save the stage-(ii) generator (~25 MB, once per setting)")
+    ap.add_argument("--models_dir", default=None,
+                    help="where models go (default: <out_dir>/../models); kept apart from the results")
+    ap.add_argument("--from_models", default=None,
+                    help="folder models/<exp> from an earlier run: re-evaluate its saved models, train nothing")
     a, _unknown = ap.parse_known_args()  # tolerate Jupyter/Kaggle kernel arguments
     if a.deterministic or os.environ.get("GEFL_DETERMINISTIC") == "1":
         os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
@@ -2585,7 +2891,8 @@ def main(exp):
     cfg = dict(quick=a.quick, quick_scale=a.quick_scale, quick_frac={"cifar10": 0.2, "svhn": 0.5},
                seeds=a.seeds if a.seeds is not None else ([0] if a.quick else exp.get("seeds", [0, 1, 2])),
                data_root=a.data_root, referee=exp.get("referee", True), mnd=exp.get("mnd", False),
-               save_models=not a.no_save_models, save_gen=a.save_gen)
+               save_models=not a.no_save_models, save_gen=a.save_gen or exp.get("save_gen", False),
+               readouts=exp.get("readouts"))
     runs = exp["plan"](cfg)
     if a.datasets:
         runs = [r for r in runs if r["dataset"] in a.datasets]
@@ -2595,7 +2902,9 @@ def main(exp):
         runs = [r for r in runs if r["K"] in a.K]
     if a.IF:
         runs = [r for r in runs if r["IF"] in a.IF]
-    out_dir = os.path.join(a.out_dir, exp["name"] + ("_quick" if a.quick else ""))
+    out_dir = os.path.join(a.out_dir, exp["name"] + ("_quick" if a.quick else "") + ("_reeval" if a.from_models else ""))
+    models_dir = a.models_dir or os.path.join(os.path.dirname(os.path.abspath(a.out_dir)), "models")
+    mroot = os.path.join(models_dir, exp["name"] + ("_quick" if a.quick else ""))
     os.makedirs(out_dir, exist_ok=True)
     jl = os.path.join(out_dir, "runs.jsonl")
     done = {}
@@ -2684,13 +2993,19 @@ def main(exp):
         if rid in done:
             continue
         log(f"[{i + 1}/{len(runs)}] {rid}")
-        res = run_one(cfg, r, cache, data_cache)
+        if a.from_models:
+            if not os.path.exists(os.path.join(a.from_models, "heads", safe_name(rid) + ".pt")):
+                log("    no saved models for this run; skipped")
+                continue
+            res = reeval_one(cfg, r, a.from_models, data_cache)
+            res.setdefault("best_mean_acc", None)
+        else:
+            res = run_one(cfg, r, cache, data_cache)
         models = res.pop("_models", None)
         if models is not None:
-            os.makedirs(os.path.join(out_dir, "models"), exist_ok=True)
-            fn = "".join(ch if ch.isalnum() or ch in "-_.=" else "_" for ch in rid) + ".pt"
-            torch.save(models, os.path.join(out_dir, "models", fn))
-            res["models_file"] = "models/" + fn
+            res["_ds"], res["_seed"] = r["dataset"], r["seed"]
+            res["models_file"] = save_models(mroot, rid, models, res)
+            del res["_ds"], res["_seed"]
         row = dict(run_id=rid, exp=exp["name"], label=r["label"], dataset=r["dataset"], IF=r["IF"],
                    alpha=r["alpha"], K=r["K"], seed=r["seed"], method=r["m"], quick=cfg["quick"],
                    code_commit=code_commit(), deterministic=not torch.backends.cudnn.benchmark, **res)
@@ -2698,7 +3013,7 @@ def main(exp):
             f.write(json.dumps(row) + "\n")
         rows.append(row)
         log(f"    bal={res['final_bal'] * 100:.2f} tail={res['final_tail'] * 100:.2f} "
-            f"best_mean_acc={res['best_mean_acc'] * 100:.2f} oracle_bal={res.get('oracle_bal', float('nan')) * 100:.2f} "
+            f"best_mean_acc={(res['best_mean_acc'] or float('nan')) * 100:.2f} oracle_bal={res.get('oracle_bal', float('nan')) * 100:.2f} "
             f"fid_tail={res.get('fidelity_tail', float('nan')):.3f} norm_t/h={res.get('cond_norm_tail_over_head_end', float('nan')):.3f} "
             f"time={res['time_s']:.0f}s")
         for kk in stage_keys(r, cfg):

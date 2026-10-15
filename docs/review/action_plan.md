@@ -45,6 +45,21 @@ Everything else is either:
 
 ---
 
+**Decided 15 Oct 2026** (your answers; your "D1" answered the re-run question, which is D2 here):
+- **D1 venue:** aim as high as possible (main track: NeurIPS / ICML / ICLR). Gate 1 still decides whether that is
+  realistic; the Phase C/D generality evidence is therefore needed, not optional.
+- **D2 re-runs:** approved. Built as job **K16** (`experiments/specs/K16_kaggle_recalibration.py`, notebooks
+  NB40–NB48). Models are now saved to their own folder (`models/<job>/`, zipped separately as
+  `<folder>__models.zip`) and any saved run can be re-evaluated without training (`--from_models`).
+- **D3 metrics:** report both final-round balanced accuracy and the paper's best-round metric, plus metrics not used
+  so far: macro-F1, G-mean of class recalls, worst architecture, spread of class recalls, accuracy on each head's own
+  clients' label distribution, and calibration (ECE, NLL, Brier). All are now logged for the heads and every readout.
+- **D4 the method:** not yet answered (the question was unclear). K16 uses the method as it now runs in code:
+  GATE + MC + KH + LA + CSL, T_s = 10 on MNIST / FashionMNIST and 1 elsewhere. C4 must still fix the T_s rule on
+  validation data and run it on new seeds.
+- **D5 many-class dataset:** yes. CIFAR-100-LT is implemented (100 classes; IF = 100 gives 10,926 images, 480 to 5
+  per class, the standard shape) and is part of K16.
+
 ## 2. Phase A: corrections with no compute (do first, about 1–2 days of writing)
 
 Each item fixes a statement that is demonstrably false or overstated. Source IDs: F = our dossier, R# = our reviewers,
@@ -78,7 +93,7 @@ GPT = GPT issue ID.
 
 ## 3. Phase B: the two deciding experiments (Gate 1)
 
-### B1 — Recalibration baseline job (new job "K16", needs D2)
+### B1 — Recalibration baseline job K16 (approved; built 15 Oct 2026, notebooks NB40–NB48)
 
 - **Arms**, on all four datasets, seeds 0–2, full schedule, LT and IID:
   - GeFL-F;

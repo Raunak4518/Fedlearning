@@ -91,6 +91,25 @@ JOBS = [  # (notebook name, script, arguments, result folder name, rough hours, 
     ("NB39_collapse_fixes_fmnist", "K15_kaggle_collapse_fixes", "--datasets fmnist",
      "K15_kaggle_collapse_fixes__fmnist", 3.5,
      "FashionMNIST long tail, K = 10/50/100: AdamW (matched 1e-3; 1e-2 at K=10), no decay on class rows, lazy decay, against HWA (references reused)."),
+    # K16 (action plan B1): one notebook per dataset and regime; the long-tail ones decide Gate 1, run them first
+    ("NB40_recalib_mnist_lt", "K16_kaggle_recalibration", "--datasets mnist --IF 0.01", "K16_kaggle_recalibration__mnist_lt", 1.5,
+     "MNIST long tail: GeFL-F, +LA, minimal variant, our gated method; every trained head evaluated under 8 readouts (ER, Fed3R, FedNCM, CCVR, ...)."),
+    ("NB41_recalib_fmnist_lt", "K16_kaggle_recalibration", "--datasets fmnist --IF 0.01", "K16_kaggle_recalibration__fmnist_lt", 1.5,
+     "FashionMNIST long tail: the same four methods under every readout."),
+    ("NB42_recalib_svhn_lt", "K16_kaggle_recalibration", "--datasets svhn --IF 0.01", "K16_kaggle_recalibration__svhn_lt", 2,
+     "SVHN long tail: the same four methods under every readout (the gate picks the class-row generator here)."),
+    ("NB43_recalib_cifar10_lt", "K16_kaggle_recalibration", "--datasets cifar10 --IF 0.01", "K16_kaggle_recalibration__cifar10_lt", 4.5,
+     "CIFAR-10 long tail: the same four methods under every readout."),
+    ("NB44_recalib_cifar100_lt", "K16_kaggle_recalibration", "--datasets cifar100 --IF 0.01", "K16_kaggle_recalibration__cifar100_lt", 3.5,
+     "CIFAR-100 long tail (new dataset, 100 classes): the same four methods under every readout."),
+    ("NB45_recalib_mnist_fmnist_iid", "K16_kaggle_recalibration", "--datasets mnist fmnist --IF 1.0", "K16_kaggle_recalibration__mnist_fmnist_iid", 3,
+     "MNIST + FashionMNIST, the paper's balanced setting: the same four methods under every readout."),
+    ("NB46_recalib_svhn_iid", "K16_kaggle_recalibration", "--datasets svhn --IF 1.0", "K16_kaggle_recalibration__svhn_iid", 2,
+     "SVHN, the paper's balanced setting: the same four methods under every readout."),
+    ("NB47_recalib_cifar10_iid", "K16_kaggle_recalibration", "--datasets cifar10 --IF 1.0", "K16_kaggle_recalibration__cifar10_iid", 5.5,
+     "CIFAR-10, the paper's balanced setting: the same four methods under every readout."),
+    ("NB48_recalib_cifar100_iid", "K16_kaggle_recalibration", "--datasets cifar100 --IF 1.0", "K16_kaggle_recalibration__cifar100_iid", 4,
+     "CIFAR-100, balanced: the same four methods under every readout."),
     ("NB6_svhn_diffusion", "K04_kaggle_ddpm_cifar10_svhn", "--datasets svhn", "K04_kaggle_ddpm_cifar10_svhn__svhn", 7,
      "SVHN with the paper's diffusion feature generator (DDPM-F)."),
     ("NB7_cifar10_diffusion_seed0", "K04_kaggle_ddpm_cifar10_svhn", "--datasets cifar10 --seeds 0", "K04_kaggle_ddpm_cifar10_svhn__cifar10_s0", 6,
@@ -127,8 +146,10 @@ def notebook(name, script, args, folder, hours, what):
 ## How to run
 1. Top right → **Save Version** → choose **Save & Run All (Commit)** → **Save**.
 2. Close the tab if you like. It keeps running on Kaggle for up to 12 hours.
-3. When it is done (the version shows a green tick), open that version → **Output** tab →
-   download **`{folder}.zip`** and send it back. That one file is all that is needed.
+3. When it is done (the version shows a green tick), open that version → **Output** tab → download two files:
+   - **`{folder}.zip`**: the results (small). Send this one back.
+   - **`{folder}__models.zip`**: the trained models, kept separate. Keep it (for example as a private Kaggle
+     dataset); it is only needed if the models are re-used later, so they do not have to be trained again.
 
 Do **not** edit any cell. If cell 2 prints a red **STOP** message, fix the setting it names and run again.
 """),
@@ -164,7 +185,16 @@ if os.path.isdir(dst):
     shutil.rmtree(dst)
 shutil.copytree(src, dst)
 shutil.make_archive(dst, "zip", "/kaggle/working", "{folder}")
-print("Download this file from the Output tab:", dst + ".zip")
+print("Results (send this back):", dst + ".zip")
+msrc = "/kaggle/working/models/{exp}"
+if os.path.isdir(msrc):
+    mdst = dst + "__models"
+    if os.path.isdir(mdst):
+        shutil.rmtree(mdst)
+    shutil.copytree(msrc, mdst)
+    shutil.make_archive(mdst, "zip", "/kaggle/working", "{folder}__models")
+    shutil.rmtree(mdst)
+    print("Models (keep; separate from the results):", mdst + ".zip")
 print()
 print(open(os.path.join(dst, "summary.md")).read() if os.path.exists(os.path.join(dst, "summary.md")) else "no summary.md yet")
 """),
