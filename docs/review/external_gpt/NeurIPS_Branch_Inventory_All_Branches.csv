@@ -1,0 +1,4 @@
+branch,tip_sha,latest_commit_date,tip_message,blob_files,tree_entries,branch_role,unique_files_vs_main,modified_paths_vs_main,review_status
+main,f9f4b4437f12dc633f4f20ac086bcdb8e6120d57,2026-10-13T21:44:57Z,Report: correct feature shape and head sizes; add HTML style samples,324,378,GitHub default branch; older snapshot,0,0,Audited; baseline reference
+revision/adam-collapse-drift,f9f4b4437f12dc633f4f20ac086bcdb8e6120d57,same tip as main,Exact same commit as main,324,378,"Duplicate ref, no unique snapshot",0,0,Audited; identical to main; not counted independently
+claude/moved-session-c4mfhn,1064d67acf909ccffcea4f2578814b44eafc762b,2026-10-15T10:02:43Z,Handout v2 as PDF; follows corrected theorem/readout/ledger commits,525,597,Newest research snapshot; candidate reviewed for current paper,201,100,Primary technical audit snapshot; not merged into default branch

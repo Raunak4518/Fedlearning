@@ -1,0 +1,16 @@
+path,change,review_significance
+docs/PROGRESS.md,added on claude branch,Research-state ledger; makes pending jobs and draft/data discrepancies explicit
+experiments/LEDGER.md,added on claude branch,"Claims to index 1,177 completed runs; raw per-run audit improves reproducibility"
+docs/paper_assets/CHECK.md,added on claude branch,Reports paper-draft numbers that disagree with generated tables/raw runs
+docs/paper_assets/numbers.csv,added on claude branch,Generated traceability for mean/sd/seeds/p-values/source arms
+docs/paper_single_idea.md,modified on claude branch,Corrects obsolete K/2 contraction statement; adds calibrated results and pending data caveats
+docs/paper_draft.md,modified on claude branch,Newer full draft; still has number-level mismatches listed in CHECK.md
+docs/research/readout_report.md,added on claude branch,"Readout gap, exact readout, failed mechanism hypothesis, recalibration baseline warning"
+experiments/results/T01_collapse_threshold/summary.md,added on claude branch,"Corrected contraction inequality checked on one MNIST seed, 1,200 row-rounds"
+experiments/results/T02_dilution_rates/summary.md,added on claude branch,Shows dilution without weight decay and HWA scaling over K=10/50/100
+experiments/results/T03_exact_readout/PREREGISTRATION*.md + runs*.jsonl,added on claude branch,Readout recalibration preregistered; original synthetic-mean mechanism prediction failed; follow-up only one reduced seed
+experiments/results/E32_moment_anchor_bayes/*,added on claude branch,New MC-B results: promising on FMNIST; unstable MNIST LT seed
+experiments/K14_kaggle_ablation_seeds_mcb.py; experiments/K15_kaggle_collapse_fixes.py; kaggle_notebooks/NB32–NB39,added on claude branch,Critical planned runs are specified but status says not run
+docs/paper_assets/tables/T17/T18_collapse_fixes*,added on claude branch,Tables have many missing cells because K15 has not run
+experiments/results/K09_ablation_analysis.md,added on claude branch,Calls out n=3 multiple-test weakness and CSV overwrite issue
+docs/professor_report/OursA_Backup_Handout.docx/pdf,added/updated on claude branch,"Latest research handout, should not override raw scripts and runs as source of truth"

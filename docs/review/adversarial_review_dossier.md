@@ -555,3 +555,17 @@ Until tests 1 and 2 are run, the conclusions about significance (F1) and HWA's n
 *Full reviewer reports: `docs/review/reviewers/R1_novelty.md` … `R10_area_chair.md`. Recomputation scripts:
 `docs/review/work/r*_work/`. The scripts were written to run from the session scratchpad; their data paths point at
 `/home/user/Fedlearning/experiments/results/`.*
+
+---
+
+## Addendum (15 Oct 2026): issues added after comparison with the GPT review package
+
+See `docs/review/gpt_review_comparison.md`. The verdict is unchanged. Added to the inventory:
+
+| ID | Title | Sev | Evidence | Status |
+|---|---|---|---|---|
+| F18 | FedNPC (CVPR 2026 Findings), post-hoc classifier calibration for federated long-tailed learning, is not cited and is a candidate baseline next to CCVR / Fed3R / ER | 3 | CVF open-access supplement exists; main paper not yet read | D (existence) / U (fit to per-architecture heads) |
+| F19 | Worst-class accuracy missing from headline tables (e.g. MC-B FMNIST LT 81.57 balanced vs 33.19 ± 4.02 worst class) | 3 | `E32_moment_anchor_bayes/summary.md` | D |
+| F20 | No anonymised NeurIPS-format manuscript or checklist; the latest work is only on an unmerged branch (`main` still has the old K/2 theorem) | 4 | branch tips; repository tree | D |
+
+GPT's statement that the gate statistic is "≈ 0.14–0.60" outside SVHN repeats the draft's error and is contradicted by the logs (F6).

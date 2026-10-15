@@ -1,0 +1,17 @@
+row_type,criterion,panel,n,mean,median,mode,min,max,q1,q3,iqr,count_distribution,quality_mean,clarity_mean,significance_mean,originality_mean,overall_mean,confidence_mean,overall_distribution
+overall,quality,,100,1.9,2.0,2,1,3,2.0,2.0,0.0,"{""1"": 20, ""2"": 70, ""3"": 10}",,,,,,,
+overall,clarity,,100,2.1,2.0,2,1,3,2.0,2.0,0.0,"{""1"": 10, ""2"": 70, ""3"": 20}",,,,,,,
+overall,significance,,100,2.6,3.0,3,1,4,2.0,3.0,1.0,"{""1"": 5, ""2"": 40, ""3"": 45, ""4"": 10}",,,,,,,
+overall,originality,,100,2,2.0,2,1,3,2.0,2.0,0.0,"{""1"": 10, ""2"": 80, ""3"": 10}",,,,,,,
+overall,overall,,100,2.04,2.0,2,1,3,2.0,2.0,0.0,"{""1"": 6, ""2"": 84, ""3"": 10}",,,,,,,
+overall,confidence,,100,4.11,4.0,4,3,5,4.0,4.0,0.0,"{""3"": 10, ""4"": 69, ""5"": 21}",,,,,,,
+panel,,A — General NeurIPS reviewers and contribution assessment,10,,,,,,,,,,1.9,2.1,3.1,2,2.1,4.1,"{""2"": 9, ""3"": 1}"
+panel,,B — Originality and literature review,10,,,,,,,,,,1.9,2.1,2.1,2,2,4.1,"{""2"": 10}"
+panel,,C — Mathematical proof and theoretical foundations,10,,,,,,,,,,1.9,2.1,2.1,2,1.7,4.1,"{""1"": 3, ""2"": 7}"
+panel,,D — Optimization and algorithmic behavior,10,,,,,,,,,,1.9,2.1,3.1,2,2,4.1,"{""2"": 10}"
+panel,,E — Federated system design and heterogeneity,10,,,,,,,,,,1.9,2.1,3.1,2,2.3,4.1,"{""2"": 7, ""3"": 3}"
+panel,,"F — Generative models, distributions and statistics",10,,,,,,,,,,1.9,2.1,3.1,2,2.3,4.1,"{""2"": 7, ""3"": 3}"
+panel,,G — Experimental methodology and benchmark quality,10,,,,,,,,,,1.9,2.1,3.1,2,2.3,4.1,"{""2"": 7, ""3"": 3}"
+panel,,H — Statistical reliability and reproducibility,10,,,,,,,,,,1.9,2.1,2.1,2,2,4.1,"{""2"": 10}"
+panel,,"I — Privacy, communication, complexity and systems",10,,,,,,,,,,1.9,2.1,2.1,2,1.7,4.1,"{""1"": 3, ""2"": 7}"
+panel,,"J — Meta-review, ethics, communication and final decision",10,,,,,,,,,,1.9,2.1,2.1,2,2,4.2,"{""2"": 10}"
