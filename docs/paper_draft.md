@@ -142,8 +142,8 @@ $\eta = \lambda = 10^{-3}$.)
 shrink", is the special case $\bar G_c = \bar D_c$: every holder would have to grow the row as fast as a non-holder
 shrinks it. Nothing forces that. A holder's data gradient fits the row; it does not push its norm up at Adam's full
 rate. So $\bar G_c \ll \bar D_c$, $\theta_c > 1/2$, and **tail rows contract even when most clients hold the class**.
-Without weight decay the non-holder term vanishes; the data step is then only diluted by $m_c/K$ (Theorem 1 of
-`docs/improvement_derivations.html`): rare classes learn more slowly but do not collapse.
+Without weight decay the non-holder term vanishes; the data step is then only diluted by $m_c/K$ (measured in
+`experiments/results/T02_dilution_rates/summary.md`): rare classes learn more slowly but do not collapse.
 
 **Predictions.** (i) GeFL-F's tail-to-head row-norm ratio is $\ll 1$ under a long tail, even when every class is held
 by more than half the clients. (ii) It is the same for every $\lambda > 0$ and disappears at $\lambda = 0$. (iii) It

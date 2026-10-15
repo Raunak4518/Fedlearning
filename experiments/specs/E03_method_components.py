@@ -1,7 +1,7 @@
 """E03 - The method: every component alone, the key combinations, baselines.
 
 Setting: long tail IF=100 + Dirichlet(0.5), K=10, paper budget.
-Components (derivations in experiments/README.md):
+Components (derivations in docs/paper_draft.md):
   HWA  holder-weighted conditioning aggregation   (fixes dilution, Thm 1)
   LCD  lazy conditioning decay                    (fixes collapse, eq. 2.2)
   GF   gap-filling synthetic labels               (sequential water-filling)

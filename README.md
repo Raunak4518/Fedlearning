@@ -1,234 +1,62 @@
-# Class-Balanced GeFL
+# GeFL-F under long-tailed clients: exact-statistics anchoring (research code)
 
-A research-grade, dataset-agnostic implementation of **GeFL** (Generative
-Model-Aided Federated Learning; Kang et al., 2025) extended with two
-proposed mechanisms for class-imbalance-aware model-heterogeneous
-federated learning, plus a full **CReFF** (Shang et al., IJCAI 2022)
-baseline for comparison.
+This repository studies **GeFL-F** (generator-based model-heterogeneous federated learning; Kang et al., IEEE TMC 2025)
+when clients hold long-tailed, label-skewed data. Clients share a frozen feature extractor and a class-conditional
+feature generator, and each trains its own head architecture. We diagnose why rare classes are lost and test repairs that
+take class information from exactly aggregated statistics (class sums under secure aggregation) instead of from
+FedAvg-trained weights.
 
-Structured and named in the style of the original GeFL reference
-implementation ([honggkang/hetero-model-fl-gen](https://github.com/honggkang/hetero-model-fl-gen))
-— a single `args.py`, one top-level script per generator variant
-(`GeFL_CVAE.py` / `GeFL_GAN.py` / `GeFL_DDPM.py`), a `utils/` package of
-`LocalUpdate*` / `avg.py` / `evaluate.py` helpers — but rebuilt around a
-registry pattern (`datasets/`, `generators/`, `targetNetModels/`) so that
-**every dataset, generator architecture, and target-network architecture
-is selected by name from the command line, with nothing hardcoded
-anywhere in the training loop.**
+**Status (15 Oct 2026):** under revision after an adversarial review. The reviews, and the plan that follows from them,
+are the starting point for any new work:
+- `docs/review/action_plan.md`: what to do next, in order, including the two experiments that decide the paper's framing;
+- `docs/review/adversarial_review_dossier.md`: every surviving objection, with evidence.
 
-## What's proposed here, on top of GeFL
+## Where things are
 
-GeFL's own reference behaviour is class-blind in two places:
-1. **Aggregation**: the shared generator is averaged across clients with
-   a flat, unweighted mean — a client holding zero samples of a class
-   influences that class's conditioning parameters exactly as much as a
-   client holding hundreds.
-2. **Sampling**: synthetic conditioning labels are drawn `y ~ Uniform`,
-   with no correction for true class rarity.
+| Path | What it is |
+|---|---|
+| `docs/paper_draft.md` | The manuscript (single source of the paper's text) |
+| `docs/PROGRESS.md` | Each claim of the paper → its evidence → status, and the list of jobs still to run |
+| `docs/related_work.md` | Literature notes |
+| `docs/research/readout_report.md` | The readout-gap analysis and exact readout (T03) |
+| `docs/paper_assets/` | Generated tables, figures and every number with its source (`numbers.csv`), and `CHECK.md` (draft numbers that disagree with the data) |
+| `docs/review/` | The adversarial review: dossier, ten reviewer reports, recomputation scripts, the GPT review package and its comparison, and the action plan |
+| `docs/professor_report/` | Professor handout (Word + PDF) and the scripts that build its figures |
+| `docs/collapse_explainer/` | Plain-language PDF on the collapse result |
+| `experiments/core.py` | **The whole pipeline**: data, partitions, feature extractor, generators, heads, every method component, metrics |
+| `experiments/specs/` | One file per experiment (arms, datasets, seeds) |
+| `experiments/build.py` | Builds a standalone script `experiments/<name>.py` = `core.py` + `specs/<name>.py` (built scripts are not committed) |
+| `experiments/results/<job>/` | Raw results: `runs.jsonl` (one record per run and seed) and `summary.md` |
+| `experiments/LEDGER.md`, `experiments/ledger.py` | Every completed run and every planned job's status; `--check` finds duplicates before anything new is run |
+| `experiments/paper_assets.py` | Regenerates `docs/paper_assets/` from the raw results |
+| `experiments/make_kaggle_notebooks.py` | Writes Kaggle notebooks for named jobs |
+| `experiments/T01_*`, `T02_*`, `T03_*` | Small CPU mechanism tests (collapse bound, dilution rates, exact readout) |
+| `experiments/D01_component_evidence.py` | Per-component mechanism measurements |
+| `experiments/reference_check/` | Parity check of our GeFL-F against the authors' released code |
+| `kaggle_notebooks/` | Notebooks that are ready but **not yet run** (K14: NB36–37; K15: NB38–39) |
 
-- **Mechanism A** (`--mechanism_a 1`) — frequency-weighted aggregation:
-  the generator's class-conditioning pathway is aggregated with a
-  per-class effective-number-of-samples weight (Cui et al., 2019,
-  repurposed as an aggregation weight rather than a loss weight — see
-  the note below), while the unconditional trunk stays on ordinary
-  volume-weighted FedAvg.
-- **Mechanism B** (`--mechanism_b 1`) — fidelity-gated adaptive sampling:
-  `p(y)` drifts from the natural class frequency toward inverse-frequency
-  rebalancing only as fast as each class's generated samples earn a
-  measured target-network confidence — reusing, for free, a forward pass
-  local training already runs.
-
-Both are implemented against a generic interface
-(`ConditionalGenerator.conditioning_parameter_names()`) so they work
-identically for the VAE, GAN, and DDPM generator variants without any
-architecture-specific code in the aggregation or sampling logic itself.
-
-## Install
+## Common commands
 
 ```bash
 pip install -r requirements.txt
+
+python experiments/build.py                                   # build all standalone experiment scripts
+python experiments/build.py && python experiments/F01_main_longtail.py --list    # show a job's planned runs
+python experiments/ledger.py                                  # refresh LEDGER.md after adding results
+python experiments/ledger.py --check K15_kaggle_collapse_fixes --datasets mnist  # duplicate check for a job
+python experiments/paper_assets.py                            # regenerate tables, figures, numbers.csv, CHECK.md
+python experiments/make_kaggle_notebooks.py                   # list jobs; then name the ones to write, e.g. NB38 NB39
 ```
 
-Everything runs on CPU (slow) or CUDA (`--device cuda`, auto-detected by
-default). No GPU is required to run the tests or a `--dataset synthetic`
-sanity check.
+Results from Kaggle go into `experiments/results/<folder>/` (`summary.md` + `runs.jsonl`). After adding results, rerun
+`ledger.py` and `paper_assets.py`.
 
-## Quick start
+## Removed in the 15 Oct 2026 clean-up
 
-```bash
-# 1. Fast, fully-offline sanity check (~5s, exercises every code path)
-python GeFL_CVAE.py --config configs/synthetic_debug.yaml
-
-# 2. GeFL baseline on CIFAR-10-LT (downloads CIFAR-10 via torchvision)
-python GeFL_CVAE.py --config configs/cifar10_lt.yaml
-
-# 3. Proposed method (both mechanisms) on the same setup
-python GeFL_CVAE.py --config configs/cifar10_lt.yaml --mechanism_a 1 --mechanism_b 1 --name proposed
-
-# 3b. GeFL-F (feature-space variant, the primary research target)
-python GeFL_F_CVAE.py --config configs/cifar10_gefl_f.yaml --mechanism_a 1 --mechanism_b 1
-
-# 4. Plain FedAvg, no generator at all
-python GeFL_CVAE.py --dataset cifar10 --aid_by_gen 0 --name fedavg_baseline
-
-# 5. Classifier-side comparison baseline (CReFF)
-python Baseline_CReFF.py --config configs/cifar10_lt.yaml --name creff_cifar10lt
-
-# 6. Same experiment with a GAN or DDPM generator instead of a VAE
-python GeFL_GAN.py  --config configs/cifar10_lt.yaml
-python GeFL_DDPM.py --config configs/cifar10_lt.yaml --n_T 200
-
-# 7. Any registered dataset, just by changing --dataset -- nothing else
-#    in the codebase needs to change
-python GeFL_CVAE.py --dataset cifar100 --config configs/cifar10_lt.yaml
-python GeFL_CVAE.py --dataset svhn     --img_size 32
-python GeFL_CVAE.py --dataset mnist    --num_users 20
-
-# 8. Sweep imbalance_factor x dirichlet_alpha x seed x mechanism
-#    (--framework gefl_f switches the engine to GeFL-F)
-python scripts/sweep.py --framework gefl_f --config configs/cifar10_gefl_f.yaml \
-    --imbalance_factors 0.1 0.01 --dir_params 0.3 --seeds 0 1 2
-
-# Full paper-style sweeps run on Kaggle 2xT4: see scripts/kaggle_full_sweep.ipynb
-
-# 9. Run the test suite
-pytest tests/ -v
-```
-
-A `--config some.yaml` file supplies new argparse *defaults*; any CLI
-flag after it still overrides the YAML, so
-`python GeFL_CVAE.py --config configs/cifar10_lt.yaml --seed 3` uses
-every value in the YAML except seed.
-
-## Everything is dataset-agnostic — nothing is hardcoded
-
-`--dataset {cifar10, cifar100, mnist, fmnist, svhn, stl10, synthetic}`
-selects a dataset purely by name from `datasets.vision.DATASET_REGISTRY`
-(see `datasets/vision.py`). Every downstream module — the long-tail
-partitioner, both mechanisms, all three generators, all five target
-networks, and the evaluator — is written against `meta.num_classes`,
-`meta.in_channels`, and `meta.native_img_size` (or `--img_size`), never
-against a specific dataset's dimensions. Concretely:
-
-- **Partitioning** (`sampling/partition.py`) operates on a plain
-  `labels: np.ndarray` + `num_classes: int` — no dataset-specific code.
-- **Generators** (`generators/ccvae.py`, `ccgan.py`, `cddpm.py`) build
-  their own encoder/decoder/UNet stage list at construction time from
-  whatever `img_size` is passed in, by halving resolution until ≤4px
-  (verified in `tests/test_generators.py` to work correctly at 16px,
-  20px, and 28px in the same test run without any per-dataset branch).
-- **Target networks** (`targetNetModels/nets.py`) use adaptive pooling so
-  they never need to know resolution in advance.
-- Adding a new dataset is exactly one function in `datasets/vision.py`
-  with an `@DATASET_REGISTRY.register("name")` decorator — nothing
-  elsewhere changes. Same pattern for a new generator
-  (`generators/base.py` + `@GEN_REGISTRY.register(...)`) or a new target
-  architecture (`@NET_REGISTRY.register(...)` in `targetNetModels/nets.py`).
-
-If a real dataset can't be downloaded (e.g. no network access), `get_dataset()`
-automatically falls back to `--dataset synthetic` with a `RuntimeWarning`
-so the pipeline still runs — this is how the entire test suite and every
-`configs/synthetic_debug.yaml` example above run fully offline.
-
-## Project layout
-
-```
-args.py                     single argparse config (+ optional --config YAML), nothing hardcoded elsewhere
-registry.py                 generic name -> class registry shared by datasets/generators/target nets
-datasets/
-  vision.py                   cifar10/100, mnist, fmnist, svhn, stl10 (torchvision-backed), registered
-  synthetic.py                 offline procedurally-generated fallback, registered under the same interface
-  get_dataset.py                unified entry point + automatic synthetic fallback on download failure
-sampling/
-  partition.py                 long-tail class-count schedule + Dirichlet / IID client partitioner
-generators/
-  base.py                       ConditionalGenerator interface (conditioning_parameter_names(), sample())
-  ccvae.py                      Conditional VAE -- resolution/channel-agnostic
-  ccgan.py                      Conditional DCGAN (G + D) -- resolution/channel-agnostic
-  cddpm.py                      Conditional DDPM (real diffusion process + UNet-lite) -- resolution-agnostic
-targetNetModels/
-  nets.py                       5 architecturally distinct target nets (cnn_small/deep, mobilenet_lite,
-                                 resnet_lite, mlp_mixer_lite), all channel/class/resolution-agnostic
-utils/
-  setup.py                       ties dataset + partition + registries together (setup_experiment())
-  user_sampling.py                partial-participation client sampling (--frac)
-  localUpdateGen.py                local generator training per gen_model (VAE/GAN/DDPM), LOCAL_GEN_UPDATE_REGISTRY
-  localUpdateTarget.py             local target-net training, optional synthetic augmentation
-  avg.py                           FedAvg, model_wise_FedAvg, Mechanism A (frequency_weighted_row_average)
-  label_sampler.py                 GeFL-baseline uniform sampler + Mechanism B (FidelityGatedSampler)
-  evaluate.py                      bucketed accuracy, centralized upper bound, gap analysis, MND privacy metric
-  checkpoint.py / logger.py / seed.py
-gefl_f/
-  engine_f.py                    GeFL-F three-stage loop: FE warm-up -> feature-generator -> header training
-  feature_extractor.py           the common feature extractor shared by every client
-  headers.py                     heterogeneous header architectures (header_small/deep/wide/...)
-baselines/
-  creff.py                       full CReFF classifier-side baseline (shared backbone, dataset-agnostic)
-engine.py                    GeFL (image-space) training loop, shared by every GeFL_*.py script
-GeFL_CVAE.py / GeFL_GAN.py / GeFL_DDPM.py         GeFL entry points, one per generator
-GeFL_F_CVAE.py / GeFL_F_GAN.py / GeFL_F_DDPM.py   GeFL-F entry points, one per feature generator
-Baseline_CReFF.py            entry point for the CReFF baseline
-configs/                     YAML presets: {mnist,fmnist,cifar10,cifar100}_lt (GeFL), *_gefl_f (GeFL-F),
-                             cifar10_paper_cnns (paper's 10-CNN pool), synthetic_debug (offline smoke test)
-scripts/
-  sweep.py                     grid sweep over IF x alpha x seed x mechanism, --framework gefl|gefl_f
-  kaggle_full_sweep.ipynb      headless Kaggle 2xT4 runner: pick frameworks/datasets/generators/mechanisms
-docs/
-  project_review.html          research proposal for review (method, math, results, fallbacks)
-  technical_walkthrough.html   whiteboard reference: every component, shape and hyperparameter
-  paper_skeleton.md            paper outline with table stubs
-  archive/                     superseded planning notes
-tests/                       pytest unit tests for partitioning, aggregation, sampling, and generators
-```
-
-Not tracked in git (see `.gitignore`): `data/` (torchvision cache), `checkpoint/`, `logs/`
-(every run's metrics and plots), and `GEFl original implementation/` (the upstream authors'
-reference code, kept locally for comparison only).
-
-## The MND privacy metric
-
-`utils/evaluate.py::mnd_ratio` implements GeFL's own privacy metric
-(Kang et al. 2025, §IV-C): the mean nearest-neighbor distance ratio
-between synthetic samples and the real training set versus a held-out
-validation set, in flattened pixel space. A ratio near 1 means synthetic
-samples are no more suspiciously close to training data than to unseen
-data; a ratio well below 1 signals the generator may be memorizing
-individual training samples. It's computed automatically at the end of
-every `GeFL_*.py` run when `--aid_by_gen 1`.
-
-## Known bug fixed during development
-
-The first draft of the Mechanism A weight in `utils/avg.py` used Cui et
-al. (2019)'s **loss**-reweighting formula, `(1-β)/(1-β^n)` — which
-*decreases* as a client's class count `n` grows — directly as an
-*aggregation* weight. That's backwards for aggregation: it would hand the
-most influence over a class's conditioning row to the client with the
-*fewest* samples of that class. The fix uses the **effective number
-itself**, `(1-β^n)/(1-β)`, which *increases* with `n` (with diminishing
-returns) — so the client that actually holds more of a class dominates
-that class's row, matching the direction FedAvg already weights by data
-volume. `tests/test_avg.py::test_effective_num_weight_increases_with_count`
-is a standing regression test for this.
-
-## Scope / honest limitations
-
-- **GeFL-F** (the feature-level variant that shares a feature extractor
-  instead of raw-image synthesis) is not implemented — this project
-  targets GeFL's raw generative-augmentation setting, which is what the
-  research proposal extends.
-- **FedProx / AvgKD** and other baselines present in the original repo's
-  broader baseline zoo are out of scope; the comparison set here is
-  GeFL-baseline / Mechanism A / Mechanism B / proposed (A+B) / CReFF,
-  matching this project's own evaluation plan.
-- The DDPM variant is real (a proper linear beta schedule, closed-form
-  forward process, UNet-lite epsilon-predictor, classifier-free guidance)
-  but intentionally small — the proposal itself flags diffusion sampling
-  cost as a stretch goal, not a required deliverable.
-- This codebase was developed and tested in a sandbox with no network
-  access to torchvision's dataset mirrors, so `configs/synthetic_debug.yaml`
-  (not real CIFAR) is what's actually been run end-to-end here. Every
-  module was written and unit-tested to be dataset-agnostic by
-  construction (see `tests/`), and `--dataset cifar10` etc. will work
-  as soon as it's run somewhere with internet access — but that specific
-  combination (real CIFAR-10-LT weights over many rounds) has not itself
-  been executed by the author of this code.
+These are still in git history, but are no longer in the tree because they were superseded or would mislead:
+- The first framework (root `GeFL_*.py`, `engine.py`, `args.py`, `configs/`, `utils/`, `gefl_f/`, `generators/`, `datasets/`, `sampling/`, `targetNetModels/`, `tests/`, `scripts/`, `baselines/`, `Baseline_CReFF.py`). No reported result used it; every experiment runs on `experiments/core.py`.
+- The 59 generated experiment scripts: rebuild them with `build.py`.
+- Old plans and pages: `docs/experiment_plan.html`, `improvement_derivations.html`, `technical_walkthrough.html`, `project_review.html`, `results.html`, `night_plan.md`, `paper_skeleton.md`, `diagnostics.md` (old K/2 bound), `kme_gen.md`, `archive/`.
+- The second, shorter draft `docs/paper_single_idea.md`.
+- Old reports: the v1 research report, the Hinglish notes (old theorem), deck and HTML samples.
+- Queue and page scripts, and notebooks whose results have been ingested (NB32–NB35).

@@ -1,6 +1,6 @@
 """E20 - Prototype-conditioned residual CVAE (PC-VAE): class identity from exact statistics, not parameters.
 
-Diagnosis (docs/diagnostics.md, sections 2-3): the CVAE-F's only class-specific
+Diagnosis (paper_draft.md §3): the CVAE-F's only class-specific
 parameter is one learned row per class, fitted from that class's few samples and
 then diluted or collapsed by FedAvg; even with HWA, MNIST tail fidelity is 27%.
 FSG uses the EXACT class mean (secure-aggregated sums) and never degrades with

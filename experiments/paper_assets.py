@@ -49,6 +49,8 @@ class Store:
             if os.path.exists(jl):
                 for line in open(jl, encoding="utf-8"):
                     r = json.loads(line)
+                    if "IF" not in r:          # T03-style diagnostic records (reduced schedule): not table data
+                        continue
                     self.runs[(folder, r["label"], r["dataset"], float(r["IF"]), int(r["K"]))][int(r["seed"])] = r
             elif os.path.exists(sm):
                 self._parse_summary(folder, sm)

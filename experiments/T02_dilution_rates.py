@@ -19,7 +19,7 @@ import numpy as np
 from scipy import stats
 
 sys.argv = sys.argv[:1]
-import K09_kaggle_ablation_final as E  # noqa: E402
+import core as E  # noqa: E402  (shared pipeline, experiments/core.py)
 
 B, EP = 64, 5
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results", "T02_dilution_rates")

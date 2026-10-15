@@ -1,6 +1,6 @@
 """K05 - Kaggle run: the new generator stack on SVHN and CIFAR-10 (long tail and the paper's IID setting, 3 seeds).
 
-New since K01 (docs/diagnostics.md, E20):
+New since K01 (E20):
   MC  - moment-calibrated sampling: x' = ReLU(mu_c + s_c (x - m_c)), the W2-optimal
         affine correction to the exact federated class mean and spread (sums).
   PC  - prototype-conditioned residual CVAE: no class rows; class identity from the

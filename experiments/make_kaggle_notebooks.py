@@ -10,7 +10,8 @@ import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "..", "kaggle_notebooks")
+OUT = os.path.join(HERE, "..", "kaggle_notebooks")
+# Usage: python make_kaggle_notebooks.py NB38 NB39   (writes only the named notebooks; no names = list jobs)
 
 JOBS = [  # (notebook name, script, arguments, result folder name, rough hours, what it does)
     ("NB1_cifar10_main", "K01_kaggle_cifar10_svhn", "--datasets cifar10", "K01_kaggle_cifar10_svhn__cifar10", 6,
@@ -109,7 +110,8 @@ def code(text):
 
 
 def notebook(name, script, args, folder, hours, what):
-    src = open(os.path.join(HERE, script + ".py"), encoding="utf-8").read()
+    import build
+    src = open(build.build_one(script), encoding="utf-8").read()  # always from current core.py + spec
     exp = script
     cells = [
         md(f"""
@@ -175,9 +177,15 @@ print(open(os.path.join(dst, "summary.md")).read() if os.path.exists(os.path.joi
 
 
 def main():
+    wanted = sys.argv[1:]
+    if not wanted:
+        for job in JOBS:
+            print(f"{job[0]:40s} {job[1]} {job[2]}")
+        print("\nName the notebooks to write, e.g.: python make_kaggle_notebooks.py NB38 NB39")
+        return
     os.makedirs(OUT, exist_ok=True)
     rows = []
-    for job in JOBS:
+    for job in [j for j in JOBS if any(j[0] == w or j[0].startswith(w + "_") for w in wanted)]:
         nb = notebook(*job)
         path = os.path.join(OUT, job[0] + ".ipynb")
         with open(path, "w", encoding="utf-8", newline="\n") as f:

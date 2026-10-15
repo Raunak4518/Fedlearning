@@ -22,7 +22,7 @@ import torch
 from scipy import stats
 
 sys.argv, _argv = sys.argv[:1], sys.argv
-import K09_kaggle_ablation_final as E  # noqa: E402
+import core as E  # noqa: E402  (shared pipeline, experiments/core.py)
 sys.argv = _argv
 
 GAMMA = 0.1

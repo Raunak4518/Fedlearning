@@ -24,7 +24,7 @@ import time
 import numpy as np
 import torch
 
-import K09_kaggle_ablation_final as E
+import core as E  # shared pipeline (experiments/core.py)
 
 ARMS = [("GeFL-F wd=1e-3", 1e-3, "flat"), ("GeFL-F wd=1e-4", 1e-4, "flat"),
         ("GeFL-F wd=0", 0.0, "flat"), ("HWA wd=1e-3", 1e-3, "A")]

@@ -8,7 +8,7 @@
 #    CVAE-F  : Table XX; Adam 1e-3, weight decay 1e-3 (Table XV)
 #    DCGAN-F : Table XVIII; Adam 2e-4, betas (0.5, 0.999)
 #    rounds  : Table XIV; SGD lr 0.1, momentum 0, Tw/Tg/Ts/Tr = 5/5/1/5
-#  plus the class-imbalance components studied in docs/experiment_plan.html:
+#  plus the class-imbalance components studied in this project (see COMPONENTS below):
 #    HWA  holder-weighted aggregation of class-conditioning rows (Mech. A)
 #    LCD  lazy conditioning decay (plan section 2.1)
 #    GF   gap-filling synthetic label sampling (Mech. B', water-filling)
@@ -591,8 +591,7 @@ def method(pipeline="gefl_f", fe=None, gen=None, head=None):
                 head={**HEAD_DEFAULTS, **(head or {})})
 
 
-# Named components (docs/experiment_plan.html section 3 and the method notes
-# in experiments/README.md). compose("HWA+LCD+PCM+LA") builds a method.
+# Named components; compose("HWA+LCD+PCM+LA") builds a method. Method descriptions: docs/paper_draft.md.
 COMPONENTS = {
     "HWA": dict(gen=dict(agg="A")),             # holder-weighted conditioning aggregation
     "LCD": dict(gen=dict(lazy=True)),           # lazy conditioning decay

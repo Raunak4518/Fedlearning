@@ -56,7 +56,7 @@ significant. **FIX DRAFT** = data exist but the draft quotes a different number.
   component ablation (done, K09) are no longer pending.
 * §3: DONE. The K/2 theorem was wrong in our own setting (every tail class has ≥ 7 of 10 holders and still
   collapses). Rewritten as Theorem 1 (exact contraction bound) + Lemma 2 (Adam's coupled decay is λ-invariant) in
-  `paper_draft.md` §3.1–3.2 and `paper_single_idea.md` Prop. 1 / A.1; abstract, contributions and related work updated.
+  `paper_draft.md` §3.1–3.2 (the shorter draft `paper_single_idea.md` was removed in the 15 Oct clean-up); abstract, contributions and related work updated.
 
 ## 3. What is still to run (and what is NOT)
 

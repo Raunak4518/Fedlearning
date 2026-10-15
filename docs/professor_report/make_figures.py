@@ -333,11 +333,6 @@ def fig_results():
          ["100 clients\nMNIST", "no noise\nMNIST", "ε = 8\nMNIST", "ε = 2\nMNIST", "no noise\nFashionMNIST", "ε = 8\nFashionMNIST", "ε = 2\nFashionMNIST"],
          [("GeFL-F (no formal privacy)", [75.98, 75.25, 75.25, 75.25, 58.47, 58.47, 58.47], NEUT),
           ("Ours-A", [94.30, 94.82, 90.36, 85.06, 79.67, 72.77, 65.59], OURS)], (40, 102), h=3.3)
-    bars("f12_svhn.png", "SVHN: where class means carry no class information (F = 0.01)",
-         ["long tail (balanced acc.)", "IID (best_mean_acc)"],
-         [("GeFL-F", [50.49, 75.82], NEUT), ("mean anchor + MC (Ours-A)", [55.76, 74.38], "#ffa8a8"),
-          ("mean anchor + MC-S", [61.80, 77.05], "#ffc078"), ("hybrid + MC-S", [62.89, 77.39], "#a5d8ff"),
-          ("HWA rows + MC + KH (ESA's gate choice)", [65.60, 77.07], OURS)], (40, 85), w=8, h=3.3)
 
 
 # ---------------------------------------------------------------- equations
@@ -350,14 +345,9 @@ EQ = {
     "eq_csl": r"$t(\tilde h) = (1-\beta)\,e_y + \beta\,\frac{1}{G}\sum_{g=1}^{G}\mathrm{softmax}\left(h_g(\tilde h)\right),\qquad \beta = 0.5$",
     "eq_stats": r"$m_c=\frac{S_c}{n_c},\quad V_c=\frac{Q_c}{n_c}-\|m_c\|^2,\quad \mu_c=\frac{\Phi_c}{n_c}$",
     "eq_pc": r"$\tilde h = \mathrm{ReLU}\left(m_y + \mathrm{dec}(z,\ A\,m_y)\right),\qquad z\sim\mathcal{N}(0,I)$",
-    "eq_sep": r"$W_1(G_c, G_{c'})\ \leq\ (1+L\,\|A\|_2)\ \|m_c-m_{c'}\|$",
     "eq_mc": r"$T^\star(x) = m_c + \sqrt{V_c/\tilde V_c}\,(x-\tilde m_c)\ \ =\ \ \arg\min_{T}\ \mathbb{E}\|T(X)-X\|^2\ \ \mathrm{s.t.}\ \ \mathbb{E}T=m_c,\ \mathbb{E}\|T-m_c\|^2=V_c$",
-    "eq_gelbrich": r"$A_c = \tilde\Sigma_c^{-1/2}\left(\tilde\Sigma_c^{1/2}\,\Sigma_c\,\tilde\Sigma_c^{1/2}\right)^{1/2}\tilde\Sigma_c^{-1/2},\qquad \min\ \mathbb{E}\|T(X)-X\|^2 = \|m_c-\tilde m_c\|^2 + \mathcal{B}^2(\Sigma_c,\tilde\Sigma_c)$",
-    "eq_mcb": r"$\hat\Sigma_c = \frac{n_c\,\Sigma_c + k\,\tau_c\,\tilde\Sigma_c}{n_c + k},\qquad \tau_c = \frac{\mathrm{tr}\,\Sigma_c}{\mathrm{tr}\,\tilde\Sigma_c}\qquad (n_c\to 0:\ \mathrm{MC};\ \ n_c\to\infty:\ \mathrm{exact\ covariance})$",
     "eq_kh": r"$|\mathbb{E}_{G_c}\ell - \mathbb{E}_{P_c}\ell|\ \leq\ B\cdot\mathrm{MMD}(G_c,P_c),\qquad x_{t+1}=\arg\max_{x\in\mathcal{X}_c}\ \langle\phi(x),\ \mu_c\rangle - \frac{1}{t+1}\sum_{s\leq t}\langle\phi(x),\phi(x_s)\rangle$",
     "eq_budget": r"$\mathcal{E}(w) = \frac{\sigma^2(1-w)}{n_r} + w^2 b^2,\qquad w^\star = \frac{\sigma^2}{2\,n_r\,b^2}\quad (\mathrm{optimal\ synthetic\ share\ falls\ with\ label\ bias}\ b)$",
-    "eq_bbc": r"$b \leftarrow b - \log\left(C\ \bar q(b)\right),\qquad \bar q_c(b) = \mathbb{E}_{\tilde h\sim \mathrm{balanced}}\ \mathrm{softmax}(f(\tilde h)+b)_c$",
-    "eq_mixup": r"$\mathbb{E}_{Q}\,\ell_{mix}\ \approx\ \Psi\left(\{\pi_c,\ \mu_c,\ \Sigma_c\}_{c=1}^{C}\right)\ +\ O\left(\mathbb{E}(1-\lambda)^3\|x'-x\|^3\right)$",
     "eq_dp": r"$\sigma_{rel} = \sqrt{2/\rho},\qquad \rho = \left(\sqrt{\log(1/\delta)+\varepsilon}-\sqrt{\log(1/\delta)}\right)^2\quad \mathrm{(zCDP,\ split\ over\ 4\ releases)}$",
     "eq_lda": r"$\mathrm{Gaussian\ generator}:\ \tilde h\sim\mathcal{N}(m_c,\Sigma_{pooled})\ \Rightarrow\ \mathrm{Bayes\ head} = \arg\max_c\ m_c^\top\Sigma^{-1}h-\frac{1}{2}m_c^\top\Sigma^{-1}m_c$",
     "eq_tv": r"$R_{real}(h)\ \leq\ R_{syn}(h) + \ell_{\max}\cdot\mathrm{TV}(p_{syn},\ p_{real})$",

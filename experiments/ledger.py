@@ -41,9 +41,13 @@ def load_runs():
         if os.path.exists(jl):
             for line in open(jl, encoding="utf-8"):
                 r = json.loads(line)
+                # T03-style diagnostic records carry no setting fields: they ran at IF=0.01, Dir(0.5), K=10
+                # with a reduced schedule (quick_scale < 1), so they count as quick passes.
                 runs.append(dict(folder=folder, label=r["label"], method=mkey(r.get("method")),
-                                 setting=setting(r["dataset"], r["IF"], r["alpha"], r["K"]), seed=int(r["seed"]),
-                                 quick=bool(r.get("quick", False)) or folder.endswith("_quick")))
+                                 setting=setting(r["dataset"], r.get("IF", 0.01), r.get("alpha", 0.5), r.get("K", 10)),
+                                 seed=int(r["seed"]),
+                                 quick=bool(r.get("quick", False)) or folder.endswith("_quick")
+                                 or r.get("quick_scale", 1.0) < 1.0))
         elif os.path.exists(sm):
             cur = None
             for line in open(sm, encoding="utf-8"):
@@ -109,6 +113,9 @@ def same_method(stored, plan_m, defaults):
 def planned(script, argv):
     """The runs a built script would execute with these command-line arguments."""
     sys.path.insert(0, HERE)
+    import build
+    if os.path.exists(os.path.join(HERE, "specs", script + ".py")):
+        build.build_one(script)                  # built scripts are untracked; regenerate from core + spec
     saved = sys.argv
     sys.argv = [script] + argv
     try:
