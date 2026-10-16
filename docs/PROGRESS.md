@@ -69,6 +69,28 @@ Ours (gated) minus GeFL-F, long-tail balanced accuracy, both with the **same** r
   architecture); the all-client readouts need each body broadcast, which is a protocol change to state.
 * Still open: Gate 1 second half (K15, NB38 / NB39: HWA vs the optimiser fixes); SVHN / CIFAR-100 IID (NB46 / NB48).
 
+## 1b2. Gate 1, optimiser half: K15 (NB38 / NB39, 16 Oct; tables T17 / T18)
+
+Long tail, balanced accuracy, 3 seeds (references F01 / F04 / K03, same splits):
+
+| | MNIST K=10 | K=50 | K=100 | FMNIST K=10 | K=50 | K=100 |
+|---|---|---|---|---|---|---|
+| GeFL-F + LA (coupled decay) | 79.2 | 81.4 | 79.5 | 65.2 | 66.5 | 66.6 |
+| best optimiser fix + LA (AdamW / no decay on rows / lazy decay) | 86.8 | 84.7 | 81.8 | 76.1 | 74.5 | 71.9 |
+| HWA + LA | 87.9 | 86.5 | 83.1 | 76.0 | 75.5 | 73.3 |
+| **HWA minus best fix** [95% CI] | +1.1 [-0.9, 3.1] | **+1.8 [0.3, 3.2]** | **+1.3 [0.6, 2.0]** | -0.1 | +0.9 (n.s.) | +1.4 (n.s.) |
+
+* **The diagnosis is confirmed:** every fix that removes the coupled decay on non-holders restores the tail rows
+  (tail/head norm 0.03-0.22 -> 0.73-0.97) and recovers most of the loss (+7 to +11 points over GeFL-F + LA).
+  AdamW at 1e-2 = AdamW at 1e-3 (86.5 vs 86.4; 76.1 vs 75.9), as Lemma 2 predicts.
+* **HWA adds a smaller, K-dependent gain on top:** +1.3 to +1.8 on MNIST at K = 50 / 100 (CIs exclude 0), and the
+  same direction on FMNIST without significance (+0.9 / +1.4). Tail recall shows it more clearly (MNIST K = 50:
+  74.6 vs 69.9). This is the dilution term (m_c / K) that the optimiser fixes leave in place.
+* **Gate 1 rule (HWA beats the best fix by >= 1 at K = 50 or 100):** met on MNIST, not significant on FMNIST, so
+  borderline (between B1 and B2). Paper framing: "remove coupled decay" is the main, simple fix for the collapse;
+  HWA is a secondary refinement that matters as the number of clients grows. Note the anchored generator has no
+  class rows, so HWA matters only for the minimal variant and the SVHN row branch.
+
 ## 1c. ERL pilot (E33, 16 Oct): negative, dropped by its pre-registered kill rule
 
 Idea: recompute the balanced LDA last layer from exact sums every round and train only the body under it.

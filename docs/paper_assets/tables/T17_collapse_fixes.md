@@ -6,12 +6,10 @@
 |---|---|---|---|---|---|---|
 | GeFL-F | 74.62 ± 1.76 (p=0.00368) | 78.10 ± 1.12 (p=0.008) | 75.98 ± 0.95 (p=0.0095) | 58.62 ± 3.41 (p=0.0152) | 61.92 ± 1.31 (p=0.00408) | 61.95 ± 1.52 (p=0.00263) |
 | + LA (coupled Adam decay) | 78.92 ± 2.32 (p=0.013) | 81.35 ± 0.82 (p=0.00857) | 79.51 ± 0.76 (p=0.0271) | 64.78 ± 3.35 (p=0.0353) | 66.53 ± 1.08 (p=0.00675) | 66.56 ± 1.94 (p=0.0142) |
-| + AdamW (1e-3, matched) + LA | – | – | – | – | – | – |
-| + AdamW (1e-2) + LA | – | – | – | – | – | – |
-| + no decay on class rows + LA | – | – | – | – | – | – |
-| + lazy decay + LA | – | – | – | – | – | – |
+| + AdamW (1e-3, matched) + LA | 86.44 ± 2.00 (p=0.0954) | 84.71 ± 0.29 (p=0.0372) | 81.60 ± 0.33 (p=0.0133) | 75.90 ± 0.57 (p=0.328) | 74.03 ± 0.72 (p=0.103) | 71.82 ± 1.40 (p=0.096) |
+| + AdamW (1e-2) + LA | 86.53 ± 2.46 (p=0.114) | – | – | 76.08 ± 0.32 (p=0.913) | – | – |
+| + no decay on class rows + LA | 86.81 ± 2.40 (p=0.143) | 84.44 ± 0.66 (p=0.0375) | 81.77 ± 0.44 (p=0.0157) | 75.89 ± 0.60 (p=0.834) | 74.52 ± 0.56 (p=0.169) | 71.85 ± 1.56 (p=0.129) |
+| + lazy decay + LA | 85.06 ± 1.47 (p=0.00421) | 83.92 ± 0.49 (p=0.0351) | 81.65 ± 0.45 (p=0.0182) | 75.79 ± 0.30 (p=0.653) | 74.19 ± 0.65 (p=0.123) | 71.64 ± 1.28 (p=0.0713) |
 | + HWA + LA | 87.89 ± 1.61 | 86.46 ± 0.84 | 83.07 ± 0.56 | 76.02 ± 0.67 | 75.45 ± 0.19 | 73.25 ± 0.74 |
 
 Rows 3-6 fill in when K15 (NB38 / NB39) results are copied back.
-
-**Missing (no run found):** + AdamW (1e-3, matched) + LA / MNIST K=10; + AdamW (1e-3, matched) + LA / MNIST K=50; + AdamW (1e-3, matched) + LA / MNIST K=100; + AdamW (1e-3, matched) + LA / FMNIST K=10; + AdamW (1e-3, matched) + LA / FMNIST K=50; + AdamW (1e-3, matched) + LA / FMNIST K=100; + AdamW (1e-2) + LA / MNIST K=10; + AdamW (1e-2) + LA / FMNIST K=10; + no decay on class rows + LA / MNIST K=10; + no decay on class rows + LA / MNIST K=50; + no decay on class rows + LA / MNIST K=100; + no decay on class rows + LA / FMNIST K=10; + no decay on class rows + LA / FMNIST K=50; + no decay on class rows + LA / FMNIST K=100; + lazy decay + LA / MNIST K=10; + lazy decay + LA / MNIST K=50; + lazy decay + LA / MNIST K=100; + lazy decay + LA / FMNIST K=10; + lazy decay + LA / FMNIST K=50; + lazy decay + LA / FMNIST K=100

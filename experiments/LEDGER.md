@@ -178,6 +178,8 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 
 | label | result folder | seeds |
 |---|---|---|
+| +ADAMW+LA | K15_kaggle_collapse_fixes__fmnist | 0,1,2 |
+| +ADAMW3+LA | K15_kaggle_collapse_fixes__fmnist | 0,1,2 |
 | +BCR | E03_method_components_quick | 0 |
 | +CSL | E15_server_distillation_quick | 0 |
 | +CSL | F10_combined_method | 0,1,2 |
@@ -208,10 +210,12 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | +LCD | E02_conditioning_collapse_quick | 0 |
 | +LCD | E03_method_components_quick | 0 |
 | +LCD+LA | E12_confirmation_quick | 0,1,2 |
+| +LCD+LA | K15_kaggle_collapse_fixes__fmnist | 0,1,2 |
 | +NOWD | E02_conditioning_collapse_quick | 0 |
 | +NOWD+HWA | E02_conditioning_collapse_quick | 0 |
 | +PCM | E03_method_components_quick | 0 |
 | +PCM+LA | E03_method_components_quick | 0 |
+| +ROWNOWD+LA | K15_kaggle_collapse_fixes__fmnist | 0,1,2 |
 | +SED(20) | E15_server_distillation_quick | 0 |
 | -CSL | K09_kaggle_ablation_final__fmnist | 0,1,2 |
 | -KH | K09_kaggle_ablation_final__fmnist | 0,1,2 |
@@ -239,11 +243,13 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | GeFL-F | E15_server_distillation_quick | 0 |
 | GeFL-F | E16_csl_synthetic_budget | 0,1,2 |
 | GeFL-F | E20_proto_generator | 0,1,2 |
+| GeFL-F | E33_exact_readout_loop_quick | 0 |
 | GeFL-F | F01_main_longtail | 0,1,2 |
 | GeFL-F | F10_combined_method | 0,1,2 |
 | GeFL-F | K02_kaggle_regimes_privacy_ablations | 0,1,2 |
 | GeFL-F | K16_kaggle_recalibration__fmnist_lt | 0,1,2 |
 | GeFL-F | T03_exact_readout (quick) | 0 |
+| GeFL-F + ERL | E33_exact_readout_loop_quick | 0 |
 | HWA weights = counts n | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | HWA weights = uniform over holders | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | HYB+HWA+LA | E13_sufficient_statistics_quick | 0,1,2 |
@@ -264,7 +270,10 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Ours (HWA+LA+CSL) Ts=10 | E16_csl_synthetic_budget | 0,1,2 |
 | Ours (HWA+LA+CSL) Ts=5 | E16_csl_synthetic_budget | 0,1,2 |
 | Ours (HWA+LCD+PCM+LA) | E03_method_components_quick | 0 |
+| Ours (gated) | E33_exact_readout_loop_quick | 0 |
 | Ours (gated) | K16_kaggle_recalibration__fmnist_lt | 0,1,2 |
+| Ours + ERL | E33_exact_readout_loop_quick | 0 |
+| Ours + ERL5 | E33_exact_readout_loop_quick | 0 |
 | Ours+BCR | E03_method_components_quick | 0 |
 | Ours+LAFE | E03_method_components_quick | 0 |
 | Ours+MC | E20_proto_generator | 0,1,2 |
@@ -300,8 +309,11 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 
 | label | result folder | seeds |
 |---|---|---|
+| +ADAMW3+LA | K15_kaggle_collapse_fixes__fmnist | 0,1,2 |
 | +HWA+LA | K03_kaggle_client_scaling__K50 | 0,1,2 |
 | +LA | K03_kaggle_client_scaling__K50 | 0,1,2 |
+| +LCD+LA | K15_kaggle_collapse_fixes__fmnist | 0,1,2 |
+| +ROWNOWD+LA | K15_kaggle_collapse_fixes__fmnist | 0,1,2 |
 | FSG+LA | K03_kaggle_client_scaling__K50 | 0,1,2 |
 | FSG+LA+CSL | K03_kaggle_client_scaling__K50 | 0,1,2 |
 | GeFL-F | K03_kaggle_client_scaling__K50 | 0,1,2 |
@@ -313,8 +325,11 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 
 | label | result folder | seeds |
 |---|---|---|
+| +ADAMW3+LA | K15_kaggle_collapse_fixes__fmnist | 0,1,2 |
 | +HWA+LA | K03_kaggle_client_scaling__K100 | 0,1,2 |
 | +LA | K03_kaggle_client_scaling__K100 | 0,1,2 |
+| +LCD+LA | K15_kaggle_collapse_fixes__fmnist | 0,1,2 |
+| +ROWNOWD+LA | K15_kaggle_collapse_fixes__fmnist | 0,1,2 |
 | FSG+LA | K03_kaggle_client_scaling__K100 | 0,1,2 |
 | FSG+LA+CSL | K03_kaggle_client_scaling__K100 | 0,1,2 |
 | GeFL-F | K03_kaggle_client_scaling__K100 | 0,1,2 |
@@ -425,6 +440,8 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 
 | label | result folder | seeds |
 |---|---|---|
+| +ADAMW+LA | K15_kaggle_collapse_fixes__mnist | 0,1,2 |
+| +ADAMW3+LA | K15_kaggle_collapse_fixes__mnist | 0,1,2 |
 | +BCR | E03_method_components_quick | 0 |
 | +CSL | F10_combined_method | 0,1,2 |
 | +GF | E03_method_components_quick | 0 |
@@ -452,10 +469,12 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | +LCD | E02_conditioning_collapse_quick | 0 |
 | +LCD | E03_method_components_quick | 0 |
 | +LCD+LA | E12_confirmation_quick | 0,1,2 |
+| +LCD+LA | K15_kaggle_collapse_fixes__mnist | 0,1,2 |
 | +NOWD | E02_conditioning_collapse_quick | 0 |
 | +NOWD+HWA | E02_conditioning_collapse_quick | 0 |
 | +PCM | E03_method_components_quick | 0 |
 | +PCM+LA | E03_method_components_quick | 0 |
+| +ROWNOWD+LA | K15_kaggle_collapse_fixes__mnist | 0,1,2 |
 | -CSL | K09_kaggle_ablation_final__mnist | 0,1,2 |
 | -KH | K09_kaggle_ablation_final__mnist | 0,1,2 |
 | -LA | K09_kaggle_ablation_final__mnist | 0,1,2 |
@@ -480,11 +499,13 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | GeFL-F | E14_relative_hybrid_quick | 0,1,2 |
 | GeFL-F | E16_csl_synthetic_budget | 0,1,2 |
 | GeFL-F | E20_proto_generator | 0,1,2 |
+| GeFL-F | E33_exact_readout_loop_quick | 0 |
 | GeFL-F | F01_main_longtail | 0,1,2 |
 | GeFL-F | F10_combined_method | 0,1,2 |
 | GeFL-F | K02_kaggle_regimes_privacy_ablations | 0,1,2 |
 | GeFL-F | K16_kaggle_recalibration__mnist_lt | 0,1,2 |
 | GeFL-F | T03_exact_readout (quick) | 0 |
+| GeFL-F + ERL | E33_exact_readout_loop_quick | 0 |
 | HWA weights = counts n | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | HWA weights = uniform over holders | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | HYB+HWA+LA | E13_sufficient_statistics_quick | 0,1,2 |
@@ -505,7 +526,10 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Ours (HWA+LA+CSL) Ts=10 | E18_bayesian_csl | 0,1,2 |
 | Ours (HWA+LA+CSL) Ts=5 | E16_csl_synthetic_budget | 0,1,2 |
 | Ours (HWA+LCD+PCM+LA) | E03_method_components_quick | 0 |
+| Ours (gated) | E33_exact_readout_loop_quick | 0 |
 | Ours (gated) | K16_kaggle_recalibration__mnist_lt | 0,1,2 |
+| Ours + ERL | E33_exact_readout_loop_quick | 0 |
+| Ours + ERL5 | E33_exact_readout_loop_quick | 0 |
 | Ours+BCR | E03_method_components_quick | 0 |
 | Ours+LAFE | E03_method_components_quick | 0 |
 | Ours+MC | E20_proto_generator | 0,1,2 |
@@ -542,6 +566,7 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 
 | label | result folder | seeds |
 |---|---|---|
+| +ADAMW3+LA | K15_kaggle_collapse_fixes__mnist | 0,1,2 |
 | +HWA+LA | E12_confirmation_quick | 0,1,2 |
 | +HWA+LA | E14_relative_hybrid_quick | 0,1,2 |
 | +HWA+LA | F04_clients | 0,1,2 |
@@ -549,6 +574,8 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | +LA | E12_confirmation_quick | 0,1,2 |
 | +LA | F04_clients | 0,1,2 |
 | +LCD+LA | E12_confirmation_quick | 0,1,2 |
+| +LCD+LA | K15_kaggle_collapse_fixes__mnist | 0,1,2 |
+| +ROWNOWD+LA | K15_kaggle_collapse_fixes__mnist | 0,1,2 |
 | FSG+LA | E14_relative_hybrid_quick | 0,1,2 |
 | FSG+LA | F04_clients | 0,1,2 |
 | GeFL-F | E12_confirmation_quick | 0,1,2 |
@@ -561,9 +588,12 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 
 | label | result folder | seeds |
 |---|---|---|
+| +ADAMW3+LA | K15_kaggle_collapse_fixes__mnist | 0,1,2 |
 | +HWA+LA | F04_clients | 0,1,2 |
 | +HWA+LA+CSL | F04_clients | 0,1 |
 | +LA | F04_clients | 0,1,2 |
+| +LCD+LA | K15_kaggle_collapse_fixes__mnist | 0,1,2 |
+| +ROWNOWD+LA | K15_kaggle_collapse_fixes__mnist | 0,1,2 |
 | FSG+LA | F04_clients | 0,1,2 |
 | FSG+LA+CSL | F04_clients | 0 |
 | GeFL-F | F04_clients | 0,1,2 |
@@ -652,8 +682,8 @@ COMPLETE = every planned run is in the folder. PARTIAL lists the missing (label:
 | NB31_vct_cifar10_longtail | K13_kaggle_vct_vs_mixup --IF 0.01 | K13_kaggle_vct_vs_mixup__cifar10_lt | 6 | 6 | COMPLETE |
 | NB36_ablation_seeds_mcb_mnist | K14_kaggle_ablation_seeds_mcb --datasets mnist | K14_kaggle_ablation_seeds_mcb__mnist | 14 | 0 | NOT RUN |
 | NB37_ablation_seeds_mcb_fmnist | K14_kaggle_ablation_seeds_mcb --datasets fmnist | K14_kaggle_ablation_seeds_mcb__fmnist | 14 | 0 | NOT RUN |
-| NB38_collapse_fixes_mnist | K15_kaggle_collapse_fixes --datasets mnist | K15_kaggle_collapse_fixes__mnist | 30 | 0 | NOT RUN |
-| NB39_collapse_fixes_fmnist | K15_kaggle_collapse_fixes --datasets fmnist | K15_kaggle_collapse_fixes__fmnist | 30 | 0 | NOT RUN |
+| NB38_collapse_fixes_mnist | K15_kaggle_collapse_fixes --datasets mnist | K15_kaggle_collapse_fixes__mnist | 30 | 30 | COMPLETE |
+| NB39_collapse_fixes_fmnist | K15_kaggle_collapse_fixes --datasets fmnist | K15_kaggle_collapse_fixes__fmnist | 30 | 30 | COMPLETE |
 | NB40_recalib_mnist_lt | K16_kaggle_recalibration --datasets mnist --IF 0.01 | K16_kaggle_recalibration__mnist_lt | 12 | 12 | COMPLETE |
 | NB41_recalib_fmnist_lt | K16_kaggle_recalibration --datasets fmnist --IF 0.01 | K16_kaggle_recalibration__fmnist_lt | 12 | 12 | COMPLETE |
 | NB42_recalib_svhn_lt | K16_kaggle_recalibration --datasets svhn --IF 0.01 | K16_kaggle_recalibration__svhn_lt | 12 | 12 | COMPLETE |
@@ -663,6 +693,12 @@ COMPLETE = every planned run is in the folder. PARTIAL lists the missing (label:
 | NB46_recalib_svhn_iid | K16_kaggle_recalibration --datasets svhn --IF 1.0 | K16_kaggle_recalibration__svhn_iid | 12 | 0 | NOT RUN |
 | NB47_recalib_cifar10_iid | K16_kaggle_recalibration --datasets cifar10 --IF 1.0 | K16_kaggle_recalibration__cifar10_iid | 12 | 12 | COMPLETE |
 | NB48_recalib_cifar100_iid | K16_kaggle_recalibration --datasets cifar100 --IF 1.0 | K16_kaggle_recalibration__cifar100_iid | 12 | 0 | NOT RUN |
+| NB50_fair_mnist | K17_kaggle_fair_retest --datasets mnist | K17_kaggle_fair_retest__mnist | 21 | 0 | NOT RUN |
+| NB51_fair_fmnist | K17_kaggle_fair_retest --datasets fmnist | K17_kaggle_fair_retest__fmnist | 21 | 0 | NOT RUN |
+| NB52_fair_svhn | K17_kaggle_fair_retest --datasets svhn | K17_kaggle_fair_retest__svhn | 21 | 0 | NOT RUN |
+| NB53_fair_cifar10 | K17_kaggle_fair_retest --datasets cifar10 --exclude Ours rows Ts=1 | K17_kaggle_fair_retest__cifar10 | 24 | 0 | NOT RUN |
+| NB54_fair_cifar100 | K17_kaggle_fair_retest --datasets cifar100 | K17_kaggle_fair_retest__cifar100 | 21 | 0 | NOT RUN |
+| NB55_fair_cifar10_rows | K17_kaggle_fair_retest --datasets cifar10 --only Ours rows Ts=1 | K17_kaggle_fair_retest__cifar10_rows | 3 | 0 | NOT RUN |
 | NB6_svhn_diffusion | K04_kaggle_ddpm_cifar10_svhn --datasets svhn | K04_kaggle_ddpm_cifar10_svhn__svhn | 9 | 9 | COMPLETE |
 | NB7_cifar10_diffusion_seed0 | K04_kaggle_ddpm_cifar10_svhn --datasets cifar10 --seeds 0 | K04_kaggle_ddpm_cifar10_svhn__cifar10_s0 | 3 | 0 | NOT RUN |
 | NB8_cifar10_diffusion_seed1 | K04_kaggle_ddpm_cifar10_svhn --datasets cifar10 --seeds 1 | K04_kaggle_ddpm_cifar10_svhn__cifar10_s1 | 3 | 0 | NOT RUN |
@@ -698,6 +734,7 @@ COMPLETE = every planned run is in the folder. PARTIAL lists the missing (label:
 | (local) | E30_covariance_anchoring  | E30_covariance_anchoring | 12 | 0 | NOT RUN |
 | (local) | E31_covariance_anchoring_mnist_fmnist  | E31_covariance_anchoring_mnist_fmnist | 9 | 9 | COMPLETE |
 | (local) | E32_moment_anchor_bayes  | E32_moment_anchor_bayes | 9 | 9 | COMPLETE |
+| (local) | E33_exact_readout_loop  | E33_exact_readout_loop | 75 | 0 | QUICK ONLY |
 | (local) | F01_main_longtail  | F01_main_longtail | 54 | 48 | PARTIAL - missing MIX+HWA+LA fmnist IF=0.01 K=10: s0,1,2; MIX+HWA+LA mnist IF=0.01 K=10: s0,1,2 |
 | (local) | F02_paper_setting  | F02_paper_setting | 45 | 0 | NOT RUN |
 | (local) | F03_regimes  | F03_regimes | 36 | 0 | NOT RUN |
