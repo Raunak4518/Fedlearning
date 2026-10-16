@@ -626,7 +626,8 @@ GEN_DEFAULTS = dict(type="cvae", wd=1e-3, agg="flat", lazy=False, beta=0.999, we
                     dp_eps=None, oracle=False, T_KA=None, opt="adam", rowwd0=False)
 HEAD_DEFAULTS = dict(sampler="uniform", order="syn_first", ts=1, tr=5, mix=None, mix_ratio=0.2, vct=0.0, mixup=0.0,
                      loss="ce", tau=1.0, bcr=0, bcr_lr=0.05, gen_update=False, csl=0.0, csl_mix=False,
-                     sed=0, sed_lr=0.05, sed_beta=0.5, sed_bs=128, csl_mode="mix", mc=False, rsa=0.0, kh=False)
+                     sed=0, sed_lr=0.05, sed_beta=0.5, sed_bs=128, csl_mode="mix", mc=False, rsa=0.0, kh=False,
+                     erl=0, erl_t=1.0)
 
 
 def method(pipeline="gefl_f", fe=None, gen=None, head=None):
@@ -667,6 +668,10 @@ COMPONENTS = {
     "KH": dict(head=dict(kh=True)),                  # kernel herding of samples toward exact class embeddings
     "RSA": dict(head=dict(rsa=1.0)),                 # held-class real-synthetic alignment (shift transfer)
     "CSL": dict(head=dict(csl=0.5)),            # consensus soft labels for synthetic features
+    "ERL": dict(head=dict(erl=1)),              # exact readout in the loop: every round the server sets each head's
+                                                # last layer to the class-balanced LDA readout from exact sums of all
+                                                # clients' embeddings; clients train only the body under it
+    "ERL5": dict(head=dict(erl=5)),             # the same, recomputed every 5 rounds (5x less extra communication)
     "BCSL": dict(head=dict(csl=0.5, csl_mode="bayes")),  # Bayesian CSL: label prior x ensemble, rho estimated
     "CSLM": dict(head=dict(csl=0.5, csl_mix=True)),
     "SED": dict(head=dict(sed=20)),             # server-side ensemble distillation on generated features  # ...interleaved into every real batch (no forgetting)
@@ -1856,7 +1861,21 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
     glob = counts.sum(0)
     la = hspec["loss"] == "la"
     pool = None
+    erl = int(hspec.get("erl", 0) or 0)
+
+    def set_erl_readouts():
+        # ERL: the server sets every architecture's last layer to the class-balanced LDA readout of the current
+        # aggregated body, from exact sums of every client's real embeddings (each body is broadcast for this)
+        for g in ctx.groups:
+            headers[g].load_state_dict(hd_sd[g])
+            W, b = lda_readout(headers[g], feats, ys_list, list(range(ctx.K)))
+            hd_sd[g]["fc.weight"], hd_sd[g]["fc.bias"] = W / hspec.get("erl_t", 1.0), b / hspec.get("erl_t", 1.0)
+
+    def train_params(h):
+        return [p for n_, p in h.named_parameters() if not (erl and n_.startswith("fc."))]
     for r in range(rounds):
+        if erl and r % erl == 0:
+            set_erl_readouts()
         if gen_state is not None and hspec["gen_update"]:
             # ET.2: keep training the generator during stage (iii)
             g_sd, clients, gspec, W = gen_state
@@ -1922,6 +1941,7 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
             h = headers[g]
             h.load_state_dict(hd_sd[g])
             h.train()
+            h.fc.requires_grad_(not erl)  # ERL: the last layer is fixed by the server, only the body trains
             Xk, Yk = feats[k], ys_list[k]
             n = len(Yk)
             nb, bs = (n // B, B) if n >= B else (1, n)
@@ -1947,7 +1967,7 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
             def syn_phase():
                 if G is None or hspec["ts"] <= 0:
                     return
-                opt = torch.optim.SGD(h.parameters(), lr=0.1, momentum=0.0)
+                opt = torch.optim.SGD(train_params(h), lr=0.1, momentum=0.0)
                 if pool is not None:
                     nsyn = hspec["ts"] * nb * bs
                     o = int(pool_off[k])
@@ -1968,7 +1988,7 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
                     opt.step()
 
             def real_phase():
-                opt = torch.optim.SGD(h.parameters(), lr=0.1, momentum=0.0)
+                opt = torch.optim.SGD(train_params(h), lr=0.1, momentum=0.0)
                 for _ in range(hspec["tr"]):
                     for b in batches(n, B):
                         if b.numel() < 2:
@@ -2121,6 +2141,8 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
                         if "running_" in k or "num_batches" in k:
                             new_sd[k] = v
                     hd_sd[g] = new_sd
+        if erl and r == rounds - 1:
+            set_erl_readouts()  # the final last layer matches the final body
         if r == 0 or (r + 1) % eval_every == 0 or r == rounds - 1:
             for g in ctx.groups:
                 headers[g].load_state_dict(hd_sd[g])
@@ -2270,6 +2292,29 @@ def _embeds(h, feats, ys_list, idx):
     return E, torch.cat([ys_list[k] for k in idx])
 
 
+@torch.no_grad()
+def lda_readout(h, feats, ys_list, idx, gamma=0.1):
+    """Class-balanced LDA last layer for head h's body, from per-class sums over clients idx
+    (counts, sums of e and of e e^T: secure-aggregatable). Returns (W, b); absent classes get b = -1e4."""
+    C = NUM_CLASSES
+    was = h.training
+    h.eval()
+    E, Y = _embeds(h, feats, ys_list, idx)
+    h.train(was)
+    d = E.shape[1]
+    n = torch.bincount(Y, minlength=C).double()
+    Ed = E.double()
+    mu = torch.zeros(C, d, dtype=torch.float64, device=DEV).index_add_(0, Y, Ed) / n[:, None].clamp(min=1)
+    absent = n == 0
+    Sw = (Ed.T @ Ed - (mu.T * n) @ mu) / max(float(n.sum()) - int((~absent).sum()), 1.0)
+    Sw = (Sw + Sw.T) / 2
+    Ss = (1 - gamma) * Sw + gamma * torch.trace(Sw) / d * torch.eye(d, dtype=torch.float64, device=DEV)
+    W = mu @ torch.linalg.inv(Ss)
+    b = -0.5 * (W * mu).sum(1)
+    b[absent] = -1e4
+    return W.float(), b.float()
+
+
 def readout_heads(ctx, headers, feats, ys_list, kind, scope):
     """Per architecture g, a new last layer for head g from the real features of its own clients
     (scope "own": the protocol of CCVR / Fed3R / FedNCM applied per architecture) or of every client
@@ -2296,16 +2341,10 @@ def readout_heads(ctx, headers, feats, ys_list, kind, scope):
         mu = torch.zeros(C, d, dtype=torch.float64, device=DEV).index_add_(0, Y, Ed) / n[:, None].clamp(min=1)
         absent = n == 0
         if kind == "lda":
-            M = Ed.T @ Ed
-            Sw = (M - (mu.T * n) @ mu) / max(float(n.sum()) - int((~absent).sum()), 1.0)
-            Sw = (Sw + Sw.T) / 2
-            Ss = 0.9 * Sw + 0.1 * torch.trace(Sw) / d * torch.eye(d, dtype=torch.float64, device=DEV)
-            W = mu @ torch.linalg.inv(Ss)
-            b = -0.5 * (W * mu).sum(1)
-            b[absent] = -1e4
+            W, b = lda_readout(h, feats, ys_list, idx)
             with torch.no_grad():
-                h.fc.weight.copy_(W.float())
-                h.fc.bias.copy_(b.float())
+                h.fc.weight.copy_(W)
+                h.fc.bias.copy_(b)
             hs[g] = h
         elif kind == "ridge":
             Ea = torch.cat([Ed, torch.ones(len(Ed), 1, dtype=torch.float64, device=DEV)], 1)
