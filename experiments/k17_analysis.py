@@ -17,7 +17,7 @@ from scipy import stats
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.normpath(os.path.join(HERE, "..", "docs", "paper_assets", "tables", "T22_fair_retest.md"))
 READOUTS = ["final", "bbc", "er", "er_own", "fed3r", "fed3r_own", "ncm", "ncm_own", "ccvr", "ccvr_own"]
-BASELINES = ["GeFL-F", "Real only", "Real only + LA", "Real only + FedLC", "Real only + FedRS"]
+BASELINES = ["GeFL-F", "GeFL-F + AdamW + LA", "Real only", "Real only + LA", "Real only + FedLC", "Real only + FedRS"]
 DATASETS = ["mnist", "fmnist", "svhn", "cifar10", "cifar100"]
 RULE_TS = {"mnist": 10, "fmnist": 10, "svhn": 1, "cifar10": 1, "cifar100": 1}
 
