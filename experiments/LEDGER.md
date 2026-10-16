@@ -7,11 +7,15 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | label | result folder | seeds |
 |---|---|---|
 | +CSL (beta=0.5) | K01_kaggle_cifar10_svhn__cifar10 | 0,1,2 |
+| +LA | K16_kaggle_recalibration__cifar10_iid | 0,1,2 |
 | FedAvg (grouped) | E00_paper_parity_quick | 0 |
 | GeFL-F | E00_paper_parity_quick | 0 |
 | GeFL-F | K01_kaggle_cifar10_svhn__cifar10 | 0,1,2 |
+| GeFL-F | K16_kaggle_recalibration__cifar10_iid | 0,1,2 |
 | LG-FedAvg | E00_paper_parity_quick | 0 |
+| Minimal (HWA+LA+CSL) | K16_kaggle_recalibration__cifar10_iid | 0,1,2 |
 | Ours (HWA+LA+CSL) | K01_kaggle_cifar10_svhn__cifar10 | 0,1,2 |
+| Ours (gated) | K16_kaggle_recalibration__cifar10_iid | 0,1,2 |
 | Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__cifar10_iid | 0,1,2 |
 | Ours-A Ts=10 | K08_kaggle_anchored_stack__cifar10_iid | 0,1,2 |
 | Ours-A Ts=10 + MixUp | K13_kaggle_vct_vs_mixup__cifar10_iid | 0,1,2 |
@@ -23,14 +27,27 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 |---|---|---|
 | +HWA+LA | K01_kaggle_cifar10_svhn__cifar10 | 0,1,2 |
 | +LA | K01_kaggle_cifar10_svhn__cifar10 | 0,1,2 |
+| +LA | K16_kaggle_recalibration__cifar10_lt | 0,1,2 |
 | FSG+LA | K01_kaggle_cifar10_svhn__cifar10 | 0,1,2 |
 | FSG+LA+CSL | K01_kaggle_cifar10_svhn__cifar10 | 0,1,2 |
 | GeFL-F | K01_kaggle_cifar10_svhn__cifar10 | 0,1,2 |
+| GeFL-F | K16_kaggle_recalibration__cifar10_lt | 0,1,2 |
+| Minimal (HWA+LA+CSL) | K16_kaggle_recalibration__cifar10_lt | 0,1,2 |
 | Ours (HWA+LA+CSL) | K01_kaggle_cifar10_svhn__cifar10 | 0,1,2 |
+| Ours (gated) | K16_kaggle_recalibration__cifar10_lt | 0,1,2 |
 | Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__cifar10_lt | 0,1,2 |
 | Ours-A + MixUp | K13_kaggle_vct_vs_mixup__cifar10_lt | 0,1,2 |
 | Ours-A + VCT | K13_kaggle_vct_vs_mixup__cifar10_lt | 0,1,2 |
 | Ours-A Ts=10 | K08_kaggle_anchored_stack__cifar10_lt | 0,1,2 |
+
+## cifar100  IF=0.01  alpha=0.5  K=10
+
+| label | result folder | seeds |
+|---|---|---|
+| +LA | K16_kaggle_recalibration__cifar100_lt | 0,1,2 |
+| GeFL-F | K16_kaggle_recalibration__cifar100_lt | 0,1,2 |
+| Minimal (HWA+LA+CSL) | K16_kaggle_recalibration__cifar100_lt | 0,1,2 |
+| Ours (gated) | K16_kaggle_recalibration__cifar100_lt | 0,1,2 |
 
 ## fmnist  IF=1.0  alpha=0.5  K=10
 
@@ -78,6 +95,7 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | +HWA+LA+CSL | F10_combined_method | 0,1,2 |
 | +HWA+LCD+LA | E12_confirmation_quick | 0,1,2 |
 | +LA | E12_confirmation_quick | 0,1,2 |
+| +LA | K16_kaggle_recalibration__mnist_fmnist_iid | 0,1,2 |
 | +LCD+LA | E12_confirmation_quick | 0,1,2 |
 | +SED(20) | E15_server_distillation_quick | 0 |
 | FSG+LA | E13_sufficient_statistics_quick | 0,1,2 |
@@ -95,17 +113,20 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | GeFL-F | E20_proto_generator | 0,1,2 |
 | GeFL-F | F09_consensus_paper_setting | 0,1,2 |
 | GeFL-F | F10_combined_method | 0,1,2 |
+| GeFL-F | K16_kaggle_recalibration__mnist_fmnist_iid | 0,1,2 |
 | GeFL-F (DDPM-F) | F11_ddpm_generator | 0 |
 | GeFL-F Ts=3 | E16_csl_synthetic_budget | 0,1,2 |
 | GeFL-F Ts=5 | E16_csl_synthetic_budget | 0,1,2 |
 | LG-FedAvg | E00_paper_parity_quick | 0 |
 | LG-FedAvg | E01_imbalance_gap_quick | 0 |
 | LG-FedAvg+LA | E12_confirmation_quick | 0,1,2 |
+| Minimal (HWA+LA+CSL) | K16_kaggle_recalibration__mnist_fmnist_iid | 0,1,2 |
 | Ours (DDPM-F) | F11_ddpm_generator | 0,1 |
 | Ours (HWA+LA+CSL) | E15_server_distillation_quick | 0 |
 | Ours (HWA+LA+CSL) | E20_proto_generator | 0,1,2 |
 | Ours (HWA+LA+CSL) Ts=10 | E16_csl_synthetic_budget | 0,1,2 |
 | Ours (HWA+LA+CSL) Ts=5 | E16_csl_synthetic_budget | 0,1,2 |
+| Ours (gated) | K16_kaggle_recalibration__mnist_fmnist_iid | 0,1,2 |
 | Ours+MC | E20_proto_generator | 0,1,2 |
 | Ours+SED(20) | E15_server_distillation_quick | 0 |
 | Ours-A (PC+MC+KH+LA+CSL) | E25_anchored_stack | 0,1,2 |
@@ -340,6 +361,7 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | +HWA+LA+CSL | F10_combined_method | 0,1,2 |
 | +HWA+LCD+LA | E12_confirmation_quick | 0,1,2 |
 | +LA | E12_confirmation_quick | 0,1,2 |
+| +LA | K16_kaggle_recalibration__mnist_fmnist_iid | 0,1,2 |
 | +LCD+LA | E12_confirmation_quick | 0,1,2 |
 | FSG+LA | E13_sufficient_statistics_quick | 0,1,2 |
 | FSG+LA | E14_relative_hybrid_quick | 0,1,2 |
@@ -352,11 +374,14 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | GeFL-F | E16_csl_synthetic_budget | 0,1,2 |
 | GeFL-F | F09_consensus_paper_setting | 0,1,2 |
 | GeFL-F | F10_combined_method | 0,1,2 |
+| GeFL-F | K16_kaggle_recalibration__mnist_fmnist_iid | 0,1,2 |
 | GeFL-F Ts=3 | E16_csl_synthetic_budget | 0,1,2 |
 | GeFL-F Ts=5 | E16_csl_synthetic_budget | 0,1,2 |
 | LG-FedAvg | E00_paper_parity_quick | 0 |
 | LG-FedAvg+LA | E12_confirmation_quick | 0,1,2 |
+| Minimal (HWA+LA+CSL) | K16_kaggle_recalibration__mnist_fmnist_iid | 0,1,2 |
 | Ours (HWA+LA+CSL) Ts=5 | E16_csl_synthetic_budget | 0,1,2 |
+| Ours (gated) | K16_kaggle_recalibration__mnist_fmnist_iid | 0,1,2 |
 | Ours-A (PC+MC+KH+LA+CSL) | E25_anchored_stack | 0,1,2 |
 | Ours-A Ts=10 | E25_anchored_stack | 0,1,2 |
 | RHYB(0.5)+HWA+LA | E14_relative_hybrid_quick | 0,1,2 |
@@ -632,11 +657,11 @@ COMPLETE = every planned run is in the folder. PARTIAL lists the missing (label:
 | NB40_recalib_mnist_lt | K16_kaggle_recalibration --datasets mnist --IF 0.01 | K16_kaggle_recalibration__mnist_lt | 12 | 12 | COMPLETE |
 | NB41_recalib_fmnist_lt | K16_kaggle_recalibration --datasets fmnist --IF 0.01 | K16_kaggle_recalibration__fmnist_lt | 12 | 12 | COMPLETE |
 | NB42_recalib_svhn_lt | K16_kaggle_recalibration --datasets svhn --IF 0.01 | K16_kaggle_recalibration__svhn_lt | 12 | 12 | COMPLETE |
-| NB43_recalib_cifar10_lt | K16_kaggle_recalibration --datasets cifar10 --IF 0.01 | K16_kaggle_recalibration__cifar10_lt | 12 | 0 | NOT RUN |
-| NB44_recalib_cifar100_lt | K16_kaggle_recalibration --datasets cifar100 --IF 0.01 | K16_kaggle_recalibration__cifar100_lt | 12 | 0 | NOT RUN |
-| NB45_recalib_mnist_fmnist_iid | K16_kaggle_recalibration --datasets mnist fmnist --IF 1.0 | K16_kaggle_recalibration__mnist_fmnist_iid | 24 | 0 | NOT RUN |
+| NB43_recalib_cifar10_lt | K16_kaggle_recalibration --datasets cifar10 --IF 0.01 | K16_kaggle_recalibration__cifar10_lt | 12 | 12 | COMPLETE |
+| NB44_recalib_cifar100_lt | K16_kaggle_recalibration --datasets cifar100 --IF 0.01 | K16_kaggle_recalibration__cifar100_lt | 12 | 12 | COMPLETE |
+| NB45_recalib_mnist_fmnist_iid | K16_kaggle_recalibration --datasets mnist fmnist --IF 1.0 | K16_kaggle_recalibration__mnist_fmnist_iid | 24 | 24 | COMPLETE |
 | NB46_recalib_svhn_iid | K16_kaggle_recalibration --datasets svhn --IF 1.0 | K16_kaggle_recalibration__svhn_iid | 12 | 0 | NOT RUN |
-| NB47_recalib_cifar10_iid | K16_kaggle_recalibration --datasets cifar10 --IF 1.0 | K16_kaggle_recalibration__cifar10_iid | 12 | 0 | NOT RUN |
+| NB47_recalib_cifar10_iid | K16_kaggle_recalibration --datasets cifar10 --IF 1.0 | K16_kaggle_recalibration__cifar10_iid | 12 | 12 | COMPLETE |
 | NB48_recalib_cifar100_iid | K16_kaggle_recalibration --datasets cifar100 --IF 1.0 | K16_kaggle_recalibration__cifar100_iid | 12 | 0 | NOT RUN |
 | NB6_svhn_diffusion | K04_kaggle_ddpm_cifar10_svhn --datasets svhn | K04_kaggle_ddpm_cifar10_svhn__svhn | 9 | 9 | COMPLETE |
 | NB7_cifar10_diffusion_seed0 | K04_kaggle_ddpm_cifar10_svhn --datasets cifar10 --seeds 0 | K04_kaggle_ddpm_cifar10_svhn__cifar10_s0 | 3 | 0 | NOT RUN |

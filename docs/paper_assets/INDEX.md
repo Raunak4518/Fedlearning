@@ -24,8 +24,9 @@ Every table and figure of the paper, computed from `experiments/results` only. `
 | [T16_ddpm](tables/T16_ddpm.md) | 5.8 | Generator-agnostic: on the paper's DDPM-F (IID, best_mean_acc; F11, K04) |  |
 | [T17_collapse_fixes](tables/T17_collapse_fixes.md) | 3 / 4.1 | Fixes for row collapse, long tail (balanced accuracy; K15 + F01/F04/K03 references) | 20 |
 | [T18_collapse_fixes_rows](tables/T18_collapse_fixes_rows.md) | 3 / 4.1 | Fixes for row collapse, long tail (tail/head row norm at the end; K15 + F01/F04/K03 references) | 20 |
-| [T19_readouts_gefl](tables/T19_readouts_gefl.md) | 5.11 | Balanced accuracy under every readout, long tail (K16; same trained heads per row group) | 32 |
-| [T20_readouts_ours](tables/T20_readouts_ours.md) | 5.11 | Balanced accuracy under every readout, long tail (K16; same trained heads per row group) | 32 |
+| [T19_readouts_gefl](tables/T19_readouts_gefl.md) | 5.11 | Balanced accuracy under every readout, long tail (K16; same trained heads per row group) |  |
+| [T20_readouts_ours](tables/T20_readouts_ours.md) | 5.11 | Balanced accuracy under every readout, long tail (K16; same trained heads per row group) |  |
+| [T21_readouts_iid](tables/T21_readouts_iid.md) | 5.4 / 5.11 | Balanced accuracy under every readout, balanced (IID) setting (K16) | 48 |
 
 ## Figures
 

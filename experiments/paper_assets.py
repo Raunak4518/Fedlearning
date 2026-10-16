@@ -397,7 +397,17 @@ for _tid, _labs in [("T19_readouts_gefl", [("GeFL-F", "GeFL-F"), ("+ LA", "+LA")
           [d.upper() for d in _K16DS],
           [(f"{_n}, {_ro}", [C(f"K16_kaggle_recalibration__{d}_lt", _l, d, LT, metric=f"{_m}_bal") for d in _K16DS])
            for _n, _l in _labs for _ro, _m in _K16RO],
-          note="CIFAR-10 / CIFAR-100 columns fill in when NB43 / NB44 results are copied back.")
+          note="Long tail, IF = 100, Dirichlet 0.5, K = 10, 3 seeds.")
+# K16, the paper's balanced setting (IID): the same readouts
+_K16IID = [("mnist", "K16_kaggle_recalibration__mnist_fmnist_iid"), ("fmnist", "K16_kaggle_recalibration__mnist_fmnist_iid"),
+           ("svhn", "K16_kaggle_recalibration__svhn_iid"), ("cifar10", "K16_kaggle_recalibration__cifar10_iid"),
+           ("cifar100", "K16_kaggle_recalibration__cifar100_iid")]
+table("T21_readouts_iid", "5.4 / 5.11", "Balanced accuracy under every readout, balanced (IID) setting (K16)",
+      [d.upper() for d, _ in _K16IID],
+      [(f"{_n}, {_ro}", [C(_f, _l, d, IID, metric=f"{_m}_bal") for d, _f in _K16IID])
+       for _n, _l in [("GeFL-F", "GeFL-F"), ("minimal", "Minimal (HWA+LA+CSL)"), ("ours (gated)", "Ours (gated)")]
+       for _ro, _m in _K16RO],
+      note="SVHN / CIFAR-100 columns fill in when NB46 / NB48 results are copied back.")
 
 MERGED = {"K09+K14:mnist": ["K09_kaggle_ablation_final__mnist", "K14_kaggle_ablation_seeds_mcb__mnist"],
           "K09+K14:fmnist": ["K09_kaggle_ablation_final__fmnist", "K14_kaggle_ablation_seeds_mcb__fmnist"],

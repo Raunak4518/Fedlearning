@@ -118,6 +118,10 @@ GPT = GPT issue ID.
 - Compared against holder-weighted averaging + logit adjustment at 10 / 50 / 100 clients.
 - Readout statistics are now logged automatically.
 
+**Result (16 Oct 2026):** the readout half of Gate 1 passes on 4 of 5 datasets (ER margins +3.9 / +2.2 / +2.0 /
++2.6 / +3.4 on MNIST / FMNIST / SVHN / CIFAR-10 / CIFAR-100; SVHN misses the 2-point threshold by 0.02). The K15
+half (NB38 / NB39) decides whether HWA stays a contribution. Details: `docs/PROGRESS.md` §1b.
+
 ### Gate 1: what we write depending on the results (fixed now, before seeing them)
 
 | Result | Then |

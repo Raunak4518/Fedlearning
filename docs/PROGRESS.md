@@ -44,28 +44,30 @@ significant. **FIX DRAFT** = data exist but the draft quotes a different number.
 | 18 | **New (T03): GeFL-F's long-tail residual is mostly a readout gap; exact-statistics readout (ER) closes it** | `docs/research/readout_report.md` | T03 (CPU, 1 seed, reduced schedule), oracle numbers of all runs | ER validated (9/9 runs within 0.8 of oracle); mechanism open; paper must add the GeFL-F + recalibration baseline (CCVR/CReFF/Fed3R) |
 | 17 | VCT beats MixUp (target: GeFL + MixUp 62.67 on CIFAR-10 IID) | T13_cifar_svhn | K13 | **NEGATIVE**: VCT 60.29 vs MixUp 59.98 (IID), 45.65 vs 46.20 (LT); neither reaches 62.67. Move to "what did not work" |
 
-## 1b. Gate 1, interim (K16 long tail, 3 of 5 datasets; tables T19 / T20)
+## 1b. Gate 1, readout half: DECIDED (K16 long tail, all 5 datasets; tables T19 / T20 / T21)
 
-Ours (gated) minus GeFL-F, balanced accuracy, both with the **same** readout (paired over 3 seeds, 95% CI):
+Ours (gated) minus GeFL-F, long-tail balanced accuracy, both with the **same** readout (paired, 3 seeds, 95% CI):
 
-| readout | MNIST | FMNIST | SVHN |
-|---|---|---|---|
-| heads as trained | +20.6 [16.5, 24.7] | +20.9 [14.1, 27.7] | +15.8 [4.9, 26.7] |
-| ER (LDA from exact sums, all clients) | **+3.9 [3.0, 4.8]** | **+2.2 [0.1, 4.4]** | **+2.0 [0.8, 3.2]** |
-| CCVR (all clients) | +3.6 [2.2, 5.0] | +2.1 [1.0, 3.1] | +2.4 [0.5, 4.3] |
-| CCVR (own clients, the published protocol) | +16.0 | +13.9 | +2.2 (n.s.) |
-| oracle (pooled real, not federated) | +4.1 | +2.6 | +4.0 |
+| readout | MNIST | FMNIST | SVHN | CIFAR-10 | CIFAR-100 |
+|---|---|---|---|---|---|
+| heads as trained | +20.6 [16.5, 24.7] | +20.9 [14.1, 27.7] | +15.8 [4.9, 26.7] | +11.8 [8.2, 15.4] | +7.6 [6.3, 8.9] |
+| **ER (LDA from exact sums, all clients)** | **+3.9 [3.0, 4.8]** | **+2.2 [0.1, 4.4]** | **+2.0 [0.8, 3.2]** | **+2.6 [2.1, 3.1]** | **+3.4 [3.1, 3.8]** |
+| CCVR (all clients) | +3.6 | +2.1 | +2.4 | +2.8 | +3.5 |
+| oracle (pooled real, not federated) | +4.1 | +2.6 | +4.0 | +3.4 | +4.5 |
+| absolute, Ours + ER | 94.4 | 81.5 | 66.7 | 53.9 | 18.6 |
 
-* Gate 1 rule (ER margin ≥ 2 with CI excluding 0): MNIST passes, FMNIST passes narrowly, SVHN is at 1.98 (CI
-  excludes 0). The decision waits for CIFAR-10 and CIFAR-100 (NB43, NB44).
-* Ours' own heads are already near its oracle (MNIST 95.1 vs 95.3); GeFL-F's are 16.7 below its oracle. A readout fix
-  recovers most of GeFL-F's loss; our method keeps a 2–4 point lead over the best federated readout of GeFL-F.
-* Fed3R (unweighted ridge) and every "own clients" readout are poor under the long tail at K = 10 (one client per
-  architecture): the published per-architecture protocols do not rescue GeFL-F; the all-client versions need each
-  architecture's body broadcast to every client.
-* Calibration: our heads as trained have ECE 1.1 / 11.2 / 7.3 (GeFL-F 8.3 / 23.5 / 23.9); the readouts worsen ECE.
-* Reproducibility check: GeFL-F, Ours and the SVHN rows branch match their earlier runs within noise
-  (74.48 vs 74.24; 95.10 vs 94.82; 65.42 vs 65.60).
+* **Rule (ER margin ≥ 2, CI excluding 0) passes on 4 of 5 datasets** (SVHN +1.98 misses the threshold by 0.02, CI
+  excludes 0) → outcome **A1**: a method paper. The margin is 2–4 points over a recalibrated GeFL-F, not 15–20.
+* **The readout matters for our method too.** Ours' heads as trained are near their oracle on MNIST / SVHN / CIFAR-100,
+  but not on CIFAR-10 (45.7 as trained, 53.9 with ER): there GeFL-F + ER (51.3) beats Ours as trained. The practical
+  recipe is therefore "our generator + an exact-statistics readout"; this answers D4.
+* **Balanced data (IID; MNIST, FMNIST, CIFAR-10):** no harm. Heads: +1.7 (MNIST, p = 0.003), +0.9 and +1.0 (n.s.).
+  With ER the methods are within 0.6. On CIFAR-10 IID the minimal variant (58.6) is above Ours (57.8).
+* CIFAR-100 absolute accuracy is low for every method (15–19% with a readout): the frozen 10-channel extractor is the
+  bottleneck. Report it as such.
+* The published per-architecture readouts ("own clients") are weak at K = 10 for every method (one client per
+  architecture); the all-client readouts need each body broadcast, which is a protocol change to state.
+* Still open: Gate 1 second half (K15, NB38 / NB39: HWA vs the optimiser fixes); SVHN / CIFAR-100 IID (NB46 / NB48).
 
 ## 2. Draft corrections
 
@@ -83,7 +85,7 @@ on new seeds (see the action plan).
 |---|---|---|---|
 | **NB38 / NB39 (K15)**, existing fixes for row collapse vs HWA, K = 10/50/100: AdamW matched (1e-3), no decay on class rows, lazy decay; AdamW 1e-2 at K = 10 | the question a reviewer asks first: is HWA better than just fixing the optimiser? Pre-registered predictions in `docs/collapse_explainer/collapse_theorem_explained.pdf` §8; tables T17/T18 fill in automatically | ~3.3 h each, T4 × 2 (60 runs) | ready in `kaggle_notebooks/`, not run; references reused (0 duplicates) |
 | NB36 / NB37 (K14), seeds 3–4 | per-component significance (claim 14) and MC-B stability on MNIST (claim 16) | ~2 h each, T4 × 2 | ready in `kaggle_notebooks/`, not run |
-| **K16 = B1 (NB40–NB48)**: GeFL-F, + LA, minimal variant, our gated method; every trained head evaluated under 8 readouts (ER, Fed3R, FedNCM, CCVR, each with all clients or own clients) plus BBC and the oracle; MNIST, FMNIST, SVHN, CIFAR-10 and **CIFAR-100** (new), long tail and IID | Gate 1: the recalibrated-baseline comparison (reviewer objection F1); CIFAR-100 answers "only 10 classes" | long tail ≈ 13 h wall on T4 × 2 (NB40–44), IID ≈ 14.5 h (NB45–48) | **MNIST, FMNIST, SVHN long tail DONE (NB40–42, 36 runs, 15 Oct)**; CIFAR-10 / CIFAR-100 long tail (NB43, NB44) and all IID notebooks still to run. 36 of 120 runs repeat old configurations on purpose (no models were saved before); run the long-tail notebooks first |
+| **K16 = B1 (NB40–NB48)**: GeFL-F, + LA, minimal variant, our gated method; every trained head evaluated under 8 readouts (ER, Fed3R, FedNCM, CCVR, each with all clients or own clients) plus BBC and the oracle; MNIST, FMNIST, SVHN, CIFAR-10 and **CIFAR-100** (new), long tail and IID | Gate 1: the recalibrated-baseline comparison (reviewer objection F1); CIFAR-100 answers "only 10 classes" | long tail ≈ 13 h wall on T4 × 2 (NB40–44), IID ≈ 14.5 h (NB45–48) | **DONE: all 5 long-tail notebooks (NB40–44) and IID NB45 + NB47 (16 Oct)**; NB46 (SVHN IID) and NB48 (CIFAR-100 IID) still to run. 36 of 120 runs repeat old configurations on purpose (no models were saved before); run the long-tail notebooks first |
 | T01 extra seeds (local CPU or Kaggle) | claim 1 has 1 seed | ~1.5 h per seed on CPU | optional; theorem itself is exact, the seeds only add robustness |
 
 **Optional (only if the paper keeps the corresponding claim):**
