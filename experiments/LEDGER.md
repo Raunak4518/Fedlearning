@@ -504,6 +504,7 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | GeFL-F | F10_combined_method | 0,1,2 |
 | GeFL-F | K02_kaggle_regimes_privacy_ablations | 0,1,2 |
 | GeFL-F | K16_kaggle_recalibration__mnist_lt | 0,1,2 |
+| GeFL-F | K17_kaggle_fair_retest__mnist | 3,4,5 |
 | GeFL-F | T03_exact_readout (quick) | 0 |
 | GeFL-F + ERL | E33_exact_readout_loop_quick | 0 |
 | HWA weights = counts n | K02_kaggle_regimes_privacy_ablations | 0,1 |
@@ -530,6 +531,8 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Ours (gated) | K16_kaggle_recalibration__mnist_lt | 0,1,2 |
 | Ours + ERL | E33_exact_readout_loop_quick | 0 |
 | Ours + ERL5 | E33_exact_readout_loop_quick | 0 |
+| Ours Ts=1 | K17_kaggle_fair_retest__mnist | 3,4,5 |
+| Ours Ts=10 | K17_kaggle_fair_retest__mnist | 3,4,5 |
 | Ours+BCR | E03_method_components_quick | 0 |
 | Ours+LAFE | E03_method_components_quick | 0 |
 | Ours+MC | E20_proto_generator | 0,1,2 |
@@ -558,6 +561,10 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Ours-private (LCD+PCM+LA) | E03_method_components_quick | 0 |
 | RHYB(0.5)+HWA+LA | E14_relative_hybrid_quick | 0,1,2 |
 | RHYB(1.0)+HWA+LA | E14_relative_hybrid_quick | 0,1,2 |
+| Real only | K17_kaggle_fair_retest__mnist | 3,4,5 |
+| Real only + FedLC | K17_kaggle_fair_retest__mnist | 3,4,5 |
+| Real only + FedRS | K17_kaggle_fair_retest__mnist | 3,4,5 |
+| Real only + LA | K17_kaggle_fair_retest__mnist | 3,4,5 |
 | no CSL | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | no HWA (flat averaging) | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | no LA (plain CE) | K02_kaggle_regimes_privacy_ablations | 0,1 |
@@ -693,11 +700,11 @@ COMPLETE = every planned run is in the folder. PARTIAL lists the missing (label:
 | NB46_recalib_svhn_iid | K16_kaggle_recalibration --datasets svhn --IF 1.0 | K16_kaggle_recalibration__svhn_iid | 12 | 0 | NOT RUN |
 | NB47_recalib_cifar10_iid | K16_kaggle_recalibration --datasets cifar10 --IF 1.0 | K16_kaggle_recalibration__cifar10_iid | 12 | 12 | COMPLETE |
 | NB48_recalib_cifar100_iid | K16_kaggle_recalibration --datasets cifar100 --IF 1.0 | K16_kaggle_recalibration__cifar100_iid | 12 | 0 | NOT RUN |
-| NB50_fair_mnist | K17_kaggle_fair_retest --datasets mnist | K17_kaggle_fair_retest__mnist | 21 | 0 | NOT RUN |
-| NB51_fair_fmnist | K17_kaggle_fair_retest --datasets fmnist | K17_kaggle_fair_retest__fmnist | 21 | 0 | NOT RUN |
-| NB52_fair_svhn | K17_kaggle_fair_retest --datasets svhn | K17_kaggle_fair_retest__svhn | 21 | 0 | NOT RUN |
-| NB53_fair_cifar10 | K17_kaggle_fair_retest --datasets cifar10 --exclude Ours rows Ts=1 | K17_kaggle_fair_retest__cifar10 | 24 | 0 | NOT RUN |
-| NB54_fair_cifar100 | K17_kaggle_fair_retest --datasets cifar100 | K17_kaggle_fair_retest__cifar100 | 21 | 0 | NOT RUN |
+| NB50_fair_mnist | K17_kaggle_fair_retest --datasets mnist | K17_kaggle_fair_retest__mnist | 24 | 21 | PARTIAL - missing GeFL-F + AdamW + LA mnist IF=0.01 K=10: s3,4,5 |
+| NB51_fair_fmnist | K17_kaggle_fair_retest --datasets fmnist | K17_kaggle_fair_retest__fmnist | 24 | 0 | NOT RUN |
+| NB52_fair_svhn | K17_kaggle_fair_retest --datasets svhn | K17_kaggle_fair_retest__svhn | 24 | 0 | NOT RUN |
+| NB53_fair_cifar10 | K17_kaggle_fair_retest --datasets cifar10 --exclude Ours rows Ts=1 | K17_kaggle_fair_retest__cifar10 | 27 | 0 | NOT RUN |
+| NB54_fair_cifar100 | K17_kaggle_fair_retest --datasets cifar100 | K17_kaggle_fair_retest__cifar100 | 24 | 0 | NOT RUN |
 | NB55_fair_cifar10_rows | K17_kaggle_fair_retest --datasets cifar10 --only Ours rows Ts=1 | K17_kaggle_fair_retest__cifar10_rows | 3 | 0 | NOT RUN |
 | NB6_svhn_diffusion | K04_kaggle_ddpm_cifar10_svhn --datasets svhn | K04_kaggle_ddpm_cifar10_svhn__svhn | 9 | 9 | COMPLETE |
 | NB7_cifar10_diffusion_seed0 | K04_kaggle_ddpm_cifar10_svhn --datasets cifar10 --seeds 0 | K04_kaggle_ddpm_cifar10_svhn__cifar10_s0 | 3 | 0 | NOT RUN |

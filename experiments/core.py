@@ -627,7 +627,7 @@ GEN_DEFAULTS = dict(type="cvae", wd=1e-3, agg="flat", lazy=False, beta=0.999, we
 HEAD_DEFAULTS = dict(sampler="uniform", order="syn_first", ts=1, tr=5, mix=None, mix_ratio=0.2, vct=0.0, mixup=0.0,
                      loss="ce", tau=1.0, bcr=0, bcr_lr=0.05, gen_update=False, csl=0.0, csl_mix=False,
                      sed=0, sed_lr=0.05, sed_beta=0.5, sed_bs=128, csl_mode="mix", mc=False, rsa=0.0, kh=False,
-                     erl=0, erl_t=1.0)
+                     erl=0, erl_t=1.0, kh_mode="kh", kh_mult=4, kh_D=6144, mc_mode="both")
 
 
 def method(pipeline="gefl_f", fe=None, gen=None, head=None):
@@ -674,7 +674,16 @@ COMPONENTS = {
     "ERL": dict(head=dict(erl=1)),              # exact readout in the loop: every round the server sets each head's
                                                 # last layer to the class-balanced LDA readout from exact sums of all
                                                 # clients' embeddings; clients train only the body under it
-    "ERL5": dict(head=dict(erl=5)),             # the same, recomputed every 5 rounds (5x less extra communication)
+    "ERL5": dict(head=dict(erl=5)),
+    # C2 mechanism controls (action plan): is kernel herding's SELECTION what helps, and which MC moment matters?
+    "KHRAND": dict(head=dict(kh_mode="random")),     # same candidate pool, a random n of the 4n instead of herding
+    "KHD1536": dict(head=dict(kh_D=1536)),           # random-feature dimension 1536 (default 6144)
+    "KHD12288": dict(head=dict(kh_D=12288)),
+    "KHM2": dict(head=dict(kh_mult=2)),              # candidate pool 2n (default 4n)
+    "KHM8": dict(head=dict(kh_mult=8)),
+    "MCMEAN": dict(head=dict(mc_mode="mean")),       # MC moves only the class mean (no spread rescaling)
+    "MCSPREAD": dict(head=dict(mc_mode="spread")),   # MC rescales only the spread (keeps the generator's mean)
+    "FEDDF": dict(head=dict(sed=20, sed_beta=1.0)),  # FedDF-style server ensemble distillation on generated features             # the same, recomputed every 5 rounds (5x less extra communication)
     "BCSL": dict(head=dict(csl=0.5, csl_mode="bayes")),  # Bayesian CSL: label prior x ensemble, rho estimated
     "CSLM": dict(head=dict(csl=0.5, csl_mix=True)),
     "SED": dict(head=dict(sed=20)),             # server-side ensemble distillation on generated features  # ...interleaved into every real batch (no forgetting)
@@ -1601,9 +1610,9 @@ class HerdedGen(nn.Module):
     (without replacement). Lowers the MMD term of the head's risk bound for ANY
     generator; uses only the federated statistics already uploaded."""
 
-    def __init__(self, G, phi, mu, mult=4, use=None):
+    def __init__(self, G, phi, mu, mult=4, use=None, mode="kh"):
         super().__init__()
-        self.G, self.kind, self.phi, self.mult = G, G.kind, phi, mult
+        self.G, self.kind, self.phi, self.mult, self.mode = G, G.kind, phi, mult, mode
         self.register_buffer("mu", mu)
         self.register_buffer("use", torch.ones(NUM_CLASSES, dtype=torch.bool, device=mu.device) if use is None else use)
 
@@ -1621,6 +1630,12 @@ class HerdedGen(nn.Module):
                 continue
             cand = torch.cat([self.G.sample(torch.full((min(4096, self.mult * n - i),), int(c), device=y.device,
                                                        dtype=torch.long)) for i in range(0, self.mult * n, 4096)])
+            if self.mode == "random":  # control: same pool, uniform random subset
+                sel = cand[torch.randperm(len(cand), device=y.device)[:n]]
+                if out is None:
+                    out = torch.empty((len(y),) + tuple(sel.shape[1:]), device=y.device)
+                out[idx] = sel
+                continue
             P = self.phi(cand)
             w = self.mu[c].clone()
             taken = torch.zeros(len(cand), dtype=torch.bool, device=y.device)
@@ -1647,7 +1662,7 @@ class MomentCalibratedGen(nn.Module):
     class: what secure aggregation returns); m_c, V~_c from the generator's own
     samples. Fixes VAE under-dispersion and tail-mean bias; keeps the learned shape."""
 
-    def __init__(self, G, feats, ys_list, n=500):
+    def __init__(self, G, feats, ys_list, n=500, mode="both"):
         super().__init__()
         self.G, self.kind = G, G.kind
         cnt, S1, S2 = anchor_stats(feats, ys_list)
@@ -1665,6 +1680,10 @@ class MomentCalibratedGen(nn.Module):
                 Vg.append((g - g.mean(0)).pow(2).sum(1).mean())
         m, Vg = torch.stack(m), torch.stack(Vg)
         scale = (V.clamp(min=0) / Vg.clamp(min=1e-8)).sqrt().clamp(0.1, 10.0)
+        if mode == "mean":      # control: move the mean only
+            scale = torch.ones_like(scale)
+        elif mode == "spread":  # control: rescale the spread only, keep the generator's own mean
+            mu = m.clone()
         mu = torch.where(self.use[:, None], mu, m)            # gated classes: identity map
         scale = torch.where(self.use, scale, torch.ones_like(scale))
         self.register_buffer("mu", mu)
@@ -2492,7 +2511,7 @@ def wrap_sampler(ctx, m, G, s1, res):
         smc = sample_spread(G, s1["feats"], s1["ys"])
         res["spread_tail_mc"] = float(np.nanmean(smc[TAIL()]))
     elif G is not None and (m["head"].get("mc") or m["head"].get("mcs")):
-        G = MomentCalibratedGen(G, s1["feats"], s1["ys"])
+        G = MomentCalibratedGen(G, s1["feats"], s1["ys"], mode=m["head"].get("mc_mode", "both"))
         if s1.get("ref") is not None:
             fmc = referee_fidelity(s1["ref"], G)
             res["fidelity_tail_mc"], res["fidelity_mc"] = float(fmc[TAIL()].mean()), fmc.round(3).tolist()
@@ -2500,8 +2519,8 @@ def wrap_sampler(ctx, m, G, s1, res):
         res["spread_tail_mc"], res["mc_scale"] = float(np.nanmean(smc[TAIL()])), G.scale.cpu().numpy().round(3).tolist()
         res["mc_classes_used"] = int(G.use.sum())
     if G is not None and m["head"].get("kh"):
-        phi_, mu_, use_ = federated_kme(ctx, s1["feats"], s1["ys"])
-        G = HerdedGen(G, phi_, mu_, use=use_)
+        phi_, mu_, use_ = federated_kme(ctx, s1["feats"], s1["ys"], D=m["head"].get("kh_D", 6144))
+        G = HerdedGen(G, phi_, mu_, use=use_, mult=m["head"].get("kh_mult", 4), mode=m["head"].get("kh_mode", "kh"))
         res["kh_classes_used"] = int(use_.sum())
         if s1.get("ref") is not None:
             fkh = referee_fidelity(s1["ref"], G)
