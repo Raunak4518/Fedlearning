@@ -668,6 +668,9 @@ COMPONENTS = {
     "KH": dict(head=dict(kh=True)),                  # kernel herding of samples toward exact class embeddings
     "RSA": dict(head=dict(rsa=1.0)),                 # held-class real-synthetic alignment (shift transfer)
     "CSL": dict(head=dict(csl=0.5)),            # consensus soft labels for synthetic features
+    "REAL": dict(head=dict(ts=0)),              # heads on real features only (no synthetic phase): plain FL heads
+    "FEDLC": dict(head=dict(loss="lc")),        # FedLC logit calibration by the client's class counts (published)
+    "FEDRS": dict(head=dict(loss="rs")),        # FedRS restricted softmax for classes the client lacks (published)
     "ERL": dict(head=dict(erl=1)),              # exact readout in the loop: every round the server sets each head's
                                                 # last layer to the class-balanced LDA readout from exact sums of all
                                                 # clients' embeddings; clients train only the body under it
@@ -746,6 +749,23 @@ def ce_or_la(logits, y, log_prior, tau):
     if log_prior is not None and tau:
         logits = logits + tau * log_prior
     return F.cross_entropy(logits, y)
+
+
+def client_loss_adj(hspec, counts_k):
+    """Per-client constant of the published long-tail FL losses (None for CE / LA)."""
+    if hspec["loss"] == "lc":   # FedLC (Zhang et al., ICML 2022): z_c - tau * n_{k,c}^(-1/4)
+        return torch.tensor(hspec["tau"] * (counts_k + 1.0) ** -0.25, dtype=torch.float32, device=DEV)
+    if hspec["loss"] == "rs":   # FedRS (Li & Zhan, KDD 2021): logits of classes the client lacks scaled by alpha
+        return torch.tensor(counts_k == 0, device=DEV)
+    return None
+
+
+def head_loss(logits, y, log_prior, hspec, adj=None):
+    if hspec["loss"] == "lc":
+        return F.cross_entropy(logits - adj, y)
+    if hspec["loss"] == "rs":
+        return F.cross_entropy(torch.where(adj[None, :], logits * hspec.get("rs_alpha", 0.5), logits), y)
+    return ce_or_la(logits, y, log_prior, hspec["tau"])
 
 
 def local_log_prior(counts, extra=None):
@@ -1968,6 +1988,7 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
                     prior = torch.tensor(np.log((q + S * p_mix) / (1 + S) + 1e-3), dtype=torch.float32, device=DEV)
                 else:
                     prior = local_log_prior(counts[k])
+            adj = client_loss_adj(hspec, counts[k])
 
             def syn_phase():
                 if G is None or hspec["ts"] <= 0:
@@ -2075,7 +2096,7 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
                             er, es = e[:len(y)], e[len(y):]
                             loss = ce_or_la(h.fc(er), y, prior, hspec["tau"]) + hspec["rsa"] * rsa_loss(er, es, y, C)
                         else:
-                            loss = ce_or_la(fwd(g, x), y, prior, hspec["tau"])
+                            loss = head_loss(fwd(g, x), y, prior, hspec, adj)
                         opt.zero_grad(set_to_none=True)
                         loss.backward()
                         opt.step()
@@ -2174,6 +2195,11 @@ def balanced_bias_calibration(ctx, headers, G, feats_te, n=500, iters=50):
     every class equally often on class-balanced synthetic features from G
     (prior correction a la Saerens et al. 2002, fixed point b <- b - log(C q(b))).
     Uses only what the server holds (heads, generator); evaluated on the test set."""
+    return summarize_eval(eval_headers(ctx, bbc_heads(ctx, headers, G, n, iters), feats_te, ctx.data["yte"]))
+
+
+@torch.no_grad()
+def bbc_heads(ctx, headers, G, n=500, iters=50):
     G.eval()
     y = torch.arange(NUM_CLASSES, device=DEV).repeat_interleave(n)
     x = torch.cat([G.sample(y[i:i + 4096]) for i in range(0, len(y), 4096)])
@@ -2190,7 +2216,7 @@ def balanced_bias_calibration(ctx, headers, G, feats_te, n=500, iters=50):
             q = (logits + b).softmax(1).mean(0)
             b = b - torch.log(q * NUM_CLASSES)
         out.append(_BiasedHead(h, b - b.mean()))
-    return summarize_eval(eval_headers(ctx, out, feats_te, ctx.data["yte"]))
+    return out
 
 
 @torch.no_grad()
@@ -2401,10 +2427,11 @@ READOUTS = {"er": ("lda", "all"), "er_own": ("lda", "own"), "fed3r": ("ridge", "
 EVAL_KEYS = ("bal", "acc", "head", "medium", "tail", "worst", "worst_arch", "rec_std") + EXTRA_METRICS + ("ens_bal",)
 
 
-def flat_eval(prefix, ev):
+def flat_eval(prefix, ev, recall=True):
     """{prefix}_{metric} for every scalar of summarize_eval (fractions; ece / nll / brier as they are)."""
     out = {f"{prefix}_{k}": ev[k] for k in EVAL_KEYS if ev.get(k) is not None}
-    out[f"{prefix}_recall"] = [round(v, 4) for v in ev["recall"]]
+    if recall:
+        out[f"{prefix}_recall"] = [round(v, 4) for v in ev["recall"]]
     return out
 
 
@@ -2412,18 +2439,39 @@ def evaluate_trained(ctx, cfg, m, s1, headers, G, res):
     """Readouts and diagnostics on trained heads (shared by run_one and the --from_models re-evaluation).
     Always: the pooled-real oracle and ER; cfg["readouts"] adds any of READOUTS; BBC when G exists."""
     yte = ctx.data["yte"]
+    # Validation set: the 2,000 held-out training images no client holds (used here as a server-side labelled
+    # validation set, so settings can be chosen without the test set). Every readout is scored on it as val_*.
+    hold = ctx.part["heldout"]
+    if s1.get("feats_val") is None:
+        s1["feats_val"] = compute_features(s1["fe"], ctx.data["xtr"][hold])
+    Xv, yv = s1["feats_val"], ctx.data["ytr"][hold]
+
+    def both(prefix, hs):
+        res.update(flat_eval(prefix, summarize_eval(eval_headers(ctx, hs, s1["feats_te"], yte))))
+        res.update(flat_eval("val_" + prefix, summarize_eval(eval_headers(ctx, hs, Xv, yv)), recall=False))
+    res.update(flat_eval("val_final", summarize_eval(eval_headers(ctx, headers, Xv, yv)), recall=False))
     orc = classifier_oracle(ctx, headers, s1["feats"], s1["ys"], s1["feats_te"])
     res.update(flat_eval("oracle", orc))
     for nm in ["er"] + [r for r in (cfg.get("readouts") or []) if r != "er"]:
         try:  # diagnostics, never allowed to break a run
             set_seed(ctx.seed + 3000)
             hs = readout_heads(ctx, headers, s1["feats"], s1["ys"], *READOUTS[nm])
-            res.update(flat_eval(nm, summarize_eval(eval_headers(ctx, hs, s1["feats_te"], yte))))
+            both(nm, hs)
+            if nm == "er":
+                # label-free readout-gap estimate (idea 3): how often each head and its exact readout disagree on
+                # UNLABELLED held-out features; needs no labels at the server
+                with torch.no_grad():
+                    dis = []
+                    for g in ctx.groups:
+                        headers[g].eval()
+                        hs[g].eval()
+                        dis.append(float((headers[g](Xv).argmax(1) != hs[g](Xv).argmax(1)).float().mean()))
+                        headers[g].train()
+                res["ro_disagree"] = float(np.mean(dis))
         except Exception as e:  # pragma: no cover
             res[f"{nm}_error"] = repr(e)[:200]
     if G is not None:
-        bb = balanced_bias_calibration(ctx, headers, G, s1["feats_te"])
-        res.update(flat_eval("bbc", bb))
+        both("bbc", bbc_heads(ctx, headers, G))
         # gate (no test data): apply BBC only when the federation's GLOBAL label
         # distribution is imbalanced, read off the exact aggregated class counts
         glob_n = ctx.part["counts"].sum(0)
@@ -2913,6 +2961,7 @@ def main(exp):
     ap.add_argument("--out_dir", default="./results")
     ap.add_argument("--datasets", nargs="+", default=None)
     ap.add_argument("--only", nargs="+", default=None, help="run only these labels")
+    ap.add_argument("--exclude", nargs="+", default=None, help="skip these labels")
     ap.add_argument("--K", type=int, nargs="+", default=None, help="run only these client counts")
     ap.add_argument("--IF", type=float, nargs="+", default=None, help="run only these imbalance factors (1.0 = balanced)")
     ap.add_argument("--list", action="store_true", help="print the planned runs and exit")
@@ -2943,6 +2992,8 @@ def main(exp):
         runs = [r for r in runs if r["dataset"] in a.datasets]
     if a.only:
         runs = [r for r in runs if r["label"] in a.only]
+    if a.exclude:
+        runs = [r for r in runs if r["label"] not in a.exclude]
     if a.K:
         runs = [r for r in runs if r["K"] in a.K]
     if a.IF:
