@@ -29,16 +29,17 @@ on five datasets. Any method for this setting must therefore be compared with a 
 conditioned on the exact class mean, moment-corrected, with herding-style sample selection, and switching back to
 class rows where class means carry no information — gives heads whose bodies support a better readout. With the same
 ER readout on both methods, it beats GeFL-F by +3.9, +2.2, +2.0, +2.6 and +3.4 points on MNIST, FashionMNIST, SVHN,
-CIFAR-10 and CIFAR-100-LT (IF = 100, Dirichlet 0.5, 10 clients, 3 seeds; every 95% confidence interval excludes
+CIFAR-10 and CIFAR-100-LT (IF = 100, Dirichlet 0.5, 10 clients, seeds 0–2; every 95% confidence interval excludes
 zero), and CCVR-style readouts give similar margins (+2.1 to +3.6). On balanced data it does no harm (within 0.6 points
 once both have a readout). Recomputing the readout during training instead of once afterwards does not help (pilot).
 
-The margins are 2–4 points, not the 8–21 points that comparisons with un-recalibrated GeFL-F suggest. The all-client
-readouts need each architecture's body broadcast once; with 10 clients each architecture has a single client; the
-extractor is small and frozen (CIFAR-100 accuracy is 15–19% for every method); and the settings reported so far were
-chosen on test data. A validation-selected re-test on new seeds against published long-tailed FL losses (FedLC, FedRS,
-balanced softmax) and the decay-fixed GeFL-F is pending. Differential privacy (zCDP, per example, trusted aggregator)
-on the four added statistics costs 4.5–6.9 points at ε = 8; the generator's and heads' training are not covered.
+On new seeds, with every method's settings and readout chosen on validation data, ours stays ahead of every baseline
+on all five datasets, but by 0.5–2.0 points over the strongest one (the decay-fixed GeFL-F or real-data heads with
+their best readout; significant on three datasets). So most of GeFL-F's long-tail loss is fixed by removing coupled
+decay and computing the last layer from exact statistics; the anchored generator adds a consistent but modest gain.
+With 10 clients each architecture has a single client, the all-client readouts need each architecture's body
+broadcast once, and the extractor is small and frozen (CIFAR-100 accuracy is 15–19% for every method). Differential
+privacy (zCDP, per example, trusted aggregator) on the four added statistics costs 4.5–6.9 points at ε = 8; the generator's and heads' training are not covered.
 
 ---
 
@@ -60,8 +61,9 @@ in the generator, in each head's representation, or in its last layer — and wh
    collapse (2–11 points); holder-weighted averaging (HWA) adds 1–2 points as the number of clients grows.
 2. **Last layer (§5.3).** Most of GeFL-F's remaining loss is in each head's last layer, which every client learns on its
    own label distribution. An exact, class-balanced readout from secure-aggregated sums recovers 7–20 points.
-3. **Representation (§4.5, §5.3).** A generator whose class information comes from exactly aggregated statistics gives
-   better bodies: +2.0 to +3.9 over GeFL-F when both use the same exact readout, on five datasets.
+3. **Representation (§4.5, §5.3, §5.6).** A generator whose class information comes from exactly aggregated statistics
+   gives better bodies: +2.0 to +3.9 over GeFL-F when both use the same exact readout (seeds 0–2), and 0.5–2.0 over
+   the strongest baseline on new seeds with validation-chosen settings.
 
 *Contributions.*
 1. **A diagnosis** of rare-class collapse in a FedAvg-trained conditional generator (Theorem 1, Lemma 2), confirmed by
@@ -76,7 +78,8 @@ in the generator, in each head's representation, or in its last layer — and wh
 4. **A recipe** for practitioners: remove coupled decay (or average rows over holders), train the anchored generator,
    and compute the last layer from exact sums after training (§4.6).
 5. **Evidence** with honest margins: recalibrated baselines, the optimiser fixes, calibration and worst-class metrics,
-   negative results (§5.7, Appendix B), and a validation-selected re-test on new seeds (§5.6, pending).
+   negative results (§5.7, Appendix B), and a validation-selected re-test on new seeds against the decay fix and
+   published long-tail FL losses (§5.6), whose pre-registered predictions partly failed.
 
 ---
 
@@ -643,13 +646,40 @@ MNIST / FashionMNIST / CIFAR-10 and +1.1 (SVHN, p = 0.03) / +1.6 (CIFAR-100, p =
 is slightly ahead of ours. Paper values are single published numbers; we make no claim against the paper's
 other nine methods.
 
-### 5.6 Fair re-test on new seeds (K17) [PENDING: NB50–NB55]
+### 5.6 Fair re-test on new seeds, settings chosen on validation (K17)
 
-All numbers above use seeds 0–2 and settings chosen on the test sets. K17 repeats the comparison on new seeds 3–5,
-choosing $T_s$ and every method's readout on the held-out validation set only, against GeFL-F, GeFL-F + AdamW + LA
-(the decay fix of §3.4), heads trained on real data only, and the published long-tailed FL losses balanced softmax
-(FedRoD's generic head), FedLC and FedRS; on CIFAR-10 it also runs the forced class-row branch. The selection rule,
-the four predictions and the analysis script (`experiments/k17_analysis.py`, table T22) were committed before any run.
+All numbers above use seeds 0–2 and settings chosen on the test sets. K17 repeats the comparison on new seeds 3–5. For
+every method, its readout (heads as trained, BBC, ER, Fed3R, FedNCM, CCVR; all-client or own-client) is chosen on the
+held-out validation set; for ours, $T_s \in \{1, 10\}$ is chosen the same way. The selection rule, four predictions
+and the analysis (`experiments/k17_analysis.py`, table T22) were committed before any run. Test-set balanced
+accuracy, ours minus baseline, paired over seeds, 95% CI, Holm-corrected over the six baselines:
+
+| | MNIST | FMNIST | SVHN | CIFAR-10 | CIFAR-100 |
+|---|---|---|---|---|---|
+| Ours (selected $T_s$, readout) | 95.6 (10, CCVR) | 82.1 (10, CCVR) | 65.6 (10, CCVR) | 53.1 (1, ER) | 18.7 (10, ER) |
+| − GeFL-F | **+3.4** [3.2, 3.6] | +1.0 [−0.0, 2.1] | **+1.5** [0.6, 2.5] | **+2.4** [1.8, 3.0] | **+4.0** [2.6, 5.4] |
+| − GeFL-F + AdamW + LA (decay fix) | **+2.0** [1.9, 2.2] | +0.5 [−0.2, 1.2] | **+1.5** [0.4, 2.6] | +1.5 [0.8, 2.2] (p = 0.051) | **+3.0** [2.3, 3.7] |
+| − real-data heads + LA (balanced softmax) | **+4.7** | **+2.6** | **+11.3** | +1.5 (n.s.) | **+1.6** [0.7, 2.6] |
+| − real-data heads + FedLC / FedRS | **+4.7** | **+2.6** | **+11.2** | +1.6 (n.s.) | **+1.7 / +1.8** |
+| margin over the strongest baseline | +2.0 | +0.5 (n.s.) | +1.5 | +1.5 (n.s.) | +1.6 |
+
+Bold: Holm-adjusted p < 0.05.
+* **Ours is ahead of every baseline on every dataset**, but the margin over the strongest one — the decay-fixed GeFL-F
+  or heads trained on real data only, each with its own best readout — is 0.5–2.0 points, significant on MNIST, SVHN
+  and CIFAR-100. The pre-registered P1 (≥ 2 points over every baseline on ≥ 4 datasets) **fails**: it holds on MNIST only.
+* **Where the gain comes from.** Removing coupled decay plus an exact readout recovers most of GeFL-F's long-tail loss;
+  the anchored generator adds 0.5–2.0 on top. On CIFAR-100 GeFL-F's own generator is *harmful* (14.8 vs 16.9 for no
+  synthetic data at all, both with ER); ours turns it into a gain (+1.6 over no synthetic data).
+* **P2 fails** (3 of 5): validation picks $T_s = 10$ on SVHN and CIFAR-100, where the earlier test-chosen rule said 1.
+* **P3 holds:** on CIFAR-10, near the gate threshold, the anchor branch and the forced class-row branch are within
+  0.13 points.
+* **P4 fails as pre-registered** (Spearman 0.28 pooled over datasets): the label-free head–ER disagreement tracks the
+  readout gap within each dataset (0.82–0.97, exploratory) but not across datasets of different difficulty.
+* **Reproducibility.** MNIST was run twice (two sessions, same seeds): the 21 paired runs differ by −0.06 ± 0.43 points
+  with ER.
+* **Ablation, five seeds (K09 + K14).** As trained, removing any component lowers balanced accuracy on MNIST in every
+  seed (LA −3.1, PC −3.9, CSL −1.4, MC −1.1, KH −0.7); on FashionMNIST LA and CSL are significant, MC, KH and PC are
+  not. With ER, LA's contribution vanishes (it is itself a readout correction).
 
 ### 5.7 What did not work
 
@@ -789,15 +819,16 @@ consensus is what tracks the generator's per-sample label error, the bias $b$ of
 
 ## 7. Limitations
 
-* **Margins.** Against a recalibrated GeFL-F our margin is 2.0–3.9 points (ER) on five datasets, with three seeds;
-  SVHN is at the 2-point threshold. The 8–21 point gains over un-recalibrated GeFL-F are mostly a readout effect.
+* **Margins.** On new seeds with validation-chosen settings, our margin over the strongest baseline is 0.5–2.0
+  points (significant on MNIST, SVHN and CIFAR-100, not on FashionMNIST or CIFAR-10); the pre-registered ≥ 2-point
+  prediction failed. The 8–21 point gains over un-recalibrated GeFL-F are mostly a readout and optimiser effect.
 * **Readout protocol.** The strong (all-client) readouts need each architecture's body broadcast once to every client;
   the published per-architecture protocols are much weaker at K = 10 for every method.
 * **Absolute accuracy on hard data.** With the frozen 10-channel extractor, CIFAR-100-LT accuracy is 15–19% for every
   method; CIFAR-10 long tail is about 54%.
 * **Selection on the test set.** For seeds 0–2, $T_s$, $\beta$, $\tau$, the gate threshold and the choice among
-  variants were made on the reported test sets, and p-values are not corrected for the many comparisons. K17 (new
-  seeds, validation-selected, Holm-corrected) addresses this [PENDING].
+  variants were made on the reported test sets. K17 (new seeds, validation-selected, Holm-corrected) re-tests the
+  main comparison; $\beta$, $\tau$ and the gate threshold were still fixed from the earlier runs.
 * **HWA's contribution is modest.** Once coupled decay is removed, HWA adds 1–2 points, significant only on MNIST at
   50 and 100 clients.
 * **Reproducibility.** Seeds fix the splits and initialisations, but GPU training was not deterministic; a

@@ -25,7 +25,7 @@ RULE_TS = {"mnist": 10, "fmnist": 10, "svhn": 1, "cifar10": 1, "cifar100": 1}
 
 def load():
     D = defaultdict(dict)  # (dataset, label) -> seed -> record
-    files = glob.glob(os.path.join(HERE, "results", "K17_kaggle_fair_retest*", "runs.jsonl"))
+    files = sorted(glob.glob(os.path.join(HERE, "results", "K17_kaggle_fair_retest*", "runs.jsonl")))  # later folders win for repeated runs
     files += glob.glob(os.path.join(HERE, "results", "K19_kaggle_more_baselines*", "runs.jsonl"))  # C6 remainder
     for f in files:
         for line in open(f, encoding="utf-8"):

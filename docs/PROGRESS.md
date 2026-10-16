@@ -91,24 +91,24 @@ Long tail, balanced accuracy, 3 seeds (references F01 / F04 / K03, same splits):
   HWA is a secondary refinement that matters as the number of clients grows. Note the anchored generator has no
   class rows, so HWA matters only for the minimal variant and the SVHN row branch.
 
-## 1d. K17 fair re-test, interim (MNIST, SVHN, CIFAR-100; new seeds 3-5; T22 via `k17_analysis.py`)
+## 1d. K17 fair re-test: DONE (all 5 datasets, new seeds 3-5; T22; draft §5.6)
 
-Validation-selected Ours vs each baseline's validation-selected readout, test set, paired, Holm:
+Validation-selected Ours vs each baseline's validation-selected readout (test set, paired, Holm):
 
-| | MNIST | SVHN | CIFAR-100 |
-|---|---|---|---|
-| vs GeFL-F | +3.6 [3.5, 3.8] | +1.5 [0.6, 2.5] | +4.0 [2.6, 5.4] |
-| vs GeFL-F + AdamW + LA (decay fix) | (arm runs in NB60) | +1.5 [0.4, 2.6] | +3.0 [2.3, 3.7] |
-| vs heads on real data only (+ LA / FedLC / FedRS) | +4.5 to +4.6 | +11.2 to +11.3 | **+1.6 to +1.8** |
+| margin over | MNIST | FMNIST | SVHN | CIFAR-10 | CIFAR-100 |
+|---|---|---|---|---|---|
+| GeFL-F | +3.4 * | +1.0 | +1.5 * | +2.4 * | +4.0 * |
+| GeFL-F + AdamW + LA | +2.0 * | +0.5 | +1.5 * | +1.5 (p = 0.051) | +3.0 * |
+| strongest baseline | +2.0 * | +0.5 | +1.5 * | +1.5 | +1.6 * |
 
-* All differences favour Ours with intervals excluding 0, but P1 (>= 2 points over every baseline) fails on SVHN
-  (+1.5) and on CIFAR-100 against real-only heads with a readout (+1.6 to +1.8). On CIFAR-100, GeFL-F's generator
-  *hurts* relative to no synthetic data (14.8 vs 16.9 with ER); ours recovers and adds 1.6-1.8.
-* P2 fails: validation picks T_s = 10 on SVHN and CIFAR-100, where the old test-chosen rule said 1 (1 of 3 match).
-* P4 (pre-registered, pooled over datasets): Spearman 0.22, fails. Within each dataset (exploratory) it is 0.82-0.97:
-  the disagreement tracks the readout gap within a dataset but not across datasets of different difficulty.
-* CIFAR-10 row branch (seeds 3-5): 52.5 / 54.3 / 52.9 with ER; P3 (anchor vs rows) waits for NB60's anchor runs.
-* K16 balanced SVHN / CIFAR-100 (NB61): Ours - GeFL-F +2.2 / +5.5 as trained, +1.1 / +1.6 with ER (p = 0.03 / 0.01).
+(* Holm p < 0.05.) P1 (>= 2 over every baseline on >= 4 datasets) FAILS (MNIST only). P2 fails (3 of 5). P3 holds
+(CIFAR-10 anchor vs rows: -0.13). P4 fails pooled (0.28; within-dataset 0.82-0.97, exploratory). MNIST run twice:
+replicate differences -0.06 +- 0.43 (ER). **Reading:** decay fix + exact readout recover most of the loss; the anchored
+generator adds 0.5-2.0. This is scenario 2-3 of the publication plan (method paper with modest, honest gains).
+
+K14 (C1, NB60; 20 of 24 runs, 4 MNIST seed-4 runs lost when the session ended): with K09, 5 seeds. As trained every
+removal hurts on MNIST in every seed (LA -3.1, PC -3.9, CSL -1.4, MC -1.1, KH -0.7; p <= 0.05); on FMNIST LA (-5.8)
+and CSL (-1.5) significant, MC / KH / PC not. With ER, LA's effect vanishes. MC-B on FMNIST: +1.7 heads, +0.56 ER (n = 2).
 
 ## 1c. ERL pilot (E33, 16 Oct): negative, dropped by its pre-registered kill rule
 

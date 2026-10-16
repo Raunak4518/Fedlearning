@@ -32,14 +32,22 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | FSG+LA+CSL | K01_kaggle_cifar10_svhn__cifar10 | 0,1,2 |
 | GeFL-F | K01_kaggle_cifar10_svhn__cifar10 | 0,1,2 |
 | GeFL-F | K16_kaggle_recalibration__cifar10_lt | 0,1,2 |
+| GeFL-F | K17_kaggle_fair_retest__nb60 | 3,4,5 |
+| GeFL-F + AdamW + LA | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | Minimal (HWA+LA+CSL) | K16_kaggle_recalibration__cifar10_lt | 0,1,2 |
 | Ours (HWA+LA+CSL) | K01_kaggle_cifar10_svhn__cifar10 | 0,1,2 |
 | Ours (gated) | K16_kaggle_recalibration__cifar10_lt | 0,1,2 |
+| Ours Ts=1 | K17_kaggle_fair_retest__nb60 | 3,4,5 |
+| Ours Ts=10 | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | Ours rows Ts=1 | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
 | Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__cifar10_lt | 0,1,2 |
 | Ours-A + MixUp | K13_kaggle_vct_vs_mixup__cifar10_lt | 0,1,2 |
 | Ours-A + VCT | K13_kaggle_vct_vs_mixup__cifar10_lt | 0,1,2 |
 | Ours-A Ts=10 | K08_kaggle_anchored_stack__cifar10_lt | 0,1,2 |
+| Real only | K17_kaggle_fair_retest__nb60 | 3,4,5 |
+| Real only + FedLC | K17_kaggle_fair_retest__nb60 | 3,4,5 |
+| Real only + FedRS | K17_kaggle_fair_retest__nb60 | 3,4,5 |
+| Real only + LA | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 
 ## cifar100  IF=1.0  alpha=None  K=10
 
@@ -236,10 +244,15 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | +ROWNOWD+LA | K15_kaggle_collapse_fixes__fmnist | 0,1,2 |
 | +SED(20) | E15_server_distillation_quick | 0 |
 | -CSL | K09_kaggle_ablation_final__fmnist | 0,1,2 |
+| -CSL | K14_kaggle_ablation_seeds_mcb | 3,4 |
 | -KH | K09_kaggle_ablation_final__fmnist | 0,1,2 |
+| -KH | K14_kaggle_ablation_seeds_mcb | 3,4 |
 | -LA | K09_kaggle_ablation_final__fmnist | 0,1,2 |
+| -LA | K14_kaggle_ablation_seeds_mcb | 3,4 |
 | -MC | K09_kaggle_ablation_final__fmnist | 0,1,2 |
+| -MC | K14_kaggle_ablation_seeds_mcb | 3,4 |
 | -PC (CVAE+HWA) | K09_kaggle_ablation_final__fmnist | 0,1,2 |
+| -PC (CVAE+HWA) | K14_kaggle_ablation_seeds_mcb | 3,4 |
 | CSL beta=0.25 | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | CSL beta=0.75 | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | FSG (seq uniform) | E13_sufficient_statistics_quick | 0,1,2 |
@@ -266,7 +279,9 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | GeFL-F | F10_combined_method | 0,1,2 |
 | GeFL-F | K02_kaggle_regimes_privacy_ablations | 0,1,2 |
 | GeFL-F | K16_kaggle_recalibration__fmnist_lt | 0,1,2 |
+| GeFL-F | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | GeFL-F | T03_exact_readout (quick) | 0 |
+| GeFL-F + AdamW + LA | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | GeFL-F + ERL | E33_exact_readout_loop_quick | 0 |
 | HWA weights = counts n | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | HWA weights = uniform over holders | K02_kaggle_regimes_privacy_ablations | 0,1 |
@@ -292,6 +307,8 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Ours (gated) | K16_kaggle_recalibration__fmnist_lt | 0,1,2 |
 | Ours + ERL | E33_exact_readout_loop_quick | 0 |
 | Ours + ERL5 | E33_exact_readout_loop_quick | 0 |
+| Ours Ts=1 | K17_kaggle_fair_retest__nb60 | 3,4,5 |
+| Ours Ts=10 | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | Ours+BCR | E03_method_components_quick | 0 |
 | Ours+LAFE | E03_method_components_quick | 0 |
 | Ours+MC | E20_proto_generator | 0,1,2 |
@@ -303,9 +320,11 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Ours-A Ts=1 | T03_exact_readout (quick) | 0 |
 | Ours-A Ts=10 | E25_anchored_stack | 0,1,2 |
 | Ours-A Ts=10 | K09_kaggle_ablation_final__fmnist | 0,1,2 |
+| Ours-A Ts=10 | K14_kaggle_ablation_seeds_mcb | 3,4 |
 | Ours-A Ts=10, DP eps=2 | E26_private_anchoring | 0,1,2 |
 | Ours-A Ts=10, DP eps=8 | E26_private_anchoring | 0,1,2 |
 | Ours-A-B Ts=10 | E32_moment_anchor_bayes | 0,1,2 |
+| Ours-A-B Ts=10 | K14_kaggle_ablation_seeds_mcb | 3,4 |
 | Ours-A-S Ts=10 | E31_covariance_anchoring_mnist_fmnist | 0,1,2 |
 | Ours-KME (KME+LA+CSL) | E24_kme_generator | 0 |
 | Ours-KME+KH | E24_kme_generator | 0 |
@@ -319,6 +338,10 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Ours-private (LCD+PCM+LA) | E03_method_components_quick | 0 |
 | RHYB(0.5)+HWA+LA | E14_relative_hybrid_quick | 0,1,2 |
 | RHYB(1.0)+HWA+LA | E14_relative_hybrid_quick | 0,1,2 |
+| Real only | K17_kaggle_fair_retest__nb60 | 3,4,5 |
+| Real only + FedLC | K17_kaggle_fair_retest__nb60 | 3,4,5 |
+| Real only + FedRS | K17_kaggle_fair_retest__nb60 | 3,4,5 |
+| Real only + LA | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | no CSL | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | no HWA (flat averaging) | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | no LA (plain CE) | K02_kaggle_regimes_privacy_ablations | 0,1 |
@@ -494,10 +517,15 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | +PCM+LA | E03_method_components_quick | 0 |
 | +ROWNOWD+LA | K15_kaggle_collapse_fixes__mnist | 0,1,2 |
 | -CSL | K09_kaggle_ablation_final__mnist | 0,1,2 |
+| -CSL | K14_kaggle_ablation_seeds_mcb | 3 |
 | -KH | K09_kaggle_ablation_final__mnist | 0,1,2 |
+| -KH | K14_kaggle_ablation_seeds_mcb | 3 |
 | -LA | K09_kaggle_ablation_final__mnist | 0,1,2 |
+| -LA | K14_kaggle_ablation_seeds_mcb | 3,4 |
 | -MC | K09_kaggle_ablation_final__mnist | 0,1,2 |
+| -MC | K14_kaggle_ablation_seeds_mcb | 3 |
 | -PC (CVAE+HWA) | K09_kaggle_ablation_final__mnist | 0,1,2 |
+| -PC (CVAE+HWA) | K14_kaggle_ablation_seeds_mcb | 3,4 |
 | CSL beta=0.25 | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | CSL beta=0.75 | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | FSG (seq uniform) | E13_sufficient_statistics_quick | 0,1,2 |
@@ -523,7 +551,9 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | GeFL-F | K02_kaggle_regimes_privacy_ablations | 0,1,2 |
 | GeFL-F | K16_kaggle_recalibration__mnist_lt | 0,1,2 |
 | GeFL-F | K17_kaggle_fair_retest__mnist | 3,4,5 |
+| GeFL-F | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | GeFL-F | T03_exact_readout (quick) | 0 |
+| GeFL-F + AdamW + LA | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | GeFL-F + ERL | E33_exact_readout_loop_quick | 0 |
 | HWA weights = counts n | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | HWA weights = uniform over holders | K02_kaggle_regimes_privacy_ablations | 0,1 |
@@ -550,7 +580,9 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Ours + ERL | E33_exact_readout_loop_quick | 0 |
 | Ours + ERL5 | E33_exact_readout_loop_quick | 0 |
 | Ours Ts=1 | K17_kaggle_fair_retest__mnist | 3,4,5 |
+| Ours Ts=1 | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | Ours Ts=10 | K17_kaggle_fair_retest__mnist | 3,4,5 |
+| Ours Ts=10 | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | Ours+BCR | E03_method_components_quick | 0 |
 | Ours+LAFE | E03_method_components_quick | 0 |
 | Ours+MC | E20_proto_generator | 0,1,2 |
@@ -561,9 +593,11 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Ours-A Ts=1 | T03_exact_readout (quick) | 0 |
 | Ours-A Ts=10 | E25_anchored_stack | 0,1,2 |
 | Ours-A Ts=10 | K09_kaggle_ablation_final__mnist | 0,1,2 |
+| Ours-A Ts=10 | K14_kaggle_ablation_seeds_mcb | 3,4 |
 | Ours-A Ts=10, DP eps=2 | E26_private_anchoring | 0,1,2 |
 | Ours-A Ts=10, DP eps=8 | E26_private_anchoring | 0,1,2 |
 | Ours-A-B Ts=10 | E32_moment_anchor_bayes | 0,1,2 |
+| Ours-A-B Ts=10 | K14_kaggle_ablation_seeds_mcb | 3 |
 | Ours-A-S Ts=10 | E31_covariance_anchoring_mnist_fmnist | 0,1,2 |
 | Ours-B (HWA+LA+BCSL) | E18_bayesian_csl | 0,1,2 |
 | Ours-B (HWA+LA+BCSL) Ts=10 | E18_bayesian_csl | 0,1,2 |
@@ -580,9 +614,13 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | RHYB(0.5)+HWA+LA | E14_relative_hybrid_quick | 0,1,2 |
 | RHYB(1.0)+HWA+LA | E14_relative_hybrid_quick | 0,1,2 |
 | Real only | K17_kaggle_fair_retest__mnist | 3,4,5 |
+| Real only | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | Real only + FedLC | K17_kaggle_fair_retest__mnist | 3,4,5 |
+| Real only + FedLC | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | Real only + FedRS | K17_kaggle_fair_retest__mnist | 3,4,5 |
+| Real only + FedRS | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | Real only + LA | K17_kaggle_fair_retest__mnist | 3,4,5 |
+| Real only + LA | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | no CSL | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | no HWA (flat averaging) | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | no LA (plain CE) | K02_kaggle_regimes_privacy_ablations | 0,1 |
