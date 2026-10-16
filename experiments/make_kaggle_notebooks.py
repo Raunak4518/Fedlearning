@@ -219,8 +219,93 @@ print(open(os.path.join(dst, "summary.md")).read() if os.path.exists(os.path.joi
                                     "isGpuEnabled": True, "language": "python"}}}
 
 
+# Combined notebooks: several jobs in one Kaggle session (12 h limit). A deadline (GEFL_DEADLINE) stops new runs after
+# `budget_h` hours, so the session always ends with its zips written; skipped runs can be run in a later session.
+COMBOS = [  # (name, [(script, args), ...], results folder, budget_h, rough hours, what)
+    ("NB60_combined_A", [("K17_kaggle_fair_retest", '--datasets cifar10 mnist fmnist --exclude "Ours rows Ts=1"'),
+                         ("K14_kaggle_ablation_seeds_mcb", "")],
+     "combined_A", 10.0, 10.5,
+     "Fair re-test (new seeds 3-5) on CIFAR-10, MNIST and FashionMNIST, then the ablation with 2 more seeds (MNIST, FashionMNIST)."),
+    ("NB61_combined_B", [("K17_kaggle_fair_retest", "--datasets cifar100 svhn"),
+                         ("K17_kaggle_fair_retest", '--datasets cifar10 --only "Ours rows Ts=1"'),
+                         ("K16_kaggle_recalibration", "--datasets svhn cifar100 --IF 1.0")],
+     "combined_B", 10.0, 11,
+     "Fair re-test on CIFAR-100 and SVHN, the CIFAR-10 class-row branch, then the balanced-data readout check on SVHN and CIFAR-100."),
+]
+
+
+def combo_notebook(name, steps, folder, budget_h, hours, what):
+    import build
+    cells = [md(f"""
+# {name}
+
+**What this runs:** {what}
+**Time:** about {hours} h. It stops starting new experiments after {budget_h:.0f} h, so it always finishes inside
+Kaggle's 12-hour limit with its results saved. Anything it had no time for is listed at the end and can run later.
+
+## Before you start (once)
+1. Right panel → **Settings** → **Accelerator** → **GPU T4 x2**. 2. **Settings** → **Internet** → **On**.
+
+## How to run
+**Save Version** → **Save & Run All (Commit)** → **Save**. Close the tab if you like.
+When the version shows a green tick: **Output** tab → download
+- **`{folder}.zip`** (results, small): send this one back;
+- **`{folder}__models.zip`** (trained models): keep it.
+"""),
+             code(f"""
+# Cell 2 - environment check, and the time budget (new runs stop after {budget_h} h)
+import os, time, torch, urllib.request
+n = torch.cuda.device_count(); names = [torch.cuda.get_device_name(i) for i in range(n)]
+print("GPUs found:", n, names)
+if n < 2 or not all("T4" in x for x in names):
+    raise RuntimeError("STOP: set Settings -> Accelerator -> 'GPU T4 x2', then run again.")
+try:
+    urllib.request.urlopen("https://huggingface.co", timeout=15); print("Internet: on")
+except Exception as e:
+    raise RuntimeError("STOP: set Settings -> Internet -> On, then run again. (" + str(e) + ")")
+os.environ["GEFL_DEADLINE"] = str(time.time() + {budget_h} * 3600)
+print("OK. New runs stop at", time.ctime(float(os.environ["GEFL_DEADLINE"])))
+""")]
+    written = set()
+    for script, args in steps:
+        if script not in written:
+            src = open(build.build_one(script), encoding="utf-8").read()
+            cells.append({"cell_type": "code", "metadata": {"jupyter": {"source_hidden": True}}, "execution_count": None,
+                          "outputs": [], "source": (f"%%writefile {script}.py\n" + src).splitlines(keepends=True)})
+            written.add(script)
+        cells.append(code(f"!python {script}.py {args} --out_dir /kaggle/working/results --models_dir /kaggle/working/models"))
+    cells.append(code(f"""
+# Last cell - pack results and models into two separate zips, and list anything that was skipped for time
+import os, shutil, glob, subprocess
+for src, dst in [("/kaggle/working/results", "/kaggle/working/{folder}"), ("/kaggle/working/models", "/kaggle/working/{folder}__models")]:
+    if os.path.isdir(src):
+        if os.path.isdir(dst):
+            shutil.rmtree(dst)
+        shutil.copytree(src, dst)
+        shutil.make_archive(dst, "zip", "/kaggle/working", os.path.basename(dst))
+        shutil.rmtree(dst)
+        print("wrote", dst + ".zip")
+skipped = subprocess.run("grep -h 'SKIPPED' /kaggle/working/results/*/worker*.log", shell=True, capture_output=True, text=True).stdout
+print("Skipped for time:" if skipped else "Nothing skipped.")
+print(skipped)
+"""))
+    return {"cells": cells, "nbformat": 4, "nbformat_minor": 5,
+            "metadata": {"kernelspec": {"name": "python3", "display_name": "Python 3", "language": "python"},
+                         "language_info": {"name": "python"},
+                         "kaggle": {"accelerator": "nvidiaTeslaT4", "isInternetEnabled": True,
+                                    "isGpuEnabled": True, "language": "python"}}}
+
+
 def main():
     wanted = sys.argv[1:]
+    for combo in [c for c in COMBOS if any(c[0] == w or c[0].startswith(w + "_") for w in wanted)]:
+        os.makedirs(OUT, exist_ok=True)
+        path = os.path.join(OUT, combo[0] + ".ipynb")
+        with open(path, "w", encoding="utf-8", newline="\n") as f:
+            json.dump(combo_notebook(*combo), f, indent=1)
+        print("wrote", os.path.normpath(path))
+    if wanted and all(any(c[0] == w or c[0].startswith(w + "_") for c in COMBOS) for w in wanted):
+        return
     if not wanted:
         for job in JOBS:
             print(f"{job[0]:40s} {job[1]} {job[2]}")

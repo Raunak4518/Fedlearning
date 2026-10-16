@@ -3084,9 +3084,13 @@ def main(exp):
     cache, data_cache = {}, {}
     rows = [done[run_id(r)] for r in runs if run_id(r) in done]
     t_exp = time.time()
+    deadline = float(os.environ.get("GEFL_DEADLINE", "0") or 0)  # epoch seconds; set by combined Kaggle notebooks
     for i, r in enumerate(runs):
         rid = run_id(r)
         if rid in done:
+            continue
+        if deadline and time.time() > deadline:
+            log(f"[{i + 1}/{len(runs)}] {rid}: SKIPPED (time budget reached; it can be run in a later session)")
             continue
         log(f"[{i + 1}/{len(runs)}] {rid}")
         if a.from_models:
