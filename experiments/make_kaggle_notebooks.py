@@ -240,8 +240,7 @@ def combo_notebook(name, steps, folder, budget_h, hours, what):
 # {name}
 
 **What this runs:** {what}
-**Time:** about {hours} h. It stops starting new experiments after {budget_h:.0f} h, so it always finishes inside
-Kaggle's 12-hour limit with its results saved. Anything it had no time for is listed at the end and can run later.
+**Time:** about {hours} h (Kaggle's limit is 12 h per session).
 
 ## Before you start (once)
 1. Right panel → **Settings** → **Accelerator** → **GPU T4 x2**. 2. **Settings** → **Internet** → **On**.
@@ -253,7 +252,7 @@ When the version shows a green tick: **Output** tab → download
 - **`{folder}__models.zip`** (trained models): keep it.
 """),
              code(f"""
-# Cell 2 - environment check, and the time budget (new runs stop after {budget_h} h)
+# Cell 2 - environment check
 import os, time, torch, urllib.request
 n = torch.cuda.device_count(); names = [torch.cuda.get_device_name(i) for i in range(n)]
 print("GPUs found:", n, names)
@@ -263,8 +262,7 @@ try:
     urllib.request.urlopen("https://huggingface.co", timeout=15); print("Internet: on")
 except Exception as e:
     raise RuntimeError("STOP: set Settings -> Internet -> On, then run again. (" + str(e) + ")")
-os.environ["GEFL_DEADLINE"] = str(time.time() + {budget_h} * 3600)
-print("OK. New runs stop at", time.ctime(float(os.environ["GEFL_DEADLINE"])))
+print("OK - environment is correct.")
 """)]
     written = set()
     for script, args in steps:
@@ -275,7 +273,7 @@ print("OK. New runs stop at", time.ctime(float(os.environ["GEFL_DEADLINE"])))
             written.add(script)
         cells.append(code(f"!python {script}.py {args} --out_dir /kaggle/working/results --models_dir /kaggle/working/models"))
     cells.append(code(f"""
-# Last cell - pack results and models into two separate zips, and list anything that was skipped for time
+# Last cell - pack results and models into two separate zips
 import os, shutil, glob, subprocess
 for src, dst in [("/kaggle/working/results", "/kaggle/working/{folder}"), ("/kaggle/working/models", "/kaggle/working/{folder}__models")]:
     if os.path.isdir(src):
@@ -285,9 +283,6 @@ for src, dst in [("/kaggle/working/results", "/kaggle/working/{folder}"), ("/kag
         shutil.make_archive(dst, "zip", "/kaggle/working", os.path.basename(dst))
         shutil.rmtree(dst)
         print("wrote", dst + ".zip")
-skipped = subprocess.run("grep -h 'SKIPPED' /kaggle/working/results/*/worker*.log", shell=True, capture_output=True, text=True).stdout
-print("Skipped for time:" if skipped else "Nothing skipped.")
-print(skipped)
 """))
     return {"cells": cells, "nbformat": 4, "nbformat_minor": 5,
             "metadata": {"kernelspec": {"name": "python3", "display_name": "Python 3", "language": "python"},
