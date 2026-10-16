@@ -1866,10 +1866,15 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
     def set_erl_readouts():
         # ERL: the server sets every architecture's last layer to the class-balanced LDA readout of the current
         # aggregated body, from exact sums of every client's real embeddings (each body is broadcast for this)
+        # The LDA weights S^-1 mu are much larger than an SGD-trained last layer; training the body under them at
+        # the usual learning rate collapses it (pilot, 16 Oct). They are therefore rescaled to the Frobenius norm of
+        # the head's current last layer: same predictions (positive scaling), usual gradient size.
         for g in ctx.groups:
             headers[g].load_state_dict(hd_sd[g])
             W, b = lda_readout(headers[g], feats, ys_list, list(range(ctx.K)))
-            hd_sd[g]["fc.weight"], hd_sd[g]["fc.bias"] = W / hspec.get("erl_t", 1.0), b / hspec.get("erl_t", 1.0)
+            sc = float(hd_sd[g]["fc.weight"].norm() / W.norm().clamp(min=1e-12)) / hspec.get("erl_t", 1.0)
+            b = torch.where(b <= -1e4, b, b * sc)
+            hd_sd[g]["fc.weight"], hd_sd[g]["fc.bias"] = W * sc, b
 
     def train_params(h):
         return [p for n_, p in h.named_parameters() if not (erl and n_.startswith("fc."))]
@@ -2308,8 +2313,8 @@ def lda_readout(h, feats, ys_list, idx, gamma=0.1):
     absent = n == 0
     Sw = (Ed.T @ Ed - (mu.T * n) @ mu) / max(float(n.sum()) - int((~absent).sum()), 1.0)
     Sw = (Sw + Sw.T) / 2
-    Ss = (1 - gamma) * Sw + gamma * torch.trace(Sw) / d * torch.eye(d, dtype=torch.float64, device=DEV)
-    W = mu @ torch.linalg.inv(Ss)
+    Ss = (1 - gamma) * Sw + (gamma * torch.trace(Sw) / d + 1e-6) * torch.eye(d, dtype=torch.float64, device=DEV)
+    W = mu @ torch.linalg.pinv(Ss, hermitian=True)
     b = -0.5 * (W * mu).sum(1)
     b[absent] = -1e4
     return W.float(), b.float()
