@@ -69,6 +69,26 @@ Ours (gated) minus GeFL-F, long-tail balanced accuracy, both with the **same** r
   architecture); the all-client readouts need each body broadcast, which is a protocol change to state.
 * Still open: Gate 1 second half (K15, NB38 / NB39: HWA vs the optimiser fixes); SVHN / CIFAR-100 IID (NB46 / NB48).
 
+## 1c. ERL pilot (E33, 16 Oct): negative, dropped by its pre-registered kill rule
+
+Idea: recompute the balanced LDA last layer from exact sums every round and train only the body under it.
+Reduced-schedule CPU pilot, seed 0, long tail (`experiments/results/E33_exact_readout_loop_quick/`):
+
+| balanced accuracy | MNIST | FMNIST |
+|---|---|---|
+| Ours + ER after training (K16 recipe) | 94.14 | 79.80 |
+| Ours + ERL (every round) | 93.90 | 79.41 |
+| Ours + ERL5 (every 5 rounds) | 93.82 | 79.35 |
+| GeFL-F + ER after training | 91.50 | 78.94 |
+| GeFL-F + ERL | 90.03 | 78.40 |
+
+* P1 (heads under ERL match ER) holds by construction. **P2 (ERL beats the after-training readout by >= 1) fails on
+  both datasets** (-0.2 / -0.4; GeFL-F -1.5 / -0.5); P3 mixed. A pooled-real refit of the ERL bodies is lower than of
+  normally trained bodies (MNIST 89.2 vs 94.9), so training under a fixed balanced readout makes the representation
+  slightly worse, not better. Calibration is much worse (ECE 41% on FMNIST).
+* Conclusion: computing the readout once, after training, is enough. Code kept (off by default) for the record.
+* First attempt collapsed the body (raw LDA weights too large); fixed by rescaling before this pilot.
+
 ## 2. Draft corrections
 
 All corrections from `docs/paper_assets/CHECK.md` and items A1–A20 of `docs/review/action_plan.md` are applied in
