@@ -26,7 +26,7 @@ Every table and figure of the paper, computed from `experiments/results` only. `
 | [T18_collapse_fixes_rows](tables/T18_collapse_fixes_rows.md) | 3 / 4.1 | Fixes for row collapse, long tail (tail/head row norm at the end; K15 + F01/F04/K03 references) |  |
 | [T19_readouts_gefl](tables/T19_readouts_gefl.md) | 5.11 | Balanced accuracy under every readout, long tail (K16; same trained heads per row group) |  |
 | [T20_readouts_ours](tables/T20_readouts_ours.md) | 5.11 | Balanced accuracy under every readout, long tail (K16; same trained heads per row group) |  |
-| [T21_readouts_iid](tables/T21_readouts_iid.md) | 5.4 / 5.11 | Balanced accuracy under every readout, balanced (IID) setting (K16) | 48 |
+| [T21_readouts_iid](tables/T21_readouts_iid.md) | 5.4 / 5.11 | Balanced accuracy under every readout, balanced (IID) setting (K16) |  |
 
 ## Figures
 

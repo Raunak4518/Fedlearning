@@ -632,14 +632,15 @@ See §3.4: removing coupled decay recovers 2–11 points; HWA adds 1.3–1.8 at 
 
 | balanced accuracy | MNIST | FMNIST | CIFAR-10 | SVHN | CIFAR-100 |
 |---|---|---|---|---|---|
-| GeFL-F, as trained / + ER | 95.7 / 96.9 | 83.0 / 84.5 | 56.8 / 61.4 | [PENDING: NB46] | [PENDING: NB48] |
-| minimal variant, as trained / + ER | 96.7 / 97.1 | 83.5 / 84.5 | 58.6 / 62.1 | | |
-| Ours, as trained / + ER | 97.4 / 97.4 | 84.0 / 84.8 | 57.8 / 61.6 | | |
-| Ours − GeFL-F, as trained | +1.7 (p = 0.003) | +0.9 (n.s.) | +1.0 (n.s.) | | |
-| `best_mean_acc` GeFL-F / Ours (paper GeFL-F) | 96.0 / 97.4 (95.47) | 83.2 / 84.1 (83.14) | 59.3 / 60.0 (55.86) | | |
+| GeFL-F, as trained / + ER | 95.7 / 96.9 | 83.0 / 84.5 | 56.8 / 61.4 | 73.8 / 76.2 | 12.5 / 19.8 |
+| minimal variant, as trained / + ER | 96.7 / 97.1 | 83.5 / 84.5 | 58.6 / 62.1 | 74.7 / 76.4 | 14.5 / 20.1 |
+| Ours, as trained / + ER | 97.4 / 97.4 | 84.0 / 84.8 | 57.8 / 61.6 | 76.0 / 77.3 | 18.0 / 21.4 |
+| Ours − GeFL-F, as trained / + ER | +1.7 / +0.6 | +0.9 / +0.3 (n.s.) | +1.0 / +0.1 (n.s.) | +2.2 / +1.1 | +5.5 / +1.6 |
+| `best_mean_acc` GeFL-F / Ours (paper GeFL-F) | 96.0 / 97.4 (95.47) | 83.2 / 84.1 (83.14) | 59.3 / 60.0 (55.86) | 74.9 / 77.2 (76.26) | 12.9 / 18.0 (–) |
 
-No harm in the balanced setting: with a readout the methods are within 0.6 points, and on CIFAR-10 the minimal
-variant is slightly ahead of ours. Paper values are single published numbers; we make no claim against the paper's
+No harm in the balanced setting, and a small gain on the harder datasets: with ER the difference is +0.1 to +0.6 on
+MNIST / FashionMNIST / CIFAR-10 and +1.1 (SVHN, p = 0.03) / +1.6 (CIFAR-100, p = 0.01); on CIFAR-10 the minimal variant
+is slightly ahead of ours. Paper values are single published numbers; we make no claim against the paper's
 other nine methods.
 
 ### 5.6 Fair re-test on new seeds (K17) [PENDING: NB50–NB55]

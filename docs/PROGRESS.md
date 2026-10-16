@@ -91,6 +91,25 @@ Long tail, balanced accuracy, 3 seeds (references F01 / F04 / K03, same splits):
   HWA is a secondary refinement that matters as the number of clients grows. Note the anchored generator has no
   class rows, so HWA matters only for the minimal variant and the SVHN row branch.
 
+## 1d. K17 fair re-test, interim (MNIST, SVHN, CIFAR-100; new seeds 3-5; T22 via `k17_analysis.py`)
+
+Validation-selected Ours vs each baseline's validation-selected readout, test set, paired, Holm:
+
+| | MNIST | SVHN | CIFAR-100 |
+|---|---|---|---|
+| vs GeFL-F | +3.6 [3.5, 3.8] | +1.5 [0.6, 2.5] | +4.0 [2.6, 5.4] |
+| vs GeFL-F + AdamW + LA (decay fix) | (arm runs in NB60) | +1.5 [0.4, 2.6] | +3.0 [2.3, 3.7] |
+| vs heads on real data only (+ LA / FedLC / FedRS) | +4.5 to +4.6 | +11.2 to +11.3 | **+1.6 to +1.8** |
+
+* All differences favour Ours with intervals excluding 0, but P1 (>= 2 points over every baseline) fails on SVHN
+  (+1.5) and on CIFAR-100 against real-only heads with a readout (+1.6 to +1.8). On CIFAR-100, GeFL-F's generator
+  *hurts* relative to no synthetic data (14.8 vs 16.9 with ER); ours recovers and adds 1.6-1.8.
+* P2 fails: validation picks T_s = 10 on SVHN and CIFAR-100, where the old test-chosen rule said 1 (1 of 3 match).
+* P4 (pre-registered, pooled over datasets): Spearman 0.22, fails. Within each dataset (exploratory) it is 0.82-0.97:
+  the disagreement tracks the readout gap within a dataset but not across datasets of different difficulty.
+* CIFAR-10 row branch (seeds 3-5): 52.5 / 54.3 / 52.9 with ER; P3 (anchor vs rows) waits for NB60's anchor runs.
+* K16 balanced SVHN / CIFAR-100 (NB61): Ours - GeFL-F +2.2 / +5.5 as trained, +1.1 / +1.6 with ER (p = 0.03 / 0.01).
+
 ## 1c. ERL pilot (E33, 16 Oct): negative, dropped by its pre-registered kill rule
 
 Idea: recompute the balanced LDA last layer from exact sums every round and train only the body under it.

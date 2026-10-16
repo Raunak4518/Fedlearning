@@ -35,10 +35,20 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Minimal (HWA+LA+CSL) | K16_kaggle_recalibration__cifar10_lt | 0,1,2 |
 | Ours (HWA+LA+CSL) | K01_kaggle_cifar10_svhn__cifar10 | 0,1,2 |
 | Ours (gated) | K16_kaggle_recalibration__cifar10_lt | 0,1,2 |
+| Ours rows Ts=1 | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
 | Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__cifar10_lt | 0,1,2 |
 | Ours-A + MixUp | K13_kaggle_vct_vs_mixup__cifar10_lt | 0,1,2 |
 | Ours-A + VCT | K13_kaggle_vct_vs_mixup__cifar10_lt | 0,1,2 |
 | Ours-A Ts=10 | K08_kaggle_anchored_stack__cifar10_lt | 0,1,2 |
+
+## cifar100  IF=1.0  alpha=None  K=10
+
+| label | result folder | seeds |
+|---|---|---|
+| +LA | K16_kaggle_recalibration__cifar100_iid | 0,1,2 |
+| GeFL-F | K16_kaggle_recalibration__cifar100_iid | 0,1,2 |
+| Minimal (HWA+LA+CSL) | K16_kaggle_recalibration__cifar100_iid | 0,1,2 |
+| Ours (gated) | K16_kaggle_recalibration__cifar100_iid | 0,1,2 |
 
 ## cifar100  IF=0.01  alpha=0.5  K=10
 
@@ -46,8 +56,16 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 |---|---|---|
 | +LA | K16_kaggle_recalibration__cifar100_lt | 0,1,2 |
 | GeFL-F | K16_kaggle_recalibration__cifar100_lt | 0,1,2 |
+| GeFL-F | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
+| GeFL-F + AdamW + LA | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
 | Minimal (HWA+LA+CSL) | K16_kaggle_recalibration__cifar100_lt | 0,1,2 |
 | Ours (gated) | K16_kaggle_recalibration__cifar100_lt | 0,1,2 |
+| Ours Ts=1 | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
+| Ours Ts=10 | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
+| Real only | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
+| Real only + FedLC | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
+| Real only + FedRS | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
+| Real only + LA | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
 
 ## fmnist  IF=1.0  alpha=0.5  K=10
 
@@ -618,10 +636,14 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | +CSL (beta=0.5) | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
 | +CSLM (interleaved) | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
 | +HWA+LA (ours) | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
+| +LA | K16_kaggle_recalibration__svhn_iid | 0,1,2 |
 | FedAvg (grouped) | E00_paper_parity_quick | 0 |
 | GeFL-F | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
+| GeFL-F | K16_kaggle_recalibration__svhn_iid | 0,1,2 |
 | GeFL-F (DDPM-F) | K04_kaggle_ddpm_cifar10_svhn__svhn | 0,1,2 |
+| Minimal (HWA+LA+CSL) | K16_kaggle_recalibration__svhn_iid | 0,1,2 |
 | Ours (DDPM-F) | K04_kaggle_ddpm_cifar10_svhn__svhn | 0,1,2 |
+| Ours (gated) | K16_kaggle_recalibration__svhn_iid | 0,1,2 |
 | Ours+MC+KH (CVAE+HWA) | K10_kaggle_hybrid_svhn_cifar10__svhn | 0,1,2 |
 | Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__svhn | 0,1,2 |
 | Ours-A (PC+MC+KH+LA+CSL) | K11_kaggle_covariance_anchoring__svhn | 0,1,2 |
@@ -642,8 +664,12 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | FSG+LA | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
 | GeFL-F | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
 | GeFL-F | K16_kaggle_recalibration__svhn_lt | 0,1,2 |
+| GeFL-F | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
+| GeFL-F + AdamW + LA | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
 | Minimal (HWA+LA+CSL) | K16_kaggle_recalibration__svhn_lt | 0,1,2 |
 | Ours (gated) | K16_kaggle_recalibration__svhn_lt | 0,1,2 |
+| Ours Ts=1 | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
+| Ours Ts=10 | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
 | Ours+MC+KH (CVAE+HWA) | K10_kaggle_hybrid_svhn_cifar10__svhn | 0,1,2 |
 | Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__svhn | 0,1,2 |
 | Ours-A (PC+MC+KH+LA+CSL) | K11_kaggle_covariance_anchoring__svhn | 0,1,2 |
@@ -652,6 +678,10 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Ours-R | K10_kaggle_hybrid_svhn_cifar10__svhn | 0,1,2 |
 | Ours-R Ts=10 | K10_kaggle_hybrid_svhn_cifar10__svhn | 0,1,2 |
 | Ours-R-S (PCR+MCS+KH+LA+CSL) | K11_kaggle_covariance_anchoring__svhn | 0,1,2 |
+| Real only | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
+| Real only + FedLC | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
+| Real only + FedRS | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
+| Real only + LA | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
 
 ## Status of every job (planned runs vs runs in its result folder)
 
@@ -697,9 +727,9 @@ COMPLETE = every planned run is in the folder. PARTIAL lists the missing (label:
 | NB43_recalib_cifar10_lt | K16_kaggle_recalibration --datasets cifar10 --IF 0.01 | K16_kaggle_recalibration__cifar10_lt | 12 | 12 | COMPLETE |
 | NB44_recalib_cifar100_lt | K16_kaggle_recalibration --datasets cifar100 --IF 0.01 | K16_kaggle_recalibration__cifar100_lt | 12 | 12 | COMPLETE |
 | NB45_recalib_mnist_fmnist_iid | K16_kaggle_recalibration --datasets mnist fmnist --IF 1.0 | K16_kaggle_recalibration__mnist_fmnist_iid | 24 | 24 | COMPLETE |
-| NB46_recalib_svhn_iid | K16_kaggle_recalibration --datasets svhn --IF 1.0 | K16_kaggle_recalibration__svhn_iid | 12 | 0 | NOT RUN |
+| NB46_recalib_svhn_iid | K16_kaggle_recalibration --datasets svhn --IF 1.0 | K16_kaggle_recalibration__svhn_iid | 12 | 12 | COMPLETE |
 | NB47_recalib_cifar10_iid | K16_kaggle_recalibration --datasets cifar10 --IF 1.0 | K16_kaggle_recalibration__cifar10_iid | 12 | 12 | COMPLETE |
-| NB48_recalib_cifar100_iid | K16_kaggle_recalibration --datasets cifar100 --IF 1.0 | K16_kaggle_recalibration__cifar100_iid | 12 | 0 | NOT RUN |
+| NB48_recalib_cifar100_iid | K16_kaggle_recalibration --datasets cifar100 --IF 1.0 | K16_kaggle_recalibration__cifar100_iid | 12 | 12 | COMPLETE |
 | NB50_fair_mnist | K17_kaggle_fair_retest --datasets mnist | K17_kaggle_fair_retest__mnist | 24 | 21 | PARTIAL - missing GeFL-F + AdamW + LA mnist IF=0.01 K=10: s3,4,5 |
 | NB51_fair_fmnist | K17_kaggle_fair_retest --datasets fmnist | K17_kaggle_fair_retest__fmnist | 24 | 0 | NOT RUN |
 | NB52_fair_svhn | K17_kaggle_fair_retest --datasets svhn | K17_kaggle_fair_retest__svhn | 24 | 0 | NOT RUN |
