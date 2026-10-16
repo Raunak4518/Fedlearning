@@ -222,6 +222,8 @@ print(open(os.path.join(dst, "summary.md")).read() if os.path.exists(os.path.joi
 # Combined notebooks: several jobs in one Kaggle session (12 h limit). A deadline (GEFL_DEADLINE) stops new runs after
 # `budget_h` hours, so the session always ends with its zips written; skipped runs can be run in a later session.
 COMBOS = [  # (name, [(script, args), ...], results folder, budget_h, rough hours, what)
+    ("NB62_more_clients_svhn", [("K18_kaggle_more_clients_svhn", "")], "more_clients_svhn", 0, 10.5,
+     "SVHN long tail with 50 and 100 clients (3 seeds): GeFL-F, the weight-decay fix, holder-weighted averaging and our method, each under every last-layer readout."),
     ("NB60_combined_A", [("K17_kaggle_fair_retest", '--datasets cifar10 mnist fmnist --exclude "Ours rows Ts=1"'),
                          ("K14_kaggle_ablation_seeds_mcb", "")],
      "combined_A", 10.0, 10.5,
