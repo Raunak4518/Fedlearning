@@ -17,14 +17,17 @@ from scipy import stats
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.normpath(os.path.join(HERE, "..", "docs", "paper_assets", "tables", "T22_fair_retest.md"))
 READOUTS = ["final", "bbc", "er", "er_own", "fed3r", "fed3r_own", "ncm", "ncm_own", "ccvr", "ccvr_own"]
-BASELINES = ["GeFL-F", "GeFL-F + AdamW + LA", "Real only", "Real only + LA", "Real only + FedLC", "Real only + FedRS"]
+BASELINES = ["GeFL-F", "GeFL-F + AdamW + LA", "Real only", "Real only + LA", "Real only + FedLC", "Real only + FedRS",
+             "FSG + LA", "FedDF", "FedDF + LA"]
 DATASETS = ["mnist", "fmnist", "svhn", "cifar10", "cifar100"]
 RULE_TS = {"mnist": 10, "fmnist": 10, "svhn": 1, "cifar10": 1, "cifar100": 1}
 
 
 def load():
     D = defaultdict(dict)  # (dataset, label) -> seed -> record
-    for f in glob.glob(os.path.join(HERE, "results", "K17_kaggle_fair_retest*", "runs.jsonl")):
+    files = glob.glob(os.path.join(HERE, "results", "K17_kaggle_fair_retest*", "runs.jsonl"))
+    files += glob.glob(os.path.join(HERE, "results", "K19_kaggle_more_baselines*", "runs.jsonl"))  # C6 remainder
+    for f in files:
         for line in open(f, encoding="utf-8"):
             r = json.loads(line)
             if not r.get("quick"):

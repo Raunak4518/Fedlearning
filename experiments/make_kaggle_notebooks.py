@@ -222,9 +222,13 @@ print(open(os.path.join(dst, "summary.md")).read() if os.path.exists(os.path.joi
 # Combined notebooks: several jobs in one Kaggle session (12 h limit). A deadline (GEFL_DEADLINE) stops new runs after
 # `budget_h` hours, so the session always ends with its zips written; skipped runs can be run in a later session.
 COMBOS = [  # (name, [(script, args), ...], results folder, budget_h, rough hours, what)
+    ("NB63_baselines_and_controls", [("K19_kaggle_more_baselines", ""), ("K20_kaggle_mechanism_controls", "")],
+     "baselines_and_controls", 0, 8.5,
+     "Further published baselines (FSG + LA, FedDF, FedDF + LA) on all five datasets, paired with the fair re-test, then the kernel-herding and moment-correction mechanism controls on FashionMNIST and CIFAR-10."),
     ("NB62_more_clients_svhn", [("K18_kaggle_more_clients_svhn", "")], "more_clients_svhn", 0, 10.5,
      "SVHN long tail with 50 and 100 clients (3 seeds): GeFL-F, the weight-decay fix, holder-weighted averaging and our method, each under every last-layer readout."),
-    ("NB60_combined_A", [("K17_kaggle_fair_retest", '--datasets cifar10 mnist fmnist --exclude "Ours rows Ts=1"'),
+    ("NB60_combined_A", [("K17_kaggle_fair_retest", '--datasets cifar10 fmnist --exclude "Ours rows Ts=1"'),
+                         ("K17_kaggle_fair_retest", '--datasets mnist --only "GeFL-F + AdamW + LA"'),  # rest of MNIST: NB50
                          ("K14_kaggle_ablation_seeds_mcb", "")],
      "combined_A", 10.0, 10.5,
      "Fair re-test (new seeds 3-5) on CIFAR-10, MNIST and FashionMNIST, then the ablation with 2 more seeds (MNIST, FashionMNIST)."),

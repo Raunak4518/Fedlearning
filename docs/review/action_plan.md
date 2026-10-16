@@ -137,6 +137,12 @@ matter most on the hardest data.
 
 ## 4. Phase C: evidence that strengthens either paper (after Gate 1)
 
+**Status (17 Oct 2026).** C1: K14 in NB60. C2: K20 in NB63. C3: not planned to run (optional; partly covered by
+E20 / E25). C4: K17 (MNIST done: validation-selected Ours beats every baseline by 3.6–4.6 points; the rest in NB60 /
+NB61). C5: long tail in NB61. C6: K17 (FedLC, FedRS, balanced softmax, decay fix, CCVR / Fed3R / FedNCM readouts) +
+K19 in NB63 (FSG + LA, FedDF, FedDF + LA); FedProto not run (needs a shared embedding dimension; its inference is
+the FedNCM readout). D-1: SVHN K = 50 / 100 in NB62 (K18). D-4: done (CIFAR-100-LT in K16 / K17).
+
 | ID | Experiment | Answers | Cost | Ledger |
 |---|---|---|---|---|
 | C1 | **K14** (built; seeds 3–4 for the leave-one-out ablation and MC-B), plus within-job references | per-component significance; MC-B stability (F9; GPT EXP-03, EXP-07, EXP-08; R068) | about 4 GPU h | 0 duplicates (checked earlier) |
