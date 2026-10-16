@@ -2154,6 +2154,7 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
             tracker.update("header", r + 1, eval_headers(ctx, headers, feats_te, ctx.data["yte"]))
     for g in ctx.groups:
         headers[g].load_state_dict(hd_sd[g])
+        headers[g].fc.requires_grad_(True)  # ERL froze it during training; later readouts re-fit it
     return headers
 
 
