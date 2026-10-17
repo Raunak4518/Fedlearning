@@ -39,7 +39,8 @@ and the MC / MC-S / KH optimality statements are treated as statements about ide
      accuracy of a pooled-trained body with ER readout by **−0.0** on MNIST and **+1.1** on FashionMNIST. Against a
      centralised *ERM* FE the differences are −0.5 / +0.4, so most of FMNIST's 1.1 is the long-tailed weighting of
      the FE loss rather than federation.
-     [[N7_C100_FE]]
+     On CIFAR-100 (seed 0, architectures 0 / 4 / 8) the centralised balanced FE is 1.0 *worse* (17.1 vs 18.1). Caveat:
+     `stage_i_oracle` gets 30 pooled epochs against Stage I's 50 rounds × 5 local epochs.
    - Exact BatchNorm recalibration changes it by ≤ 0.3. The FE has 36 (MNIST/FMNIST), 90 (SVHN) or 390 (CIFAR)
      parameters.
 3. **Generator rows.**
@@ -69,11 +70,14 @@ and the MC / MC-S / KH optimality statements are treated as statements about ide
    - CIFAR-100: GeFL-F at $s=0.002$ gives **−2.2**; decay-fixed GeFL-F at $s=0.010$ gives −1.2; ours at
      $s=0.088$ gives +1.8.
    - CIFAR-10: $s=0.034/0.074/0.23$ give −0.8 / +0.1 / +1.5.
-6. **The one-client body is the federated loss that matters, and our generator closes most of it.**
+6. **The one-client body is the federated loss that matters, and our generator closes it** (where measured).
    - **MEASURED (N7, seed 0):** a body trained on its client's real data only loses **3.0** (MNIST) and
      **3.8** (FMNIST) ER points against a body trained on the pooled real data with the same FE.
    - With our generator's synthetic data the federated bodies reach the pooled-body level on MNIST (94.4 vs 94.4)
-     and come within 0.8 on FMNIST (81.1 vs 81.9). [[N7_C100_BODY]]
+     and come within 0.8 on FMNIST (81.1 vs 81.9).
+   - Seed 1: real-only bodies lose 3.7 / 4.2; ours are at +0.0 / +0.5 relative to the pooled body.
+   - CIFAR-100 (seed 0, architectures 0 / 4 / 8): one-client 15.1 (16.5 from the Stage-I init), pooled 18.1; Ours + ER
+     (K16, 10-architecture mean) 18.7.
 7. **Consequence.**
    - On MNIST and FMNIST, our federated pipeline with ER is within 0–2 points of a *centralised* two-stage pipeline
      (centralised FE, body trained on pooled data, LDA readout) on the same long-tailed data.
@@ -82,14 +86,16 @@ and the MC / MC-S / KH optimality statements are treated as statements about ide
    - **MEASURED (N7, seed 0):** a pooled-trained body on the balanced (IID) data reaches ER 97.6 / 85.7, against
      94.4 / 83.0 on the long-tailed pool with the best FE. The centralised long-tail cost is 3.2 / 2.7, against our
      pipeline's 2.9 / 3.3 (§2.4).
+   - The same holds on CIFAR-100: the centralised long-tail cost is 4.1 against our drop of 2.7 (§2.4).
    - SVHN and CIFAR-10 were not measured.
 8. **Top changes that the analysis supports** (§6, §9):
    - **(i)** class-wise gating or relabelling of synthetic data by an exact-statistics estimate of its signal
      fraction, which removes the harm regime of item 5;
    - **(ii)** a class-balanced Stage-I loss with weights from the exact global counts, which is first-order
-     equivalent to the centralised balanced FE that gained +1.1 on FMNIST;
-   - **(iii)** on the hard datasets only, and only if a measurement shows a pooled-body gap: a cross-client body
-     refresh, provably first-order equal to pooled ERM.
+     equivalent to the centralised balanced FE. That FE gained +1.1 on FMNIST but lost 1.0 on CIFAR-100 (one seed),
+     so this is the most uncertain of the three;
+   - **(iii)** on SVHN / CIFAR-10 only, and only if a measurement shows a pooled-body gap (none on MNIST, FMNIST or
+     CIFAR-100): a cross-client body refresh, provably first-order equal to pooled ERM.
    - Interleaving synthetic data into real batches is *not* supported as a gain (toy: equal for faithful generators).
 
 ---
@@ -319,7 +325,15 @@ composition, 5 seeds).** Balanced LDA accuracy on the frozen bottleneck:
 - Against a centralised *ERM* FE it is −0.5 and +0.4, so most of FMNIST's 1.1 is the long-tailed weighting of the FE
   loss (as predicted by Prop. 2.1(b)), not federation.
 - Both come from one seed; the seed-to-seed s.d. of comparable quantities is 0.3–1.
-- [[N7_C100_FE_TABLE]]
+- **Raw LDA vs pooled body (checked against the N7 logs).** The raw-feature LDA does show an FE gap: federated vs
+  centralised balanced is 88.6 vs 90.4 (MNIST seed 0), 85.8 vs 89.6 (MNIST seed 1) and 78.8 vs 79.9 (FMNIST seed 0).
+  Once a body is trained on top, the gap disappears on MNIST (pooled body + ER 94.4 vs 94.4 on seed 0, 94.1 vs 93.9
+  on seed 1) and shrinks to 1.1 on FMNIST. So the FE costs linear separability, but the bodies recover it on MNIST.
+  The "FE cost" figures used elsewhere in this report are the pooled-body + ER differences, not raw LDA.
+- **CIFAR-100** (seed 0, N7c, architectures 0 / 4 / 8 to fit CPU time; full CIFAR schedule):
+  - raw LDA: 14.4 (federated FE) vs 13.8 (centralised balanced FE);
+  - pooled body + ER: 18.1 vs 17.1;
+  - a centralised balanced FE does not help here (see the epoch caveat in §0).
 
 **PROPOSITION 2.2 (BatchNorm buffers).**
 - Each client's running mean and variance are EMAs (momentum 0.1) of batch moments computed under its **own drifted
@@ -580,10 +594,12 @@ interleaving, expand $P\approx I-\eta SH$. $\square$
 | pooled real data, class-balanced sampling | 94.2 | 81.5 |
 
 - The one-client body loses 3.0 / 3.8 points against the pooled body. Our synthetic data recover all of it on MNIST
-  and 80% on FMNIST (one seed each).
+  and 80% on FMNIST (seed 0).
+- Seed 1: the loss is 3.7 / 4.2 and ours recovers all of it on both datasets (94.2 vs 94.1; 81.3 vs 80.9).
 - On the other datasets K17 gives the synthetic gain over real-only bodies, ours vs real-only with the same ER:
   +4.7 (MNIST), +3.4 (FMNIST), +11.1 (SVHN), +1.6 (CIFAR-10), +1.8 (CIFAR-100). The pooled-body ceiling there is
-  unmeasured except [[N7_C100_BODY_SHORT]].
+  unmeasured except CIFAR-100: one-client 15.1 vs pooled 18.1 (architectures 0 / 4 / 8), with ours at 18.7
+  (10-architecture mean, K16 seed 0).
 
 **Per-class exposure.**
 - Per round, class $c$ contributes about $T_rn_k\pi_{kc}$ real and $T_s\lfloor n_k/B\rfloor B/C$ synthetic samples
@@ -627,8 +643,21 @@ interleaving, expand $P\approx I-\eta SH$. $\square$
   - ≈ 0 on MNIST;
   - ≈ 1.9 on FMNIST, of which ≈ 1.3 is present on balanced data too (one-client bodies) and ≈ 0.6 is specific to the
     long tail.
-- One seed, so differences below ~1 point are within noise (seed-1 check: [[N7_S1]]).
-- SVHN and CIFAR-10 are unmeasured. CIFAR-100: [[N7_C100_DECOMP]].
+- **Seed-1 check (N7b).**
+  - MNIST: one-client body 90.4, pooled body 94.1, Ours + ER (K16, seed 1) 94.2. The centralised balanced FE gives
+    93.9 (−0.2).
+  - FMNIST: one-client 76.6, pooled 80.9, Ours + ER (K16, seed 1) 81.3. The centralised-FE arm was lost to a session
+    interruption.
+  - So the body gap of real-only bodies is 3.7–4.2 points, and our bodies are at the pooled-body level on both seeds:
+    MNIST +0.0 / +0.0; FMNIST −0.8 / +0.5.
+  - The FE effect is reproduced on MNIST (≈ 0) but not re-tested on FMNIST.
+- **CIFAR-100** (seed 0; N7c on architectures 0 / 4 / 8; ours = K16 10-architecture mean):
+  - our pipeline: 21.4 (IID) → 18.7 (long tail), a drop of 2.7;
+  - centralised pooled body: 22.2 (IID) → 18.1 (long tail, federated FE) and 17.1 (centralised balanced FE), a
+    long-tail cost of 4.1;
+  - federated residual: ≈ −0.6 at long tail and 0.8 on IID data. Our pipeline is at the centralised level.
+  - The architecture subset makes this comparison approximate (±1).
+- SVHN and CIFAR-10 are unmeasured.
 
 ---
 
@@ -713,8 +742,12 @@ equals the centralised one *for the same frozen networks*):
 - In the balanced setting, the frozen-FE ceiling is low: CIFAR-100 ≈ 21% and CIFAR-10 ≈ 62% with ER (K16, ours), in
   both worlds.
 - N7 shows that training the FE centrally (balanced) moves a pooled body's ER by 0.0 / +1.1 (MNIST / FMNIST). The
-  FE's *capacity*, not its *federated training*, is what limits the hard datasets in absolute terms. On CIFAR-100,
-  [[N7_C100_GEOM]].
+  FE's *capacity*, not its *federated training*, is what limits the hard datasets in absolute terms.
+- **MEASURED (N7c):** on CIFAR-100 an FE trained federatedly on *balanced* data raises raw-feature LDA from 14.4 to
+  20.4 and the pooled-body ER from 18.1 to 22.2. A centralised class-balanced FE trained on the long-tailed pool does
+  not help (17.1).
+- What limits CIFAR-100 is the long-tailed data the 390-parameter FE and the bodies are trained on (4 of the 4.1
+  points also arise centrally), not federation.
 
 ### 4.2 Minority collapse and absent classes
 
@@ -844,18 +877,18 @@ constant logits gives the quadratic term. $\square$
 **Terms that no change of ours touches:**
 1. **The FE (Stage I) is untouched.** It is first-order consistent with pooled ERM (Cor. 1.2) and as long-tailed as
    centralised ERM (Prop. 2.1(b)). MEASURED cost against a centralised *balanced* FE: 0.0 (MNIST), 1.1 (FMNIST),
-   [[N7_C100_FE_SHORT]].
+   −1.0 (CIFAR-100, architectures 0 / 4 / 8; the oracle FE is trained for fewer epochs).
 2. **Body sample size.** At $K=10$ every body sees $\approx N/10$ real samples. Only the synthetic phase transfers
    information from other clients' data, and it is bounded by the generator's per-class signal fraction and by
-   Prop. 2.8. MEASURED residual against a pooled body: 0.0 (MNIST), 0.8 (FMNIST), [[N7_C100_BODY_SHORT2]]; unmeasured
-   on SVHN and CIFAR-10.
+   Prop. 2.8. MEASURED residual against a pooled body: 0.0 / 0.0 (MNIST, seeds 0 / 1), 0.8 / −0.5 (FMNIST),
+   ≈ −0.6 (CIFAR-100, ours 18.7 vs pooled 18.1, approximate); unmeasured on SVHN and CIFAR-10.
 3. **The generator trunk's long tail.** It is present centrally too (§2.2, §3.2).
 4. **The statistical floor of rare classes.** No aggregation rule can remove it (§3.3).
 
 **Why the remaining gain over strong baselines is small (K17: 0.5–2.0 points).**
 - The decay fix removes the largest generator term.
 - ER removes the whole readout term.
-- What is left for a better generator is the body term (≤ 3.8 points on MNIST / FMNIST by N7), part of which a
+- What is left for a better generator is the body term (3.0–4.2 points on MNIST / FMNIST by N7, two seeds), part of which a
   decay-fixed GeFL-F generator already recovers. K17: the decay-fixed GeFL-F's synthetic gain over real-only bodies is
   +2.6 / +2.8 on MNIST / FMNIST, ours +4.7 / +3.4.
 - **CONJECTURE:** a body trained on the pooled real data is a ceiling for any body trained on this data. It may not
@@ -883,8 +916,10 @@ worth running.**
 - *Cost.* Head-stage compute only, *if* the K16 / K17 model archives (`<folder>__models.zip`, action plan D2) were
   kept. They are not in the repository. Without them P0 needs the FE and heads re-trained, which duplicates K16 / K17
   arms: run `python experiments/ledger.py --check` first and ask before re-running.
-- *Prediction.* The pooled-body ER exceeds Ours + ER by ≤ 1 point on SVHN and by 1–3 points on CIFAR-10 / CIFAR-100,
-  where $s$ is low (0.09–0.46). If the gap is ≤ 1 everywhere, no body-side federated fix can be worth more than 1
+- *Already measured* on MNIST, FMNIST and CIFAR-100 (N7 / N7c): no gap (§2.4). It remains open for SVHN and
+  CIFAR-10 only.
+- *Prediction.* The pooled-body ER exceeds Ours + ER by ≤ 1 point on SVHN and CIFAR-10 as well (CIFAR-100, where
+  $s$ is lowest at 0.088, shows none). If the gap is ≤ 1 there, no body-side federated fix can be worth more than 1
   point, and P3 should be dropped.
 
 **P1. Class-wise gating or relabelling of synthetic data by an exact-statistics signal-fraction estimate.**
@@ -910,8 +945,9 @@ worth running.**
 - *Caveat.* Loss reweighting and balanced sampling have the same expected objective but different variance. With
   rare classes at 24 samples, clip $w$ (e.g. ≤ 20) to bound the variance. This is a design choice, to be validated.
 - *Cost.* One count release, which ER already implies.
-- *Prediction (N7).* +1 ± 1 point of Ours + ER on FMNIST, 0 ± 0.5 on MNIST. On the CIFARs, the centralised-balanced
-  FE measurement of P0 / N7 decides.
+- *Prediction (N7).* +1 ± 1 point of Ours + ER on FMNIST, 0 ± 0.5 on MNIST, and ≤ 0 on CIFAR-100, where the
+  centralised balanced FE was 1.0 worse (N7c). Measured with one seed, so this is the weakest of the three
+  proposals.
 
 **P3. Cross-client body refresh (only if P0 shows a gap ≥ 1.5 points).**
 - *What.* After Stage III, broadcast every architecture's body (ER already requires this). For $R$ rounds, every
@@ -1005,10 +1041,10 @@ import `experiments/core.py` read-only and read the cached tensors in `experimen
 | N6 | `n6_partition_stats.py` | exact partition reconstruction; FedNova TV; $\rho$; $V_c$; $\kappa$; rates | partitions match the logs exactly | — |
 | N6b | `n6b_pair_weights.py` | first-order pair weights fed vs cen | §2.1 | — |
 | N6c | `n6c_kappa_vs_logs.py` | $\kappa_c$ vs the logged final row norms of every GeFL-F run | 352 / 352 collapse for $\kappa<1$; Spearman 0.94 | yes |
-| N7 | `n7_fe_body_decomp.py`, `n7b_fe_body_decomp_sched.py` | real data: FE variants × body variants × ER | §2.1, §2.3; [[N7_ALL]] | — |
+| N7 | `n7_fe_body_decomp.py`, `n7b_fe_body_decomp_sched.py`, `n7c_c100_subset.py` (outputs `n7*_<ds>_s<seed>.jsonl`) | real data: FE variants × body variants × ER | §2.1, §2.3; MNIST / FMNIST seeds 0–1, CIFAR-100 seed 0 (3 architectures); body gap closed on all three; FE gap 0 / 1.1 / −1.0 | — |
 
 Caveats:
-- N7 uses one seed per dataset, on CPU, so it is not bit-identical to the Kaggle runs. Its one-client real-only bodies
+- N7 uses one or two seeds per dataset (CIFAR-100: three of the ten architectures), on CPU, so it is not bit-identical to the Kaggle runs. Its one-client real-only bodies
   (91.5 / 78.1) reproduce K17's "Real only + ER" (90.0 / 77.8, seeds 3–5) and K16's GeFL-F + ER on seed 0 (90.8 /
   79.5) within about 1 point.
 - The toys are models of mechanisms, not of the networks.
@@ -1025,11 +1061,11 @@ changes.
 |---|---|---|---|---|
 | 1 | last layer trained on one client's skewed data | 7–20 points (ER lift, K16) | ≈ 0 relative to centralised LDA (ER, Thm. 3.1); LDA model error ~1 | federated, fixed exactly |
 | 2 | generator rows: coupled-decay collapse ($\kappa_c<1$) | 7–11 points at $K=10$ (K15) | 0 (decay fix / HWA / PC-VAE) | federated, fixed exactly |
-| 3 | body sample size and coverage (one client per architecture) | 3.0 / 3.8 (MNIST / FMNIST, real-only vs pooled body, N7); larger where real-only bodies are weak (SVHN: real-only 54.3 vs ours 65.5) | 0.0 / 0.8 (MNIST / FMNIST); unmeasured elsewhere ([[N7_C100_BODY_SHORT3]]) | federated, reduced by synthetic data; residual bounded by the signal fraction $s$ |
+| 3 | body sample size and coverage (one client per architecture) | 3.0 / 3.8 (MNIST / FMNIST, real-only vs pooled body, N7); larger where real-only bodies are weak (SVHN: real-only 54.3 vs ours 65.5) | ≈ 0 on MNIST / FMNIST (0.0 / 0.8 seed 0; 0.0 / −0.5 seed 1); unmeasured on SVHN / CIFAR-10 (CIFAR-100 ≈ −0.6, approximate) | federated, reduced by synthetic data; residual bounded by the signal fraction $s$ |
 | 4 | synthetic data with $s\approx0$ (anti-discrimination penalty) | −0.8 / −2.2 vs real-only (CIFAR-10 / -100, K17) | removed (ours $s$ = 0.23 / 0.088: +1.5 / +1.8) | federated through the generator |
 | 5 | FE trained federatedly and long-tailed | 0.0 / 1.1 (MNIST / FMNIST, vs centralised balanced FE, N7) | unchanged | on FMNIST ≈ 0.4 federated + 0.7 long-tail weighting (vs a centralised ERM FE); on MNIST the centralised ERM FE is 0.5 worse; not touched by any change |
 | 6 | row dilution $m_c/K$ (no-decay flat averaging) | 1.3–1.8 at $K=50/100$ (MNIST) | 0 with HWA; absent in PC-VAE | federated |
-| — | long-tailed data itself (present centrally) | the remainder of the LT vs balanced gap; centralised cost 3.2 (MNIST) / 2.7 (FMNIST), against our drops of 2.9 / 3.3 (N7, seed 0) | unchanged | not federated |
+| — | long-tailed data itself (present centrally) | the remainder of the LT vs balanced gap; centralised cost 3.2 (MNIST) / 2.7 (FMNIST) / 4.1 (CIFAR-100), against our drops of 2.9 / 3.3 / 2.7 (N7, seed 0) | unchanged | not federated: the largest remaining loss |
 
 **The 2–3 most promising theory-backed changes:**
 1. **P1, exact-statistics signal-fraction gating / CSL weighting of synthetic data.**
@@ -1038,10 +1074,11 @@ changes.
    - *Effect:* removes the regime where synthetic data hurt, which matters exactly on the hard datasets (CIFAR-10 /
      CIFAR-100), where our margin is smallest and least certain.
 2. **P2, class-balanced Stage-I loss from exact counts.**
-   - *Backed by:* first-order equivalence to the centralised balanced FE (Cor. 1.2), and N7's +1.1 on FMNIST for
-     that FE.
-   - *Effect:* the only change that touches the stage none of our components touches.
-3. **P0 → P3, measure the pooled-body ceiling on the hard datasets; then, only if it shows ≥ 1.5 points, a
+   - *Backed by:* first-order equivalence to the centralised balanced FE (Cor. 1.2).
+   - *Evidence is mixed:* that FE gave +1.1 on FMNIST, 0 on MNIST and −1.0 on CIFAR-100 (one seed each).
+   - *Effect:* the only change that touches the stage none of our components touches. Expected value ≤ 1 point;
+     validate on the 2,000-image split before any full run.
+3. **P0 → P3, measure the pooled-body ceiling on SVHN / CIFAR-10; then, only if it shows ≥ 1.5 points, a
    cross-client body refresh.**
    - *Backed by:* Cor. 1.2 and Lemma 1.4, which make it provably first-order equal to pooled ERM.
    - *Caveat:* it departs from GeFL-F's one-architecture-per-client premise, and P0 alone already tells the paper how
