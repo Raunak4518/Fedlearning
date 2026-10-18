@@ -283,3 +283,23 @@ exact BatchNorm recalibration (N7: ≤ 0.3), interleaving synthetic and real bat
 
 **Minimum for a defensible TMLR / journal submission:** X1, X2, X3. **For a main-track attempt:** add X7 (a new
 method with a margin on the hard datasets), X10 and X11.
+
+### 10.7 Status (18 Oct 2026, same day): everything in §10 is built
+
+| # | Where | State |
+|---|---|---|
+| X1, X2 | NB63, NB62 | ready; rebuilt with the current `core.py` |
+| X3 | NB67 (SVHN, CIFAR-10, CIFAR-100 all 10 architectures; seeds 0-2; federated, exact-BN, centralised balanced / ERM extractors; balanced-data reference) + CPU here (SVHN, CIFAR-10 seed 0, federated extractor only) | NB67 ready; CPU running |
+| X4 | CPU here, `docs/research/math_checks/x4_balanced_stage_i.py` (MNIST, FashionMNIST, seeds 0-1, validation split) | running |
+| X5 | logged by every K21 run (`sfrac_hat` next to the referee's per-class `fidelity` / `fidelity_kh`) | in NB64 / NB65 |
+| X6 | K25 (`instrument=True`): M1, M2, M4, M7, M8; MNIST and CIFAR-10 in NB67 | built; every code path tested on CPU |
+| X7, X8 | K21: SGATE / SCSL (`core.signal_fraction`) and BALFE, seeds 3-5, paired with K17; CIFAR-10 / MNIST / FMNIST in NB64, CIFAR-100 in NB65 | built; every new code path tested on CPU (tiny rounds) |
+| X9 | not built: only if X3 shows a pooled-body gap ≥ 1.5 | waits for X3 |
+| X10 | K22 (IF 10; Dirichlet 0.1 / 1.0; random rare classes via `permute_labels`); FMNIST in NB65, SVHN in NB66 | built |
+| X11 | K23 (K = 100, 10% / 20% participation via `Ctx.active`) in NB65 | built |
+| X12 | K24 (DCGAN-F, flat vs HWA, K = 10 / 50) in NB66 | built |
+| X13 | not built (lowest priority; ≈ 8 h) | — |
+| X14 | CPU here, `x14_membership.py` (released class sums: exact, ε = 8, ε = 2) | built |
+| X15 | `HerdedGen.sample_batched`: herding for many classes at once without a host sync per step; picks verified identical to the loop | done (default; `GEFL_KH_LOOP=1` restores the loop) |
+
+Kaggle order: NB63, NB62, NB67, NB64, NB65, NB66 (≈ 9.3 + 10.5 + 8 + 9 + 9.5 + 7 h).

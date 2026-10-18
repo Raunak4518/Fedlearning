@@ -241,9 +241,9 @@ COMBOS = [  # (name, [(script, args), ...], results folder, budget_h, rough hour
     ("NB67_centralised_comparator", [("@docs/research/math_checks/n7b_fe_body_decomp_sched.py", f"{ds} {sd} lt,iid",
                                       {"NO_INIT": "1", "TAG": "x3"})
                                      for ds in ["svhn", "cifar10", "cifar100"] for sd in [0, 1, 2]]
-                                    + [("K25_instrumented", "--datasets cifar10")],
-     "centralised_comparator", 0, 8.0,
-     "The centralised comparison (federated vs centralised extractor; one-client vs pooled bodies; exact readout) on SVHN, CIFAR-10 and CIFAR-100 (all 10 architectures), seeds 0-2, then the instrumented CIFAR-10 runs (what happens at each aggregation)."),
+                                    + [("K25_instrumented", "")],
+     "centralised_comparator", 0, 8.5,
+     "The centralised comparison (federated vs centralised extractor; one-client vs pooled bodies; exact readout) on SVHN, CIFAR-10 and CIFAR-100 (all 10 architectures), seeds 0-2, then the instrumented MNIST and CIFAR-10 runs (what happens at each aggregation)."),
     ("NB62_more_clients_svhn", [("K18_kaggle_more_clients_svhn", "")], "more_clients_svhn", 0, 10.5,
      "SVHN long tail with 50 and 100 clients (3 seeds): GeFL-F, the weight-decay fix, holder-weighted averaging and our method, each under every last-layer readout."),
     ("NB60_combined_A", [("K17_kaggle_fair_retest", '--datasets cifar10 fmnist --exclude "Ours rows Ts=1"'),
