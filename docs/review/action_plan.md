@@ -284,22 +284,31 @@ exact BatchNorm recalibration (N7: ≤ 0.3), interleaving synthetic and real bat
 **Minimum for a defensible TMLR / journal submission:** X1, X2, X3. **For a main-track attempt:** add X7 (a new
 method with a margin on the hard datasets), X10 and X11.
 
-### 10.7 Status (18 Oct 2026, same day): everything in §10 is built
+### 10.7 Status (18 Oct 2026): everything in §10 is built; GPU parts packed into three ~11 h notebooks
+
+| Notebook | Steps (most important first) | Est. wall time on T4 × 2 |
+|---|---|---|
+| **NB68_gate_and_balanced_fe** | K21 on CIFAR-10, CIFAR-100, MNIST (X5, X7, X8) | ≈ 11 h |
+| **NB69_comparator_and_breadth** | X3 centralised comparator (SVHN, CIFAR-10, CIFAR-100; seeds 0-2; two GPUs as a queue); K25 instrumented MNIST + CIFAR-10 (X6); K21 FashionMNIST; K22 FashionMNIST (X10); K23 (X11) | ≈ 11 h |
+| **NB70_more_clients_and_generators** | K26 CIFAR-10 with 50 clients (X13); K22 SVHN (X10); K24 DCGAN-F (X12) | ≈ 10.8 h |
+
+Every notebook zips its results after each step, so a session that hits Kaggle's 12 h limit keeps every finished
+step. NB64-NB67 (built earlier the same day) are retired: their steps are all in NB68-NB70. X1 / X2 remain NB63 /
+NB62. Times are estimates from K14-K17 run times; the X3 and K25 steps have no earlier GPU timing.
 
 | # | Where | State |
 |---|---|---|
-| X1, X2 | NB63, NB62 | ready; rebuilt with the current `core.py` |
-| X3 | NB67 (SVHN, CIFAR-10, CIFAR-100 all 10 architectures; seeds 0-2; federated, exact-BN, centralised balanced / ERM extractors; balanced-data reference) + CPU here (SVHN, CIFAR-10 seed 0, federated extractor only) | NB67 ready; CPU running |
-| X4 | CPU here, `docs/research/math_checks/x4_balanced_stage_i.py` (MNIST, FashionMNIST, seeds 0-1, validation split) | running |
-| X5 | logged by every K21 run (`sfrac_hat` next to the referee's per-class `fidelity` / `fidelity_kh`) | in NB64 / NB65 |
-| X6 | K25 (`instrument=True`): M1, M2, M4, M7, M8; MNIST and CIFAR-10 in NB67 | built; every code path tested on CPU |
-| X7, X8 | K21: SGATE / SCSL (`core.signal_fraction`) and BALFE, seeds 3-5, paired with K17; CIFAR-10 / MNIST / FMNIST in NB64, CIFAR-100 in NB65 | built; every new code path tested on CPU (tiny rounds) |
+| X3 | NB69 + CPU here (SVHN, CIFAR-10 seed 0, federated extractor only) | NB69 ready; CPU running |
+| X4 | CPU here, `docs/research/math_checks/x4_balanced_stage_i.py` | seed 0 done, seed 1 running (see PROGRESS) |
+| X5 | logged by every K21 run (`sfrac_hat` next to the referee's per-class fidelity) | NB68 / NB69 |
+| X6 | K25 (`instrument=True`): M1, M2, M4, M7, M8 | NB69; every code path tested on CPU |
+| X7, X8 | K21: SGATE / SCSL (`core.signal_fraction`) and BALFE, seeds 3-5, paired with K17 | NB68 / NB69; every new code path tested on CPU (tiny rounds) |
 | X9 | not built: only if X3 shows a pooled-body gap ≥ 1.5 | waits for X3 |
-| X10 | K22 (IF 10; Dirichlet 0.1 / 1.0; random rare classes via `permute_labels`); FMNIST in NB65, SVHN in NB66 | built |
-| X11 | K23 (K = 100, 10% / 20% participation via `Ctx.active`) in NB65 | built |
-| X12 | K24 (DCGAN-F, flat vs HWA, K = 10 / 50) in NB66 | built |
-| X13 | not built (lowest priority; ≈ 8 h) | — |
-| X14 | CPU here, `x14_membership.py` (released class sums: exact, ε = 8, ε = 2) | built |
-| X15 | `HerdedGen.sample_batched`: herding for many classes at once without a host sync per step; picks verified identical to the loop | done (default; `GEFL_KH_LOOP=1` restores the loop) |
+| X10 | K22 (IF 10; Dirichlet 0.1 / 1.0; random rare classes via `permute_labels`) | NB69 (FMNIST), NB70 (SVHN) |
+| X11 | K23 (K = 100, 10% / 20% participation via `Ctx.active`) | NB69 |
+| X12 | K24 (DCGAN-F, flat vs HWA, K = 10 / 50) | NB70 |
+| X13 | K26 (CIFAR-10, K = 50) | NB70 |
+| X14 | CPU here, `x14_membership.py` | **done** (paper §6.9) |
+| X15 | `HerdedGen.sample_batched` (same picks as the loop; `GEFL_KH_LOOP=1` restores it) | **done** |
 
-Kaggle order: NB63, NB62, NB67, NB64, NB65, NB66 (≈ 9.3 + 10.5 + 8 + 9 + 9.5 + 7 h).
+Kaggle order: NB63, NB62 (X1, X2), then NB69, NB68, NB70.

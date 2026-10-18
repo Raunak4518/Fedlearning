@@ -227,23 +227,26 @@ COMBOS = [  # (name, [(script, args), ...], results folder, budget_h, rough hour
                                       '--datasets mnist --seeds 4 --only "-CSL" "-MC" "-KH" "Ours-A-B Ts=10"')],
      "baselines_and_controls", 0, 9.3,
      "Further published baselines (FSG + LA, FedDF, FedDF + LA) on all five datasets, paired with the fair re-test, then the kernel-herding and moment-correction mechanism controls on FashionMNIST and CIFAR-10, then the 4 ablation runs (MNIST, seed 4) that NB60 lost to its time limit."),
-    ("NB64_signal_gate_A", [("K21_kaggle_signal_gate", "--datasets cifar10 mnist fmnist")],
-     "signal_gate_A", 0, 9.0,
-     "The new method suggested by the theory (signal-fraction gate on synthetic data, SGATE / SCSL) and the class-balanced Stage-I loss (BALFE) on CIFAR-10, MNIST and FashionMNIST, seeds 3-5, paired with the fair re-test (K17)."),
-    ("NB65_signal_gate_B_breadth", [("K21_kaggle_signal_gate", "--datasets cifar100"),
-                                    ("K23_kaggle_partial_participation", ""),
-                                    ("K22_kaggle_regime_breadth", "--datasets fmnist")],
-     "signal_gate_B_breadth", 0, 9.5,
-     "The signal-fraction gate and balanced Stage-I loss on CIFAR-100; partial participation (K = 100, 10% / 20% of clients per round) on MNIST and FashionMNIST; other imbalance settings and random rare classes on FashionMNIST."),
-    ("NB66_breadth_svhn_dcgan", [("K22_kaggle_regime_breadth", "--datasets svhn"), ("K24_kaggle_dcgan_longtail", "")],
-     "breadth_svhn_dcgan", 0, 7.0,
-     "Other imbalance settings and random rare classes on SVHN; DCGAN-F under the long tail (does collapse need weight decay?) on MNIST and FashionMNIST."),
-    ("NB67_centralised_comparator", [("@docs/research/math_checks/n7b_fe_body_decomp_sched.py", f"{ds} {sd} lt,iid",
-                                      {"NO_INIT": "1", "TAG": "x3"})
-                                     for ds in ["svhn", "cifar10", "cifar100"] for sd in [0, 1, 2]]
-                                    + [("K25_instrumented", "")],
-     "centralised_comparator", 0, 8.5,
-     "The centralised comparison (federated vs centralised extractor; one-client vs pooled bodies; exact readout) on SVHN, CIFAR-10 and CIFAR-100 (all 10 architectures), seeds 0-2, then the instrumented MNIST and CIFAR-10 runs (what happens at each aggregation)."),
+    # X3-X15 of the action plan (§10), packed into three ~11 h sessions; most important step first in each
+    ("NB68_gate_and_balanced_fe", [("K21_kaggle_signal_gate", "--datasets cifar10"),
+                                   ("K21_kaggle_signal_gate", "--datasets cifar100"),
+                                   ("K21_kaggle_signal_gate", "--datasets mnist")],
+     "gate_and_balanced_fe", 0, 11.0,
+     "X5, X7, X8: the new method suggested by the theory (signal-fraction gate on synthetic data, SGATE / SCSL) and the class-balanced Stage-I loss (BALFE) on CIFAR-10, CIFAR-100 and MNIST, seeds 3-5, paired with the fair re-test (K17)."),
+    ("NB69_comparator_and_breadth", [("@docs/research/math_checks/n7b_fe_body_decomp_sched.py",
+                                      [f"{ds} {sd} lt,iid" for ds in ["svhn", "cifar10", "cifar100"] for sd in [0, 1, 2]],
+                                      {"NO_INIT": "1", "TAG": "x3", "NT": "2"}),
+                                     ("K25_instrumented", ""),
+                                     ("K21_kaggle_signal_gate", "--datasets fmnist"),
+                                     ("K22_kaggle_regime_breadth", "--datasets fmnist"),
+                                     ("K23_kaggle_partial_participation", "")],
+     "comparator_and_breadth", 0, 11.0,
+     "X3: the centralised comparison (federated vs centralised extractor; one-client vs pooled bodies; exact readout) on SVHN, CIFAR-10 and CIFAR-100, seeds 0-2. X6: instrumented runs (what happens at each aggregation), MNIST and CIFAR-10. X7/X8 on FashionMNIST. X10: other imbalance settings and random rare classes on FashionMNIST. X11: partial participation (K = 100, 10% / 20% of clients per round)."),
+    ("NB70_more_clients_and_generators", [("K26_kaggle_cifar10_more_clients", ""),
+                                          ("K22_kaggle_regime_breadth", "--datasets svhn"),
+                                          ("K24_kaggle_dcgan_longtail", "")],
+     "more_clients_and_generators", 0, 10.8,
+     "X13: CIFAR-10 with 50 clients (decay fix vs HWA vs ours). X10 on SVHN: other imbalance settings and random rare classes. X12: DCGAN-F under the long tail (does collapse need weight decay?)."),
     ("NB62_more_clients_svhn", [("K18_kaggle_more_clients_svhn", "")], "more_clients_svhn", 0, 10.5,
      "SVHN long tail with 50 and 100 clients (3 seeds): GeFL-F, the weight-decay fix, holder-weighted averaging and our method, each under every last-layer readout."),
     ("NB60_combined_A", [("K17_kaggle_fair_retest", '--datasets cifar10 fmnist --exclude "Ours rows Ts=1"'),
@@ -288,6 +291,19 @@ try:
 except Exception as e:
     raise RuntimeError("STOP: set Settings -> Internet -> On, then run again. (" + str(e) + ")")
 print("OK - environment is correct.")
+"""),
+             code(f"""
+# Cell 3 - pack(): zip results and models now (called after every step, so a timeout never loses finished work)
+import os, shutil
+def pack():
+    for src, dst in [("/kaggle/working/results", "/kaggle/working/{folder}"), ("/kaggle/working/models", "/kaggle/working/{folder}__models")]:
+        if os.path.isdir(src):
+            if os.path.isdir(dst):
+                shutil.rmtree(dst)
+            shutil.copytree(src, dst)
+            shutil.make_archive(dst, "zip", "/kaggle/working", os.path.basename(dst))
+            shutil.rmtree(dst)
+            print("wrote", dst + ".zip")
 """)]
     written = set()
     for step in steps:
@@ -304,10 +320,34 @@ print("OK - environment is correct.")
                                   "execution_count": None, "outputs": [],
                                   "source": (f"%%writefile {base}\n" + src).splitlines(keepends=True)})
                     written.add(base)
-            env = " ".join(f"{k}={v}" for k, v in (step[2] if len(step) > 2 else {}).items())
-            cells.append(code(f"!mkdir -p /kaggle/working/results/X3_centralised_comparator && "
-                              f"GEFL_DATA_ROOT=/kaggle/working/data GEFL_OUT=/kaggle/working/results/X3_centralised_comparator "
-                              f"{env} python {os.path.basename(path)} {args}"))
+            env = dict(step[2] if len(step) > 2 else {})
+            arglist = args if isinstance(args, list) else [args]
+            # the argument sets run as a queue on the two GPUs (one process per GPU at a time)
+            cells.append(code(f"""
+import os, subprocess, threading, queue
+out = "/kaggle/working/results/X3_centralised_comparator"
+os.makedirs(out, exist_ok=True)
+jobs = queue.Queue()
+for a in {arglist!r}:
+    jobs.put(a)
+def worker(gpu):
+    while True:
+        try:
+            a = jobs.get_nowait()
+        except queue.Empty:
+            return
+        env = dict(os.environ, CUDA_VISIBLE_DEVICES=str(gpu), GEFL_DATA_ROOT="/kaggle/working/data", GEFL_OUT=out, **{env!r})
+        with open(os.path.join(out, "log_" + a.replace(" ", "_").replace(",", "-") + ".txt"), "w") as f:
+            rc = subprocess.run("python {os.path.basename(path)} " + a, shell=True, env=env, stdout=f, stderr=subprocess.STDOUT).returncode
+        print("GPU", gpu, a, "exit", rc, flush=True)
+# data download once, before the two workers start
+import sys; sys.path.insert(0, "/kaggle/working"); import core
+for d in {sorted({a.split()[0] for a in arglist})!r}:
+    core.load_dataset(d, "/kaggle/working/data")
+ts = [threading.Thread(target=worker, args=(g,)) for g in (0, 1)]
+[t.start() for t in ts]; [t.join() for t in ts]
+"""))
+            cells.append(code("pack()"))
             continue
         if script not in written:
             src = open(build.build_one(script), encoding="utf-8").read()
@@ -315,6 +355,7 @@ print("OK - environment is correct.")
                           "outputs": [], "source": (f"%%writefile {script}.py\n" + src).splitlines(keepends=True)})
             written.add(script)
         cells.append(code(f"!python {script}.py {args} --out_dir /kaggle/working/results --models_dir /kaggle/working/models"))
+        cells.append(code("pack()"))
     cells.append(code(f"""
 # Last cell - pack results and models into two separate zips
 import os, shutil, glob, subprocess
