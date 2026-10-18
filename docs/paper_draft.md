@@ -1051,6 +1051,22 @@ Formal DP on the four added statistics (E26): 4.5–6.9 points at ε = 8 and 9.8
 slower than GeFL-F end to end (kernel herding is 83–88% of the head stage); ER adds one round and up to about
 $5\times10^5$ numbers per architecture per client (§5.6); details in Appendix B.12.
 
+*Membership inference on the released class sums (X14, one seed, `docs/research/math_checks/x14_membership.py`).*
+An attacker who knows a target's label and holds public reference data scores it by how far the released class mean
+has moved toward it. Members vs non-members, AUC:
+
+| release | MNIST all / tail / rarest class | FashionMNIST all / tail / rarest class |
+|---|---|---|
+| exact sums | 0.52 / 0.64 / 0.69 | 0.52 / 0.63 / 0.73 |
+| Gaussian mechanism, ε = 8 | 0.50 / 0.58 / 0.64 | 0.52 / 0.54 / 0.45 |
+| Gaussian mechanism, ε = 2 | 0.50 / 0.53 / 0.61 | 0.51 / 0.50 / 0.41 |
+
+Head classes are at chance (0.49–0.51); the exact release leaks membership for rare classes (24–112 samples), as
+expected for a mean over few samples, and the noise of E26 removes most of it. The rarest-class AUCs rest on 24
+members and are noisy (FashionMNIST at ε = 8 / 2 is below 0.5). With ε = 2 the DP guarantee itself allows an AUC up to
+$e^\varepsilon/(1+e^\varepsilon)\approx0.88$, so these values are consistent with it. Secure aggregation alone does
+not protect rare classes; the added statistics should be released with noise when some class is rare.
+
 ## 7. Related work
 
 **Model-heterogeneous FL by distillation and partial sharing.** FedAvg [2] assumes that every client trains the
