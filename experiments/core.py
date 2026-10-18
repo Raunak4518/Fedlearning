@@ -2597,7 +2597,8 @@ def run_one(cfg, run, cache, data_cache):
     t0 = time.time()
     tracker = Tracker()
     res = dict(n_train=int(sum(ctx.sizes)), min_client=int(min(ctx.sizes)),
-               tail_holders=int((part["counts"][:, TAIL()] > 0).sum(0).min()))
+               tail_holders=int((part["counts"][:, TAIL()] > 0).sum(0).min()),
+               client_counts=part["counts"].astype(int).tolist())  # per-client class counts (count-only collapse predictor)
 
     # ---- baselines without a generator: LG-FedAvg / FedAvg (grouped)
     if m["pipeline"] in ("lg_fedavg", "fedavg_grouped"):
@@ -2995,7 +2996,21 @@ def main(exp):
                     help="where models go (default: <out_dir>/../models); kept apart from the results")
     ap.add_argument("--from_models", default=None,
                     help="folder models/<exp> from an earlier run: re-evaluate its saved models, train nothing")
-    a, _unknown = ap.parse_known_args()  # tolerate Jupyter/Kaggle kernel arguments
+    # labels such as "-CSL" start with a dash; protect them after --only / --exclude so argparse does not read them
+    # as options
+    argv, in_list = [], False
+    for t in sys.argv[1:]:
+        if t in ("--only", "--exclude"):
+            in_list = True
+        elif in_list and t.startswith("-") and t not in ap._option_string_actions:
+            t = "LABEL:" + t
+        elif t.startswith("-"):
+            in_list = False
+        argv.append(t)
+    a, _unknown = ap.parse_known_args(argv)  # tolerate Jupyter/Kaggle kernel arguments
+    for key in ("only", "exclude"):
+        if getattr(a, key):
+            setattr(a, key, [x[len("LABEL:"):] if x.startswith("LABEL:") else x for x in getattr(a, key)])
     if a.deterministic or os.environ.get("GEFL_DETERMINISTIC") == "1":
         os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
         torch.backends.cudnn.benchmark = False

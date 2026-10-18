@@ -222,9 +222,11 @@ print(open(os.path.join(dst, "summary.md")).read() if os.path.exists(os.path.joi
 # Combined notebooks: several jobs in one Kaggle session (12 h limit). A deadline (GEFL_DEADLINE) stops new runs after
 # `budget_h` hours, so the session always ends with its zips written; skipped runs can be run in a later session.
 COMBOS = [  # (name, [(script, args), ...], results folder, budget_h, rough hours, what)
-    ("NB63_baselines_and_controls", [("K19_kaggle_more_baselines", ""), ("K20_kaggle_mechanism_controls", "")],
-     "baselines_and_controls", 0, 8.5,
-     "Further published baselines (FSG + LA, FedDF, FedDF + LA) on all five datasets, paired with the fair re-test, then the kernel-herding and moment-correction mechanism controls on FashionMNIST and CIFAR-10."),
+    ("NB63_baselines_and_controls", [("K19_kaggle_more_baselines", ""), ("K20_kaggle_mechanism_controls", ""),
+                                     ("K14_kaggle_ablation_seeds_mcb",  # the 4 runs NB60 lost to its time limit
+                                      '--datasets mnist --seeds 4 --only "-CSL" "-MC" "-KH" "Ours-A-B Ts=10"')],
+     "baselines_and_controls", 0, 9.3,
+     "Further published baselines (FSG + LA, FedDF, FedDF + LA) on all five datasets, paired with the fair re-test, then the kernel-herding and moment-correction mechanism controls on FashionMNIST and CIFAR-10, then the 4 ablation runs (MNIST, seed 4) that NB60 lost to its time limit."),
     ("NB62_more_clients_svhn", [("K18_kaggle_more_clients_svhn", "")], "more_clients_svhn", 0, 10.5,
      "SVHN long tail with 50 and 100 clients (3 seeds): GeFL-F, the weight-decay fix, holder-weighted averaging and our method, each under every last-layer readout."),
     ("NB60_combined_A", [("K17_kaggle_fair_retest", '--datasets cifar10 fmnist --exclude "Ours rows Ts=1"'),
