@@ -29,8 +29,8 @@ import torch.nn.functional as F
 sys.path.insert(0, _os.path.join(_REPO, "experiments"))
 import core
 
-ROOT = _os.path.join(_REPO, "experiments", "data")
-OUT = _HERE
+ROOT = os.environ.get("GEFL_DATA_ROOT") or _os.path.join(_REPO, "experiments", "data")
+OUT = os.environ.get("GEFL_OUT") or _HERE
 
 
 def bal_eval(ctx, hs, feats_te, yte):
@@ -46,10 +46,11 @@ def lda_raw(feats, ys, Xte, yte, C, gamma=0.1):
     mu = torch.zeros(C, X.shape[1], dtype=torch.float64).index_add_(0, Y, X) / n[:, None]
     Sw = (X.T @ X - (mu.T * n) @ mu) / (n.sum() - C)
     d = X.shape[1]
-    Ss = (1 - gamma) * Sw + gamma * torch.trace(Sw) / d * torch.eye(d, dtype=torch.float64)
+    Ss = (1 - gamma) * Sw + gamma * torch.trace(Sw) / d * torch.eye(d, dtype=torch.float64, device=X.device)
     W = mu @ torch.linalg.inv(Ss)
     b = -0.5 * (W * mu).sum(1)
-    pred = (Xte.flatten(1).double() @ W.T + b).argmax(1)
+    pred = (Xte.flatten(1).to(X.device).double() @ W.T + b).argmax(1)
+    yte = yte.to(X.device)
     rec = torch.stack([(pred[yte == c] == c).double().mean() for c in range(C)])
     return round(100 * float(rec.mean()), 2)
 
@@ -168,7 +169,7 @@ def run(ds, seed, which):
     core.set_num_classes(ds)
     data0 = core.load_dataset(ds, ROOT)
     cfg = core.default_cfg()
-    fout = open(f"{OUT}/n7b_{ds}_s{seed}.jsonl", "a")
+    fout = open(f"{OUT}/{os.environ.get('TAG', 'n7b')}_{ds}_s{seed}.jsonl", "a")
 
     def emit(d):
         d.update(ds=ds, seed=seed)
@@ -191,7 +192,7 @@ def run(ds, seed, which):
         fe.load_state_dict(fe_sd)
         fes["fed" if world == "lt" else "fed_iid"] = (fe, hd_sd)
         emit(dict(world=world, event="stage_i_done", t=round(time.time() - t), bn_clients=per_client_bn(fe, xs)))
-        if world == "lt":
+        if world == "lt" and os.environ.get("FED_ONLY") != "1":  # FED_ONLY=1: federated FE only (X3)
             fe_bn, bnstats = exact_bn(fe, [x[:4000] for x in xs])
             fes["fed_bn"] = (fe_bn, None)
             emit(dict(world=world, event="bn", stats=bnstats))
@@ -214,7 +215,7 @@ def run(ds, seed, which):
             fte = core.compute_features(fe_, data["xte"])
             r = dict(world=world, fe=name, lda_raw=lda_raw(feats, ys, fte, yte, core.NUM_CLASSES))
             r.update(bodies(ctx, feats, ys, fte, yte, name, seed=seed))
-            if init is not None:
+            if init is not None and os.environ.get("NO_INIT") != "1":
                 torch.manual_seed(seed + 13)
                 hs = core.build_headers(ctx, feats[0].shape[1])
                 for k in range(ctx.K):

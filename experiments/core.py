@@ -621,13 +621,14 @@ def opt_to(opt, device):
 
 
 # ---------------------------------------------------------------- method spec
-FE_DEFAULTS = dict(la=False, T_FE=None, oracle=False)
+FE_DEFAULTS = dict(la=False, T_FE=None, oracle=False)  # BALFE adds bal > 0 (class-balanced loss, clip)
 GEN_DEFAULTS = dict(type="cvae", wd=1e-3, agg="flat", lazy=False, beta=0.999, weight="en",
                     dp_eps=None, oracle=False, T_KA=None, opt="adam", rowwd0=False)
 HEAD_DEFAULTS = dict(sampler="uniform", order="syn_first", ts=1, tr=5, mix=None, mix_ratio=0.2, vct=0.0, mixup=0.0,
                      loss="ce", tau=1.0, bcr=0, bcr_lr=0.05, gen_update=False, csl=0.0, csl_mix=False,
                      sed=0, sed_lr=0.05, sed_beta=0.5, sed_bs=128, csl_mode="mix", mc=False, rsa=0.0, kh=False,
-                     erl=0, erl_t=1.0, kh_mode="kh", kh_mult=4, kh_D=6144, mc_mode="both")
+                     erl=0, erl_t=1.0, kh_mode="kh", kh_mult=4, kh_D=6144, mc_mode="both", sgate=0.0,
+                     scsl=False)
 
 
 def method(pipeline="gefl_f", fe=None, gen=None, head=None):
@@ -649,6 +650,7 @@ COMPONENTS = {
     "LA": dict(head=dict(loss="la")),           # logit adjustment by the training prior
     "BCR": dict(head=dict(bcr=30)),             # server-side generative classifier re-calibration
     "LAFE": dict(fe=dict(la=True)),             # logit adjustment during FE warm-up too
+    "BALFE": dict(fe=dict(bal=20.0)),           # P2: class-balanced FE loss N/(C n_y) from the exact global counts
     "RF": dict(head=dict(order="real_first")),  # real phase first, synthetic last
     "GENUPD": dict(head=dict(gen_update=True)),  # keep training G_F during stage (iii)
     "DCGAN": dict(gen=dict(type="dcgan", wd=0.0)),
@@ -666,6 +668,9 @@ COMPONENTS = {
                                                      # sums only): F < gate_F -> CVAE class rows + HWA, else PC-VAE
     "KME": dict(gen=dict(type="kme")),               # server-trained generator from exact kernel mean embeddings
     "KH": dict(head=dict(kh=True)),                  # kernel herding of samples toward exact class embeddings
+    "SGATE": dict(head=dict(sgate=0.1)),             # P1: synthetic labels only for classes whose estimated signal
+                                                     # fraction s_c (exact-sum LDA agreement) is >= 0.1
+    "SCSL": dict(head=dict(scsl=True, csl=0.5)),     # P1 variant: per-class CSL weight beta_c = 1 - s_c
     "RSA": dict(head=dict(rsa=1.0)),                 # held-class real-synthetic alignment (shift transfer)
     "CSL": dict(head=dict(csl=0.5)),            # consensus soft labels for synthetic features
     "REAL": dict(head=dict(ts=0)),              # heads on real features only (no synthetic phase): plain FL heads
@@ -812,6 +817,17 @@ class Ctx:
         self.B = self.spec["B"]
         sizes = [len(p) for p in part["parts"]]
         self.sizes = sizes
+        self.pfrac = 1.0  # fraction of clients that take part in each round (X11 partial participation)
+        self.inst = None  # dict when the run is instrumented (X6): per-round diagnostics, see instrument_* below
+
+    def active(self, r, stage):
+        """Clients taking part in round r of a stage: all of them, or a seeded random subset of
+        max(1, round(pfrac * K)) clients (the same subset for every method with the same seed)."""
+        if self.pfrac >= 1.0:
+            return range(self.K)
+        m = max(1, int(round(self.pfrac * self.K)))
+        rng = np.random.RandomState((self.seed * 1000003 + {"i": 1, "ii": 2, "iii": 3}[stage] * 10007 + r) % 2**32)
+        return sorted(rng.choice(self.K, m, replace=False).tolist())
 
 
 def build_headers(ctx, in_ch):
@@ -922,7 +938,110 @@ class Tracker:
 
 
 # ----- stage (i): FE + header joint training (also LG-FedAvg / FedAvg baselines)
-def stage_i(ctx, rounds, fe_mode="all", la=False, tracker=None, eval_every=10):
+# ----- X6 instrumentation (math report §7, M1, M2, M4, M7, M8); active only when ctx.inst is a dict
+def instrument_fe_grads(ctx, fe, headers, fe_sd, hd_sd, r):
+    """M1: heterogeneity of the clients' full-batch FE gradients at the current global FE (Corollary 2):
+    zeta^2 = sum_k n_k/N |g_k - g|^2, |g| (pooled gradient) and max_k |g_k|."""
+    d = ctx.data
+    grads, w = [], []
+    for k in range(ctx.K):
+        g = ctx.arch[k]
+        fe.load_state_dict(fe_sd)
+        headers[g].load_state_dict(hd_sd[g])
+        fe.train(), headers[g].train()
+        fe.zero_grad(set_to_none=True)
+        idx = ctx.part["parts"][k]
+        for b in batches(len(idx), 512):
+            x, y = d["xtr"][idx[b]], d["ytr"][idx[b]]
+            (F.cross_entropy(headers[g](fe(x)), y, reduction="sum") / len(idx)).backward()
+        grads.append(torch.cat([p.grad.flatten() for p in fe.parameters() if p.grad is not None]).detach())
+        w.append(len(idx))
+    fe.load_state_dict(fe_sd)
+    G_ = torch.stack(grads)
+    w = torch.tensor(w, dtype=torch.float32, device=G_.device) / sum(w)
+    gbar = (w[:, None] * G_).sum(0)
+    zeta2 = float((w * (G_ - gbar).pow(2).sum(1)).sum())
+    ctx.inst.setdefault("fe_grad", []).append(dict(round=r, zeta2=round(zeta2, 6), pooled=round(float(gbar.norm()), 6),
+                                                   max_client=round(float(G_.norm(dim=1).max()), 6)))
+
+
+@torch.no_grad()
+def instrument_bn(ctx, fe):
+    """M2: averaged BN running variance vs the exact pooled variance of the pre-BN activations, per channel."""
+    fe.eval()
+    mods = list(fe.net)
+    out = []
+    for i, m in enumerate(mods):
+        if isinstance(m, nn.BatchNorm2d):
+            s1, s2, cnt = 0, 0, 0
+            for p in ctx.part["parts"]:
+                for b in batches(len(p), 2048):
+                    u = nn.Sequential(*mods[:i])(ctx.data["xtr"][p[b]])
+                    s1 = s1 + u.sum((0, 2, 3)).double()
+                    s2 = s2 + u.pow(2).sum((0, 2, 3)).double()
+                    cnt += u.shape[0] * u.shape[2] * u.shape[3]
+            var = s2 / cnt - (s1 / cnt) ** 2
+            out.append((m.running_var.double() / var.clamp(min=1e-12)).round(decimals=3).tolist())
+    ctx.inst["bn_var_ratio"] = out
+
+
+def instrument_rows(ctx, r, k, nk, n0):
+    """M4: per round and class, mean change of the class-row norm on holders (gain) and non-holders (loss)."""
+    rec = ctx.inst.setdefault("rows", {})
+    cur = rec.setdefault(r, dict(hg=np.zeros(NUM_CLASSES), hn=np.zeros(NUM_CLASSES), ng=np.zeros(NUM_CLASSES),
+                                 nn=np.zeros(NUM_CLASSES)))
+    hold = ctx.part["counts"][k] > 0
+    dlt = np.asarray(nk) - np.asarray(n0)
+    cur["hg"][hold] += dlt[hold]
+    cur["hn"][hold] += 1
+    cur["ng"][~hold] -= dlt[~hold]
+    cur["nn"][~hold] += 1
+
+
+def instrument_phases(ctx, r, k, h, G, syn_phase, real_phase):
+    """M7 + M8 on one client: logit spread on generated features before / after the synthetic phase (Prop. 9), and
+    the counterfactual retention of the synthetic phase's change through the real phase (Prop. 8), per last-layer row
+    (absent vs held classes) and for the body: R = <w_after - w_cf, w_syn - w_before> / |w_syn - w_before|^2, where
+    w_cf is the real phase run from the pre-synthetic head."""
+    C = NUM_CLASSES
+    if "probe" not in ctx.inst:
+        with torch.no_grad():
+            ctx.inst["probe"] = G.sample(torch.arange(C, device=DEV).repeat_interleave(32))
+
+    def spread():
+        was = h.training
+        h.eval()
+        with torch.no_grad():
+            f = h(ctx.inst["probe"])
+        h.train(was)
+        return float((f - f.mean(1, keepdim=True)).pow(2).mean())
+
+    def flat(sd, fc):
+        return torch.cat([v.flatten().float() for n_, v in sd.items() if n_.startswith("fc.") == fc
+                          and v.is_floating_point()])
+    w0 = sd_clone(h)
+    s0 = spread()
+    syn_phase()
+    w1, s1 = sd_clone(h), spread()
+    real_phase()
+    w2 = sd_clone(h)
+    h.load_state_dict(w0)
+    real_phase()
+    wcf = sd_clone(h)
+    h.load_state_dict(w2)
+    dS = (w1["fc.weight"] - w0["fc.weight"]).float()
+    dA = (w2["fc.weight"] - wcf["fc.weight"]).float()
+    Rc = ((dA * dS).sum(1) / dS.pow(2).sum(1).clamp(min=1e-12)).cpu().numpy()
+    absent = ctx.part["counts"][k] == 0
+    db = flat(w1, False) - flat(w0, False)
+    Rb = float((flat(w2, False) - flat(wcf, False)) @ db / db.pow(2).sum().clamp(min=1e-12))
+    ctx.inst.setdefault("phases", []).append(dict(
+        round=r, client=k, spread_before=round(s0, 4), spread_after_syn=round(s1, 4),
+        retain_absent=round(float(Rc[absent].mean()), 4) if absent.any() else None,
+        retain_held=round(float(Rc[~absent].mean()), 4), retain_body=round(Rb, 4)))
+
+
+def stage_i(ctx, rounds, fe_mode="all", la=False, tracker=None, eval_every=10, bal=0.0):
     """fe_mode: 'all' (GeFL-F / LG-FedAvg: FE averaged over all clients),
     'group' (FedAvg grouped by architecture: whole model averaged per group)."""
     d, spec = ctx.data, ctx.spec
@@ -931,10 +1050,16 @@ def stage_i(ctx, rounds, fe_mode="all", la=False, tracker=None, eval_every=10):
     fe_sd = {g: sd_clone(fe) for g in range(10)} if fe_mode == "group" else sd_clone(fe)
     hd_sd = [sd_clone(h) for h in headers]
     priors = [local_log_prior(ctx.part["counts"][k]) for k in range(ctx.K)] if la else None
+    cw = None
+    if bal:  # P2: weights N / (C n_c) from the exact global counts (one secure-aggregated count vector), clipped
+        n_c = torch.tensor(ctx.part["counts"].sum(0), dtype=torch.float32, device=DEV).clamp(min=1)
+        cw = (n_c.sum() / (len(n_c) * n_c)).clamp(max=bal)
     for r in range(rounds):
+        if ctx.inst is not None and fe_mode == "all" and (r % 5 == 0 or r == rounds - 1):
+            instrument_fe_grads(ctx, fe, headers, fe_sd, hd_sd, r)
         fe_avg = {g: Averager() for g in ctx.groups} if fe_mode == "group" else Averager()
         hd_avg = {g: Averager() for g in ctx.groups}
-        for k in range(ctx.K):
+        for k in ctx.active(r, "i"):
             g = ctx.arch[k]
             fe.load_state_dict(fe_sd[g] if fe_mode == "group" else fe_sd)
             headers[g].load_state_dict(hd_sd[g])
@@ -948,7 +1073,10 @@ def stage_i(ctx, rounds, fe_mode="all", la=False, tracker=None, eval_every=10):
                     x, y = d["xtr"][idx[b]], d["ytr"][idx[b]]
                     if spec["augment"]:
                         x = gpu_augment(x)
-                    loss = ce_or_la(headers[g](fe(x)), y, priors[k] if la else None, 1.0)
+                    if cw is not None:
+                        loss = (F.cross_entropy(headers[g](fe(x)), y, reduction="none") * cw[y]).mean()
+                    else:
+                        loss = ce_or_la(headers[g](fe(x)), y, priors[k] if la else None, 1.0)
                     opt.zero_grad(set_to_none=True)
                     loss.backward()
                     opt.step()
@@ -956,11 +1084,13 @@ def stage_i(ctx, rounds, fe_mode="all", la=False, tracker=None, eval_every=10):
             hd_avg[g].add(headers[g].state_dict())
         if fe_mode == "group":
             for g in ctx.groups:
-                fe_sd[g] = fe_avg[g].result()
+                if fe_avg[g].n:  # an architecture with no participating client keeps its model
+                    fe_sd[g] = fe_avg[g].result()
         else:
             fe_sd = fe_avg.result()
         for g in ctx.groups:
-            hd_sd[g] = hd_avg[g].result()
+            if hd_avg[g].n:
+                hd_sd[g] = hd_avg[g].result()
         if tracker is not None and (r == 0 or (r + 1) % eval_every == 0 or r == rounds - 1):
             ev = {}
             for g in ctx.groups:
@@ -1425,12 +1555,14 @@ def stage_ii(ctx, gspec, feats, ys_list, rounds):
     norms = [cond_row_norms(G)]
     for r in range(rounds):
         avg = Averager(G.cond if gspec["agg"] == "A" else None, prev=g_sd)
-        for k in range(ctx.K):
+        for k in ctx.active(r, "ii"):
             G.load_state_dict(g_sd)
             if G.kind == "ddpm":  # reference: lr = 1e-4 * (1 - round / T_KA)
                 for gr in clients[k].opts[0].param_groups:
                     gr["lr"] = 1e-4 * (1 - (r + 1) / rounds)
             gen_local_update(G, clients[k], gspec, feats[k], ys_list[k])
+            if ctx.inst is not None and G.cond:
+                instrument_rows(ctx, r, k, cond_row_norms(G), norms[-1])
             avg.add(G.state_dict(), W[k] if gspec["agg"] == "A" else None)
         g_sd = avg.result()
         G.load_state_dict(g_sd)
@@ -1618,6 +1750,74 @@ class HerdedGen(nn.Module):
 
     @torch.no_grad()
     def sample(self, y):
+        if self.mode == "kh" and os.environ.get("GEFL_KH_LOOP") != "1":
+            return self.sample_batched(y)
+        return self.sample_loop(y)
+
+    @staticmethod
+    @torch.no_grad()
+    def greedy(P, mu, n, valid):
+        """Herding selection for a block of classes at once, without a host sync per step.
+        P: (b, M, D) candidate features, mu: (b, D), n: (b,) picks per class, valid: (b, M) real candidates.
+        Same picks as the per-class loop (incremental scores: s <- s + P mu - P P_j)."""
+        b, M, _ = P.shape
+        sc = torch.bmm(P, mu[:, :, None]).squeeze(2)            # <P_i, w_0>, w_0 = mu
+        Pmu = sc.clone()
+        sc = sc.masked_fill(~valid, -float("inf"))
+        T = int(n.max())
+        picks = torch.zeros(b, T, dtype=torch.long, device=P.device)
+        ar = torch.arange(b, device=P.device)
+        for t in range(T):
+            j = sc.argmax(1)
+            picks[:, t] = j
+            sc[ar, j] = -float("inf")
+            sc = sc + Pmu - torch.bmm(P, P[ar, j][:, :, None]).squeeze(2)
+        return picks
+
+    @torch.no_grad()
+    def sample_batched(self, y):
+        out = None
+        cls = torch.unique(y)
+        hard = [c for c in cls.tolist() if not bool(self.use[c])]
+        for c in hard:  # DP gate: release too noisy for this class
+            idx = (y == c).nonzero().flatten()
+            sel = self.G.sample(y[idx])
+            if out is None:
+                out = torch.empty((len(y),) + tuple(sel.shape[1:]), device=y.device)
+            out[idx] = sel
+        cls = [c for c in cls.tolist() if bool(self.use[c])]
+        if not cls:
+            return out
+        ns = {c: int((y == c).sum()) for c in cls}
+        Mmax = self.mult * max(ns.values())
+        D = self.mu.shape[1]
+        per = max(1, int(2.5e8 // (4 * Mmax * D)))  # classes per block: about 250 MB of candidate features
+        for s0 in range(0, len(cls), per):
+            blk = cls[s0:s0 + per]
+            lab = torch.cat([torch.full((self.mult * ns[c],), c, device=y.device, dtype=torch.long) for c in blk])
+            cand = torch.cat([self.G.sample(lab[i:i + 4096]) for i in range(0, len(lab), 4096)])
+            Pall = self.phi(cand)
+            P = torch.zeros(len(blk), Mmax, D, device=y.device)
+            valid = torch.zeros(len(blk), Mmax, dtype=torch.bool, device=y.device)
+            off, starts = 0, []
+            for i, c in enumerate(blk):
+                m = self.mult * ns[c]
+                P[i, :m] = Pall[off:off + m]
+                valid[i, :m] = True
+                starts.append(off)
+                off += m
+            n = torch.tensor([ns[c] for c in blk], device=y.device)
+            picks = self.greedy(P, self.mu[torch.tensor(blk, device=y.device)], n, valid)
+            for i, c in enumerate(blk):
+                sel = cand[starts[i] + picks[i, :ns[c]]]
+                idx = (y == c).nonzero().flatten()
+                if out is None:
+                    out = torch.empty((len(y),) + tuple(sel.shape[1:]), device=y.device)
+                out[idx] = sel
+        return out
+
+    @torch.no_grad()
+    def sample_loop(self, y):
         out = None
         for c in torch.unique(y):
             idx = (y == c).nonzero().flatten()
@@ -1917,6 +2117,15 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
 
     def train_params(h):
         return [p for n_, p in h.named_parameters() if not (erl and n_.startswith("fc."))]
+    # P1: per-class signal fraction of the synthetic features, estimated at the server without held-out data
+    s_hat, allowed = None, torch.arange(C, device=DEV)
+    if G is not None and hspec["ts"] > 0 and (hspec.get("sgate") or hspec.get("scsl")):
+        s_hat = signal_fraction(G, feats, ys_list)
+        ctx.sfrac_hat = s_hat.round(decimals=3).tolist()
+        if hspec.get("sgate"):
+            allowed = torch.nonzero(s_hat >= hspec["sgate"]).flatten()
+            ctx.sgate_kept = int(len(allowed))
+    no_syn = len(allowed) == 0
     for r in range(rounds):
         if erl and r % erl == 0:
             set_erl_readouts()
@@ -1934,7 +2143,7 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
         if G is not None:
             G.eval()
         pool = None
-        if G is not None and (hspec["csl"] or G.kind == "ddpm") and hspec["ts"] > 0:
+        if G is not None and (hspec["csl"] or G.kind == "ddpm") and hspec["ts"] > 0 and not no_syn:
             # CSL: one shared synthetic batch per round, labelled by the consensus
             # of every architecture's current header (clients would upload only
             # these probabilities; summable under secure aggregation)
@@ -1948,7 +2157,7 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
                 # synthetic diversity per architecture matches per-client sampling
                 pool_off = list(np.cumsum([0] + need[:-1]))
                 P = int(sum(need))
-            py = torch.randint(0, C, (P,), device=DEV)
+            py = allowed[torch.randint(0, len(allowed), (P,), device=DEV)]
             px = torch.cat([G.sample(py[s:s + 4096]) for s in range(0, P, 4096)])
             # (DDPM-F without CSL: the same shared pool with one-hot targets. Each
             # head still sees fresh uniform-label samples every round - exactly the
@@ -1977,10 +2186,13 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
                 pool = (px, py, tgt / tgt.sum(1, keepdim=True).clamp(min=1e-12))
                 ctx.__dict__.setdefault("rho_hist", []).append(round(float(rho), 4))
                 ctx.__dict__.setdefault("kappa_hist", []).append(round(float(kappa), 4))
+            elif s_hat is not None and hspec.get("scsl"):
+                bc = (1.0 - s_hat)[py][:, None]  # per-class consensus weight: pure ensemble label where s_c = 0
+                pool = (px, py, (1 - bc) * F.one_hot(py, C).float() + bc * cons)
             else:
                 pool = (px, py, (1 - beta) * F.one_hot(py, C).float() + beta * cons)
         hd_avg = {g: Averager() for g in ctx.groups}
-        for k in range(ctx.K):
+        for k in ctx.active(r, "iii"):
             g = ctx.arch[k]
             h = headers[g]
             h.load_state_dict(hd_sd[g])
@@ -1995,7 +2207,10 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
             elif hspec["sampler"] == "gapfill_global":
                 p_syn = waterfill(hspec["tr"] * n * glob / glob.sum(), hspec["ts"] * nb * bs)
             else:
-                p_syn = np.full(C, 1.0 / C)
+                p_syn = np.zeros(C)
+                p_syn[allowed.cpu().numpy()] = 1.0 / len(allowed) if len(allowed) else 0.0
+                if not len(allowed):
+                    p_syn[:] = 1.0 / C
             nsyn_k = hspec["ts"] * nb * bs
             # LA prior = the client's actual training mixture
             prior = None
@@ -2010,7 +2225,7 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
             adj = client_loss_adj(hspec, counts[k])
 
             def syn_phase():
-                if G is None or hspec["ts"] <= 0:
+                if G is None or hspec["ts"] <= 0 or no_syn:
                     return
                 opt = torch.optim.SGD(train_params(h), lr=0.1, momentum=0.0)
                 if pool is not None:
@@ -2125,12 +2340,16 @@ def stage_iii(ctx, hspec, fe, hd_sd, G, feats, ys_list, feats_te, rounds, tracke
             elif hspec["order"] == "real_first":
                 real_phase()
                 syn_phase()
+            elif ctx.inst is not None and G is not None and hspec["ts"] > 0 and not no_syn and \
+                    (r % 10 == 0 or r == rounds - 1) and k == list(ctx.active(r, "iii"))[0]:
+                instrument_phases(ctx, r, k, h, G, syn_phase, real_phase)
             else:
                 syn_phase()
                 real_phase()
             hd_avg[g].add(h.state_dict())
         for g in ctx.groups:
-            hd_sd[g] = hd_avg[g].result()
+            if hd_avg[g].n:  # an architecture with no participating client keeps its head
+                hd_sd[g] = hd_avg[g].result()
         if hspec["bcr"] and G is not None:
             # BCR: server re-fits each header's fc on class-balanced synthetic features
             if pool is None or hspec["gen_update"]:
@@ -2344,6 +2563,38 @@ def _embeds(h, feats, ys_list, idx):
 
 
 @torch.no_grad()
+@torch.no_grad()
+def signal_fraction(G, feats, ys_list, n=200, gamma=0.1):
+    """P1 (math report §6): per-class signal fraction of the synthetic features, s_c = (a_c - 1/C) / (r_c - 1/C),
+    where a_c is the agreement of the class-balanced LDA on the frozen features (from exact per-class sums over all
+    clients, Theorem 10) with the conditioning label of n generated class-c samples, and r_c is the same LDA's recall
+    on the real training features (aggregated confusion counts), which corrects for the LDA's own error. Clipped to
+    [0, 1]. No held-out data are used."""
+    C = NUM_CLASSES
+    X = torch.cat(feats).flatten(1).to(DEV).double()
+    Y = torch.cat(ys_list).to(DEV)
+    d = X.shape[1]
+    cnt = torch.bincount(Y, minlength=C).double()
+    mu = torch.zeros(C, d, dtype=torch.float64, device=DEV).index_add_(0, Y, X) / cnt[:, None].clamp(min=1)
+    Sw = (X.T @ X - (mu.T * cnt) @ mu) / max(float(cnt.sum()) - C, 1.0)
+    Ss = (1 - gamma) * Sw + (gamma * torch.trace(Sw) / d + 1e-6) * torch.eye(d, dtype=torch.float64, device=DEV)
+    W = mu @ torch.linalg.pinv((Ss + Ss.T) / 2, hermitian=True)
+    b = -0.5 * (W * mu).sum(1)
+    del Sw, Ss
+
+    def recall(Xs, Ys):
+        pred = torch.cat([(Xs[s:s + 4096].double() @ W.T + b).argmax(1) for s in range(0, len(Ys), 4096)])
+        hit = torch.zeros(C, dtype=torch.float64, device=DEV).index_add_(0, Ys, (pred == Ys).double())
+        return hit / torch.bincount(Ys, minlength=C).double().clamp(min=1)
+    r = recall(X, Y)
+    del X
+    yg = torch.arange(C, device=DEV).repeat_interleave(n)
+    xg = torch.cat([G.sample(yg[s:s + 4096]) for s in range(0, len(yg), 4096)]).flatten(1)
+    a = recall(xg, yg)
+    s = ((a - 1.0 / C) / (r - 1.0 / C).clamp(min=1e-3)).clamp(0.0, 1.0)
+    return s.float()
+
+
 def lda_readout(h, feats, ys_list, idx, gamma=0.1):
     """Class-balanced LDA last layer for head h's body, from per-class sums over clients idx
     (counts, sums of e and of e e^T: secure-aggregatable). Returns (W, b); absent classes get b = -1e4."""
@@ -2524,7 +2775,7 @@ def wrap_sampler(ctx, m, G, s1, res):
         res["kh_classes_used"] = int(use_.sum())
         if s1.get("ref") is not None:
             fkh = referee_fidelity(s1["ref"], G)
-            res["fidelity_tail_kh"] = float(fkh[TAIL()].mean())
+            res["fidelity_tail_kh"], res["fidelity_kh"] = float(fkh[TAIL()].mean()), fkh.round(3).tolist()
         res["spread_tail_kh"] = float(np.nanmean(sample_spread(G, s1["feats"], s1["ys"])[TAIL()]))
     return G
 
@@ -2552,6 +2803,8 @@ def key_of(run, cfg, upto):
     T = rounds_for(cfg, run["dataset"], m)
     k = [run["dataset"], run["IF"], run["alpha"], run["K"], run["seed"], m["pipeline"],
          json.dumps(m["fe"], sort_keys=True), T["T_FE"]]
+    if run.get("tail_perm") or run.get("pfrac", 1.0) < 1.0:  # appended only when set: old keys are unchanged
+        k += [bool(run.get("tail_perm")), run.get("pfrac", 1.0)]
     if upto >= 2:
         k += [json.dumps(m["gen"], sort_keys=True), T["T_KA"]]
     return json.dumps(k)
@@ -2587,11 +2840,13 @@ def run_one(cfg, run, cache, data_cache):
         log(f"loading {ds}")
         data_cache.clear()
         data_cache[ds] = load_dataset(ds, cfg["data_root"])
-    data = data_cache[ds]
+    data = permute_labels(data_cache[ds], run, seed)
     frac = spec["frac"] * (cfg["quick_frac"].get(ds, 1.0) if cfg["quick"] else 1.0)
     part = make_partition(data["ytr"], K, frac, run["IF"], run["alpha"], seed)
     data, part = localize(data, part)
     ctx = Ctx(cfg, data, ds, part, K, seed)
+    ctx.pfrac = run.get("pfrac", 1.0)
+    ctx.inst = {} if cfg.get("instrument") else None
     T = rounds_for(cfg, ds, m)
     ev_every = 4 if cfg["quick"] else 10
     t0 = time.time()
@@ -2616,7 +2871,8 @@ def run_one(cfg, run, cache, data_cache):
         if m["fe"]["oracle"]:
             fe_sd, hd_sd, fe = stage_i_oracle(ctx)
         else:
-            fe_sd, hd_sd, fe = stage_i(ctx, T["T_FE"], "all", la=m["fe"]["la"], tracker=tr1, eval_every=ev_every)
+            fe_sd, hd_sd, fe = stage_i(ctx, T["T_FE"], "all", la=m["fe"]["la"], tracker=tr1, eval_every=ev_every,
+                                        bal=m["fe"].get("bal", 0.0))
         fe.load_state_dict(fe_sd)
         feats = [compute_features(fe, data["xtr"][p]) for p in part["parts"]]
         ys_list = [data["ytr"][p] for p in part["parts"]]
@@ -2624,7 +2880,14 @@ def run_one(cfg, run, cache, data_cache):
         ref = train_referee(ctx, fe) if cfg.get("referee", True) else None
         cache[k1] = dict(fe=fe, hd_sd=hd_sd, feats=feats, ys=ys_list, feats_te=feats_te, tr=tr1, ref=ref,
                          t=time.time() - t0)
+        if ctx.inst is not None:
+            instrument_bn(ctx, fe)
+            cache[k1]["inst"] = dict(ctx.inst)
+            ctx.inst = {}
     s1 = cache[k1]
+    if ctx.inst is not None and s1.get("inst"):
+        res["inst_fe_grad"] = s1["inst"].get("fe_grad")
+        res["inst_bn_var_ratio"] = s1["inst"].get("bn_var_ratio")
     global _STAT_DP
     _STAT_DP = None
     if "sep" not in s1:
@@ -2719,7 +2982,14 @@ def run_one(cfg, run, cache, data_cache):
                 n_gauss = NUM_CLASSES
             cache[k2] = dict(g_sd=g_sd, norms=norms, G=G2, clients=clients, W=W, fid=fid, mnd=mnd,
                              t=time.time() - t2, n_gauss=n_gauss, agree=agree, spread=spread)
+            if ctx.inst is not None and ctx.inst.get("rows"):
+                rows = ctx.inst.pop("rows")
+                cache[k2]["inst_rows"] = [dict(round=r_, holder_gain=(v["hg"] / np.maximum(v["hn"], 1)).round(5).tolist(),
+                                               nonholder_loss=(v["ng"] / np.maximum(v["nn"], 1)).round(5).tolist())
+                                          for r_, v in sorted(rows.items())]
         s2 = cache[k2]
+        if ctx.inst is not None and s2.get("inst_rows"):
+            res["inst_rows"] = s2["inst_rows"]
         G = s2["G"]
         G.load_state_dict(s2["g_sd"])
         res["gen_time_s"] = s2["t"]
@@ -2752,11 +3022,21 @@ def run_one(cfg, run, cache, data_cache):
         res["feature_mnd_final"] = feature_mnd(ctx, G, s1["fe"])  # memorisation of the sampler heads train on
     set_seed(seed + 2000)
     ctx.rho_hist, ctx.kappa_hist = [], []
+    ctx.sfrac_hat, ctx.sgate_kept = None, None
+    if ctx.inst is not None:
+        ctx.inst = {}
     headers = stage_iii(ctx, m["head"], s1["fe"], s1["hd_sd"], G, s1["feats"], s1["ys"], s1["feats_te"],
                         T["T_TN"], tracker, ev_every, gen_state)
     if ctx.rho_hist:
         res["bcsl_rho"] = [ctx.rho_hist[0], ctx.rho_hist[len(ctx.rho_hist) // 2], ctx.rho_hist[-1]]
         res["bcsl_kappa"] = [ctx.kappa_hist[0], ctx.kappa_hist[len(ctx.kappa_hist) // 2], ctx.kappa_hist[-1]]
+    if ctx.inst is not None and ctx.inst.get("phases"):
+        res["inst_phases"] = ctx.inst["phases"]
+    if ctx.sfrac_hat is not None:
+        res["sfrac_hat"] = ctx.sfrac_hat
+        res["sfrac_hat_mean"] = float(np.mean(ctx.sfrac_hat))
+        if ctx.sgate_kept is not None:
+            res["sgate_kept"] = ctx.sgate_kept
     res["head_time_s"] = time.time() - t3
     if gen_state is not None:
         # leave the cached stage-(ii) generator and optimizer states untouched for later runs
@@ -2807,11 +3087,12 @@ def reeval_one(cfg, run, mdir, data_cache):
     if ds not in data_cache:
         data_cache.clear()
         data_cache[ds] = load_dataset(ds, cfg["data_root"])
-    data = data_cache[ds]
+    data = permute_labels(data_cache[ds], run, seed)
     frac = spec["frac"] * (cfg["quick_frac"].get(ds, 1.0) if cfg["quick"] else 1.0)
     part = make_partition(data["ytr"], K, frac, run["IF"], run["alpha"], seed)
     data, part = localize(data, part)
     ctx = Ctx(cfg, data, ds, part, K, seed)
+    ctx.pfrac = run.get("pfrac", 1.0)
     fe = PaperFE(spec["in_ch"], spec["fe"]).to(DEV)
     fe.load_state_dict(torch.load(os.path.join(mdir, M["fe_file"]), map_location=DEV))
     feats = [compute_features(fe, data["xtr"][p]) for p in part["parts"]]
@@ -2842,7 +3123,19 @@ SCALAR_FIELDS = ["final_f1", "final_gmean", "final_ece", "final_nll", "final_wor
 
 
 def run_id(run):
-    return f"{run['label']}|{run['dataset']}|IF{run['IF']}|a{run['alpha']}|K{run['K']}|s{run['seed']}"
+    extra = ("|tp" if run.get("tail_perm") else "") + (f"|p{run['pfrac']}" if run.get("pfrac", 1.0) < 1.0 else "")
+    return f"{run['label']}|{run['dataset']}|IF{run['IF']}|a{run['alpha']}|K{run['K']}|s{run['seed']}" + extra
+
+
+def permute_labels(data, run, seed):
+    """X10: which classes are rare is drawn at random per seed. The labels are relabelled by a seeded permutation
+    before the partition, so the long-tail profile (and every head / tail metric, defined on label indices) applies
+    to randomly chosen original classes."""
+    if not run.get("tail_perm"):
+        return data
+    C = int(data["ytr"].max()) + 1
+    perm = torch.from_numpy(np.random.RandomState(1000 + seed).permutation(C)).long()
+    return dict(data, ytr=perm.to(data["ytr"].device)[data["ytr"]], yte=perm.to(data["yte"].device)[data["yte"]])
 
 
 def safe_name(rid):
@@ -3020,7 +3313,7 @@ def main(exp):
                seeds=a.seeds if a.seeds is not None else ([0] if a.quick else exp.get("seeds", [0, 1, 2])),
                data_root=a.data_root, referee=exp.get("referee", True), mnd=exp.get("mnd", False),
                save_models=not a.no_save_models, save_gen=a.save_gen or exp.get("save_gen", False),
-               readouts=exp.get("readouts"))
+               readouts=exp.get("readouts"), instrument=exp.get("instrument", False))
     runs = exp["plan"](cfg)
     if a.datasets:
         runs = [r for r in runs if r["dataset"] in a.datasets]

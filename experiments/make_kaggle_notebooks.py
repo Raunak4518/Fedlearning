@@ -227,6 +227,23 @@ COMBOS = [  # (name, [(script, args), ...], results folder, budget_h, rough hour
                                       '--datasets mnist --seeds 4 --only "-CSL" "-MC" "-KH" "Ours-A-B Ts=10"')],
      "baselines_and_controls", 0, 9.3,
      "Further published baselines (FSG + LA, FedDF, FedDF + LA) on all five datasets, paired with the fair re-test, then the kernel-herding and moment-correction mechanism controls on FashionMNIST and CIFAR-10, then the 4 ablation runs (MNIST, seed 4) that NB60 lost to its time limit."),
+    ("NB64_signal_gate_A", [("K21_kaggle_signal_gate", "--datasets cifar10 mnist fmnist")],
+     "signal_gate_A", 0, 9.0,
+     "The new method suggested by the theory (signal-fraction gate on synthetic data, SGATE / SCSL) and the class-balanced Stage-I loss (BALFE) on CIFAR-10, MNIST and FashionMNIST, seeds 3-5, paired with the fair re-test (K17)."),
+    ("NB65_signal_gate_B_breadth", [("K21_kaggle_signal_gate", "--datasets cifar100"),
+                                    ("K23_kaggle_partial_participation", ""),
+                                    ("K22_kaggle_regime_breadth", "--datasets fmnist")],
+     "signal_gate_B_breadth", 0, 9.5,
+     "The signal-fraction gate and balanced Stage-I loss on CIFAR-100; partial participation (K = 100, 10% / 20% of clients per round) on MNIST and FashionMNIST; other imbalance settings and random rare classes on FashionMNIST."),
+    ("NB66_breadth_svhn_dcgan", [("K22_kaggle_regime_breadth", "--datasets svhn"), ("K24_kaggle_dcgan_longtail", "")],
+     "breadth_svhn_dcgan", 0, 7.0,
+     "Other imbalance settings and random rare classes on SVHN; DCGAN-F under the long tail (does collapse need weight decay?) on MNIST and FashionMNIST."),
+    ("NB67_centralised_comparator", [("@docs/research/math_checks/n7b_fe_body_decomp_sched.py", f"{ds} {sd} lt,iid",
+                                      {"NO_INIT": "1", "TAG": "x3"})
+                                     for ds in ["svhn", "cifar10", "cifar100"] for sd in [0, 1, 2]]
+                                    + [("K25_instrumented", "--datasets cifar10")],
+     "centralised_comparator", 0, 8.0,
+     "The centralised comparison (federated vs centralised extractor; one-client vs pooled bodies; exact readout) on SVHN, CIFAR-10 and CIFAR-100 (all 10 architectures), seeds 0-2, then the instrumented CIFAR-10 runs (what happens at each aggregation)."),
     ("NB62_more_clients_svhn", [("K18_kaggle_more_clients_svhn", "")], "more_clients_svhn", 0, 10.5,
      "SVHN long tail with 50 and 100 clients (3 seeds): GeFL-F, the weight-decay fix, holder-weighted averaging and our method, each under every last-layer readout."),
     ("NB60_combined_A", [("K17_kaggle_fair_retest", '--datasets cifar10 fmnist --exclude "Ours rows Ts=1"'),
@@ -273,7 +290,25 @@ except Exception as e:
 print("OK - environment is correct.")
 """)]
     written = set()
-    for script, args in steps:
+    for step in steps:
+        script, args = step[0], step[1]
+        if script.startswith("@"):
+            # an analysis script from the repository (e.g. docs/research/math_checks/*.py) that imports core.py:
+            # write core.py and the script next to each other; outputs go to the results folder via GEFL_OUT
+            path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", script[1:])
+            for dep in ["experiments/core.py"] + list(step[3] if len(step) > 3 else []) + [script[1:]]:
+                base = os.path.basename(dep)
+                if base not in written:
+                    src = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", dep), encoding="utf-8").read()
+                    cells.append({"cell_type": "code", "metadata": {"jupyter": {"source_hidden": True}},
+                                  "execution_count": None, "outputs": [],
+                                  "source": (f"%%writefile {base}\n" + src).splitlines(keepends=True)})
+                    written.add(base)
+            env = " ".join(f"{k}={v}" for k, v in (step[2] if len(step) > 2 else {}).items())
+            cells.append(code(f"!mkdir -p /kaggle/working/results/X3_centralised_comparator && "
+                              f"GEFL_DATA_ROOT=/kaggle/working/data GEFL_OUT=/kaggle/working/results/X3_centralised_comparator "
+                              f"{env} python {os.path.basename(path)} {args}"))
+            continue
         if script not in written:
             src = open(build.build_one(script), encoding="utf-8").read()
             cells.append({"cell_type": "code", "metadata": {"jupyter": {"source_hidden": True}}, "execution_count": None,
