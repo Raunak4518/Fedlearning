@@ -153,6 +153,17 @@ rows + MC + KH), all local E-specs listed as NOT RUN / QUICK ONLY in the ledger,
 F01 / F04 / F09 / F11 / E16 / E24 (arms added to specs after they ran; see the ledger) – except the F04 K = 50 rows if
 claim 4 keeps them.
 
+## 3b. Results of 18 Oct (CPU, this container)
+
+- **X4 (P2 pilot, class-balanced Stage-I loss):** positive on every metric, both seeds (validation split). Mean
+  balanced-minus-plain: MNIST raw LDA +1.75, one-client ER +0.36, pooled ER +0.08; FashionMNIST +0.45, +0.96, +1.06.
+  Prediction (+1 ± 1 FMNIST, 0 ± 0.5 MNIST) held. Full test: K21 (BALFE) in NB68 / NB69. Files:
+  `docs/research/math_checks/x4_*.jsonl`.
+- **X14 (membership inference on the released class sums):** head classes at chance; exact release leaks for rare
+  classes (tail AUC 0.63–0.64, rarest class 0.69–0.73); Gaussian mechanism ε = 8 / 2 brings tail AUC to 0.54–0.58 /
+  0.50–0.53. Paper §6.9. Files: `x14_*.json`.
+- **X3 on CPU** was stopped (≈ 5 h per dataset-seed here); it runs on GPU in NB69.
+
 ## 4. Theory status
 
 Numbering follows the 18 Oct draft (old Theorem 1 → 3, Lemma 2 → 4, Prop. 3 → 11, 4 → 13, 5 → 12, 6 → 14, 7 → 15).

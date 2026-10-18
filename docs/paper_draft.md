@@ -1004,6 +1004,13 @@ against a centralised ERM extractor) rather than federation (0.4), as §2.4 pred
 balanced extractor is 1.0 *worse*; it had 30 pooled epochs against Stage I's 50 rounds of 5 local epochs. Exact
 recalibration of the averaged BatchNorm statistics changes accuracy by ≤ 0.3.
 
+*A federated fix for the extractor's share (X4 pilot, P2 of the analysis).* Weighting each sample's Stage-I loss by
+$N/(Cn_y)$ from the exact global counts (clipped at 20; one released count vector) makes the federated objective, to
+first order, the balanced one (Corollary 2). On the validation split (2,000 held-out images; seeds 0 / 1), against the
+plain federated extractor: raw-feature LDA +1.2 / +2.3 (MNIST) and +0.8 / +0.2 (FashionMNIST); one-client bodies + ER
++0.5 / +0.3 and +0.1 / +1.9; pooled bodies + ER +0.2 / +0.0 and +1.0 / +1.1. The predicted +1 ± 1 on FashionMNIST and
+0 ± 0.5 on MNIST held. The full-pipeline test (ours + BALFE, seeds 3-5, five datasets) is **[PENDING: K21]**.
+
 **Decomposition.**
 
 | | MNIST | FashionMNIST | CIFAR-100 |

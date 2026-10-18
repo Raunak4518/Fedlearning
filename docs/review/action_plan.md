@@ -298,8 +298,8 @@ NB62. Times are estimates from K14-K17 run times; the X3 and K25 steps have no e
 
 | # | Where | State |
 |---|---|---|
-| X3 | NB69 + CPU here (SVHN, CIFAR-10 seed 0, federated extractor only) | NB69 ready; CPU running |
-| X4 | CPU here, `docs/research/math_checks/x4_balanced_stage_i.py` | seed 0 done, seed 1 running (see PROGRESS) |
+| X3 | NB69 (the CPU copy here was stopped: about 5 h per dataset-seed) | NB69 ready |
+| X4 | CPU here, `docs/research/math_checks/x4_balanced_stage_i.py` | **done**: positive, prediction held (PROGRESS §3b; paper §6.7) |
 | X5 | logged by every K21 run (`sfrac_hat` next to the referee's per-class fidelity) | NB68 / NB69 |
 | X6 | K25 (`instrument=True`): M1, M2, M4, M7, M8 | NB69; every code path tested on CPU |
 | X7, X8 | K21: SGATE / SCSL (`core.signal_fraction`) and BALFE, seeds 3-5, paired with K17 | NB68 / NB69; every new code path tested on CPU (tiny rounds) |
