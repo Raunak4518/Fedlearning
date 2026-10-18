@@ -1,0 +1,23 @@
+(a) FedAvg, uniform p_k = 1/K, tau_k = ceil(n_k/64)*5 (Stage-I rule)
+  eta= 0.100 eta*tau_mean=  5.45  |x_sim - x_formula|=1.0e-14  |x_FA - x*|=0.5881  |x_FA - mean_k x_k|=0.2488
+  eta= 0.030 eta*tau_mean=  1.64  |x_sim - x_formula|=4.6e-14  |x_FA - x*|=0.3736  |x_FA - mean_k x_k|=0.5174
+  eta= 0.010 eta*tau_mean=  0.55  |x_sim - x_formula|=2.8e-13  |x_FA - x*|=0.1832  |x_FA - mean_k x_k|=0.6411
+  eta= 0.003 eta*tau_mean=  0.16  |x_sim - x_formula|=1.0e-12  |x_FA - x*|=0.0880  |x_FA - mean_k x_k|=0.7051
+  eta= 0.001 eta*tau_mean=  0.05  |x_sim - x_formula|=3.3e-12  |x_FA - x*|=0.0639  |x_FA - mean_k x_k|=0.7266
+  (equal tau, uniform p: surrogate = unweighted client average objective, NOT pooled)
+  eta=0.01: |x_FA - x*|=0.4453  |x_FA - argmin sum_k F_k|=0.1595
+  eta=0.001: |x_FA - x*|=0.5238  |x_FA - argmin sum_k F_k|=0.0172
+(b) control variates (SCAFFOLD-type, exact): fixed point vs x*
+  eta=0.1: |x_cv - x*| = 9.52e-15
+  eta=0.03: |x_cv - x*| = 4.04e-14
+(c) alternation fixed point
+  S_r= 50 S_s=  9: |iter - formula|=3.1e-16; synthetic weight per H_r eigen-direction (h_r=[0.0, 0.0, 0.5, 1.0, 2.0, 3.0]): [1.0, 1.0, 0.029, 0.002, 0.0, 0.0];  |theta* - joint-objective minimiser|=0.178
+  S_r= 50 S_s= 94: |iter - formula|=8.3e-16; synthetic weight per H_r eigen-direction (h_r=[0.0, 0.0, 0.5, 1.0, 2.0, 3.0]): [1.0, 1.0, 0.076, 0.005, 0.0, 0.0];  |theta* - joint-objective minimiser|=0.779
+  S_r=  5 S_s=  1: |iter - formula|=2.1e-15; synthetic weight per H_r eigen-direction (h_r=[0.0, 0.0, 0.5, 1.0, 2.0, 3.0]): [1.0, 1.0, 0.143, 0.076, 0.023, 0.011];  |theta* - joint-objective minimiser|=0.043
+  S_r=  1 S_s=  1: |iter - formula|=9.5e-15; synthetic weight per H_r eigen-direction (h_r=[0.0, 0.0, 0.5, 1.0, 2.0, 3.0]): [1.0, 1.0, 0.477, 0.332, 0.158, 0.115];  |theta* - joint-objective minimiser|=0.043
+(a') tau_k exactly proportional to n_k (tau_k = n_k / 10): x_FA - x* should be O(eta)
+  eta= 0.0100 eta*tau_mean= 0.662  |x_FA - x*| = 0.19053
+  eta= 0.0030 eta*tau_mean= 0.199  |x_FA - x*| = 0.06460
+  eta= 0.0010 eta*tau_mean= 0.066  |x_FA - x*| = 0.02227
+  eta= 0.0003 eta*tau_mean= 0.020  |x_FA - x*| = 0.00676
+  eta= 0.0001 eta*tau_mean= 0.007  |x_FA - x*| = 0.00226

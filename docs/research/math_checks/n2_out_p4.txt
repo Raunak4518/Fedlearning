@@ -1,0 +1,7 @@
+0 {'fed': 82.7, 'fed_shared': 81.3, 'fed_scaf': 82.5, 'cen_erm': 43.6, 'cen_bal': 75.0}
+1 {'fed': 75.1, 'fed_shared': 63.4, 'fed_scaf': 77.7, 'cen_erm': 48.0, 'cen_bal': 76.8}
+2 {'fed': 79.8, 'fed_shared': 71.7, 'fed_scaf': 78.1, 'cen_erm': 66.8, 'cen_bal': 74.3}
+3 {'fed': 76.7, 'fed_shared': 74.9, 'fed_scaf': 76.1, 'cen_erm': 56.6, 'cen_bal': 82.4}
+4 {'fed': 82.9, 'fed_shared': 76.6, 'fed_scaf': 83.7, 'cen_erm': 68.9, 'cen_bal': 81.4}
+p = 4 balanced LDA accuracy on the frozen FE, mean over 5 seeds: {'fed': 79.45, 'fed_shared': 73.58, 'fed_scaf': 79.62, 'cen_erm': 56.77, 'cen_bal': 77.98}
+Spearman(log J_fed/J_cen, log rho) over ordered pairs: SignificanceResult(statistic=np.float64(0.5411939087921386), pvalue=np.float64(3.643723211354594e-08))

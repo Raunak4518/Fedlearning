@@ -1,0 +1,29 @@
+mnist: settings [(10, 0), (10, 1), (10, 2), (10, 3), (10, 4), (10, 5), (50, 0), (50, 1), (50, 2), (100, 0), (100, 1), (100, 2)]
+   kappa<1 : n= 28 rows, end/init norm median 0.024, max 0.115
+   kappa>=1: n= 92 rows, end/init norm median 0.567, min 0.046
+   threshold end/init<0.3: accuracy of 'kappa<1' as a predictor = 0.758  (TP 28, FP 0, FN 29)
+   threshold end/init<0.5: accuracy of 'kappa<1' as a predictor = 0.642  (TP 28, FP 0, FN 43)
+fmnist: settings [(10, 0), (10, 1), (10, 2), (10, 3), (10, 4), (10, 5), (50, 0), (50, 1), (50, 2), (100, 0), (100, 1), (100, 2)]
+   kappa<1 : n= 28 rows, end/init norm median 0.042, max 0.133
+   kappa>=1: n= 92 rows, end/init norm median 0.610, min 0.045
+   threshold end/init<0.3: accuracy of 'kappa<1' as a predictor = 0.808  (TP 28, FP 0, FN 23)
+   threshold end/init<0.5: accuracy of 'kappa<1' as a predictor = 0.642  (TP 28, FP 0, FN 43)
+cifar10: settings [(10, 0), (10, 1), (10, 2), (10, 3), (10, 4), (10, 5)]
+   kappa<1 : n=  3 rows, end/init norm median 0.068, max 0.189
+   kappa>=1: n= 57 rows, end/init norm median 1.958, min 0.104
+   threshold end/init<0.3: accuracy of 'kappa<1' as a predictor = 0.700  (TP 3, FP 0, FN 18)
+   threshold end/init<0.5: accuracy of 'kappa<1' as a predictor = 0.567  (TP 3, FP 0, FN 26)
+cifar100: settings [(10, 0), (10, 1), (10, 2), (10, 3), (10, 4), (10, 5)]
+   kappa<1 : n=293 rows, end/init norm median 0.046, max 0.153
+   kappa>=1: n=307 rows, end/init norm median 0.273, min 0.064
+   threshold end/init<0.3: accuracy of 'kappa<1' as a predictor = 0.707  (TP 293, FP 0, FN 176)
+   threshold end/init<0.5: accuracy of 'kappa<1' as a predictor = 0.620  (TP 293, FP 0, FN 228)
+Spearman(log kappa, end/init norm) over rows with a non-holder: SignificanceResult(statistic=np.float64(0.9447910717668213), pvalue=np.float64(0.0))
+end/init row norm by kappa bin (all datasets):
+   kappa in [0, 0.5): n=255  median 0.038  IQR [0.026, 0.051]
+   kappa in [0.5, 1): n= 97  median 0.080  IQR [0.063, 0.094]
+   kappa in [1, 2): n=112  median 0.120  IQR [0.098, 0.146]
+   kappa in [2, 4): n=128  median 0.224  IQR [0.170, 0.279]
+   kappa in [4, 8): n=108  median 0.335  IQR [0.292, 0.434]
+   kappa in [8, 1000000000.0): n= 51  median 0.808  IQR [0.567, 0.936]
+   kappa in [1000000000.0, inf): n=149  median 2.246  IQR [1.808, 2.686]

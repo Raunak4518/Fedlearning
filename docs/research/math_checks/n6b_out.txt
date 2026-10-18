@@ -1,0 +1,12 @@
+mnist    s0: sd log10 w  fed 0.71  cen 0.85 | mean |log10 w - log10 1/C^2| fed 0.88 cen 0.96 | tail-tail/head-head fed 4.75e-03 cen 1.45e-03
+mnist    s1: sd log10 w  fed 0.80  cen 0.85 | mean |log10 w - log10 1/C^2| fed 0.93 cen 0.96 | tail-tail/head-head fed 3.01e-03 cen 1.45e-03
+mnist    s2: sd log10 w  fed 0.81  cen 0.85 | mean |log10 w - log10 1/C^2| fed 0.93 cen 0.96 | tail-tail/head-head fed 2.88e-03 cen 1.45e-03
+fmnist   s0: sd log10 w  fed 0.85  cen 0.85 | mean |log10 w - log10 1/C^2| fed 0.98 cen 0.96 | tail-tail/head-head fed 2.11e-03 cen 1.45e-03
+fmnist   s1: sd log10 w  fed 0.76  cen 0.85 | mean |log10 w - log10 1/C^2| fed 0.89 cen 0.96 | tail-tail/head-head fed 4.04e-03 cen 1.45e-03
+fmnist   s2: sd log10 w  fed 0.83  cen 0.85 | mean |log10 w - log10 1/C^2| fed 1.00 cen 0.96 | tail-tail/head-head fed 2.19e-03 cen 1.45e-03
+cifar10  s0: sd log10 w  fed 0.75  cen 0.77 | mean |log10 w - log10 1/C^2| fed 0.82 cen 0.80 | tail-tail/head-head fed 5.31e-03 cen 3.01e-03
+cifar10  s1: sd log10 w  fed 0.82  cen 0.77 | mean |log10 w - log10 1/C^2| fed 0.85 cen 0.80 | tail-tail/head-head fed 3.50e-03 cen 3.01e-03
+cifar10  s2: sd log10 w  fed 0.79  cen 0.77 | mean |log10 w - log10 1/C^2| fed 0.82 cen 0.80 | tail-tail/head-head fed 4.09e-03 cen 3.01e-03
+cifar100 s0: sd log10 w  fed 0.87  cen 0.83 | mean |log10 w - log10 1/C^2| fed 0.94 cen 0.89 | tail-tail/head-head fed 2.70e-03 cen 2.51e-03
+cifar100 s1: sd log10 w  fed 0.85  cen 0.83 | mean |log10 w - log10 1/C^2| fed 0.92 cen 0.89 | tail-tail/head-head fed 2.71e-03 cen 2.51e-03
+cifar100 s2: sd log10 w  fed 0.87  cen 0.83 | mean |log10 w - log10 1/C^2| fed 0.94 cen 0.89 | tail-tail/head-head fed 2.77e-03 cen 2.51e-03

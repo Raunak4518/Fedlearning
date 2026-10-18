@@ -1,8 +1,7 @@
 # Federated vs centralised GeFL-F under long-tailed clients: where accuracy is lost, stage by stage
 
 *Analysis report, 16 October 2026. Read-only with respect to the code and the results: nothing in `experiments/` or
-the paper was changed. The numerical checks (§8) are scratch scripts outside the repository; their paths are given
-there. Every system-specific statement cites `experiments/core.py` (written `core.py:L`) or a results folder under
+the paper was changed. The numerical checks (§8) are in `docs/research/math_checks/`. Every system-specific statement cites `experiments/core.py` (written `core.py:L`) or a results folder under
 `experiments/results/`.*
 
 **Labels.** Every statement is tagged.
@@ -1025,9 +1024,9 @@ the server's `Averager`.
 
 ## 8. Numerical checks run for this report
 
-Scripts and outputs are in `/tmp/claude-0/-home-user-Fedlearning/76f672ce-438e-501b-a061-1360cd7e1c9d/scratchpad/math/`.
-That folder is session scratch space, outside the repository and not committed. All checks ran on CPU; the scripts
-import `experiments/core.py` read-only and read the cached tensors in `experiments/data/`.
+Scripts and outputs are in `docs/research/math_checks/` (run from any directory, e.g.
+`python docs/research/math_checks/n6c_kappa_vs_logs.py`). All checks ran on CPU; the scripts import
+`experiments/core.py` read-only and read the cached tensors in `experiments/data/`.
 
 | id | script | what it checks | result | agrees? |
 |---|---|---|---|---|

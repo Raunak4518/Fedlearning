@@ -1,0 +1,40 @@
+{"mode": "real", "Ts": 0, "la": true, "seed": 0, "heads": 75.32, "er": 87.43}
+{"mode": "faithful", "Ts": 1, "la": true, "seed": 0, "heads": 96.57, "er": 96.89}
+{"mode": "faithful", "Ts": 10, "la": true, "seed": 0, "heads": 98.09, "er": 97.82, "retention_absent": 0.939, "retention_held": 0.775}
+{"mode": "s=0.5", "Ts": 1, "la": true, "seed": 0, "heads": 91.19, "er": 93.32}
+{"mode": "s=0.5", "Ts": 10, "la": true, "seed": 0, "heads": 96.43, "er": 96.91}
+{"mode": "agnostic", "Ts": 1, "la": true, "seed": 0, "heads": 66.62, "er": 79.73}
+{"mode": "agnostic", "Ts": 10, "la": true, "seed": 0, "heads": 57.38, "er": 70.04}
+{"mode": "agnostic_csl", "Ts": 1, "la": true, "seed": 0, "heads": 78.63, "er": 87.6}
+{"mode": "agnostic_csl", "Ts": 10, "la": true, "seed": 0, "heads": 80.34, "er": 91.91}
+{"mode": "faithful_noLA", "Ts": 10, "la": false, "seed": 0, "heads": 97.79, "er": 97.75, "retention_absent": 0.423, "retention_held": 0.5}
+{"mode": "real", "Ts": 0, "la": true, "seed": 1, "heads": 66.54, "er": 81.52}
+{"mode": "faithful", "Ts": 1, "la": true, "seed": 1, "heads": 93.8, "er": 94.16}
+{"mode": "faithful", "Ts": 10, "la": true, "seed": 1, "heads": 95.99, "er": 95.7, "retention_absent": 0.946, "retention_held": 0.652}
+{"mode": "s=0.5", "Ts": 1, "la": true, "seed": 1, "heads": 86.75, "er": 89.64}
+{"mode": "s=0.5", "Ts": 10, "la": true, "seed": 1, "heads": 93.07, "er": 94.28}
+{"mode": "agnostic", "Ts": 1, "la": true, "seed": 1, "heads": 63.25, "er": 74.27}
+{"mode": "agnostic", "Ts": 10, "la": true, "seed": 1, "heads": 53.92, "er": 65.36}
+{"mode": "agnostic_csl", "Ts": 1, "la": true, "seed": 1, "heads": 73.08, "er": 82.46}
+{"mode": "agnostic_csl", "Ts": 10, "la": true, "seed": 1, "heads": 74.62, "er": 86.31}
+{"mode": "faithful_noLA", "Ts": 10, "la": false, "seed": 1, "heads": 94.59, "er": 95.65, "retention_absent": 0.33, "retention_held": 0.311}
+{"mode": "real", "Ts": 0, "la": true, "seed": 2, "heads": 76.08, "er": 88.03}
+{"mode": "faithful", "Ts": 1, "la": true, "seed": 2, "heads": 97.19, "er": 97.08}
+{"mode": "faithful", "Ts": 10, "la": true, "seed": 2, "heads": 98.61, "er": 98.31, "retention_absent": 0.997, "retention_held": 0.857}
+{"mode": "s=0.5", "Ts": 1, "la": true, "seed": 2, "heads": 91.97, "er": 93.97}
+{"mode": "s=0.5", "Ts": 10, "la": true, "seed": 2, "heads": 96.83, "er": 97.55}
+{"mode": "agnostic", "Ts": 1, "la": true, "seed": 2, "heads": 67.99, "er": 79.73}
+{"mode": "agnostic", "Ts": 10, "la": true, "seed": 2, "heads": 58.08, "er": 69.74}
+{"mode": "agnostic_csl", "Ts": 1, "la": true, "seed": 2, "heads": 79.8, "er": 87.77}
+{"mode": "agnostic_csl", "Ts": 10, "la": true, "seed": 2, "heads": 82.17, "er": 92.47}
+{"mode": "faithful_noLA", "Ts": 10, "la": false, "seed": 2, "heads": 98.51, "er": 98.31, "retention_absent": 0.693, "retention_held": 0.583}
+('real', 0) heads 72.65  ER 85.66
+('faithful', 1) heads 95.85  ER 96.04
+('faithful', 10) heads 97.56  ER 97.28
+('s=0.5', 1) heads 89.97  ER 92.31
+('s=0.5', 10) heads 95.44  ER 96.25
+('agnostic', 1) heads 65.95  ER 77.91
+('agnostic', 10) heads 56.46  ER 68.38
+('agnostic_csl', 1) heads 77.17  ER 85.94
+('agnostic_csl', 10) heads 79.04  ER 90.23
+('faithful_noLA', 10) heads 96.96  ER 97.24

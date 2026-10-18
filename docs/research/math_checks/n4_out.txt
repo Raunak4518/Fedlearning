@@ -1,0 +1,7 @@
+/tmp/claude-0/-home-user-Fedlearning/76f672ce-438e-501b-a061-1360cd7e1c9d/scratchpad/math/n4_la_reparam.py:69: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:820.)
+  return max(float((s1[k] - s2[k]).abs().max()) for k in names)
+LA vs CE with shifted bias init: max|body diff| = 3.89e-16, max|W diff| = 6.66e-16, max|b_LA - (b_CE - a)| = 7.11e-15
+   (for scale) LA vs plain CE from the SAME init: max|body diff| = 4.03e-01
+FedRS vs CE with absent rows scaled by alpha and lr*alpha^2: max|body diff| = 0.00e+00, max|alpha*W_RS - W_CE| (absent) = 0.00e+00
+With a synthetic phase (uniform labels, no adjustment): LA vs shifted-init CE max|body diff| = 1.62e-01 (no longer 0)
