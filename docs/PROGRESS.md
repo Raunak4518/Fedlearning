@@ -140,23 +140,11 @@ on new seeds (see the action plan).
 
 ## 3. What is still to run (and what is NOT)
 
-**Needed for the paper:**
-
-| Job | Why | Cost | Status |
-|---|---|---|---|
-| **NB38 / NB39 (K15)**, existing fixes for row collapse vs HWA, K = 10/50/100: AdamW matched (1e-3), no decay on class rows, lazy decay; AdamW 1e-2 at K = 10 | the question a reviewer asks first: is HWA better than just fixing the optimiser? Pre-registered predictions in `docs/collapse_explainer/collapse_theorem_explained.pdf` §8; tables T17/T18 fill in automatically | ~3.3 h each, T4 × 2 (60 runs) | ready in `kaggle_notebooks/`, not run; references reused (0 duplicates) |
-| NB36 / NB37 (K14), seeds 3–4 | per-component significance (claim 14) and MC-B stability on MNIST (claim 16) | ~2 h each, T4 × 2 | ready in `kaggle_notebooks/`, not run |
-| **K16 = B1 (NB40–NB48)**: GeFL-F, + LA, minimal variant, our gated method; every trained head evaluated under 8 readouts (ER, Fed3R, FedNCM, CCVR, each with all clients or own clients) plus BBC and the oracle; MNIST, FMNIST, SVHN, CIFAR-10 and **CIFAR-100** (new), long tail and IID | Gate 1: the recalibrated-baseline comparison (reviewer objection F1); CIFAR-100 answers "only 10 classes" | long tail ≈ 13 h wall on T4 × 2 (NB40–44), IID ≈ 14.5 h (NB45–48) | **DONE: all 5 long-tail notebooks (NB40–44) and IID NB45 + NB47 (16 Oct)**; NB46 (SVHN IID) and NB48 (CIFAR-100 IID) still to run. 36 of 120 runs repeat old configurations on purpose (no models were saved before); run the long-tail notebooks first |
-| T01 extra seeds (local CPU or Kaggle) | claim 1 has 1 seed | ~1.5 h per seed on CPU | optional; theorem itself is exact, the seeds only add robustness |
-
-**Optional (only if the paper keeps the corresponding claim):**
-
-| Job | Use | Decision |
-|---|---|---|
-| NB13 (K07) FedAvg / LG-FedAvg on CIFAR-10 + SVHN under imbalance | baseline rows of T02 for the hard datasets | run only if a reviewer-proof baseline table on CIFAR/SVHN is wanted |
-| NB26–NB29 (K12) SVHN / CIFAR-10 at K = 50 / 100 | §5.10 "against every GeFL variant" at K = 50/100 on hard data | run only if that claim stays in the paper |
-| NB7 / NB8 DDPM-F on CIFAR-10 | claim 15 on a third dataset | low priority |
-| K01 CIFAR-10 runs.jsonl | paired tests for T13 CIFAR column | **not a run**: copy the file back from Kaggle if it still exists |
+The complete, ordered list (built notebooks, measurements, new methods, breadth, privacy) is
+`docs/review/action_plan.md` §10 (18 Oct 2026). In short: NB63 (K19 + K20 + the 4 K14 runs NB60 lost) and NB62
+(K18) are built; the centralised comparator on SVHN / CIFAR-10 (X3) decides whether a body-side method is worth
+building; the signal-fraction gate (X7) is the new method the theory supports. K15, K16 (all of it), K17 and NB60 are
+done.
 
 **Superseded: do not run** (their arms are covered by later jobs or were dropped on evidence):
 NB9–NB12 (K05, K06 new-generator arms: superseded by K08), NB20–NB21 (K10 hybrid on CIFAR-10: the gate selects the
@@ -167,13 +155,23 @@ claim 4 keeps them.
 
 ## 4. Theory status
 
+Numbering follows the 18 Oct draft (old Theorem 1 → 3, Lemma 2 → 4, Prop. 3 → 11, 4 → 13, 5 → 12, 6 → 14, 7 → 15).
+Proofs and numerical checks: `docs/research/federated_vs_centralized_math.md`, `docs/research/math_checks/`.
+
 | Result | Status |
 |---|---|
-| Contraction bound for class rows (Theorem 1, §3) | rewritten; 0 violations in 1,200 row-rounds on the real CVAE-F (T01); λ-invariance confirmed (10⁻⁴ ≡ 10⁻³, none at 0) |
-| Prop. 3 (synthetic budget) | stated; consistent with E16, K08 (T_s = 10 hurts final acc. where fidelity is low) |
-| Prop. 4 (MC is minimum-displacement), Prop. 6 (Gelbrich map for MC-S) | proved for the idealised map; the implemented map (ReLU, plug-in moments, shrinkage) is approximate, now stated |
-| Prop. 5 (mean anchor separates classes only as far as their means) | proved; SVHN F = 0.005–0.013 matches |
-| Prop. 7 (MixUp second order) | proved; VCT built on it did not win (claim 17) |
-| Known audit points (from the ChatGPT review, verified): BatchNorm running-variance averaging drops between-client variance; best-on-test selection biases `best_mean_acc` (we headline final balanced accuracy) | stated in Limitations (§7) |
-| Lemma 2 (Adam λ-invariance) | holds only for λ‖r‖ ≫ ε; per-client optimiser state persists across rounds; now stated |
-| Prop. 3 (synthetic budget) model | restated as a subsampling model |
+| Lemma 1 (pure label shift) | proved from the partition code |
+| Corollary 2 (Stage I is first-order pooled ERM) | first order; surrogate weights within TV 0.009–0.018 at K = 10; regime not perturbative (ητ = 1–17) |
+| Theorem 3 (contraction bound) | exact, ex-post; 0 violations in 1,200 row-rounds (T01) |
+| Lemma 4 (Adam λ-invariance) | holds for λ‖r‖ ≫ ε; optimiser state persists across rounds |
+| Approximation 5 (count-only κ) | 352 / 352 rows with κ < 1 collapsed over 900 rows; Spearman 0.94; prospective SVHN test in K18 |
+| Proposition 6 (row fixed points without decay; V_c) | exact in the quadratic row model; simulated ratios match to 2 decimals |
+| Proposition 7 (logit corrections are reparametrisations) | exact; K17 real-only arms equal within 0.5 ER points |
+| Proposition 8 (alternation) | exact for quadratics; retention measured in a toy (0.97–0.99 with LA); real-pipeline measurement is X6 |
+| Proposition 9 (label-independent synthetic data = logit-variance penalty) | exact; K17 sign change with s on the CIFARs |
+| Theorem 10 (partition invariance) | exact (trivial); ER = centralised LDA on the same bodies |
+| Prop. 11 (synthetic budget) | subsampling model; consistent with E16, K08 |
+| Prop. 13 (MC), Prop. 14 (MC-S Gelbrich map) | idealised maps; implemented maps approximate |
+| Prop. 12 (mean anchor separates classes only as far as their means) | proved; SVHN F = 0.005–0.013 matches |
+| Prop. 15 (MixUp second order) | proved; VCT built on it did not win |
+| BatchNorm averaging, best-on-test selection | stated in Limitations (§8) |

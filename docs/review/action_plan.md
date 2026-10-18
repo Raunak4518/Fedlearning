@@ -207,3 +207,79 @@ the FedNCM readout). D-1: SVHN K = 50 / 100 in NB62 (K18). D-4: done (CIFAR-100-
 | End-to-end DP for generator training | Out of scope for this paper. State it as a limitation (A11) |
 | Asynchronous clients, concept drift, trainable extractor (GPT R041, R045, R057) | Different problem settings. List them as limitations (A19). D-2 covers partial participation |
 | Responding to the 100 simulated scores as votes (GPT R095) | They are generated from one template, not independent reviews |
+
+---
+
+## 10. Every useful next experiment (18 Oct 2026, after the mathematical analysis)
+
+**Where we are.** Phase A done; Gate 1 decided (K15, K16); C1 nearly done (K14 20 of 24), C4 / C5 / most of C6 done
+(K17); D-4 done (CIFAR-100). The paper is now written as a stage-by-stage comparison with centralised training
+(`docs/paper_draft.md`; theory in `docs/research/federated_vs_centralized_math.md`). That analysis changes what is
+worth running: on MNIST / FashionMNIST / CIFAR-100 the federated pipeline is already within 0–2 points of the
+centralised one, so the remaining questions are (i) whether that holds on SVHN / CIFAR-10, (ii) whether the two changes
+the theory proposes add accuracy, and (iii) the breadth reviewers ask for.
+
+**Rules applied.** Every new spec is checked with `python experiments/ledger.py --check <spec>` when it is built and
+reuses seeds 3–5 so that K17 provides the paired references (no reference arm is re-run). Nothing from the ledger's
+NOT RUN list is proposed: those notebooks are superseded (`docs/PROGRESS.md` §3). Times are wall-clock on Kaggle
+T4 × 2, estimated from the logged `time_s` of K14–K17 (per seed and arm: MNIST ≈ 10–20 min, FashionMNIST ≈ 10–25,
+SVHN ≈ 12–25, CIFAR-10 ≈ 50–70, CIFAR-100 ≈ 33–38; two GPUs run two groups at once).
+
+### 10.1 Built and ready (run first)
+
+| # | Notebook | What it decides | Wall time | Ledger |
+|---|---|---|---|---|
+| X1 | **NB63** = K19 + K20 + the 4 K14 runs NB60 lost | K19: FSG + LA, FedDF, FedDF + LA against ours on all five datasets (seeds 3–5, paired with K17) — the last missing published baselines. K20: are herding and moment correction real mechanisms (herding vs a random subset, mean-only vs spread-only, RFF dimension, pool size; predictions M1–M3). K14: completes the five-seed ablation on MNIST | ≈ 9.3 h | 0 duplicates |
+| X2 | **NB62** = K18 | SVHN with 50 / 100 clients: HWA vs the decay fix where several clients share an architecture; **prospective test of the count-only collapse predictor** (every row with $\kappa_c<1$ collapses under GeFL-F, none under HWA; fixed in paper §3.5 before the run) | ≈ 10.5 h | 0 duplicates |
+
+Both notebooks were rebuilt on 18 Oct (runs now log per-client class counts, which the $\kappa$ test needs). If you
+already started the old versions, let them finish; only the $\kappa$ test on SVHN then needs the counts reconstructed.
+NB60 is retired: its K17 part already ran (folder `K17_kaggle_fair_retest__nb60`).
+
+### 10.2 Measurements that decide what else to build (cheap)
+
+| # | Experiment | What it decides | Where / cost | Ledger |
+|---|---|---|---|---|
+| X3 | **P0: centralised comparator on SVHN and CIFAR-10** (the N7 protocol: federated vs centralised extractor; one-client vs pooled bodies; ER), seeds 0–2; plus CIFAR-100 with all 10 architectures and MNIST / FashionMNIST seed 2 (and FashionMNIST seed 1's lost centralised-extractor arm) | Paper §6.7 currently covers 3 of 5 datasets with 1–2 seeds. If the pooled body beats ours by ≥ 1.5 points on SVHN or CIFAR-10, a body-side method (P3) is worth building; if not, the paper can say federation costs ≤ 1 point everywhere | one Kaggle notebook running `docs/research/math_checks/n7*_*.py` on GPU, ≈ 5–6 h. **If you still have the K16 `__models.zip` files**, the federated-extractor arms need no training and it is shorter | not a spec (no run duplicates a ledger entry; Stage I is retrained because no K16 model archive is in the repository) |
+| X4 | **P2 pilot: class-balanced Stage-I loss** (weights $N/(Cn_y)$ from the exact counts, clipped at 20), scored by raw-feature LDA and pooled-body ER on the 2,000-image validation split, MNIST / FashionMNIST / CIFAR-100, seeds 0–1 | Whether P2 is worth a full run. Prediction: +1 ± 1 on FashionMNIST, 0 ± 0.5 on MNIST, ≤ 0 on CIFAR-100 | CPU in this container, ≈ 3–4 h, no Kaggle time | not a spec |
+| X5 | **P1 pilot: per-class signal-fraction estimate** $\hat s_c$ from the exact-sum LDA on generated features, against the referee's $s$, for GeFL-F + AdamW + LA and ours on CIFAR-10 / CIFAR-100 (`--quick`, seed 3) | Whether a label-free, server-side $\hat s_c$ tracks the referee's $s$ well enough to gate on (needed before X6) | Kaggle `--quick`, ≈ 1 h; can ride in the same session as X3 | new arms |
+| X6 | **Instrumented run (M1, M2, M4, M7, M8 of the math report §7)**: per round, FE gradient heterogeneity; averaged vs pooled BatchNorm variance; holder gain / non-holder loss per row; retention of the synthetic phase through the real phase (absent vs held classes, with and without LA); logit spread on generated features. GeFL-F, decay fix and ours; MNIST and CIFAR-10, seed 3 | Turns Propositions 6–9 from toy-checked into measured on the real pipeline; gives the "what happens at each aggregation" figures | code ≈ 1 day; MNIST on CPU here, CIFAR-10 ≈ 2.5 h Kaggle | logging only; reuses K17 seeds |
+
+### 10.3 New methods the theory proposes (build only after X3–X5)
+
+| # | Experiment | Prediction (fixed now) | Wall time | Ledger |
+|---|---|---|---|---|
+| X7 | **P1: signal-fraction gate / per-class CSL weight** ($\beta_c=1-\hat s_c$, or synthetic labels only for classes with $\hat s_c\ge s_0$, $s_0$ chosen on validation). Arms: GeFL-F + AdamW + LA + P1 and ours + P1 on CIFAR-10, CIFAR-100 (where it should matter) and MNIST, FashionMNIST (no-harm check); seeds 3–5, paired with K17 | GeFL-F's synthetic gain on CIFAR-10 / CIFAR-100 moves from −0.8 / −2.2 to ≥ 0; ours ≥ 0 change on CIFAR-100, 0 ± 0.3 on MNIST / FashionMNIST. This is the most promising "new method": it follows from an exact identity (Proposition 9) and costs no communication | ≈ 6–7 h | new arms; references from K17 |
+| X8 | **P2: class-balanced Stage-I loss in the full pipeline** (only if X4 is positive): ours + P2 on FashionMNIST, CIFAR-10, CIFAR-100 (+ MNIST no-harm), seeds 3–5 | as X4 | ≈ 4 h; can share a notebook with X7 | new arms |
+| X9 | **P3: cross-client body refresh** (each client trains every architecture's body for a few rounds, FedAvg per architecture, then ER) — only if X3 shows a pooled-body gap ≥ 1.5 | ours + ER moves to within 0.5 of the pooled body. Departs from GeFL-F's one-architecture-per-client premise; must be presented as such | ≈ 4–6 h | new arms |
+
+Not worth building (the analysis predicts ≤ 0.5 points): per-class step-normalised row aggregation (P4), a
+class-balanced generator ELBO (P5, unless X5 shows low tail fidelity is the bottleneck), Stage-I drift correction,
+exact BatchNorm recalibration (N7: ≤ 0.3), interleaving synthetic and real batches, shorter real phases, ERL.
+
+### 10.4 Breadth reviewers ask for (Phase D; for a main-track or journal submission)
+
+| # | Experiment | Answers | Wall time |
+|---|---|---|---|
+| X10 | **D-3 regime breadth:** IF ∈ {10, 50}, Dirichlet ∈ {0.1, 1.0}, and a random choice of which classes are rare (per seed); GeFL-F + AdamW + LA, ours and real-only + LA; FashionMNIST and SVHN (CIFAR-10 is 3× costlier), seeds 3–5. Needs the random-tail option in `make_partition` | "only one imbalance setting; the tail is always classes 6–9" (R5; GPT R063) | ≈ 7 h |
+| X11 | **D-2 partial participation:** K = 100, 10% and 20% of clients per round, tail classes held by 1–2 clients; GeFL-F, decay fix, HWA, ours; MNIST and FashionMNIST, seeds 3–5. Needs client sampling in `core.py` | "realistic FL"; also stresses HWA, whose advantage grows when few holders are present | ≈ 6 h |
+| X12 | **D-5 other generators under the long tail:** DCGAN-F and DDPM-F (trained without weight decay), GeFL-F vs HWA, MNIST / FashionMNIST, K = 10 / 50. Prediction from Lemma 4 / §3.6: no collapse, only dilution, so HWA's gain is ≈ 0 at K = 10 and grows with K | whether "rare classes vanish" is specific to CVAE-F's coupled decay — the paper's claim says it is | ≈ 6 h |
+| X13 | **D-1 on CIFAR-10:** K = 50 (several clients per architecture), decay fix vs HWA vs ours, seeds 3–5 | the heterogeneous-FL claim on the hardest 10-class dataset (SVHN is covered by X2, MNIST / FashionMNIST by K15) | ≈ 8 h; lowest priority in this table |
+
+### 10.5 Privacy and systems (small)
+
+| # | Task | Cost |
+|---|---|---|
+| X14 | **E-1 membership attack** on the trained extractor and on the released statistics (exact, ε = 8, ε = 2), MNIST / FashionMNIST | CPU here, < 2 h (the extractor is retrained in minutes) |
+| X15 | **E-2 batched kernel herding** (blockwise selection, no per-sample host sync), checked to select the same samples; re-measure time | code ≈ half a day; herding is 83–88% of our head stage, so this also shortens X7, X8, X10–X13 |
+
+### 10.6 Recommended order (≈ 30 GPU-h per week)
+
+1. **Week 1:** X1 (NB63) and X2 (NB62) on Kaggle; X4, X14 and the MNIST half of X6 on CPU here; X15 code.
+2. **Week 2:** one notebook with X3 + X5 (≈ 7 h); then, if X5 shows $\hat s_c$ tracks $s$, build X7 (+ X8 if X4 is
+   positive) as one ≈ 10–11 h notebook.
+3. **Week 3:** X10, then X11 or X12 depending on the venue (main track: both).
+4. **Before submission:** Phase F (tag, LaTeX, one-command regeneration).
+
+**Minimum for a defensible TMLR / journal submission:** X1, X2, X3. **For a main-track attempt:** add X7 (a new
+method with a margin on the hard datasets), X10 and X11.
