@@ -28,16 +28,30 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | +HWA+LA | K01_kaggle_cifar10_svhn__cifar10 | 0,1,2 |
 | +LA | K01_kaggle_cifar10_svhn__cifar10 | 0,1,2 |
 | +LA | K16_kaggle_recalibration__cifar10_lt | 0,1,2 |
+| FSG + LA | K19_kaggle_more_baselines | 3,4,5 |
 | FSG+LA | K01_kaggle_cifar10_svhn__cifar10 | 0,1,2 |
 | FSG+LA+CSL | K01_kaggle_cifar10_svhn__cifar10 | 0,1,2 |
+| FedDF | K19_kaggle_more_baselines | 3,4,5 |
+| FedDF + LA | K19_kaggle_more_baselines | 3,4,5 |
 | GeFL-F | K01_kaggle_cifar10_svhn__cifar10 | 0,1,2 |
 | GeFL-F | K16_kaggle_recalibration__cifar10_lt | 0,1,2 |
 | GeFL-F | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | GeFL-F + AdamW + LA | K17_kaggle_fair_retest__nb60 | 3,4,5 |
+| GeFL-F + AdamW + LA + SCSL | K21_kaggle_signal_gate__nb68 | 3,4,5 |
+| GeFL-F + AdamW + LA + SGATE | K21_kaggle_signal_gate__nb68 | 3,4,5 |
+| KH -> random subset | K20_kaggle_mechanism_controls | 3,4 |
+| KH, RFF dim 1536 | K20_kaggle_mechanism_controls | 3,4 |
+| KH, pool 8n | K20_kaggle_mechanism_controls | 3,4 |
+| MC mean only | K20_kaggle_mechanism_controls | 3,4 |
+| MC spread only | K20_kaggle_mechanism_controls | 3,4 |
 | Minimal (HWA+LA+CSL) | K16_kaggle_recalibration__cifar10_lt | 0,1,2 |
 | Ours (HWA+LA+CSL) | K01_kaggle_cifar10_svhn__cifar10 | 0,1,2 |
 | Ours (gated) | K16_kaggle_recalibration__cifar10_lt | 0,1,2 |
+| Ours (reference) | K20_kaggle_mechanism_controls | 3,4 |
 | Ours Ts=1 | K17_kaggle_fair_retest__nb60 | 3,4,5 |
+| Ours Ts=1 + BALFE | K21_kaggle_signal_gate__nb68 | 3,4,5 |
+| Ours Ts=1 + SCSL | K21_kaggle_signal_gate__nb68 | 3,4,5 |
+| Ours Ts=1 + SGATE | K21_kaggle_signal_gate__nb68 | 3,4,5 |
 | Ours Ts=10 | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | Ours rows Ts=1 | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
 | Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__cifar10_lt | 0,1,2 |
@@ -48,6 +62,7 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Real only + FedLC | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | Real only + FedRS | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | Real only + LA | K17_kaggle_fair_retest__nb60 | 3,4,5 |
+| no KH | K20_kaggle_mechanism_controls | 3,4 |
 
 ## cifar100  IF=1.0  alpha=None  K=10
 
@@ -63,13 +78,21 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | label | result folder | seeds |
 |---|---|---|
 | +LA | K16_kaggle_recalibration__cifar100_lt | 0,1,2 |
+| FSG + LA | K19_kaggle_more_baselines | 3,4,5 |
+| FedDF | K19_kaggle_more_baselines | 3,4,5 |
+| FedDF + LA | K19_kaggle_more_baselines | 3,4,5 |
 | GeFL-F | K16_kaggle_recalibration__cifar100_lt | 0,1,2 |
 | GeFL-F | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
 | GeFL-F + AdamW + LA | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
+| GeFL-F + AdamW + LA + SCSL | K21_kaggle_signal_gate__nb68 | 3,4,5 |
+| GeFL-F + AdamW + LA + SGATE | K21_kaggle_signal_gate__nb68 | 3,4,5 |
 | Minimal (HWA+LA+CSL) | K16_kaggle_recalibration__cifar100_lt | 0,1,2 |
 | Ours (gated) | K16_kaggle_recalibration__cifar100_lt | 0,1,2 |
 | Ours Ts=1 | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
 | Ours Ts=10 | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
+| Ours Ts=10 + BALFE | K21_kaggle_signal_gate__nb68 | 3,4,5 |
+| Ours Ts=10 + SCSL | K21_kaggle_signal_gate__nb68 | 3,4,5 |
+| Ours Ts=10 + SGATE | K21_kaggle_signal_gate__nb68 | 3,4,5 |
 | Real only | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
 | Real only + FedLC | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
 | Real only + FedRS | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
@@ -256,6 +279,7 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | CSL beta=0.25 | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | CSL beta=0.75 | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | FSG (seq uniform) | E13_sufficient_statistics_quick | 0,1,2 |
+| FSG + LA | K19_kaggle_more_baselines | 3,4,5 |
 | FSG+GF+LA | E13_sufficient_statistics_quick | 0,1,2 |
 | FSG+LA | E13_sufficient_statistics_quick | 0,1,2 |
 | FSG+LA | E14_relative_hybrid_quick | 0,1,2 |
@@ -265,6 +289,8 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | FSG+PCM+LA, DP eps=1 | E13_sufficient_statistics_quick | 0,1,2 |
 | FedAvg (grouped) | E03_method_components_quick | 0 |
 | FedAvg (grouped) | F01_main_longtail | 0,1,2 |
+| FedDF | K19_kaggle_more_baselines | 3,4,5 |
+| FedDF + LA | K19_kaggle_more_baselines | 3,4,5 |
 | GeFL-F | E01_imbalance_gap_quick | 0 |
 | GeFL-F | E02_conditioning_collapse_quick | 0 |
 | GeFL-F | E03_method_components_quick | 0 |
@@ -287,6 +313,9 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | HWA weights = uniform over holders | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | HYB+HWA+LA | E13_sufficient_statistics_quick | 0,1,2 |
 | HYB+HWA+PCM+LA | E13_sufficient_statistics_quick | 0,1,2 |
+| KH -> random subset | K20_kaggle_mechanism_controls | 3,4 |
+| KH, RFF dim 1536 | K20_kaggle_mechanism_controls | 3,4 |
+| KH, pool 8n | K20_kaggle_mechanism_controls | 3,4 |
 | LA tau=1.5 | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | LA tau=2.0 | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | LG-FedAvg | E01_imbalance_gap_quick | 0 |
@@ -295,6 +324,8 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | LG-FedAvg+LA | E03_method_components_quick | 0 |
 | LG-FedAvg+LA | E12_confirmation_quick | 0,1,2 |
 | LG-FedAvg+LA | F01_main_longtail | 0,1,2 |
+| MC mean only | K20_kaggle_mechanism_controls | 3,4 |
+| MC spread only | K20_kaggle_mechanism_controls | 3,4 |
 | Minimal (HWA+LA+CSL) | K16_kaggle_recalibration__fmnist_lt | 0,1,2 |
 | Ours | K02_kaggle_regimes_privacy_ablations | 0,1,2 |
 | Ours (HWA+LA+CSL) | E15_server_distillation_quick | 0 |
@@ -305,6 +336,7 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Ours (HWA+LCD+PCM+LA) | E03_method_components_quick | 0 |
 | Ours (gated) | E33_exact_readout_loop_quick | 0 |
 | Ours (gated) | K16_kaggle_recalibration__fmnist_lt | 0,1,2 |
+| Ours (reference) | K20_kaggle_mechanism_controls | 3,4 |
 | Ours + ERL | E33_exact_readout_loop_quick | 0 |
 | Ours + ERL5 | E33_exact_readout_loop_quick | 0 |
 | Ours Ts=1 | K17_kaggle_fair_retest__nb60 | 3,4,5 |
@@ -344,6 +376,7 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Real only + LA | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | no CSL | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | no HWA (flat averaging) | K02_kaggle_regimes_privacy_ablations | 0,1 |
+| no KH | K20_kaggle_mechanism_controls | 3,4 |
 | no LA (plain CE) | K02_kaggle_regimes_privacy_ablations | 0,1 |
 
 ## fmnist  IF=0.01  alpha=0.5  K=50
@@ -517,18 +550,19 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | +PCM+LA | E03_method_components_quick | 0 |
 | +ROWNOWD+LA | K15_kaggle_collapse_fixes__mnist | 0,1,2 |
 | -CSL | K09_kaggle_ablation_final__mnist | 0,1,2 |
-| -CSL | K14_kaggle_ablation_seeds_mcb | 3 |
+| -CSL | K14_kaggle_ablation_seeds_mcb | 3,4 |
 | -KH | K09_kaggle_ablation_final__mnist | 0,1,2 |
-| -KH | K14_kaggle_ablation_seeds_mcb | 3 |
+| -KH | K14_kaggle_ablation_seeds_mcb | 3,4 |
 | -LA | K09_kaggle_ablation_final__mnist | 0,1,2 |
 | -LA | K14_kaggle_ablation_seeds_mcb | 3,4 |
 | -MC | K09_kaggle_ablation_final__mnist | 0,1,2 |
-| -MC | K14_kaggle_ablation_seeds_mcb | 3 |
+| -MC | K14_kaggle_ablation_seeds_mcb | 3,4 |
 | -PC (CVAE+HWA) | K09_kaggle_ablation_final__mnist | 0,1,2 |
 | -PC (CVAE+HWA) | K14_kaggle_ablation_seeds_mcb | 3,4 |
 | CSL beta=0.25 | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | CSL beta=0.75 | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | FSG (seq uniform) | E13_sufficient_statistics_quick | 0,1,2 |
+| FSG + LA | K19_kaggle_more_baselines | 3,4,5 |
 | FSG+GF+LA | E13_sufficient_statistics_quick | 0,1,2 |
 | FSG+LA | E13_sufficient_statistics_quick | 0,1,2 |
 | FSG+LA | E14_relative_hybrid_quick | 0,1,2 |
@@ -538,6 +572,8 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | FSG+PCM+LA, DP eps=1 | E13_sufficient_statistics_quick | 0,1,2 |
 | FedAvg (grouped) | E03_method_components_quick | 0 |
 | FedAvg (grouped) | F01_main_longtail | 0,1,2 |
+| FedDF | K19_kaggle_more_baselines | 3,4,5 |
+| FedDF + LA | K19_kaggle_more_baselines | 3,4,5 |
 | GeFL-F | E02_conditioning_collapse_quick | 0 |
 | GeFL-F | E03_method_components_quick | 0 |
 | GeFL-F | E12_confirmation_quick | 0,1,2 |
@@ -554,6 +590,7 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | GeFL-F | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | GeFL-F | T03_exact_readout (quick) | 0 |
 | GeFL-F + AdamW + LA | K17_kaggle_fair_retest__nb60 | 3,4,5 |
+| GeFL-F + AdamW + LA + SGATE | K21_kaggle_signal_gate__nb68 | 3,4,5 |
 | GeFL-F + ERL | E33_exact_readout_loop_quick | 0 |
 | HWA weights = counts n | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | HWA weights = uniform over holders | K02_kaggle_regimes_privacy_ablations | 0,1 |
@@ -583,6 +620,8 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Ours Ts=1 | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | Ours Ts=10 | K17_kaggle_fair_retest__mnist | 3,4,5 |
 | Ours Ts=10 | K17_kaggle_fair_retest__nb60 | 3,4,5 |
+| Ours Ts=10 + BALFE | K21_kaggle_signal_gate__nb68 | 3,4,5 |
+| Ours Ts=10 + SCSL | K21_kaggle_signal_gate__nb68 | 3,4,5 |
 | Ours+BCR | E03_method_components_quick | 0 |
 | Ours+LAFE | E03_method_components_quick | 0 |
 | Ours+MC | E20_proto_generator | 0,1,2 |
@@ -597,7 +636,7 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Ours-A Ts=10, DP eps=2 | E26_private_anchoring | 0,1,2 |
 | Ours-A Ts=10, DP eps=8 | E26_private_anchoring | 0,1,2 |
 | Ours-A-B Ts=10 | E32_moment_anchor_bayes | 0,1,2 |
-| Ours-A-B Ts=10 | K14_kaggle_ablation_seeds_mcb | 3 |
+| Ours-A-B Ts=10 | K14_kaggle_ablation_seeds_mcb | 3,4 |
 | Ours-A-S Ts=10 | E31_covariance_anchoring_mnist_fmnist | 0,1,2 |
 | Ours-B (HWA+LA+BCSL) | E18_bayesian_csl | 0,1,2 |
 | Ours-B (HWA+LA+BCSL) Ts=10 | E18_bayesian_csl | 0,1,2 |
@@ -699,7 +738,10 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | +HWA+LA+CSLM | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
 | +LA | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
 | +LA | K16_kaggle_recalibration__svhn_lt | 0,1,2 |
+| FSG + LA | K19_kaggle_more_baselines | 3,4,5 |
 | FSG+LA | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
+| FedDF | K19_kaggle_more_baselines | 3,4,5 |
+| FedDF + LA | K19_kaggle_more_baselines | 3,4,5 |
 | GeFL-F | K01_kaggle_cifar10_svhn__svhn | 0,1,2 |
 | GeFL-F | K16_kaggle_recalibration__svhn_lt | 0,1,2 |
 | GeFL-F | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
@@ -720,6 +762,24 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Real only + FedLC | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
 | Real only + FedRS | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
 | Real only + LA | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
+
+## svhn  IF=0.01  alpha=0.5  K=50
+
+| label | result folder | seeds |
+|---|---|---|
+| GeFL-F | K18_kaggle_more_clients_svhn | 0,1,2 |
+| GeFL-F + AdamW + LA | K18_kaggle_more_clients_svhn | 0,1,2 |
+| GeFL-F + HWA + LA | K18_kaggle_more_clients_svhn | 0,1,2 |
+| Ours (gated) | K18_kaggle_more_clients_svhn | 0,1,2 |
+
+## svhn  IF=0.01  alpha=0.5  K=100
+
+| label | result folder | seeds |
+|---|---|---|
+| GeFL-F | K18_kaggle_more_clients_svhn | 0,1,2 |
+| GeFL-F + AdamW + LA | K18_kaggle_more_clients_svhn | 0,1,2 |
+| GeFL-F + HWA + LA | K18_kaggle_more_clients_svhn | 0,1,2 |
+| Ours (gated) | K18_kaggle_more_clients_svhn | 0,1,2 |
 
 ## Status of every job (planned runs vs runs in its result folder)
 
