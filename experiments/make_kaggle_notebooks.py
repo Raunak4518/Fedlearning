@@ -258,6 +258,14 @@ COMBOS = [  # (name, [(script, args), ...], results folder, budget_h, rough hour
                                 {"NO_INIT": "1", "TAG": "x3", "NT": "2"})],
      "comparator_rerun", 0, 5.0,
      "The 16 partial-participation runs NB69 did not reach (time limit), then the centralised comparison (X3) on SVHN, CIFAR-10 and CIFAR-100, seeds 0-2, rerun after the device fix (in NB69 every X3 run stopped at its first evaluation)."),
+    ("NB72_embedding_collapse_lm", [("@experiments/fedembed.py",
+                                     [f"--task lm --K {K} --seeds {sd} --rounds 20 "
+                                      f"--out /kaggle/working/results/E41_fedembed_lm/s{sd}_K{K} --arms adam_l2 adamw adam "
+                                      f"adam_l2_hwa sgd_l2 adam_l2_reset" + (" central_l2" if K == 10 else "")
+                                      for sd in [0, 1, 2] for K in [10, 50, 100]],
+                                     {"OUTDIR": "E41_fedembed_lm", "NT": "2"})],
+     "embedding_collapse_lm", 0, 4.0,
+     "Does the rare-row collapse happen in federated embedding models in general? Federated next-word prediction on WikiText-2 (clients = groups of Wikipedia articles), local Adam with coupled L2 vs AdamW / no decay / holder-weighted averaging / SGD / reset optimiser state / centralised, K = 10, 50, 100, seeds 0-2. Pre-registered predictions E1-E4 in experiments/fedembed.py."),
     ("NB62_more_clients_svhn", [("K18_kaggle_more_clients_svhn", "")], "more_clients_svhn", 0, 10.5,
      "SVHN long tail with 50 and 100 clients (3 seeds): GeFL-F, the weight-decay fix, holder-weighted averaging and our method, each under every last-layer readout."),
     ("NB60_combined_A", [("K17_kaggle_fair_retest", '--datasets cifar10 fmnist --exclude "Ours rows Ts=1"'),
@@ -332,11 +340,12 @@ def pack():
                                   "source": (f"%%writefile {base}\n" + src).splitlines(keepends=True)})
                     written.add(base)
             env = dict(step[2] if len(step) > 2 else {})
+            outdir = env.pop("OUTDIR", "X3_centralised_comparator")
             arglist = args if isinstance(args, list) else [args]
             # the argument sets run as a queue on the two GPUs (one process per GPU at a time)
             cells.append(code(f"""
 import os, subprocess, threading, queue
-out = "/kaggle/working/results/X3_centralised_comparator"
+out = "/kaggle/working/results/{outdir}"
 os.makedirs(out, exist_ok=True)
 jobs = queue.Queue()
 for a in {arglist!r}:
@@ -348,12 +357,12 @@ def worker(gpu):
         except queue.Empty:
             return
         env = dict(os.environ, CUDA_VISIBLE_DEVICES=str(gpu), GEFL_DATA_ROOT="/kaggle/working/data", GEFL_OUT=out, **{env!r})
-        with open(os.path.join(out, "log_" + a.replace(" ", "_").replace(",", "-") + ".txt"), "w") as f:
+        with open(os.path.join(out, "log_" + a.replace(" ", "_").replace(",", "-").replace("-", "")[:80] + ".txt"), "w") as f:
             rc = subprocess.run("python {os.path.basename(path)} " + a, shell=True, env=env, stdout=f, stderr=subprocess.STDOUT).returncode
         print("GPU", gpu, a, "exit", rc, flush=True)
-# data download once, before the two workers start
+# data download once, before the two workers start (core datasets for the comparator script)
 import sys; sys.path.insert(0, "/kaggle/working"); import core
-for d in {sorted({a.split()[0] for a in arglist})!r}:
+for d in {sorted({a.split()[0] for a in arglist if a.split()[0] in ("mnist", "fmnist", "svhn", "cifar10", "cifar100")})!r}:
     core.load_dataset(d, "/kaggle/working/data")
 ts = [threading.Thread(target=worker, args=(g,)) for g in (0, 1)]
 [t.start() for t in ts]; [t.join() for t in ts]
