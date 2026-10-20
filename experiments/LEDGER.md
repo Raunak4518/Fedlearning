@@ -39,6 +39,8 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | GeFL-F + AdamW + LA | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | GeFL-F + AdamW + LA + SCSL | K21_kaggle_signal_gate__nb68 | 3,4,5 |
 | GeFL-F + AdamW + LA + SGATE | K21_kaggle_signal_gate__nb68 | 3,4,5 |
+| GeFL-F + AdamW + LA [instrumented] | K25_instrumented | 3 |
+| GeFL-F [instrumented] | K25_instrumented | 3 |
 | KH -> random subset | K20_kaggle_mechanism_controls | 3,4 |
 | KH, RFF dim 1536 | K20_kaggle_mechanism_controls | 3,4 |
 | KH, pool 8n | K20_kaggle_mechanism_controls | 3,4 |
@@ -52,6 +54,7 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Ours Ts=1 + BALFE | K21_kaggle_signal_gate__nb68 | 3,4,5 |
 | Ours Ts=1 + SCSL | K21_kaggle_signal_gate__nb68 | 3,4,5 |
 | Ours Ts=1 + SGATE | K21_kaggle_signal_gate__nb68 | 3,4,5 |
+| Ours Ts=1 [instrumented] | K25_instrumented | 3 |
 | Ours Ts=10 | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | Ours rows Ts=1 | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
 | Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__cifar10_lt | 0,1,2 |
@@ -220,8 +223,19 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | +LA | K02_kaggle_regimes_privacy_ablations | 0,1,2 |
 | GeFL-F | E01_imbalance_gap_quick | 0 |
 | GeFL-F | K02_kaggle_regimes_privacy_ablations | 0,1,2 |
+| GeFL-F + AdamW + LA | K22_kaggle_regime_breadth__fmnist | 3,4,5 |
 | LG-FedAvg | E01_imbalance_gap_quick | 0 |
 | Ours | K02_kaggle_regimes_privacy_ablations | 0,1,2 |
+| Ours Ts=10 | K22_kaggle_regime_breadth__fmnist | 3,4,5 |
+| Real only + LA | K22_kaggle_regime_breadth__fmnist | 3,4,5 |
+
+## fmnist  IF=0.01  alpha=0.1  K=10
+
+| label | result folder | seeds |
+|---|---|---|
+| GeFL-F + AdamW + LA | K22_kaggle_regime_breadth__fmnist | 3,4,5 |
+| Ours Ts=10 | K22_kaggle_regime_breadth__fmnist | 3,4,5 |
+| Real only + LA | K22_kaggle_regime_breadth__fmnist | 3,4,5 |
 
 ## fmnist  IF=0.01  alpha=0.5  K=10
 
@@ -308,6 +322,8 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | GeFL-F | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | GeFL-F | T03_exact_readout (quick) | 0 |
 | GeFL-F + AdamW + LA | K17_kaggle_fair_retest__nb60 | 3,4,5 |
+| GeFL-F + AdamW + LA + SGATE | K21_kaggle_signal_gate__nb69 | 3,4,5 |
+| GeFL-F + AdamW + LA [random tail] | K22_kaggle_regime_breadth__fmnist | 3,4,5 |
 | GeFL-F + ERL | E33_exact_readout_loop_quick | 0 |
 | HWA weights = counts n | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | HWA weights = uniform over holders | K02_kaggle_regimes_privacy_ablations | 0,1 |
@@ -341,6 +357,9 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Ours + ERL5 | E33_exact_readout_loop_quick | 0 |
 | Ours Ts=1 | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | Ours Ts=10 | K17_kaggle_fair_retest__nb60 | 3,4,5 |
+| Ours Ts=10 + BALFE | K21_kaggle_signal_gate__nb69 | 3,4,5 |
+| Ours Ts=10 + SCSL | K21_kaggle_signal_gate__nb69 | 3,4,5 |
+| Ours Ts=10 [random tail] | K22_kaggle_regime_breadth__fmnist | 3,4,5 |
 | Ours+BCR | E03_method_components_quick | 0 |
 | Ours+LAFE | E03_method_components_quick | 0 |
 | Ours+MC | E20_proto_generator | 0,1,2 |
@@ -374,6 +393,7 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Real only + FedLC | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | Real only + FedRS | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | Real only + LA | K17_kaggle_fair_retest__nb60 | 3,4,5 |
+| Real only + LA [random tail] | K22_kaggle_regime_breadth__fmnist | 3,4,5 |
 | no CSL | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | no HWA (flat averaging) | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | no KH | K20_kaggle_mechanism_controls | 3,4 |
@@ -407,9 +427,25 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | FSG+LA | K03_kaggle_client_scaling__K100 | 0,1,2 |
 | FSG+LA+CSL | K03_kaggle_client_scaling__K100 | 0,1,2 |
 | GeFL-F | K03_kaggle_client_scaling__K100 | 0,1,2 |
+| GeFL-F + AdamW + LA [p=0.1] | K23_kaggle_partial_participation | 3,4 |
+| GeFL-F + AdamW + LA [p=0.2] | K23_kaggle_partial_participation | 3 |
+| GeFL-F + HWA + LA [p=0.1] | K23_kaggle_partial_participation | 3,4,5 |
+| GeFL-F + HWA + LA [p=0.2] | K23_kaggle_partial_participation | 3,4,5 |
+| GeFL-F [p=0.1] | K23_kaggle_partial_participation | 3,4,5 |
+| GeFL-F [p=0.2] | K23_kaggle_partial_participation | 3,4,5 |
 | Ours (HWA+LA+CSL) | K03_kaggle_client_scaling__K100 | 0,1,2 |
+| Ours (gated) [p=0.1] | K23_kaggle_partial_participation | 3,4 |
+| Ours (gated) [p=0.2] | K23_kaggle_partial_participation | 3,4 |
 | Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__fmnist | 0,1,2 |
 | Ours-A Ts=10 | K08_kaggle_anchored_stack__fmnist | 0,1,2 |
+
+## fmnist  IF=0.01  alpha=1.0  K=10
+
+| label | result folder | seeds |
+|---|---|---|
+| GeFL-F + AdamW + LA | K22_kaggle_regime_breadth__fmnist | 3,4,5 |
+| Ours Ts=10 | K22_kaggle_regime_breadth__fmnist | 3,4,5 |
+| Real only + LA | K22_kaggle_regime_breadth__fmnist | 3,4,5 |
 
 ## mnist  IF=1.0  alpha=0.5  K=10
 
@@ -591,7 +627,9 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | GeFL-F | T03_exact_readout (quick) | 0 |
 | GeFL-F + AdamW + LA | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | GeFL-F + AdamW + LA + SGATE | K21_kaggle_signal_gate__nb68 | 3,4,5 |
+| GeFL-F + AdamW + LA [instrumented] | K25_instrumented | 3 |
 | GeFL-F + ERL | E33_exact_readout_loop_quick | 0 |
+| GeFL-F [instrumented] | K25_instrumented | 3 |
 | HWA weights = counts n | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | HWA weights = uniform over holders | K02_kaggle_regimes_privacy_ablations | 0,1 |
 | HYB+HWA+LA | E13_sufficient_statistics_quick | 0,1,2 |
@@ -622,6 +660,7 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Ours Ts=10 | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | Ours Ts=10 + BALFE | K21_kaggle_signal_gate__nb68 | 3,4,5 |
 | Ours Ts=10 + SCSL | K21_kaggle_signal_gate__nb68 | 3,4,5 |
+| Ours Ts=10 [instrumented] | K25_instrumented | 3 |
 | Ours+BCR | E03_method_components_quick | 0 |
 | Ours+LAFE | E03_method_components_quick | 0 |
 | Ours+MC | E20_proto_generator | 0,1,2 |
@@ -699,6 +738,10 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | FSG+LA | F04_clients | 0,1,2 |
 | FSG+LA+CSL | F04_clients | 0 |
 | GeFL-F | F04_clients | 0,1,2 |
+| GeFL-F + HWA + LA [p=0.1] | K23_kaggle_partial_participation | 3,4,5 |
+| GeFL-F + HWA + LA [p=0.2] | K23_kaggle_partial_participation | 3,4,5 |
+| GeFL-F [p=0.1] | K23_kaggle_partial_participation | 3,4,5 |
+| GeFL-F [p=0.2] | K23_kaggle_partial_participation | 3,4,5 |
 | MIX+HWA+LA+CSL | F04_clients | 0,1 |
 | Ours-A (PC+MC+KH+LA+CSL) | E22_pc_many_clients | 0,1,2 |
 | Ours-A Ts=10 | E22_pc_many_clients | 0,1,2 |

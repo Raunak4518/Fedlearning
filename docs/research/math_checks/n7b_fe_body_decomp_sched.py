@@ -41,9 +41,9 @@ def bal_eval(ctx, hs, feats_te, yte):
 @torch.no_grad()
 def lda_raw(feats, ys, Xte, yte, C, gamma=0.1):
     X = torch.cat(feats).flatten(1).double()
-    Y = torch.cat(ys)
+    Y = torch.cat(ys).to(X.device)
     n = torch.bincount(Y, minlength=C).double()
-    mu = torch.zeros(C, X.shape[1], dtype=torch.float64).index_add_(0, Y, X) / n[:, None]
+    mu = torch.zeros(C, X.shape[1], dtype=torch.float64, device=X.device).index_add_(0, Y, X) / n[:, None]
     Sw = (X.T @ X - (mu.T * n) @ mu) / (n.sum() - C)
     d = X.shape[1]
     Ss = (1 - gamma) * Sw + gamma * torch.trace(Sw) / d * torch.eye(d, dtype=torch.float64, device=X.device)

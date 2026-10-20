@@ -247,6 +247,17 @@ COMBOS = [  # (name, [(script, args), ...], results folder, budget_h, rough hour
                                           ("K24_kaggle_dcgan_longtail", "")],
      "more_clients_and_generators", 0, 10.8,
      "X13: CIFAR-10 with 50 clients (decay fix vs HWA vs ours). X10 on SVHN: other imbalance settings and random rare classes. X12: DCGAN-F under the long tail (does collapse need weight decay?)."),
+    ("NB71_comparator_rerun", [("K23_kaggle_partial_participation",
+                                '--datasets mnist --only "GeFL-F + AdamW + LA [p=0.1]" "GeFL-F + AdamW + LA [p=0.2]" '
+                                '"Ours (gated) [p=0.1]" "Ours (gated) [p=0.2]"'),
+                               ("K23_kaggle_partial_participation",
+                                '--datasets fmnist --seeds 5 --only "GeFL-F + AdamW + LA [p=0.1]" "GeFL-F + AdamW + LA [p=0.2]" '
+                                '"Ours (gated) [p=0.1]" "Ours (gated) [p=0.2]"'),
+                               ("@docs/research/math_checks/n7b_fe_body_decomp_sched.py",
+                                [f"{ds} {sd} lt,iid" for ds in ["svhn", "cifar10", "cifar100"] for sd in [0, 1, 2]],
+                                {"NO_INIT": "1", "TAG": "x3", "NT": "2"})],
+     "comparator_rerun", 0, 5.0,
+     "The 16 partial-participation runs NB69 did not reach (time limit), then the centralised comparison (X3) on SVHN, CIFAR-10 and CIFAR-100, seeds 0-2, rerun after the device fix (in NB69 every X3 run stopped at its first evaluation)."),
     ("NB62_more_clients_svhn", [("K18_kaggle_more_clients_svhn", "")], "more_clients_svhn", 0, 10.5,
      "SVHN long tail with 50 and 100 clients (3 seeds): GeFL-F, the weight-decay fix, holder-weighted averaging and our method, each under every last-layer readout."),
     ("NB60_combined_A", [("K17_kaggle_fair_retest", '--datasets cifar10 fmnist --exclude "Ours rows Ts=1"'),
