@@ -1,0 +1,117 @@
+{
+ "central": {
+  "spearman": 0.9052823877702129,
+  "bins": [
+   {
+    "lo": 0,
+    "hi": 0.0003333333333333333,
+    "n": 132,
+    "median_norm": 0.0
+   },
+   {
+    "lo": 0.0003333333333333333,
+    "hi": 0.001,
+    "n": 133,
+    "median_norm": 0.0068
+   },
+   {
+    "lo": 0.001,
+    "hi": 0.0033333333333333335,
+    "n": 266,
+    "median_norm": 0.0697
+   },
+   {
+    "lo": 0.0033333333333333335,
+    "hi": 0.01,
+    "n": 500,
+    "median_norm": 0.13269999999999998
+   },
+   {
+    "lo": 0.01,
+    "hi": 1,
+    "n": 2675,
+    "median_norm": 0.4842
+   }
+  ]
+ },
+ "federated_K10": {
+  "spearman": 0.9394672859671626,
+  "bins": [
+   {
+    "lo": 0,
+    "hi": 0.0003333333333333333,
+    "n": 132,
+    "median_norm": 0.013600000000000001,
+    "median_norm_same_rows_central": 0.0
+   },
+   {
+    "lo": 0.0003333333333333333,
+    "hi": 0.001,
+    "n": 133,
+    "median_norm": 0.0228,
+    "median_norm_same_rows_central": 0.0068
+   },
+   {
+    "lo": 0.001,
+    "hi": 0.0033333333333333335,
+    "n": 266,
+    "median_norm": 0.048850000000000005,
+    "median_norm_same_rows_central": 0.0697
+   },
+   {
+    "lo": 0.0033333333333333335,
+    "hi": 0.01,
+    "n": 500,
+    "median_norm": 0.133,
+    "median_norm_same_rows_central": 0.13269999999999998
+   },
+   {
+    "lo": 0.01,
+    "hi": 1,
+    "n": 2675,
+    "median_norm": 0.8478,
+    "median_norm_same_rows_central": 0.4842
+   }
+  ]
+ },
+ "federated_K50": {
+  "spearman": 0.9674314307941339,
+  "bins": [
+   {
+    "lo": 0,
+    "hi": 0.0003333333333333333,
+    "n": 132,
+    "median_norm": 0.0019,
+    "median_norm_same_rows_central": 0.0
+   },
+   {
+    "lo": 0.0003333333333333333,
+    "hi": 0.001,
+    "n": 133,
+    "median_norm": 0.0034,
+    "median_norm_same_rows_central": 0.0068
+   },
+   {
+    "lo": 0.001,
+    "hi": 0.0033333333333333335,
+    "n": 266,
+    "median_norm": 0.00645,
+    "median_norm_same_rows_central": 0.0697
+   },
+   {
+    "lo": 0.0033333333333333335,
+    "hi": 0.01,
+    "n": 500,
+    "median_norm": 0.0161,
+    "median_norm_same_rows_central": 0.13269999999999998
+   },
+   {
+    "lo": 0.01,
+    "hi": 1,
+    "n": 2675,
+    "median_norm": 0.4161,
+    "median_norm_same_rows_central": 0.4842
+   }
+  ]
+ }
+}
