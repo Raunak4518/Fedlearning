@@ -56,19 +56,19 @@ def hyper_present(n, m, b):
     return 1.0 - math.exp(math.lgamma(n - m + 1) - math.lgamma(n - m - b + 1) - math.lgamma(n + 1) + math.lgamma(n - b + 1))
 
 
-def kappa(counts, tau, B):
-    """counts: (K, V) per-client row usage; tau: (K,) local steps. Returns kappa per row (inf if no non-holder)."""
+def kappa(counts, tau, B, with_fbar=False):
+    """counts: (K, V) per-client row usage; tau: (K,) local steps. Returns kappa per row (inf if no non-holder) and,
+    with with_fbar, fbar per row: the share of all local optimiser steps whose batch carries data for the row (the
+    step-frequency predictor that also covers centralised training, K = 1)."""
     K, V = counts.shape
     nk = counts.sum(1)
-    out = np.empty(V)
+    out, fbar = np.empty(V), np.empty(V)
     for c in range(V):
         H = counts[:, c] > 0
-        if H.all():
-            out[c] = np.inf
-            continue
         f = np.array([hyper_present(int(nk[k]), int(counts[k, c]), min(B, int(nk[k]))) for k in np.nonzero(H)[0]])
-        out[c] = (tau[H] * f).sum() / tau[~H].sum()
-    return out
+        fbar[c] = (tau[H] * f).sum() / tau.sum()
+        out[c] = np.inf if H.all() else (tau[H] * f).sum() / tau[~H].sum()
+    return (out, fbar) if with_fbar else out
 
 
 # ------------------------------------------------------------------ MovieLens-1M federated MF
@@ -130,7 +130,7 @@ def run_mf(arm, K, seed, rounds=60, epochs=1, d=32, B=256, lr=1e-3, lam=1e-4, lo
         counts[k] = np.bincount(i[data[k]], minlength=V)
     n_k = np.array([len(x) for x in data], float)
     tau = np.array([epochs * math.ceil(n / B) for n in n_k], float)
-    kap = kappa(counts, tau, B)
+    kap, fbar = kappa(counts, tau, B, with_fbar=True)
     init_norm = item0.norm(dim=1).numpy()
 
     def make_opt(params):
@@ -226,7 +226,8 @@ def run_mf(arm, K, seed, rounds=60, epochs=1, d=32, B=256, lr=1e-3, lam=1e-4, lo
                spearman_logkappa_norm=float(spearmanr(np.log(kap[fin]), norm[fin])[0]) if fin.sum() > 2 else None,
                time_s=round(time.time() - t0, 1), history=hist,
                kappa=[round(float(x), 4) if np.isfinite(x) else None for x in kap],
-               norm_ratio=[round(float(x), 4) for x in norm], train_count=ntr.tolist())
+               norm_ratio=[round(float(x), 4) for x in norm], train_count=ntr.tolist(),
+               fbar=[float(f"{x:.4g}") for x in fbar])
     return res
 
 
@@ -280,7 +281,7 @@ def run_lm(arm, K, seed, rounds=20, d=64, h=128, B=256, lr=1e-3, lam=1e-4, V=100
             counts[k] += np.bincount(Xk[first, j], minlength=V)
     n_k = np.array([len(y) for y in Ys], float)
     tau = np.array([math.ceil(n / B) for n in n_k], float)
-    kap = kappa(counts, tau, B)
+    kap, fbar = kappa(counts, tau, B, with_fbar=True)
     torch.manual_seed(seed)
     P0 = dict(E=0.1 * torch.randn(V, d), W1=torch.randn(ctx * d, h) / math.sqrt(ctx * d), b1=torch.zeros(h),
               W2=torch.randn(V, h) / math.sqrt(h), b2=torch.zeros(V))
@@ -374,7 +375,8 @@ def run_lm(arm, K, seed, rounds=20, d=64, h=128, B=256, lr=1e-3, lam=1e-4, V=100
                 spearman_logkappa_norm=float(spearmanr(np.log(kap[fin]), norm[fin])[0]) if fin.sum() > 2 else None,
                 time_s=round(time.time() - t0, 1), history=hist,
                 kappa=[round(float(x), 4) if np.isfinite(x) else None for x in kap],
-                norm_ratio=[round(float(x), 4) for x in norm], train_count=counts.sum(0).tolist())
+                norm_ratio=[round(float(x), 4) for x in norm], train_count=counts.sum(0).tolist(),
+                fbar=[float(f"{x:.4g}") for x in fbar])
 
 
 def main():
