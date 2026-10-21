@@ -17,7 +17,10 @@ for f in glob.glob(_os.path.join(_REPO, "experiments", "results", "*", "runs.jso
         r = json.loads(l)
         m = r.get("method") or {}
         g = m.get("gen") or {}
-        if r.get("quick") or "IF" not in r or r["IF"] != 0.01 or not r.get("cond_norms_end"):
+        if r.get("quick") or "IF" not in r or r["IF"] != 0.01 or not r.get("cond_norms_end") \
+                or "[p=" in r.get("label", ""):  # partial participation: kappa assumes every client takes part
+            continue
+        if False:
             continue
         if g.get("type") == "cvae" and g.get("agg") == "flat" and g.get("wd") == 1e-3 and g.get("opt", "adam") == "adam" \
                 and not g.get("lazy") and not g.get("rowwd0") and r["dataset"] in ("mnist", "fmnist", "cifar10", "cifar100"):
@@ -62,3 +65,5 @@ for lo_, hi_ in ((0, 0.5), (0.5, 1), (1, 2), (2, 4), (4, 8), (8, 1e9), (1e9, np.
     s = (kap >= lo_) & (kap < hi_) if np.isfinite(hi_) else ~np.isfinite(kap)
     if s.any():
         print(f"   kappa in [{lo_}, {hi_}): n={s.sum():3d}  median {np.median(nr[s]):.3f}  IQR [{np.quantile(nr[s], .25):.3f}, {np.quantile(nr[s], .75):.3f}]")
+json.dump([dict(ds=r[0], K=int(r[1]), seed=int(r[2]), c=int(r[3]), kappa=(None if not np.isfinite(float(r[4])) else float(r[4])),
+                norm=float(r[5])) for r in rows], open(_os.path.join(_HERE, "n6c_rows.json"), "w"))
