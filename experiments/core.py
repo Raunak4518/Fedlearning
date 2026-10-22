@@ -848,7 +848,7 @@ def _ece(prob, yte, bins=15):
 
 
 def _class_metrics(logits, yte, C, prior=None):
-    """Everything computed from one head's test logits. recall per class; macro-F1; G-mean of the
+    """Everything computed from one head's test logits. recall and precision per class; macro precision; macro-F1; G-mean of the
     class recalls (each floored at 0.01 so one missed class does not zero it); ECE, NLL (true-class
     probability floored at 1e-6) and Brier score of the softmax; and, when the head's own clients' label prior is given, the accuracy on
     test data re-weighted to that prior (what the head's own clients would see)."""
@@ -859,9 +859,11 @@ def _class_metrics(logits, yte, C, prior=None):
     tp = torch.bincount(yte[correct], minlength=C).float()
     npred = torch.bincount(pred, minlength=C).float()
     rec_t = tp / ny.clamp(min=1)
+    prec_t = tp / npred.clamp(min=1)  # a class never predicted has precision 0
     f1 = (2 * tp / (ny + npred).clamp(min=1)).mean()
     oh = F.one_hot(yte, C).float()
-    out = dict(acc=float(correct.float().mean()), recall=rec_t.cpu().numpy(), f1=float(f1),
+    out = dict(acc=float(correct.float().mean()), recall=rec_t.cpu().numpy(), prec_c=prec_t.cpu().numpy(),
+               precision=float(prec_t.mean()), f1=float(f1),
                gmean=float(torch.exp(torch.log(rec_t.clamp(min=0.01)).mean())),
                ece=_ece(prob, yte), nll=float(-prob.gather(1, yte[:, None]).clamp(min=1e-6).log().mean()),
                brier=float((prob - oh).pow(2).sum(1).mean()))
@@ -898,7 +900,7 @@ def eval_headers(ctx, headers, feats_te, yte):
     return out
 
 
-EXTRA_METRICS = ("f1", "gmean", "ece", "nll", "brier", "local")
+EXTRA_METRICS = ("precision", "f1", "gmean", "ece", "nll", "brier", "local")
 
 
 def summarize_eval(ev):
@@ -913,6 +915,8 @@ def summarize_eval(ev):
                medium=float(rec[MED()].mean()), tail=float(rec[TAIL()].mean()), worst=float(rec.min()),
                worst_arch=float(min(np.mean(v["recall"]) for v in ev.values())), rec_std=float(rec.std()),
                recall=rec.tolist())
+    if all("prec_c" in v for v in ev.values()):
+        out["precision_c"] = np.stack([v["prec_c"] for v in ev.values()]).mean(0).tolist()
     for k in EXTRA_METRICS:
         xs = [v[k] for v in ev.values() if k in v]
         if xs:
@@ -2702,6 +2706,8 @@ def flat_eval(prefix, ev, recall=True):
     out = {f"{prefix}_{k}": ev[k] for k in EVAL_KEYS if ev.get(k) is not None}
     if recall:
         out[f"{prefix}_recall"] = [round(v, 4) for v in ev["recall"]]
+        if ev.get("precision_c") is not None:
+            out[f"{prefix}_precision_c"] = [round(v, 4) for v in ev["precision_c"]]
     return out
 
 
@@ -3067,11 +3073,12 @@ def finish(res, tracker, G):
     res.update(final_acc=last["acc"], final_bal=last["bal"], final_head=last["head"], final_medium=last["medium"],
                final_tail=last["tail"], final_worst=last["worst"], best_mean_acc=last["best_mean_acc"],
                final_recall=[round(v, 4) for v in last["recall"]],
+               final_precision_c=[round(v, 4) for v in last["precision_c"]] if last.get("precision_c") else None,
                final_ens_acc=last.get("ens_acc"), final_ens_bal=last.get("ens_bal"))
     for k in EXTRA_METRICS + ("worst_arch", "rec_std"):
         if last.get(k) is not None:
             res["final_" + k] = last[k]
-    res["history"] = [{k: (round(v, 4) if isinstance(v, float) else v) for k, v in h.items() if k != "recall"}
+    res["history"] = [{k: (round(v, 4) if isinstance(v, float) else v) for k, v in h.items() if k not in ("recall", "precision_c")}
                       for h in tracker.hist]
     return res
 
