@@ -364,3 +364,17 @@ Excluded, with the reason stated in the paper: CLIP2FL, CAPT (pretrained CLIP), 
 (public labelled data). Second priority if time allows: RUCR (TIFS 2024), FEDIC (ICME 2022), FedGH (MM 2023), LG-FedAvg.
 Implementation: authors' code (HtFLlib, LongTailLib, each method's repository) wrapped as Flower clients / strategies;
 seeds 3-5, validation-selected settings, the full metric set. Ledger check before any spec.
+
+## 14. Metrics, decided 22 Oct 2026
+
+Main table (every method, heads as trained and with the readout, mean +- SD over seeds 3-5, paired 95% CI, Holm):
+balanced accuracy, macro-F1, macro precision, MCC, G-mean, tail-class recall, worst-class recall, macro AUC-PR,
+communication per client. Secondary / appendix: accuracy, Cohen's kappa, top-5 (CIFAR-100), macro AUC-ROC,
+head / medium recall, recall SD, per-class precision / recall / F1, confusion matrices, ECE, class-wise ECE, NLL,
+Brier, worst-architecture balanced accuracy, accuracy on each client's class mix (mean, SD, minimum), rounds to target
+accuracy, wall-clock, peak GPU memory, FLOPs per round, membership-inference AUC, DP accuracy cost.
+
+To add to the evaluation code (evaluation-time only): MCC, Cohen's kappa, macro AUC-PR and AUC-ROC (final round),
+top-5, confusion matrix per readout, class-wise ECE, client-fairness spread / minimum, FLOPs, measured communication.
+Cost: all free except rounds-to-target (evaluate every 5 rounds), membership inference (ours, once per dataset, no
+training) and DP (ours only, eps = 8 and 2, two datasets: the only extra training).
