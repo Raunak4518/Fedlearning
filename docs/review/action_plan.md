@@ -329,3 +329,20 @@ FL framework; whole-generator aggregation. Full response: https://claude.ai/arti
 
 Schedule: week 1 phases 0-1 (~12 GPU h); weeks 2-3 phase 2 runs (~48 GPU h) and phase 3; weeks 4-5 phase 4 (~42 GPU h)
 and write-up.
+
+## 12. Final architecture, decided 22 Oct 2026
+
+| Component | Decision | Evidence (removing it; MNIST / FMNIST) | Cost | Privacy |
+|---|---|---|---|---|
+| Class-statistics release (n, sum h, sum ‖h‖²) | keep | required by the anchor, gate and MC | ~31 KB per client once | federation-level class means / spreads; rare-class membership AUC 0.63-0.73, DP option (eps = 8: 4.5-6.9 points) |
+| Mean anchor + F gate + class rows with HWA when F < 0.05 | keep | anchor -3.9 / -0.5 as trained; SVHN rows 65.6 vs anchor 55.8 | generator 5.9 M vs 5.5 M params | no new release; class means inside the generator |
+| Moment correction | keep | -1.1 / -0.6 as trained, -0.5 / -0.1 with ER | negligible | none new |
+| Kernel herding | **dropped** | -0.7 / -0.7 as trained, -0.26 / -0.13 with ER | ~6x head stage | removes the RFF fingerprint release |
+| Logit adjustment | keep | -3.1 / -5.8 as trained; ~0 with ER | none | prior stays on the client |
+| Consensus soft labels | keep, **computed as a secure-aggregated sum over all clients** (each client sends w_k softmax(h_k(pool)), w_k = 1 / (G n_arch)); identical to the simulation | -1.4 / -1.5 as trained, -0.4 / -0.5 with ER | 24-583 MB per client over training at T_s = 10 (<= ~6% of generator traffic) | only the federation's averaged prediction on server-generated points is revealed |
+| Exact readout | keep; **report with and without it** | GeFL-F +7 to +20; ours +9.2 CIFAR-10, +4.5 CIFAR-100, ~+1 elsewhere | one extra round, <= ~20 MB per client | bodies broadcast to all clients; class-wise embedding sums |
+| T_s | **10 everywhere** | ER: 94.6 / 81.2 / 65.5 / 53.0 / 18.7 vs T_s = 1: 93.7 / 80.6 / 65.4 / 53.1 / 17.4 | cheap once KH is dropped (MNIST head stage ~106 s vs 42 s for GeFL-F) | none |
+
+Missing for the final configuration (GATE + MC + LA + CSL, T_s = 10, no KH) on fresh seeds: MNIST s5, FMNIST s5 (s3-4 in
+K14 / K20), CIFAR-10 s5 (s3-4 in K20), SVHN s3-5, CIFAR-100 s3-5. One notebook can run these with `--save_gen`, log
+precision, and make the t-SNE / latent plots (R1). Ledger check before building.
