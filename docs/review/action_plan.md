@@ -412,3 +412,28 @@ results stay as the record; they lack the new metrics and per-round logs).
   (4) extra datasets and checks. Stage I / II models shared across methods wherever the method allows.
 - Estimate: ~1,450 runs, ~500-650 T4 GPU-hours (~4-5 months at ~30 h / week); reuse of shared stages saves 30-40% of
   Track 1.
+
+## 17. Flower implementation design (draft, 22 Oct 2026; Flower 1.42, Message API, Ray simulation)
+
+- Principle: Flower orchestrates and carries messages; models and maths are imported from `core.py` (same networks,
+  MC, readouts), and partitions come from the same seeds, so new runs pair with old ones.
+- Layout: `fedflower/` with server_app, client_app (train / query / evaluate handlers), stages/ (extractor, stats
+  release, generator, heads, readout), methods/ (ours + one plugin per baseline, common hooks), secure_sum, metrics
+  (§14), logging (§15, JSONL per round per client + TensorBoard), plots (all 55), cache (shared Stage I / II), runner
+  (run list split by helper number, resumable).
+- Rounds: Stage I FedAvg (extractor over all clients, heads within architecture) -> statistics release (secure sum of
+  n, sum h, sum ||h||^2; server computes m, V, F, gate) -> Stage II generator (plain FedAvg; class-row branch: secure sum
+  of E(n) * row and E(n)) -> MC on the server -> Stage III rounds (pool seed; secure sum of weighted pool predictions =
+  consensus; train heads; FedAvg within architecture) -> readouts (body broadcast; secure sum of per-class n, sum e,
+  sum e e^T and the CCVR / Fed3R / FedNCM statistics). Evaluation every 5 rounds through a separate evaluation channel
+  (test predictions + 1,000-image probe embeddings), excluded from communication accounting.
+- Client state: generator Adam state in `context.state` (~44 MB per client).
+- Secure aggregation: SecAgg+ (secaggplus_mod / SecAggPlusWorkflow) for every release of the method; extractor and
+  generator weights plain FedAvg as in GeFL-F. Sums sent with weight 1 and scaled by public bounds into SecAgg+'s
+  clipping range (+-8, 22-bit quantisation); acceptance test against a plain sum.
+- Kaggle: two simulations per session (one per GPU), fractional client GPU shares after a benchmark, checkpoints at stage
+  boundaries and every 10 rounds, zip after each run.
+- Verification before large runs: unit tests (secure sum, readout, metrics vs scikit-learn), equivalence of GeFL-F and
+  ours vs core.py on MNIST and CIFAR-10 seed 3, CPU smoke test of every plugin.
+- Risks: SecAgg+ precision on second moments; CCVR per-class covariances on CIFAR-100 (low-rank if needed); Ray
+  overhead; Kaggle CPU count.
