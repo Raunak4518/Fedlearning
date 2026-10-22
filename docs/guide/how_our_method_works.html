@@ -1,0 +1,742 @@
+<title>How Our Method Works</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+/* Layout: one reading column with a sticky contents rail on wide screens; every mechanism is a self-contained "card stack" */
+:root {
+  --bg: #f6f7f9;
+  --paper: #ffffff;
+  --ink: #1b2430;
+  --muted: #5a6575;
+  --line: #dde2ea;
+  --accent: #0f6e7a;
+  --accent-soft: #e3f1f2;
+  --warn: #9a5a00;
+  --warn-soft: #fbf1e1;
+  --good: #2d7a3e;
+  --good-soft: #e8f4ea;
+  --code-bg: #eef1f5;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Literata", Georgia, "Times New Roman", serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161d; --paper: #171e27; --ink: #e4e9f0; --muted: #9aa6b6; --line: #2a3441;
+    --accent: #5cc3cf; --accent-soft: #15333a; --warn: #f0b45c; --warn-soft: #33281a;
+    --good: #7bcf8c; --good-soft: #193323; --code-bg: #1f2833; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161d; --paper: #171e27; --ink: #e4e9f0; --muted: #9aa6b6; --line: #2a3441;
+  --accent: #5cc3cf; --accent-soft: #15333a; --warn: #f0b45c; --warn-soft: #33281a;
+  --good: #7bcf8c; --good-soft: #193323; --code-bg: #1f2833; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.7; }
+.wrap {
+  display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 48px; max-width: 1100px; margin: 0 auto;
+  padding-block: 40px 80px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; font-family: var(--display); font-size: 14px; }
+nav.toc p { margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.08em; font-size: 12px; color: var(--muted); }
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+nav.toc a { color: var(--ink); text-decoration: none; display: block; padding: 3px 8px; border-radius: 6px; }
+nav.toc a:hover, nav.toc a:focus-visible { background: var(--accent-soft); color: var(--accent); outline: none; }
+nav.toc .opt { color: var(--muted); }
+main { min-width: 0; max-width: 720px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.2; }
+h1 { font-size: 44px; margin: 0 0 12px; letter-spacing: -0.01em; }
+h2 { font-size: 30px; margin: 72px 0 8px; padding-top: 8px; }
+h3 { font-size: 20px; margin: 32px 0 6px; }
+.lede { font-size: 20px; color: var(--muted); margin: 0 0 28px; }
+.kicker { font-family: var(--display); font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); margin: 72px 0 0; }
+.kicker + h2 { margin-top: 4px; }
+p { margin: 0 0 14px; }
+a { color: var(--accent); }
+strong { font-weight: 600; }
+code, .mono { font-family: var(--mono); font-size: 0.88em; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+.box { border-radius: 10px; padding: 14px 18px; margin: 18px 0; border: 1px solid var(--line); background: var(--paper); }
+.box > :last-child { margin-bottom: 0; }
+.box .label { font-family: var(--display); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 6px; color: var(--muted); }
+.box.oneline { background: var(--accent-soft); border-color: transparent; font-size: 18px; }
+.box.oneline .label { color: var(--accent); }
+.box.analogy { border-left: 4px solid var(--accent); }
+.box.warn { background: var(--warn-soft); border-color: transparent; }
+.box.warn .label { color: var(--warn); }
+.box.good { background: var(--good-soft); border-color: transparent; }
+.box.good .label { color: var(--good); }
+details.math { border: 1px solid var(--line); border-radius: 10px; margin: 18px 0; background: var(--paper); }
+details.math summary { cursor: pointer; padding: 12px 18px; font-family: var(--display); font-weight: 500; list-style: none; }
+details.math summary::-webkit-details-marker { display: none; }
+details.math summary::before { content: "+"; display: inline-block; width: 1.2em; color: var(--accent); font-weight: 700; }
+details.math[open] summary::before { content: "\2212"; }
+details.math summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 10px; }
+details.math .inner { padding: 0 18px 14px; }
+ol.steps { padding-left: 1.4em; margin: 0 0 14px; }
+ol.steps li { margin-bottom: 8px; }
+ul { padding-left: 1.3em; margin: 0 0 14px; }
+li { margin-bottom: 4px; }
+.scroll { overflow-x: auto; margin: 18px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; font-family: var(--display); }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 500; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; }
+td.num { font-variant-numeric: tabular-nums; }
+.math-display { overflow-x: auto; overflow-y: hidden; }
+math[display="block"] { margin: 10px 0; font-size: 1.08em; }
+figure { margin: 24px 0; }
+figure svg { width: 100%; height: auto; display: block; }
+figcaption { font-size: 14px; color: var(--muted); margin-top: 6px; font-family: var(--display); }
+svg .stroke { stroke: var(--ink); }
+svg .acc { stroke: var(--accent); }
+svg .fill-paper { fill: var(--paper); }
+svg .fill-acc { fill: var(--accent-soft); }
+svg .fill-warn { fill: var(--warn-soft); }
+svg .txt { fill: var(--ink); font-family: var(--display); font-size: 13px; }
+svg .txt-m { fill: var(--muted); font-family: var(--display); font-size: 12px; }
+svg .txt-a { fill: var(--accent); font-family: var(--display); font-size: 12px; font-weight: 700; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 18px; }
+.chip { font-family: var(--display); font-size: 14px; background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; }
+.chip b { color: var(--accent); font-weight: 500; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 48px 0; }
+@media (max-width: 860px) {
+  .wrap { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  nav.toc { position: static; margin-bottom: 24px; border: 1px solid var(--line); border-radius: 10px; padding: 12px; background: var(--paper); }
+  h1 { font-size: 34px; }
+  h2 { font-size: 25px; }
+  body { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+html { scroll-behavior: smooth; }
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <p>Contents</p>
+  <ol>
+    <li><a href="#big-picture">The big picture</a></li>
+    <li><a href="#base">The system we build on</a></li>
+    <li><a href="#sums">The one big idea: sums</a></li>
+    <li><a href="#stats">1. Count and sum</a></li>
+    <li><a href="#gate">2. Are classes far apart?</a></li>
+    <li><a href="#anchor">3. The anchored generator</a></li>
+    <li><a href="#hwa">3b. Plan B: holder-only averaging</a></li>
+    <li><a href="#mc">4. Fix centre and size</a></li>
+    <li><a href="#kh" class="opt">Optional: kernel herding</a></li>
+    <li><a href="#csl">5a. Consensus labels</a></li>
+    <li><a href="#la">5b. Logit adjustment</a></li>
+    <li><a href="#er">6. Exact readout</a></li>
+    <li><a href="#recipe">The whole recipe</a></li>
+    <li><a href="#reference">Quick reference</a></li>
+  </ol>
+</nav>
+
+<main>
+<h1>How our method works</h1>
+<p class="lede">A plain-language walk through every part of our method: what problem each part solves, what it does step by step, and the maths behind it, explained line by line.</p>
+
+<div class="box">
+<p class="label">How to read this</p>
+<p>Each part follows the same pattern: <strong>in one sentence</strong>, <strong>the problem</strong>, <strong>how it works</strong>, a <strong>tiny example</strong>, and then <strong>the maths</strong> in a fold-out box. You can skip the maths on a first read and still understand everything. Only our method is described here, nothing else.</p>
+</div>
+
+<!-- ================================================================== -->
+<h2 id="big-picture">The big picture</h2>
+
+<p>Several hospitals (we call them <em>clients</em>) want to train image classifiers together without sharing their data. Each one runs a <strong>different</strong> model architecture, so they cannot just average their models. And their data is <strong>long-tailed</strong>: a few classes are very common and many are rare, and every hospital sees a different mix.</p>
+
+<p>Under these conditions, three things go wrong:</p>
+<ol class="steps">
+  <li><strong>The shared generator forgets rare classes.</strong> The generator makes fake training examples for everyone. Its memory of rare classes fades to nothing during training.</li>
+  <li><strong>Each model's last layer is biased.</strong> A hospital that has never seen a class learns never to predict it.</li>
+  <li><strong>Bad fake examples teach the wrong lesson.</strong> If a fake example of a class does not actually look like that class, training on it makes the model unsure instead of better.</li>
+</ol>
+
+<div class="box oneline">
+<p class="label">The one idea behind every fix</p>
+<p>Whenever an answer depends on the data, compute it from <strong>sums over all clients</strong>, which the server can get exactly and privately, instead of from <strong>averaged models</strong>, which are only approximations.</p>
+</div>
+
+<p>Our method has six steps (plus one optional extra). Here is where each one fits:</p>
+
+<figure>
+<svg viewBox="0 0 720 250" role="img" aria-label="Pipeline: Stage I feature extractor, then class statistics, Stage II generator, sampler, Stage III client training, final exact readout">
+  <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker></defs>
+  <rect x="10" y="20" width="150" height="70" rx="10" class="fill-paper stroke" stroke-width="1.2"/>
+  <text x="85" y="48" text-anchor="middle" class="txt">Stage I</text>
+  <text x="85" y="68" text-anchor="middle" class="txt-m">feature extractor</text>
+  <rect x="200" y="20" width="150" height="70" rx="10" class="fill-paper stroke" stroke-width="1.2"/>
+  <text x="275" y="48" text-anchor="middle" class="txt">Stage II</text>
+  <text x="275" y="68" text-anchor="middle" class="txt-m">fake-feature generator</text>
+  <rect x="390" y="20" width="150" height="70" rx="10" class="fill-paper stroke" stroke-width="1.2"/>
+  <text x="465" y="48" text-anchor="middle" class="txt">Stage III</text>
+  <text x="465" y="68" text-anchor="middle" class="txt-m">each client's model</text>
+  <rect x="580" y="20" width="130" height="70" rx="10" class="fill-acc acc" stroke-width="1.6"/>
+  <text x="645" y="48" text-anchor="middle" class="txt">Finish</text>
+  <text x="645" y="68" text-anchor="middle" class="txt-m">final last layer</text>
+  <line x1="160" y1="55" x2="198" y2="55" class="acc" stroke-width="1.6" marker-end="url(#ah)"/>
+  <line x1="350" y1="55" x2="388" y2="55" class="acc" stroke-width="1.6" marker-end="url(#ah)"/>
+  <line x1="540" y1="55" x2="578" y2="55" class="acc" stroke-width="1.6" marker-end="url(#ah)"/>
+  <text x="180" y="125" text-anchor="middle" class="txt-a">1 count &amp; sum</text>
+  <text x="180" y="143" text-anchor="middle" class="txt-a">2 gate</text>
+  <line x1="180" y1="105" x2="180" y2="92" class="acc" stroke-width="1.2"/>
+  <text x="275" y="125" text-anchor="middle" class="txt-a">3 anchored</text>
+  <text x="275" y="143" text-anchor="middle" class="txt-a">generator</text>
+  <line x1="275" y1="105" x2="275" y2="92" class="acc" stroke-width="1.2"/>
+  <text x="372" y="190" text-anchor="middle" class="txt-a">4 fix centre</text>
+  <text x="372" y="208" text-anchor="middle" class="txt-a">&amp; size</text>
+  <text x="372" y="226" text-anchor="middle" class="txt-m">(+ optional herding)</text>
+  <line x1="372" y1="172" x2="372" y2="58" class="acc" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <text x="465" y="125" text-anchor="middle" class="txt-a">5a consensus labels</text>
+  <text x="465" y="143" text-anchor="middle" class="txt-a">5b logit adjustment</text>
+  <line x1="465" y1="105" x2="465" y2="92" class="acc" stroke-width="1.2"/>
+  <text x="645" y="125" text-anchor="middle" class="txt-a">6 exact readout</text>
+  <line x1="645" y1="105" x2="645" y2="92" class="acc" stroke-width="1.2"/>
+</svg>
+<figcaption>The three stages of the base system (boxes) and where each of our steps plugs in (blue labels).</figcaption>
+</figure>
+
+<!-- ================================================================== -->
+<h2 id="base">The system we build on</h2>
+
+<p>Our method sits inside an existing three-stage system. You only need to know these pieces:</p>
+
+<ul>
+  <li><strong>Stage I: the feature extractor.</strong> A small network that every client shares. It turns each image into a <em>feature</em>: a list of numbers that describes the image (768 numbers for MNIST). Everyone trains it together, then it is frozen. From here on, everything works on features, not images.</li>
+  <li><strong>Stage II: the generator.</strong> A network that, given a class name (say "class 7"), produces a <em>fake feature</em> that should look like a real feature of that class. Everyone trains it together by <strong>FedAvg</strong>: each client trains its own copy for a while, then the server averages all the copies into one.</li>
+  <li><strong>Stage III: each client's own model.</strong> Every client has a private classifier of its own architecture. It has a <em>body</em> (turns a feature into an internal summary) and a <em>last layer</em> (turns that summary into one score per class, called <em>logits</em>; the biggest score is the prediction). Each round, the client trains it first on fake features, then on its own real features.</li>
+</ul>
+
+<p>Words you will meet:</p>
+<div class="chips">
+  <span class="chip"><b>class</b> a category, e.g. a digit</span>
+  <span class="chip"><b>client</b> one data owner</span>
+  <span class="chip"><b>round</b> train locally, then average</span>
+  <span class="chip"><b>logits</b> one score per class</span>
+  <span class="chip"><b>secure aggregation</b> server sees only the total</span>
+  <span class="chip"><b>balanced accuracy</b> average accuracy over classes</span>
+</div>
+
+<p><strong>Secure aggregation</strong> is a cryptographic protocol: each client sends a scrambled number, and the scrambling cancels out when everything is added up. The server learns the <strong>total</strong> and nothing about any single client's contribution. Every piece of information our method sends uses it.</p>
+
+<!-- ================================================================== -->
+<h2 id="sums">The one big idea: sums are exact</h2>
+
+<p>Two simple facts explain why our method relies so much on sums.</p>
+
+<h3>Fact 1: a "7" is a "7" everywhere</h3>
+<p>Clients differ in <strong>how many</strong> examples of each class they have, not in <strong>what</strong> each class looks like. A rare class at one hospital looks the same as that class at another hospital; there is just less of it. (This is true because each client's examples of a class are a random handful of all the examples of that class.)</p>
+<p>So if we want "the average feature of class 7", every client's class-7 data points to the same answer. Nothing about splitting data across clients makes that answer wrong; it only makes it harder to compute.</p>
+
+<h3>Fact 2: adding up does not care who holds what</h3>
+<p>If each client adds up its own numbers and the server adds up the clients' totals, the result is exactly the total you would get with all the data in one place. Addition does not care about the order or the grouping.</p>
+
+<div class="box analogy">
+<p class="label">Analogy</p>
+<p>Three shops each count the apples they sold. Head office adds the three counts. The answer is exactly the number of apples sold, no matter how the customers were spread across shops. Averaging models is different: it is like asking each shop to guess the company's best-selling fruit and averaging the guesses.</p>
+</div>
+
+<p>So the rule is: <strong>anything we can compute from sums, we compute from sums.</strong> It is then exactly what a central server with all the data would compute.</p>
+
+<details class="math">
+<summary>The maths, in one line</summary>
+<div class="inner">
+<p>If a quantity depends on the data only through a sum</p>
+$$S = \sum_{\text{clients } k}\ \sum_{\text{examples } i \text{ of } k} T(x_i, y_i),$$
+<p>then it is the same for every way of splitting the data across clients, because addition is associative and commutative. That is the whole proof.</p>
+</div>
+</details>
+
+<!-- ================================================================== -->
+<p class="kicker">Step 1 · once, after Stage I</p>
+<h2 id="stats">Count and sum</h2>
+
+<div class="box oneline">
+<p class="label">In one sentence</p>
+<p>Each client sends three simple totals per class, and the server works out the exact average feature and the exact spread of every class.</p>
+</div>
+
+<h3>The problem</h3>
+<p>Later steps need to know, for every class, <strong>where its features are</strong> (the centre) and <strong>how spread out they are</strong>. No client can tell on its own, especially for rare classes it barely has.</p>
+
+<h3>How it works</h3>
+<ol class="steps">
+  <li>For every class, each client computes: how many examples it has, the sum of their features, and the sum of their squared lengths.</li>
+  <li>Secure aggregation adds these up across clients. The server gets the three totals per class and nothing else.</li>
+  <li>The server computes the class <strong>mean</strong> (the centre) and the class <strong>spread</strong> (how far examples are from the centre, on average).</li>
+</ol>
+
+<h3>Tiny example</h3>
+<p>A class has three examples in total, with 2-number features: client A has <span class="mono">(1, 0)</span> and <span class="mono">(3, 0)</span>; client B has <span class="mono">(2, 3)</span>.</p>
+<div class="scroll"><table>
+<thead><tr><th></th><th>count</th><th>sum of features</th><th>sum of squared lengths</th></tr></thead>
+<tbody>
+<tr><td>Client A sends</td><td class="num">2</td><td class="num">(4, 0)</td><td class="num">1 + 9 = 10</td></tr>
+<tr><td>Client B sends</td><td class="num">1</td><td class="num">(2, 3)</td><td class="num">4 + 9 = 13</td></tr>
+<tr><td>Server receives</td><td class="num">3</td><td class="num">(6, 3)</td><td class="num">23</td></tr>
+</tbody></table></div>
+<p>Mean = (6, 3) / 3 = <strong>(2, 1)</strong>. Spread = 23/3 − (2² + 1²) = 7.67 − 5 = <strong>2.67</strong>. If you compute these directly from the three points, you get the same numbers.</p>
+
+<details class="math">
+<summary>The maths</summary>
+<div class="inner">
+<p>For class \(c\), the server receives the count \(n_c\), the feature sum \(S_c=\sum h\) and the sum of squared lengths \(Q_c=\sum\lVert h\rVert^2\). Then</p>
+$$m_c = \frac{S_c}{n_c}, \qquad V_c = \frac{Q_c}{n_c} - \lVert m_c\rVert^2 .$$
+<p><strong>Why the spread formula works.</strong> The spread is the average squared distance from the mean, \(V_c = \text{average of } \lVert h - m_c\rVert^2\). Expanding the square: \(\lVert h-m_c\rVert^2 = \lVert h\rVert^2 - 2\langle h, m_c\rangle + \lVert m_c\rVert^2\). Averaging, the middle term becomes \(-2\lVert m_c\rVert^2\) (because the average of \(h\) is \(m_c\)), so \(V_c = \text{avg}\lVert h\rVert^2 - \lVert m_c\rVert^2 = Q_c/n_c - \lVert m_c\rVert^2\).</p>
+</div>
+</details>
+
+<div class="box warn">
+<p class="label">Watch out</p>
+<p>For a very rare class, the mean is an average over only a few examples, so it can reveal whether a particular example was in the data. If that matters, add a little random noise to the totals before sending (a standard privacy technique called differential privacy).</p>
+</div>
+
+<!-- ================================================================== -->
+<p class="kicker">Step 2 · once, before Stage II</p>
+<h2 id="gate">Are the classes far apart? (the gate)</h2>
+
+<div class="box oneline">
+<p class="label">In one sentence</p>
+<p>Using the totals from Step 1, the server checks whether class centres are far enough apart to tell classes apart, and picks the type of generator accordingly.</p>
+</div>
+
+<h3>The problem</h3>
+<p>Our generator in Step 3 tells classes apart <strong>only</strong> by their centres. That works when the centres are far apart. If two classes have almost the same centre, it cannot make them look different, no matter how long it trains.</p>
+
+<h3>How it works</h3>
+<ol class="steps">
+  <li>Measure how far class centres are from each other, on average.</li>
+  <li>Divide by how spread out each class is, on average. Call the result \(F\) (for "separation").</li>
+  <li>If \(F \ge 0.05\): use the anchored generator (Step 3). If \(F &lt; 0.05\): use Plan B (Step 3b).</li>
+</ol>
+
+<div class="box analogy">
+<p class="label">Analogy</p>
+<p>You can tell two towns apart by their location only if they are far apart compared with their size. Two towns whose centres are 100 m apart but which each sprawl for 10 km cannot be told apart by "where is the centre".</p>
+</div>
+
+<p>In our data, \(F\) is large for MNIST, FashionMNIST and CIFAR-100, borderline for CIFAR-10 (where both choices give the same accuracy), and tiny for SVHN (house-number digits look alike on average). So Plan B is used only on SVHN.</p>
+
+<details class="math">
+<summary>The maths</summary>
+<div class="inner">
+<p>With \(\bar m\) the average of all class centres,</p>
+$$F = \frac{\text{average of } \lVert m_c - \bar m\rVert^2}{\text{average of } V_c} .$$
+<p>Two class centres are then, on average, about \(\sqrt{2F}\) "spreads" apart. On SVHN that is only 10–15% of a spread.</p>
+<p><strong>Why a centre-based generator fails when \(F\) is small.</strong> Our generator makes a class-\(c\) sample as \(X_c = \mathrm{ReLU}\big(m_c + g(Z, A m_c)\big)\), where the random input \(Z\) is the same kind of noise for every class. Use the <em>same</em> \(Z\) for two classes \(c\) and \(c'\). The two samples differ only because \(m_c \ne m_{c'}\), and a smooth network can only turn a small input difference into a proportionally small output difference:</p>
+$$\lVert X_c - X_{c'}\rVert \le (1 + L\lVert A\rVert)\,\lVert m_c - m_{c'}\rVert .$$
+<p>(\(L\) measures how sharply the network can change.) So if two centres are close, the two classes' fake samples are close too, and the generator cannot separate them.</p>
+</div>
+</details>
+
+<!-- ================================================================== -->
+<p class="kicker">Step 3 · Stage II</p>
+<h2 id="anchor">The anchored generator</h2>
+
+<div class="box oneline">
+<p class="label">In one sentence</p>
+<p>Instead of letting the generator <em>learn</em> a memory slot for each class (which fades for rare classes), we <em>give</em> it the exact class centre from Step 1, so there is nothing class-specific left to fade.</p>
+</div>
+
+<h3>The problem: rare classes fade away</h3>
+<p>A standard generator stores each class in its own <strong>class row</strong>: a list of 512 learned numbers that tells it "make class 7". The length of this row is, roughly, how strongly the generator remembers the class.</p>
+
+<p>During each round, every client trains its copy of the generator. Here is the catch:</p>
+<ul>
+  <li>A client that <strong>has</strong> class 7 uses the row to fit its data. This barely changes the row's length.</li>
+  <li>A client that <strong>does not have</strong> class 7 never sees it, but its optimiser still applies <em>weight decay</em> (a small "shrink every number a bit" rule meant to prevent overfitting). With the <strong>Adam</strong> optimiser, this shrinking happens at full speed (explained below).</li>
+  <li>The server then averages all the copies. The shrunken copies drag the average down.</li>
+</ul>
+
+<div class="box analogy">
+<p class="label">Analogy: a tug of war</p>
+<p>The clients that hold the class pull the row gently; the clients that lack it pull it towards zero hard. Even if most clients hold the class, the hard pullers win, and round after round the row shrinks until the generator has forgotten the class. On MNIST the three rarest classes' rows shrank to 4–10% of their starting length, although at least 7 of the 10 clients held each of them.</p>
+</div>
+
+<h3>Why Adam makes the shrinking fast</h3>
+<p>Normally, a tiny weight decay means tiny shrinking. But Adam rescales every step to roughly the same size (the learning rate), no matter how small the push is. A client without class 7 sees only the "shrink" push, so Adam turns it into a <strong>full-size step towards zero</strong>, every step.</p>
+
+<h3>A rule that predicts which classes fade</h3>
+<p>Count, for a class, how many training steps can <em>grow</em> its row (steps by clients that hold it, on batches that contain it) versus how many steps <em>shrink</em> it (all steps by clients that do not hold it). Call the ratio \(\kappa\) ("kappa"). If \(\kappa &lt; 1\), shrinking wins and the class fades. This needs only the class counts, so it can be computed <strong>before training</strong>. In our runs it was right for all 352 rows it flagged, and for 16 of 16 rows in a test written down before the runs.</p>
+
+<details class="math">
+<summary>The maths of the fading</summary>
+<div class="inner">
+<p><strong>One round of averaging.</strong> Let \(r\) be the class row before the round and \(r_k\) client \(k\)'s copy after it. The average is \(r^+ = \frac1K\sum_k r_k\). The length of an average is at most the average of the lengths:</p>
+$$\lVert r^+\rVert \le \lVert r\rVert + p\,\bar G - (1-p)\,\bar D .$$
+<p>Here \(p\) is the share of clients that hold the class, \(\bar G\) is how much a holder grows the row on average, and \(\bar D\) is how much a non-holder shrinks it. If \(\bar D\) is much bigger than \(\bar G\), the right side is below \(\lVert r\rVert\): the row gets shorter, even when \(p\) is large.</p>
+<p><strong>The counting rule.</strong> Each Adam step moves a number by about the learning rate \(\eta\). A non-holder \(k\) takes \(\tau_k\) steps, all towards zero. A holder takes \(\tau_k f_{kc}\) useful steps, where \(f_{kc}\) is the chance that one of its batches contains the class. So</p>
+$$\kappa_c = \frac{\text{steps that can grow the row}}{\text{steps that shrink it}} = \frac{\sum_{\text{holders}} \tau_k f_{kc}}{\sum_{\text{non-holders}} \tau_k} .$$
+<p>If \(\kappa_c &lt; 1\), the average movement of every number in the row is towards zero, so the row collapses.</p>
+</div>
+</details>
+
+<h3>The fix: anchor the generator to the exact centre</h3>
+<ol class="steps">
+  <li>Store the exact class centres \(m_c\) from Step 1 inside the generator, as fixed values (never trained).</li>
+  <li>The generator's encoder sees a real feature <em>and</em> its class centre.</li>
+  <li>The decoder only learns the <strong>offset</strong> from the centre: a fake feature = class centre + learned variation.</li>
+  <li>The class centre enters through a <strong>shared</strong> layer, the same for every class.</li>
+  <li>Train it exactly as before (every client trains its copy; the server averages).</li>
+</ol>
+
+<p><strong>Why this fixes the fading:</strong> there is no longer any number that belongs to one class only. Every learned number is shared by all classes and is updated by every client, so no client has a reason to shrink it. A rare class gets its <em>position</em> from its exact centre and borrows the <em>shape</em> of its variation from all the other classes.</p>
+
+<details class="math">
+<summary>The maths of the anchored generator</summary>
+<div class="inner">
+<p>To make a fake feature of class \(y\): draw random noise \(z\) (16 numbers; 50 for CIFAR) from a standard normal distribution, then</p>
+$$\tilde h = \mathrm{ReLU}\big(m_y + \mathrm{dec}(\,W z + P m_y\,)\big),$$
+<p>where \(W\) and \(P\) are shared layers and \(\mathrm{dec}\) is the shared decoder network. ReLU sets negative numbers to zero (real features are never negative). Training uses the usual variational-autoencoder loss: how well it reconstructs real features, plus a term that keeps \(z\) close to standard noise.</p>
+</div>
+</details>
+
+<div class="box warn">
+<p class="label">Its limit</p>
+<p>The centre tells the generator <em>where</em> a class is, but nothing forces it to make classes look different when their centres are close. That is why Step 2 checks \(F\) first.</p>
+</div>
+
+<!-- ================================================================== -->
+<p class="kicker">Step 3b · Stage II, only when \(F &lt; 0.05\)</p>
+<h2 id="hwa">Plan B: class rows with holder-only averaging</h2>
+
+<div class="box oneline">
+<p class="label">In one sentence</p>
+<p>When class centres are too close to use, keep the learned class rows, but average each class's row only over the clients that actually have that class.</p>
+</div>
+
+<h3>The problem</h3>
+<p>On data like SVHN, class centres carry almost no information, so the generator needs its own learned class rows. But learned rows fade (Step 3).</p>
+
+<h3>How it works</h3>
+<ol class="steps">
+  <li>Every client trains its copy of the generator as usual.</li>
+  <li>All the shared parts are averaged over all clients, as usual.</li>
+  <li>Each <strong>class row</strong> is averaged only over clients that hold that class, giving more weight to clients with more examples.</li>
+</ol>
+<p>The clients that only shrank the row are simply left out, so the tug of war is gone.</p>
+
+<h3>Tiny example</h3>
+<p>Three clients have 0, 5 and 50 examples of a class. Ordinary averaging gives each client's row weight ⅓, including the shrunken copy from the client with 0 examples. Holder-only averaging gives that client weight 0 and splits the rest between the other two, roughly 5 : 50.</p>
+
+<details class="math">
+<summary>The maths</summary>
+<div class="inner">
+$$r_c \leftarrow \frac{\sum_k E(n_{kc})\, r_{k,c}}{\sum_k E(n_{kc})}, \qquad E(n) = \frac{1-\beta^{\,n}}{1-\beta}, \quad \beta = 0.999 .$$
+<p>\(E(n)\) is the "effective number of examples". It is 0 when \(n = 0\), close to \(n\) for small \(n\), and levels off for very large \(n\) (it never exceeds 1000). So non-holders get weight 0, and big holders do not completely drown out small ones.</p>
+<p><strong>A second benefit.</strong> Even without weight decay, ordinary averaging slows a rare row down: if only 2 of 10 clients move it, the average moves only 2/10 as far. Holder-only averaging removes that slowdown, and it weights clients by how much data they have, which gives a more accurate row.</p>
+<p><strong>Privacy.</strong> The server needs only two totals per class, \(\sum_k E(n_{kc}) r_{k,c}\) and \(\sum_k E(n_{kc})\), so it works with secure aggregation and never sees any single client's row or counts.</p>
+</div>
+</details>
+
+<!-- ================================================================== -->
+<p class="kicker">Step 4 · when drawing fake features</p>
+<h2 id="mc">Fix the centre and the size (moment correction)</h2>
+
+<div class="box oneline">
+<p class="label">In one sentence</p>
+<p>Shift and stretch each class's fake features so that their centre and spread exactly match the real ones from Step 1, while changing them as little as possible.</p>
+</div>
+
+<h3>The problem</h3>
+<p>Generators like ours tend to produce fake examples that are <strong>too similar to each other</strong> (too little spread), and for rare classes their centre is often <strong>slightly off</strong>. A model trained on such fakes learns a class that is too narrow and in the wrong place.</p>
+
+<h3>How it works</h3>
+<ol class="steps">
+  <li>After Stage II, draw 500 fake features per class and measure their centre and spread.</li>
+  <li>Compute a stretch factor: real spread divided by fake spread (square-rooted).</li>
+  <li>From then on, every fake feature is moved: take its offset from the fake centre, stretch it by that factor, and add it to the real centre.</li>
+</ol>
+
+<figure>
+<svg viewBox="0 0 640 210" role="img" aria-label="Before: a small cluster of fake points off-centre; after: the cluster moved to the real centre and enlarged to the real size">
+  <text x="160" y="22" text-anchor="middle" class="txt">Before</text>
+  <text x="480" y="22" text-anchor="middle" class="txt">After moment correction</text>
+  <circle cx="180" cy="115" r="62" fill="none" class="acc" stroke-width="1.6" stroke-dasharray="5 4"/>
+  <circle cx="180" cy="115" r="3.5" fill="var(--accent)"/>
+  <text x="180" y="196" text-anchor="middle" class="txt-m">dashed: real class (centre and size)</text>
+  <g fill="var(--warn)">
+    <circle cx="128" cy="105" r="3.5"/><circle cx="140" cy="94" r="3.5"/><circle cx="150" cy="112" r="3.5"/>
+    <circle cx="134" cy="122" r="3.5"/><circle cx="118" cy="114" r="3.5"/><circle cx="144" cy="100" r="3.5"/>
+    <circle cx="125" cy="96" r="3.5"/><circle cx="138" cy="116" r="3.5"/>
+  </g>
+  <text x="104" y="76" class="txt-m">fakes: narrow, off-centre</text>
+  <circle cx="480" cy="115" r="62" fill="none" class="acc" stroke-width="1.6" stroke-dasharray="5 4"/>
+  <circle cx="480" cy="115" r="3.5" fill="var(--accent)"/>
+  <g fill="var(--warn)">
+    <circle cx="456" cy="115" r="3.5"/><circle cx="492" cy="73" r="3.5"/><circle cx="532" cy="139" r="3.5"/>
+    <circle cx="468" cy="157" r="3.5"/><circle cx="420" cy="130" r="3.5"/><circle cx="510" cy="94" r="3.5"/>
+    <circle cx="444" cy="82" r="3.5"/><circle cx="500" cy="145" r="3.5"/>
+  </g>
+  <text x="480" y="196" text-anchor="middle" class="txt-m">same pattern, moved and stretched</text>
+</svg>
+<figcaption>Moment correction keeps the <em>pattern</em> of the fake examples and only fixes where they sit and how big the cloud is.</figcaption>
+</figure>
+
+<h3>Tiny example</h3>
+<p>The fakes of a rare class have centre (1, 1) and spread 0.5; the real class has centre (2, 1) and spread 2. The stretch factor is √(2 / 0.5) = 2. A fake at (1.5, 0.5) is 0.5 right and 0.5 down from the fake centre. Stretched: 1 right and 1 down. Added to the real centre: <strong>(3, 0)</strong>.</p>
+
+<details class="math">
+<summary>The maths, and why it is the smallest possible change</summary>
+<div class="inner">
+<p>For a fake feature \(x\) of class \(c\), with fake centre \(\tilde m_c\) and fake spread \(\tilde V_c\):</p>
+$$x' = \mathrm{ReLU}\Big(m_c + s_c\,(x - \tilde m_c)\Big), \qquad s_c = \sqrt{V_c / \tilde V_c} .$$
+<p>(The stretch \(s_c\) is kept between 0.1 and 10 for safety, and ReLU keeps features non-negative.)</p>
+<p><strong>Why this particular map?</strong> Many maps would give the right centre and spread. This one moves the fake examples the least. Here is the argument in plain steps. Call the corrected sample \(Y\) and the original \(X\). The average squared distance moved is</p>
+$$\text{avg}\,\lVert Y - X\rVert^2 = V + \tilde V + \lVert m - \tilde m\rVert^2 - 2\cdot\text{avg}\,\langle Y - m,\ X - \tilde m\rangle .$$
+<p>The first three terms are fixed by the targets. To move the samples as little as possible, we want the last average as <em>large</em> as possible: \(Y\)'s offset from its centre should point the same way as \(X\)'s offset. The Cauchy–Schwarz inequality says this average can be at most \(\sqrt{V\tilde V}\), and it reaches that only when \(Y - m\) is exactly \(X - \tilde m\) scaled by \(\sqrt{V/\tilde V}\). That is our map.</p>
+</div>
+</details>
+
+<div class="box warn">
+<p class="label">Its limit</p>
+<p>It fixes position and size, but it cannot make two classes look different if the generator made them the same. And after the ReLU the match is close but not perfect.</p>
+</div>
+
+<!-- ================================================================== -->
+<p class="kicker">Optional extra · when drawing fake features</p>
+<h2 id="kh">Kernel herding (optional)</h2>
+
+<div class="box oneline">
+<p class="label">In one sentence</p>
+<p>Draw four times as many fake features as needed and keep the subset whose overall "fingerprint" best matches the real class's fingerprint.</p>
+</div>
+
+<h3>How it works</h3>
+<ol class="steps">
+  <li>Each client also sends, per class, the sum of a fixed random "fingerprint" of each feature (6,144 numbers made from cosines of random projections). The server divides by the count to get each class's average fingerprint.</li>
+  <li>When \(n\) fakes are needed, draw \(4n\) moment-corrected candidates.</li>
+  <li>Pick them one at a time: each time, take the candidate that brings the average fingerprint of the picked set closest to the real class's fingerprint.</li>
+</ol>
+
+<details class="math">
+<summary>The maths</summary>
+<div class="inner">
+<p>The fingerprint is \(\varphi(h) = \sqrt{2/D}\,\cos(\Omega h + b)\) with random \(\Omega, b\) and \(D = 6144\). The class fingerprint is \(\mu_c = \frac{1}{n_c}\sum \varphi(h)\). The distance between two fingerprints measures how different two distributions are (it is called the MMD).</p>
+<p>Greedy picking: start with \(w = \mu_c\). Repeat: pick the unpicked candidate with the largest \(\langle \varphi_i, w\rangle\), then update \(w \leftarrow w + \mu_c - \varphi_{\text{picked}}\). The vector \(w\) always points from the current selection towards the target, so each pick moves the selection's fingerprint towards the real one.</p>
+</div>
+</details>
+
+<div class="box good">
+<p class="label">Why it is optional</p>
+<p>It does help, but very little: about +0.1 to +0.4 points of accuracy, consistently. In exchange, it makes the client-training stage about <strong>6 times slower</strong>. Fakes that are closer in distribution are not necessarily more useful to the classifier. Use it only when time does not matter.</p>
+</div>
+
+<!-- ================================================================== -->
+<p class="kicker">Step 5 · Stage III, every round</p>
+<h2 id="csl">5a. Consensus labels for fake features</h2>
+
+<div class="box oneline">
+<p class="label">In one sentence</p>
+<p>Label each fake feature half by the class it was made for and half by what all the clients' models together think it looks like.</p>
+</div>
+
+<h3>The problem: a fake that carries no class teaches "be unsure"</h3>
+<p>Suppose a fake "class 3" feature does not actually look like class 3; it looks like nothing in particular. You still train on it with the label "3". Then on another equally meaningless fake with label "8", and so on, with random labels. What does the model learn from this? Not nothing: it learns to <strong>give every class the same score</strong> on such features, that is, to be unsure. And since the fakes sit where the real data sit, this uncertainty spills onto real examples.</p>
+
+<p>We call the share of fakes that really carry their class the <strong>signal fraction</strong>. When it is near 0, the fake phase hurts; when it is high, it helps. Steps 3 and 4 raise the signal fraction. This step reduces the harm from the fakes that are still wrong.</p>
+
+<details class="math">
+<summary>The maths: random labels = "make all scores equal"</summary>
+<div class="inner">
+<p>For logits \(f_1,\dots,f_C\), cross-entropy with label \(y\) is \(\mathrm{LSE}(f) - f_y\), where \(\mathrm{LSE}(f) = \log\sum_c e^{f_c}\). If the label is random and unrelated to the feature, average over all \(C\) labels:</p>
+$$\text{avg}_y\big[\mathrm{LSE}(f) - f_y\big] = \mathrm{LSE}(f) - \bar f \;\approx\; \log C + \frac{1}{2C}\sum_c (f_c - \bar f)^2 ,$$
+<p>where \(\bar f\) is the average logit. The right side is smallest when all logits are equal. So training on label-free fakes is the same as adding a penalty for <em>any</em> difference between class scores.</p>
+<p>If a share \(s\) of fakes carries its label and the rest do not, the fake-phase loss is \(s \times\) (a useful loss) \(+ (1-s) \times\) (this penalty). That is why the signal fraction decides whether fakes help or hurt.</p>
+</div>
+</details>
+
+<h3>How it works</h3>
+<ol class="steps">
+  <li>Each round, the server draws one shared batch of fake features with random classes (from a shared random seed, so clients can recreate it).</li>
+  <li>Every architecture's current model scores the batch. The server averages their predicted probabilities (a sum, so secure aggregation works).</li>
+  <li>The training target for each fake is <strong>half</strong> its generated class and <strong>half</strong> that average prediction.</li>
+  <li>Each client trains its model on the fakes for \(T_s\) epochs with these soft targets.</li>
+</ol>
+
+<h3>Tiny example</h3>
+<p>A fake made as "class 3" looks somewhat like a 5. The models together say: 3 with 40%, 5 with 50%, other 10%. The target becomes 70% "3", 25% "5", 5% other. The model still learns that this is mostly a 3, but it is not forced to be 100% sure about an ambiguous example.</p>
+
+<details class="math">
+<summary>The maths: why half-and-half</summary>
+<div class="inner">
+$$t(\tilde h) = (1-\beta)\, e_y + \beta\, \bar p(\tilde h), \qquad \bar p(\tilde h) = \frac{1}{G}\sum_{g=1}^{G}\mathrm{softmax}\,h_g(\tilde h), \qquad \beta = 0.5 .$$
+<p>\(e_y\) is the one-hot label (100% on class \(y\)), and \(\bar p\) is the average of the \(G\) architectures' predictions.</p>
+<p><strong>Why mix at all?</strong> The ideal label for a fake is what it truly looks like. The generated class is sometimes wrong; the models' average is a better guess for odd-looking fakes, and averaging many different models cancels some of their individual mistakes. <strong>Why not 100% models?</strong> If all models share the same mistake, the one-hot half limits the damage.</p>
+<p><strong>Why it lets fakes help more.</strong> Think of a model learning from \(n_r\) real examples and some fake examples whose labels are off by a bias \(b\). With \(w\) the share of the weight given to fakes, the error is</p>
+$$\text{error}(w) = \frac{\sigma^2 (1-w)}{n_r} + w^2 b^2 .$$
+<p>The first term falls as fakes are added (more data, less noise); the second rises (more label bias). The best share is \(w^\star = \sigma^2 / (2 n_r b^2)\): the smaller the label bias \(b\), the more fakes are worth using. Better labels make more fake training useful.</p>
+</div>
+</details>
+
+<!-- ================================================================== -->
+<h2 id="la">5b. Logit adjustment on real data</h2>
+
+<div class="box oneline">
+<p class="label">In one sentence</p>
+<p>When a client trains on its own real data, it adds its own class frequencies to the scores, so it stops pushing down the classes it does not have and does not erase what the fakes taught it.</p>
+</div>
+
+<h3>The problem</h3>
+<p>Each round, a client first learns about all classes from fakes, then trains on its own real data. If the client has no examples of class 9, every real example tells the model "this is not a 9". With ordinary training, the model keeps pushing the score of class 9 down, again and again, without limit. By the end of the real phase it has <strong>undone</strong> what the fakes taught it about class 9.</p>
+
+<h3>How it works</h3>
+<ol class="steps">
+  <li>The client counts its own examples per class (adding 1 to every count, so no class has zero) and turns the counts into frequencies. These never leave the client.</li>
+  <li>During training on real data, it adds the log of each class's frequency to that class's score before computing the loss.</li>
+  <li>At test time, the plain scores are used, without the adjustment.</li>
+</ol>
+
+<div class="box analogy">
+<p class="label">Why this helps</p>
+<p>The adjustment tells the model: "this client simply rarely sees class 9; you do not need to fight it". The adjusted score of class 9 is already very low, so the loss barely pushes it further. The model's own score for class 9 is left alone, and the knowledge from the fakes survives. Measured: 96–100% of what the fake phase taught about missing classes survives the real phase with this adjustment, against 76–98% without.</p>
+</div>
+
+<details class="math">
+<summary>The maths</summary>
+<div class="inner">
+<p>Client \(k\)'s smoothed class frequency is \(\hat\pi_{kc} = (n_{kc}+1)/(n_k + C)\). On real data it minimises</p>
+$$\ell(h, y) = -\log \frac{\exp\big(f_y(h) + \log\hat\pi_{ky}\big)}{\sum_j \exp\big(f_j(h) + \log\hat\pi_{kj}\big)} .$$
+<p><strong>Why it aims at balanced accuracy.</strong> By Bayes' rule, a client's best score for class \(c\) is "how typical the feature is for class \(c\)" plus \(\log(\text{how common } c \text{ is on this client})\). Because we add the second part by hand, the model's own score \(f\) only has to learn the first part, which is the same for every client (a "7" is a "7" everywhere). Predicting with that part alone treats all classes as equally likely, which is what balanced accuracy rewards.</p>
+<p><strong>What it cannot do on its own.</strong> Adding a fixed number to the scores is the same as starting the last layer's bias from a different value. Everything else trains exactly the same. So, for a model trained on real data only, this adjustment changes only the last layer's bias, and Step 6 replaces the last layer anyway. Its real value is during training, in protecting what the fakes taught.</p>
+<p><strong>Why the fake knowledge survives (simplified).</strong> In a simple model where both phases are quadratic losses, the final model is a blend of "what fakes teach" and "what real data teach". Along any direction where the real data give no push, the fakes' lesson is kept in full. Missing classes should be exactly such directions, and logit adjustment makes them so: the push on a missing class's score shrinks to about \(1/(n_k + C)\).</p>
+</div>
+</details>
+
+<!-- ================================================================== -->
+<p class="kicker">Step 6 · once, at the end</p>
+<h2 id="er">Exact readout: rebuild the last layer</h2>
+
+<div class="box oneline">
+<p class="label">In one sentence</p>
+<p>Throw away each model's biased last layer and compute a new one directly from totals over all clients, which gives exactly the last layer a central server with all the data would compute.</p>
+</div>
+
+<h3>The problem</h3>
+<p>Each model's last layer was trained on one client's data, so it is tilted towards that client's common classes. This is the <strong>single biggest</strong> source of lost accuracy: 7 to 20 points.</p>
+
+<h3>How it works</h3>
+<ol class="steps">
+  <li>For each architecture, the server sends its model body (it is small) to every client.</li>
+  <li>Each client runs its real features through the body and sends three totals: counts per class, the sum of the outputs per class, and one overall sum of "output times output" (which describes how the outputs vary together).</li>
+  <li>The server computes each class's centre and the shared spread pattern, and from them a new last layer that treats all classes as equally likely.</li>
+</ol>
+
+<div class="box analogy">
+<p class="label">Intuition</p>
+<p>The new last layer asks, for a new example: "which class centre is it closest to, taking into account which directions naturally vary a lot?" Directions that vary a lot within every class count for less; directions that are usually stable count for more.</p>
+</div>
+
+<details class="math">
+<summary>The maths</summary>
+<div class="inner">
+<p>Suppose that, in the body's output space, each class is a bell-shaped cloud with centre \(\mu_c\) and the same shape for every class (covariance \(\Sigma\)). The log-probability of an output \(e\) under class \(c\) is</p>
+$$\log p(e \mid c) = -\tfrac12 (e - \mu_c)^\top \Sigma^{-1} (e - \mu_c) + \text{const} = \mu_c^\top \Sigma^{-1} e - \tfrac12 \mu_c^\top \Sigma^{-1}\mu_c + (\text{terms that are the same for every class}) .$$
+<p>That is a straight-line (linear) score in \(e\), so it <em>is</em> a last layer, with weights and bias</p>
+$$w_c = \Sigma^{-1}\mu_c, \qquad b_c = -\tfrac12\, \mu_c^\top \Sigma^{-1} \mu_c .$$
+<p>No class-frequency term is added, so all classes count equally. This is called linear discriminant analysis.</p>
+<p><strong>Getting \(\Sigma\) from totals.</strong> With \(M = \sum e e^\top\) over all examples and \(N\) examples in total:</p>
+$$S = \frac{M - \sum_c n_c\, \mu_c \mu_c^\top}{N - C}, \qquad S_\gamma = 0.9\, S + 0.1\, \frac{\mathrm{trace}(S)}{d}\, I .$$
+<p>The second formula mixes in 10% of a simple round shape, which keeps the inverse stable when some classes have few examples.</p>
+<p><strong>Why it is exact.</strong> Everything comes from sums, so it is exactly what a central server would compute for the same model bodies.</p>
+</div>
+</details>
+
+<div class="box warn">
+<p class="label">Its limit</p>
+<p>It removes the last layer's bias, but it cannot fix a weak body. That part is what the fakes (Steps 3–5) are for. It costs one extra round of communication at the end.</p>
+</div>
+
+<!-- ================================================================== -->
+<hr>
+<h2 id="recipe">The whole recipe, in order</h2>
+
+<ol class="steps">
+  <li><strong>Stage I.</strong> Train the shared feature extractor together, then freeze it.</li>
+  <li><strong>Step 1, count and sum.</strong> Every client sends per-class counts, feature sums and squared-length sums (plus fingerprint sums if herding is used). The server computes each class's centre and spread.</li>
+  <li><strong>Step 2, gate.</strong> Compute the separation \(F\). Large: anchored generator. Small: Plan B.</li>
+  <li><strong>Step 3 / 3b, Stage II.</strong> Train the generator together. With Plan B, average each class row only over its holders.</li>
+  <li><strong>Step 4, fix centre and size.</strong> Measure the generator's own centre and spread per class; from now on every fake is moved and stretched to the real ones (and, optionally, herded).</li>
+  <li><strong>Stage III, every round:</strong>
+    <ol type="a">
+      <li>The server draws a shared batch of fakes and collects every architecture's predictions on it (Step 5a).</li>
+      <li>Each client trains on the fakes with the half-and-half labels, then on its real data with its class frequencies added to the scores (Step 5b).</li>
+      <li>Models of the same architecture are averaged.</li>
+    </ol>
+  </li>
+  <li><strong>Step 6, exact readout.</strong> For each architecture, collect totals of the body's outputs from every client and replace the last layer.</li>
+</ol>
+
+<h3>Which step fixes which problem</h3>
+<div class="scroll"><table>
+<thead><tr><th>Problem</th><th>Fixed by</th></tr></thead>
+<tbody>
+<tr><td>Rare classes fade from the generator</td><td>Anchored generator (no class rows); Plan B averaging when rows are needed</td></tr>
+<tr><td>Fake examples too narrow or off-centre</td><td>Moment correction</td></tr>
+<tr><td>Classes whose centres are too close</td><td>The gate on \(F\), switching to Plan B</td></tr>
+<tr><td>Fake examples with the wrong label</td><td>Consensus labels; Steps 3–4 make fewer of them</td></tr>
+<tr><td>Real-data training erases what fakes taught</td><td>Logit adjustment</td></tr>
+<tr><td>Last layer tilted towards one client's classes</td><td>Exact readout</td></tr>
+</tbody></table></div>
+
+<h3>What is sent, and when</h3>
+<div class="scroll"><table>
+<thead><tr><th>What</th><th>When</th><th>Contents (always as totals)</th></tr></thead>
+<tbody>
+<tr><td>Class statistics</td><td>once, after Stage I</td><td>count, feature sum, squared-length sum per class</td></tr>
+<tr><td>Holder-only averaging</td><td>each Stage II round (Plan B only)</td><td>weighted row sum and weight sum per class</td></tr>
+<tr><td>Consensus predictions</td><td>each Stage III round</td><td>predicted probabilities on the shared fake batch</td></tr>
+<tr><td>Exact readout</td><td>once, at the end</td><td>counts, output sums, output-times-output sum</td></tr>
+</tbody></table></div>
+<p>No image, real feature, label, or single client's statistic ever leaves a client.</p>
+
+<!-- ================================================================== -->
+<h2 id="reference">Quick reference</h2>
+
+<h3>Symbols</h3>
+<div class="scroll"><table>
+<thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td>\(h\)</td><td>a feature (the extractor's description of an image)</td></tr>
+<tr><td>\(n_c\), \(n_{kc}\)</td><td>number of class-\(c\) examples in total, and on client \(k\)</td></tr>
+<tr><td>\(m_c\), \(V_c\)</td><td>exact centre and spread of class \(c\)</td></tr>
+<tr><td>\(F\)</td><td>how far apart class centres are, relative to class spread</td></tr>
+<tr><td>\(\kappa_c\)</td><td>steps that can grow class \(c\)'s row ÷ steps that shrink it; below 1 means it fades</td></tr>
+<tr><td>\(E(n)\)</td><td>effective number of examples, used as a weight in Plan B</td></tr>
+<tr><td>\(s\)</td><td>signal fraction: share of fake features that really carry their class</td></tr>
+<tr><td>\(\hat\pi_{kc}\)</td><td>client \(k\)'s own (smoothed) frequency of class \(c\)</td></tr>
+<tr><td>\(\mu_c\), \(S_\gamma\)</td><td>in Step 6: class centre of the body's outputs, and the shared spread pattern</td></tr>
+</tbody></table></div>
+
+<h3>Settings</h3>
+<div class="scroll"><table>
+<thead><tr><th>Setting</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>Gate threshold on \(F\)</td><td class="num">0.05</td></tr>
+<tr><td>Generator noise size</td><td class="num">16 numbers (50 on CIFAR)</td></tr>
+<tr><td>Generator training</td><td>Adam, learning rate 0.001, weight decay 0.001, 5 local epochs per round</td></tr>
+<tr><td>Plan B weight constant \(\beta\)</td><td class="num">0.999</td></tr>
+<tr><td>Moment correction</td><td>500 fakes per class to measure; stretch kept between 0.1 and 10</td></tr>
+<tr><td>Kernel herding (optional)</td><td>4× candidates, 6,144-number fingerprint</td></tr>
+<tr><td>Consensus labels</td><td>half generated class, half models' average (\(\beta = 0.5\))</td></tr>
+<tr><td>Client training per round</td><td>\(T_s\) epochs on fakes (1 or 10, chosen on validation data), 5 epochs on real data, SGD learning rate 0.1</td></tr>
+<tr><td>Logit adjustment</td><td>add-one smoothed client frequencies, strength 1</td></tr>
+<tr><td>Exact readout</td><td class="num">10% mixed-in round shape (\(\gamma = 0.1\))</td></tr>
+</tbody></table></div>
+</main>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [{ left: "$$", right: "$$", display: true }, { left: "\\(", right: "\\)", display: false }],
+      output: "mathml", throwOnError: false
+    });
+  }
+});
+</script>
