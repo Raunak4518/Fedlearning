@@ -396,5 +396,6 @@ Plot catalogue (one script makes all of them for every run): A training curves (
 C representation and latent plots incl. t-SNE / UMAP / PCA, real vs generated overlays, class-mean and classifier
 vector plots (19-27), D generator quality (28-32), E mechanism plots (33-37), F comparison plots incl. forest plot,
 critical-difference diagram, radar chart, Pareto plot, ablation waterfall, sensitivity lines (38-46), G federated-system
-plots (47-51), H privacy plots (52-54), I diagrams (55). Numbering as in the 22 Oct message; paper main text uses
-9 + 10, 11, 14, 22, 23, 33, 39, 44.
+plots (47-51), H privacy plots (52-54), I diagrams (55). Numbering as in the 22 Oct message.
+**All 55 plots are required (user, 22 Oct)** for every dataset and track: the paper's main text shows 9 + 10, 11, 14,
+22, 23, 33, 39, 44; every other plot goes in the appendix / supplement and the handout.
