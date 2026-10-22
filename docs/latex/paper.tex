@@ -350,8 +350,7 @@ $\tilde h=\mathrm{ReLU}(m_y+\mathrm{dec}(z,m_y))$, where $m_y$ is the exact clas
 class-\emph{shared} projection. There is no class-specific parameter, so \cref{thm:contraction} has nothing to act on.
 (ii)~\emph{Moment correction} (MC) rescales each class's samples to the exact class mean and spread; in idealised form
 it is the minimum-displacement map with these moments (\cref{prop:mc}); after the final ReLU and with plug-in moments it
-matches them only approximately. (iii)~\emph{Herding} (KH) selects, from $4\times$ candidates, the samples whose
-random-Fourier-feature mean is closest to the exact class mean embedding. (iv)~\emph{Gate.} A mean anchor cannot separate
+matches them only approximately. (iii)~\emph{Gate.} A mean anchor cannot separate
 classes whose means are close (\cref{prop:w1}); the server computes the separation
 $F=\overline{\|m_c-\bar m\|^2}/\overline{V_c}$ from the same sums and, if $F<0.05$, uses the original generator with
 HWA instead. Measured $F$ is 0.005--0.013 on SVHN, 0.054--0.080 on CIFAR-10 and $\ge0.18$ elsewhere.
@@ -359,7 +358,9 @@ HWA instead. Measured $F$ is 0.005--0.013 on SVHN, 0.054--0.080 on CIFAR-10 and 
 \paragraph{Heads and readout.} Heads use logit adjustment with the client's own prior and \emph{consensus soft labels}
 (CSL) on synthetic features, $t(\tilde h)=\frac12e_y+\frac12\frac1G\sum_g\mathrm{softmax}\,h_g(\tilde h)$, the
 averaged prediction of all architectures' heads on that feature~\cite{menon2021distillation}. After training, every
-architecture's last layer is replaced by \ER. The \emph{minimal variant} for an existing deployment is the original
+architecture's last layer is replaced by \ER. \emph{Optional:} kernel herding toward the exact class mean
+embedding adds only $+0.1$ to $+0.4$ points with \ER\ at about $6\times$ the head-stage cost (\cref{app:ablation}); it
+is not part of the method, but the fresh-seed runs below include it. The \emph{minimal variant} for an existing deployment is the original
 generator with HWA (or decoupled decay), LA, CSL and \ER.
 
 % ---------------------------------------------------------------------------------------------------------------------
@@ -741,6 +742,14 @@ shared generator per seed: herding beats a random subset of the same candidates 
 from the spread, not the mean (mean-only correction loses 0.9--1.0 points although it raises the referee's tail
 fidelity by 4--5 points); results are flat in the random-feature dimension and the candidate-pool size.
 
+\paragraph{Kernel herding is not worth its cost.} Removing herding, paired by seed, costs $0.26$ (MNIST), $0.13$ and
+$0.23$ (FashionMNIST) and $0.37$ (CIFAR-10) points with \ER, and $0.2$--$0.7$ as trained; replacing it by a random
+subset of the same candidates costs $0.16$--$0.23$ with \ER. All 8 paired seeds with \ER\ favour herding (sign test
+$p=0.008$), but it makes the head stage 5.8--6.8$\times$ slower, and a larger random-feature dimension or candidate pool
+changes nothing, so a better approximation of the same kernel would not help. We therefore treat it as optional. The
+fresh-seed comparison of \cref{tab:fair} includes it; without it our margins would be about 0.1--0.4 points lower
+(measured on MNIST, FashionMNIST and CIFAR-10).
+
 \section{Privacy and cost}\label{app:privacy}
 
 \begin{table}[h]
@@ -762,7 +771,7 @@ moved toward it. Head classes are at chance; the exact release leaks membership 
 expected for a mean over few samples. Formal differential privacy on the four statistics our generator adds costs
 4.5--6.9 points at $\varepsilon=8$ and 9.8--14.1 at $\varepsilon=2$, still above GeFL-F at $\varepsilon=2$ on MNIST and
 FashionMNIST; it does not cover the generator's FedAvg training or the heads. Our pipeline is 2.2--2.8$\times$ slower
-than GeFL-F end to end (herding dominates the head stage); \ER\ adds one round and up to about $5\times10^5$ numbers per
+than GeFL-F end to end with the optional herding, which dominates the head stage; \ER\ adds one round and up to about $5\times10^5$ numbers per
 architecture per client.
 
 \section{Further negative results}\label{app:negative}

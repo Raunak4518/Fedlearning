@@ -39,8 +39,8 @@ real data alone they give the same ER accuracy within 0.5 points on every seed a
 (MNIST, FashionMNIST, two seeds). Synthetic features close this gap only if they carry their label: we prove that
 label-independent synthetic data act exactly as a penalty on the spread of the logits, and measure that the gain from
 the synthetic phase changes sign with the generator's signal fraction (CIFAR-100: −2.2 points for GeFL-F, +1.8 for an
-exact-statistics generator). That generator — conditioned on the exactly aggregated class mean, moment-corrected and
-herded toward the exact class embedding — raises the signal fraction and brings the bodies to the pooled-body level on
+exact-statistics generator). That generator — conditioned on the exactly aggregated class mean and moment-corrected —
+raises the signal fraction and brings the bodies to the pooled-body level on
 MNIST and FashionMNIST.
 
 With the same readout for both, it beats GeFL-F by +2.0 to +3.9 points on MNIST, FashionMNIST, SVHN, CIFAR-10 and
@@ -107,8 +107,8 @@ balanced accuracy.
 3. **A decomposition of the long-tail loss** into generator, last-layer and representation parts, using eight
    federated readouts on every trained model, five datasets including CIFAR-100-LT (K16), and a comparison with a
    centralised two-stage pipeline (N7).
-4. **An exact-statistics generator** (mean anchor, moment correction, herding toward the exact class embedding, an
-   $F$-based switch to class rows) whose bodies beat GeFL-F's under the same readout. Its components have precedents
+4. **An exact-statistics generator** (mean anchor, moment correction, an $F$-based switch to class rows; herding toward
+   the exact class embedding is optional, §6.6) whose bodies beat GeFL-F's under the same readout. Its components have precedents
    (§7); the contribution is their use for a federated generator, explained by the signal-fraction result.
 5. **Evidence with honest margins:** recalibrated baselines, the optimiser fixes, published long-tail FL losses,
    calibration and worst-class metrics, negative results (§6.8, Appendix B), a validation-selected re-test on new
@@ -771,8 +771,11 @@ MC-S gives each class its exact covariance, so it can, wherever the covariances 
 * *Motivation, not a guarantee.* For a head whose loss lies in the RKHS with norm at most $B$,
   $|\mathbb E_{G_c}\ell - \mathbb E_{P_c}\ell| \le B\,\mathrm{MMD}(G_c, P_c)$. The premise does not hold for the
   ReLU heads we train, so this only motivates the target. Empirically KH lowers the MMD but does not improve
-  train-on-synthetic, test-on-real accuracy, and its effect on the final accuracy is small and not significant
-  (§B.11).
+  train-on-synthetic, test-on-real accuracy, and its effect on the final accuracy is small (§6.6).
+* *Status: optional.* With ER, KH adds +0.1 to +0.4 points (positive in 8 of 8 paired seeds over MNIST, FashionMNIST and
+  CIFAR-10, sign test p = 0.008; no single comparison significant) and makes the head stage about 6× slower. It is
+  therefore not part of the main method; a larger RFF dimension or candidate pool changes nothing (K20 M3), so a better
+  approximation of the same kernel would not help either.
 
 **BBC: balanced bias calibration on the anchored generator.**
 * *Fit.* After training, the server fits $C$ logit offsets $b_g$ per head $g$ so that the head predicts every class
@@ -855,7 +858,8 @@ tested and does not help (§6.8).
   component, read at run time. The threshold was set after the SVHN failure; measured $F$ is 0.005–0.013 on SVHN,
   0.054–0.080 on CIFAR-10, 0.18–0.25 on CIFAR-100 and at least 0.25 on MNIST / FashionMNIST, so CIFAR-10 lies close to
   it (its row branch is tested in K17).
-* *Sampling.* MC (exact mean and spread), then KH (herding toward the exact class embedding).
+* *Sampling.* MC (exact mean and spread). KH (herding toward the exact class embedding) is an optional add-on worth
+  +0.1 to +0.4 points with ER at about 6× the head-stage cost (§6.6); the K17 / K19 / K22 / K26 runs include it.
 * *Heads.* LA by the client's own prior, CSL on synthetic features; $T_s = 10$ on MNIST / FashionMNIST and 1 elsewhere
   (chosen on test results so far; K17 chooses it on validation data).
 * *Readout.* ER after training (§5.6); BBC is an alternative that needs no extra round but is weaker.
@@ -1028,6 +1032,13 @@ lose significance).
   mean-only loses 0.9–1.0 points as trained (0.4 with ER) although it *raises* the referee's tail fidelity by 4–5
   points — recognisable samples are not the same as useful samples. M3: results are flat in the RFF dimension (1,536
   vs 6,144) and the pool size ($8n$ vs $4n$), within 0.2 points.
+* **Is KH worth its cost? No (X16, `docs/research/math_checks/x16_kh_cost_benefit.py`, existing runs only).** Removing
+  KH, paired by seed: with ER −0.26 (MNIST), −0.13 / −0.23 (FashionMNIST), −0.37 (CIFAR-10); as trained −0.67 (MNIST,
+  5 of 5 seeds, p = 0.003), −0.65 / −1.88 (FashionMNIST), −0.22 (CIFAR-10). With ER all 8 paired seeds favour KH
+  (sign test p = 0.008), but by 0.05–0.43 points, while KH makes the head stage 5.8–6.8× slower (3.7–3.9× against a
+  random subset of the same candidates). KH is therefore optional, not part of the main method. The fair re-test above
+  includes it, so without KH the margins would be roughly 0.1–0.4 points lower; this is measured for MNIST,
+  FashionMNIST and CIFAR-10, not for SVHN and CIFAR-100.
 
 
 ### 6.7 Where the remaining loss is: comparison with centralised training
@@ -1119,6 +1130,8 @@ not run.
 * **Signal-fraction gate for our method (K21, §4.3).** Helps the decay-fixed GeFL-F on the CIFARs but not ours: the
   LDA-based estimate of $s_c$ saturates under moment correction. A better estimator (e.g. a QDA or a small network
   fitted from released second moments) is open.
+* **Kernel herding as a core component (X16, §6.6).** Consistently positive but worth only +0.1 to +0.4 points with ER
+  at about 6× the head-stage cost; demoted to optional.
 * **Class-balanced Stage-I loss (BALFE, K21, §6.7).** Positive in the CPU pilot, neutral on MNIST / FashionMNIST and
   harmful on the CIFARs in the full pipeline (unnormalised weights).
 * Earlier negative results (prior-completing batches, lazy decay on top of HWA, the Gaussian and hybrid generators,
@@ -1129,7 +1142,8 @@ not run.
 
 Formal DP on the four added statistics (E26): 4.5–6.9 points at ε = 8 and 9.8–14.1 at ε = 2, still above GeFL-F at
 ε = 2 on MNIST (+9.8) and FashionMNIST (+7.1, p = 0.084); details and scope in Appendix B.6. Cost: Ours is 2.2–2.8×
-slower than GeFL-F end to end (kernel herding is 83–88% of the head stage); ER adds one round and up to about
+slower than GeFL-F end to end with the optional KH (83–88% of the head stage; without it the head stage is about 6×
+faster); ER adds one round and up to about
 $5\times10^5$ numbers per architecture per client (§5.6); details in Appendix B.12.
 
 *Membership inference on the released class sums (X14, one seed, `docs/research/math_checks/x14_membership.py`).*
