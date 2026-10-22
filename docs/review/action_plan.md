@@ -378,3 +378,23 @@ To add to the evaluation code (evaluation-time only): MCC, Cohen's kappa, macro 
 top-5, confusion matrix per readout, class-wise ECE, client-fairness spread / minimum, FLOPs, measured communication.
 Cost: all free except rounds-to-target (evaluate every 5 rounds), membership inference (ours, once per dataset, no
 training) and DP (ours only, eps = 8 and 2, two datasets: the only extra training).
+
+## 15. Logging and plots, decided 22 Oct 2026
+
+All metrics of §14 are kept (main table and appendix). The Flower implementation logs, per round and per client, to one
+file per run (plus TensorBoard for live curves):
+- Stage I: loss, test balanced accuracy, client drift, update / gradient norms, BatchNorm-statistic divergence.
+- Stage II: reconstruction and KL loss, class-row norm per class, holder gain vs non-holder shrink, per-class fidelity,
+  signal fraction, per-class MMD and moment mismatch, active latent units, Adam second moment of the rows.
+- Stage III: synthetic- and real-phase loss, consensus entropy and agreement, balanced accuracy / macro-F1 / tail recall
+  / ECE, per-class recall, logit spread before / after the synthetic phase, retention, classifier weight norm per class,
+  predicted-class counts.
+- Representation (every 5 rounds): NC1 / NC2 / NC3, minority-collapse angle, class separation F, CKA between architectures.
+- System: bytes per message type, time per stage, GPU memory, participation.
+
+Plot catalogue (one script makes all of them for every run): A training curves (1-8), B class-imbalance plots (9-18),
+C representation and latent plots incl. t-SNE / UMAP / PCA, real vs generated overlays, class-mean and classifier
+vector plots (19-27), D generator quality (28-32), E mechanism plots (33-37), F comparison plots incl. forest plot,
+critical-difference diagram, radar chart, Pareto plot, ablation waterfall, sensitivity lines (38-46), G federated-system
+plots (47-51), H privacy plots (52-54), I diagrams (55). Numbering as in the 22 Oct message; paper main text uses
+9 + 10, 11, 14, 22, 23, 33, 39, 44.
