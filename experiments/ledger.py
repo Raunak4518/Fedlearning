@@ -41,6 +41,8 @@ def load_runs():
         if os.path.exists(jl):
             for line in open(jl, encoding="utf-8"):
                 r = json.loads(line)
+                if "label" not in r:  # fedembed (E40/E41) records: not the GeFL pipeline, listed in their summary.md
+                    continue
                 # T03-style diagnostic records carry no setting fields: they ran at IF=0.01, Dir(0.5), K=10
                 # with a reduced schedule (quick_scale < 1), so they count as quick passes.
                 runs.append(dict(folder=folder, label=r["label"], method=mkey(r.get("method")),

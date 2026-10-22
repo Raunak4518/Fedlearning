@@ -1148,7 +1148,7 @@ members and are noisy (FashionMNIST at ε = 8 / 2 is below 0.5). With ε = 2 the
 $e^\varepsilon/(1+e^\varepsilon)\approx0.88$, so these values are consistent with it. Secure aggregation alone does
 not protect rare classes; the added statistics should be released with noise when some class is rare.
 
-### 6.10 More clients, partial participation and other imbalance settings (K18, K22, K23)
+### 6.10 More clients, partial participation and other imbalance settings (K18, K22, K23, K26)
 
 *Several clients per architecture (K18, SVHN long tail, seeds 0–2).* ER / heads as trained:
 
@@ -1170,18 +1170,37 @@ architecture.
 (two seeds) but not with ER (−0.04 / −0.11); ours reaches 73.2 as trained and 79.8 with ER against 69.1 / 78.4 for
 HWA. **[PENDING: NB71]** The MNIST decay-fix and ours arms and the remaining FashionMNIST seed.
 
-*Other imbalance settings and random rare classes (K22, FashionMNIST, seeds 3–5, ER).*
+*CIFAR-10 with five clients per architecture (K26, K = 50, long tail, seeds 3–5).* Test balanced accuracy:
+
+| | as trained | + ER | tail classes, as trained |
+|---|---|---|---|
+| GeFL-F + AdamW + LA (decay fix) | 35.7 | 45.1 | 21.4 |
+| GeFL-F + HWA + LA | 35.9 | 45.2 | 22.5 |
+| **Ours** (gated; anchor branch on every seed, $F$ = 0.08–0.10) | **40.4** | **46.1** | **31.2** |
+
+Pre-registered: D1 (HWA − decay fix ≥ 0) holds, but only just: +0.24 [0.08, 0.40] as trained and +0.10 [−0.22, 0.41]
+with ER, far from MNIST's +1.8 at K = 50 (K15). D2 (ours + ER ≥ both baselines + ER) holds: +1.0 [0.2, 1.8] over the
+decay fix and +0.9 [−0.0, 1.9] over HWA; as trained the margin is +4.7, and +9.8 on the tail classes. Every method is
+6.5–7 points below its K = 10 value on the same seeds (K17: 51.6 and 53.1 with ER), so splitting each architecture's
+data over five clients costs more than any method recovers.
+
+*Other imbalance settings and random rare classes (K22, seeds 3–5, ER).* FashionMNIST / SVHN:
 
 | | IF = 10 | Dirichlet 0.1 | Dirichlet 1.0 | random rare classes |
 |---|---|---|---|---|
-| real-data heads + LA | 80.8 | 76.6 | 78.4 | 77.7 |
-| decay fix (AdamW + LA) | 83.2 | 78.9 | 80.8 | 79.5 |
-| **Ours** | **84.2** | **80.4** | **81.5** | **80.1** |
+| real-data heads + LA | 80.8 / 62.8 | 76.6 / 51.1 | 78.4 / 56.9 | 77.7 / 54.9 |
+| decay fix (AdamW + LA) | 83.2 / 72.3 | 78.9 / 62.1 | 80.8 / 65.2 | 79.5 / 63.7 |
+| **Ours** | **84.2 / 74.8** | **80.4 / 63.9** | **81.5 / 66.2** | **80.1 / 64.8** |
+| ours − decay fix, SVHN [95% CI] | +2.6 [1.0, 4.1] | +1.7 [1.0, 2.5] | +1.0 [−0.0, 2.0] | +1.1 [0.8, 1.3] |
 
-Pre-registered: B1 (ours ≥ the strongest of the two baselines in every cell) holds on FashionMNIST; B2 (larger margin
-over the decay fix at Dirichlet 0.1 than at 1.0) holds (+1.5 vs +0.8); B3 (random rare classes within 1 point of the
-K17 margin) holds (+0.5 vs +0.5). The classes are relabelled by a seeded permutation before the split, so which
-classes are rare changes per seed. **[PENDING: NB70]** SVHN.
+Pre-registered: B1 (ours ≥ the strongest of the two baselines in all 8 cells) holds, with ER and with the
+validation-selected readouts; B2 (larger margin over the decay fix at Dirichlet 0.1 than at 1.0) holds on both
+datasets (FashionMNIST +1.5 vs +0.8; SVHN +1.7 vs +1.0); B3 (random rare classes within 1 point of the K17 margin)
+holds on both (FashionMNIST +0.5 vs +0.5; SVHN +0.9 vs +1.5 with the validation-selected readouts, +1.1 with ER). The
+classes are relabelled by a seeded permutation before the split, so which classes are rare changes per seed. The
+margins are small (three seeds, not Holm-corrected; the Dirichlet 1.0 interval on SVHN touches 0), so this is
+evidence that the ordering is not specific to one imbalance setting, not a new effect size. On SVHN the real-data
+heads are 7–11 points behind both synthetic-data methods in every setting, as in K17.
 
 ### 6.11 Beyond GeFL: rare-item collapse in federated recommendation (E40)
 
@@ -1401,7 +1420,8 @@ consensus is what tracks the generator's per-sample label error, the bias $b$ of
   where up to 20 times larger steps (unnormalised weights) destabilised the extractor. Both are reported (§4.3, §6.7–6.8)
   and were not tuned further.
 * **The scale predictions are partial.** The prospective $\kappa$ test (K18) ran on SVHN only and its third
-  prediction failed; the partial-participation runs (K23) and the regime breadth on SVHN (K22) are incomplete.
+  prediction failed; the partial-participation runs (K23) are incomplete. With five clients per architecture on
+  CIFAR-10 (K26) HWA's advantage over the decay fix is about zero and every method loses 6.5–7 points to K = 10.
 * **The recommendation result (§6.11) is one dataset.** MovieLens-1M, explicit ratings, 30 rounds, three seeds, one
   embedding size. Two of its four predictions failed: not every $\kappa_c<1$ item collapses, and centralised Adam with
   coupled L2 collapses most of the same items, so in recommendation the federated part is the extra severity (about

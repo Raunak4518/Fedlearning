@@ -162,6 +162,9 @@ claim 4 keeps them.
 - **X14 (membership inference on the released class sums):** head classes at chance; exact release leaks for rare
   classes (tail AUC 0.63–0.64, rarest class 0.69–0.73); Gaussian mechanism ε = 8 / 2 brings tail AUC to 0.54–0.58 /
   0.50–0.53. Paper §6.9. Files: `x14_*.json`.
+- **NB70 (22 Oct, Kaggle):** K26 CIFAR-10 K = 50 (9/9) and K22 SVHN (36/36) done; K24 (DCGAN-F) not reached.
+  K26: HWA ≈ decay fix (+0.1 with ER), ours +1.0 with ER, +4.7 as trained. K22: B1-B3 hold on SVHN as on
+  FashionMNIST. Paper §6.10; folders `K26_kaggle_cifar10_more_clients`, `K22_kaggle_regime_breadth__svhn`.
 - **X3 on CPU** was stopped (≈ 5 h per dataset-seed here); it runs on GPU in NB69.
 
 ## 4. Theory status

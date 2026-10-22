@@ -67,6 +67,14 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Real only + LA | K17_kaggle_fair_retest__nb60 | 3,4,5 |
 | no KH | K20_kaggle_mechanism_controls | 3,4 |
 
+## cifar10  IF=0.01  alpha=0.5  K=50
+
+| label | result folder | seeds |
+|---|---|---|
+| GeFL-F + AdamW + LA | K26_kaggle_cifar10_more_clients | 3,4,5 |
+| GeFL-F + HWA + LA | K26_kaggle_cifar10_more_clients | 3,4,5 |
+| Ours (gated) | K26_kaggle_cifar10_more_clients | 3,4,5 |
+
 ## cifar100  IF=1.0  alpha=None  K=10
 
 | label | result folder | seeds |
@@ -773,6 +781,22 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Ours-R Ts=10 | K10_kaggle_hybrid_svhn_cifar10__svhn | 0,1,2 |
 | Ours-R-S (PCR+MCS+KH+LA+CSL) | K11_kaggle_covariance_anchoring__svhn | 0,1,2 |
 
+## svhn  IF=0.1  alpha=0.5  K=10
+
+| label | result folder | seeds |
+|---|---|---|
+| GeFL-F + AdamW + LA | K22_kaggle_regime_breadth__svhn | 3,4,5 |
+| Ours Ts=10 | K22_kaggle_regime_breadth__svhn | 3,4,5 |
+| Real only + LA | K22_kaggle_regime_breadth__svhn | 3,4,5 |
+
+## svhn  IF=0.01  alpha=0.1  K=10
+
+| label | result folder | seeds |
+|---|---|---|
+| GeFL-F + AdamW + LA | K22_kaggle_regime_breadth__svhn | 3,4,5 |
+| Ours Ts=10 | K22_kaggle_regime_breadth__svhn | 3,4,5 |
+| Real only + LA | K22_kaggle_regime_breadth__svhn | 3,4,5 |
+
 ## svhn  IF=0.01  alpha=0.5  K=10
 
 | label | result folder | seeds |
@@ -789,10 +813,12 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | GeFL-F | K16_kaggle_recalibration__svhn_lt | 0,1,2 |
 | GeFL-F | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
 | GeFL-F + AdamW + LA | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
+| GeFL-F + AdamW + LA [random tail] | K22_kaggle_regime_breadth__svhn | 3,4,5 |
 | Minimal (HWA+LA+CSL) | K16_kaggle_recalibration__svhn_lt | 0,1,2 |
 | Ours (gated) | K16_kaggle_recalibration__svhn_lt | 0,1,2 |
 | Ours Ts=1 | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
 | Ours Ts=10 | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
+| Ours Ts=10 [random tail] | K22_kaggle_regime_breadth__svhn | 3,4,5 |
 | Ours+MC+KH (CVAE+HWA) | K10_kaggle_hybrid_svhn_cifar10__svhn | 0,1,2 |
 | Ours-A (PC+MC+KH+LA+CSL) | K08_kaggle_anchored_stack__svhn | 0,1,2 |
 | Ours-A (PC+MC+KH+LA+CSL) | K11_kaggle_covariance_anchoring__svhn | 0,1,2 |
@@ -805,6 +831,7 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | Real only + FedLC | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
 | Real only + FedRS | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
 | Real only + LA | K17_kaggle_fair_retest__cifar100_svhn_rows | 3,4,5 |
+| Real only + LA [random tail] | K22_kaggle_regime_breadth__svhn | 3,4,5 |
 
 ## svhn  IF=0.01  alpha=0.5  K=50
 
@@ -823,6 +850,14 @@ Every completed run in `experiments/results/`, by setting. **Before writing a ne
 | GeFL-F + AdamW + LA | K18_kaggle_more_clients_svhn | 0,1,2 |
 | GeFL-F + HWA + LA | K18_kaggle_more_clients_svhn | 0,1,2 |
 | Ours (gated) | K18_kaggle_more_clients_svhn | 0,1,2 |
+
+## svhn  IF=0.01  alpha=1.0  K=10
+
+| label | result folder | seeds |
+|---|---|---|
+| GeFL-F + AdamW + LA | K22_kaggle_regime_breadth__svhn | 3,4,5 |
+| Ours Ts=10 | K22_kaggle_regime_breadth__svhn | 3,4,5 |
+| Real only + LA | K22_kaggle_regime_breadth__svhn | 3,4,5 |
 
 ## Status of every job (planned runs vs runs in its result folder)
 

@@ -304,10 +304,10 @@ NB62. Times are estimates from K14-K17 run times; the X3 and K25 steps have no e
 | X6 | K25 (`instrument=True`): M1, M2, M4, M7, M8 | NB69; every code path tested on CPU |
 | X7, X8 | K21: SGATE / SCSL (`core.signal_fraction`) and BALFE, seeds 3-5, paired with K17 | NB68 / NB69; every new code path tested on CPU (tiny rounds) |
 | X9 | not built: only if X3 shows a pooled-body gap ≥ 1.5 | waits for X3 |
-| X10 | K22 (IF 10; Dirichlet 0.1 / 1.0; random rare classes via `permute_labels`) | NB69 (FMNIST), NB70 (SVHN) |
+| X10 | K22 (IF 10; Dirichlet 0.1 / 1.0; random rare classes via `permute_labels`) | **done** (NB69 FMNIST, NB70 SVHN): B1-B3 hold on both (paper §6.10) |
 | X11 | K23 (K = 100, 10% / 20% participation via `Ctx.active`) | NB69 |
-| X12 | K24 (DCGAN-F, flat vs HWA, K = 10 / 50) | NB70 |
-| X13 | K26 (CIFAR-10, K = 50) | NB70 |
+| X12 | K24 (DCGAN-F, flat vs HWA, K = 10 / 50) | NB70 ran out of time before this step (no results in the 22 Oct zip) |
+| X13 | K26 (CIFAR-10, K = 50) | **done** (NB70): D1 holds at ≈ 0 (+0.1 with ER), D2 holds (+1.0 / +0.9) (paper §6.10) |
 | X14 | CPU here, `x14_membership.py` | **done** (paper §6.9) |
 | X15 | `HerdedGen.sample_batched` (same picks as the loop; `GEFL_KH_LOOP=1` restores it) | **done** |
 
