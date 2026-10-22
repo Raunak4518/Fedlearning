@@ -346,3 +346,21 @@ and write-up.
 Missing for the final configuration (GATE + MC + LA + CSL, T_s = 10, no KH) on fresh seeds: MNIST s5, FMNIST s5 (s3-4 in
 K14 / K20), CIFAR-10 s5 (s3-4 in K20), SVHN s3-5, CIFAR-100 s3-5. One notebook can run these with `--save_gen`, log
 precision, and make the t-SNE / latent plots (R1). Ledger check before building.
+
+## 13. Baselines, decided 22 Oct 2026 (framework: Flower; architecture §12; metrics §11 R2)
+
+**Track 1, our setting (a different architecture per client; shared frozen extractor; heads per architecture).**
+Kept from K17 / K19: GeFL-F; GeFL-F + decoupled decay + LA; real-data heads + LA / balanced softmax, FedLC, FedRS;
+CCVR, Fed3R, FedNCM readouts; FedDF +- LA; Gaussian generator from exact statistics + LA.
+New, model-heterogeneous (native): FedProto (AAAI 2022), FedTGP (AAAI 2024), FedGen (ICML 2021).
+New, long-tail methods applied inside each architecture's head training: CReFF (IJCAI 2022), FedETF (ICCV 2023),
+Fed-GraB (NeurIPS 2023), FedLoGe (ICLR 2024), FedYoYo (ICCV 2025).
+
+**Track 2, the standard federated long-tail protocol (one shared architecture; FedLTLib, arXiv 2609.15625):**
+CIFAR-10-LT / CIFAR-100-LT at IF 10 / 50 / 100, Dirichlet 0.5. FedAvg, FedProx, MOON, FedLC, CCVR (references) and
+CReFF, FedETF, Fed-GraB, FedLoGe, FedYoYo, plus ours with a single architecture (G = 1).
+
+Excluded, with the reason stated in the paper: CLIP2FL, CAPT (pretrained CLIP), FedKTL (pretrained generator), FedMD
+(public labelled data). Second priority if time allows: RUCR (TIFS 2024), FEDIC (ICME 2022), FedGH (MM 2023), LG-FedAvg.
+Implementation: authors' code (HtFLlib, LongTailLib, each method's repository) wrapped as Flower clients / strategies;
+seeds 3-5, validation-selected settings, the full metric set. Ledger check before any spec.
