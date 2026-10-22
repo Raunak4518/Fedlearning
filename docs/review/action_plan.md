@@ -312,3 +312,20 @@ NB62. Times are estimates from K14-K17 run times; the X3 and K25 steps have no e
 | X15 | `HerdedGen.sample_batched` (same picks as the loop; `GEFL_KH_LOOP=1` restores it) | **done** |
 
 Kaggle order: NB63, NB62 (X1, X2), then NB69, NB68, NB70.
+
+## 11. Supervisor review, 22 Oct 2026: response and plan
+
+Criticisms: no t-SNE / latent plots; no F1 / recall / precision; no class-imbalance baselines; plain PyTorch instead of an
+FL framework; whole-generator aggregation. Full response: https://claude.ai/artifact/BHZxLZ2KeGiKR8XPjr69H1
+
+| # | Criticism | Status | Action | Phase |
+|---|---|---|---|---|
+| R1 | t-SNE, latent scatter | missing (Kaggle models not returned) | `experiments/viz_latents.py`: real features, real vs generated per class, generator latents, classifier embeddings, confusion matrices. Models: upload saved Kaggle `models/`, else one notebook (5 datasets x GeFL-F / decay fix / ours, seed 3, `--save_gen`) | 1 |
+| R2 | F1, recall, precision | recall, macro-F1, G-mean, worst / tail recall logged in every run; precision added to `core._class_metrics` on 22 Oct | T23 (`experiments/class_metrics_table.py`) into paper + handout; precision from the R1 runs | 0, 1 |
+| R3 | class-imbalance baselines | 9 baselines (LA / balanced softmax, FedLC, FedRS, CCVR / Fed3R / FedNCM readouts, FSG + LA, FedDF +- LA) | heterogeneous track: CReFF, FedProto (projection to a shared size), FedGen; shared-architecture track: FedLoGe, Fed-GraB, BalanceFL, FedAvg, FedProx, ours. Seeds 3-5, ledger check first | 2 |
+| R4 | FL framework | single-machine PyTorch simulation | Flower port of every stage, SecAgg+ for the sums, measured bytes, equivalence check on MNIST / CIFAR-10 | 3 |
+| R5 | whole-generator aggregation | GeFL design: one shared generator architecture, FedAvg; 5.55 M params = 22 MB per round, ~4.4 GB per client over 100 rounds | explain; accuracy-vs-communication table: full generator, 25 rounds / 8-bit updates, no generator (FSG + LA) | 0, 3 |
+| R6 | pre-empted | small frozen extractor; 10% data; no real-world data; 3 seeds | ResNet-18 frozen extractor on CIFAR; full-data check; Fed-ISIC2019 (FLamby); two more seeds | 4 |
+
+Schedule: week 1 phases 0-1 (~12 GPU h); weeks 2-3 phase 2 runs (~48 GPU h) and phase 3; weeks 4-5 phase 4 (~42 GPU h)
+and write-up.
