@@ -15,8 +15,8 @@
 | `experiments/results/<job>/` | `summary.md` + `runs.jsonl` per job (raw per-seed records) | from the Kaggle zip |
 
 Tables and figures are generated, never typed: after new results arrive, re-run `paper_assets.py` and every
-table, figure and p-value updates. Old hand-made charts (`docs/professor_report/make_figures.py`, f08–f12) use
-typed-in numbers and are superseded by `docs/paper_assets/figures/`.
+table, figure and p-value updates. The handout (`docs/professor_report/`: `python figures.py && node build_handout.js`)
+and the LaTeX paper (`docs/latex/`) read their figures from the result files too.
 
 ## 1. Claims of the paper and their evidence
 
