@@ -399,3 +399,16 @@ critical-difference diagram, radar chart, Pareto plot, ablation waterfall, sensi
 plots (47-51), H privacy plots (52-54), I diagrams (55). Numbering as in the 22 Oct message.
 **All 55 plots are required (user, 22 Oct)** for every dataset and track: the paper's main text shows 9 + 10, 11, 14,
 22, 23, 33, 39, 44; every other plot goes in the appendix / supplement and the handout.
+
+## 16. Collection phase (user, 22 Oct 2026): get everything first, decide the paper later
+
+Scope: every method, every metric (§14), every log and plot (§15), in Flower, on a fresh consistent set of runs (old
+results stay as the record; they lack the new metrics and per-round logs).
+- Methods: §13 must-haves; then RUCR, FEDIC, FedGH, LG-FedAvg; then FedGELA, FedNH, FedVLS, FedLF, FML, FedKD, FD, FedMRL,
+  SCAFFOLD. CLIP2FL, CAPT, FedKTL, FedMD in a separate "extra resources" table.
+- Settings: MNIST, FashionMNIST, SVHN, CIFAR-10, CIFAR-100-LT, Tiny-ImageNet-LT, Fed-ISIC2019; IF 10 / 50 / 100;
+  Dirichlet 0.1 / 0.5 / 1.0; K = 10 / 50 / 100; partial participation; full-data check; stronger frozen extractor; DP.
+- Order: (1) main setting, every Track-1 method; (2) Track 2; (3) sweeps for ours + the five strongest baselines;
+  (4) extra datasets and checks. Stage I / II models shared across methods wherever the method allows.
+- Estimate: ~1,450 runs, ~500-650 T4 GPU-hours (~4-5 months at ~30 h / week); reuse of shared stages saves 30-40% of
+  Track 1.
