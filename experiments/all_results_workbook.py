@@ -8,9 +8,8 @@ Sheets
                     Kaggle job that never returned results
   All runs          one row per logged run (every runs.jsonl in experiments/results), one column per scalar metric;
                     blank = not measured in that run
-  Summary           one row per setting (experiment, method, dataset, IF, alpha, K, ...): number of runs and the
-                    mean (and SD) over seeds of the main metrics, as AVERAGEIF formulas over "All runs"; plus the
-                    one experiment whose per-run file never came back (K01 CIFAR-10), from its summary table
+  Results           ONE ROW PER EXPERIMENT (experiment x method x dataset x setting): every metric averaged over the
+                    seeds of that experiment, in %; plus K01 CIFAR-10 (summary table only) and the MovieLens runs
   Per-class recall  per-class recall / precision lists of every run and readout (class 0 = most common)
   Per-class other   other per-class lists (generator fidelity, row norms, correction scales, ...)
   MovieLens E40     the federated matrix-factorisation runs (different metrics)
@@ -49,10 +48,6 @@ SUFFIX = ["bal", "acc", "f1", "precision", "gmean", "worst", "worst_arch", "head
           "ece", "nll", "brier", "local", "ens_bal", "ens_acc"]
 FRACTION_SUFFIX = ("_bal", "_acc", "_f1", "_precision", "_gmean", "_worst", "_worst_arch", "_head", "_medium", "_tail",
                    "_rec_std", "_ece", "_local", "_ens_bal", "_ens_acc")
-SUMMARY_METRICS = ["final_bal", "final_acc", "final_f1", "final_precision", "final_gmean", "final_worst", "final_tail",
-                   "best_mean_acc", "er_bal", "er_f1", "er_gmean", "er_worst", "er_tail", "ccvr_bal", "fed3r_bal",
-                   "ncm_bal", "bbc_bal", "oracle_bal"]
-SD_METRICS = ["final_bal", "er_bal"]
 
 
 EXTRA_TITLES = {  # experiments run by standalone scripts, not specs
@@ -87,6 +82,31 @@ def ledger_jobs():
 def spec_of(folder):
     s = folder.split("__")[0]
     return s[:-6] if s.endswith("_quick") else s
+
+
+READOUT_NAMES = {"final": "As trained", "er": "Exact readout", "er_own": "Exact readout (own clients)",
+                 "ccvr": "CCVR", "ccvr_own": "CCVR (own clients)", "fed3r": "Fed3R", "fed3r_own": "Fed3R (own clients)",
+                 "ncm": "FedNCM", "ncm_own": "FedNCM (own clients)", "bbc": "Bias calibration", "oracle": "Oracle refit"}
+SUFFIX_NAMES = {"bal": "balanced acc", "acc": "accuracy", "f1": "macro-F1", "precision": "macro precision",
+                "gmean": "G-mean", "worst": "worst-class recall", "worst_arch": "weakest architecture",
+                "head": "head-class recall", "medium": "medium-class recall", "tail": "tail-class recall",
+                "rec_std": "recall SD across classes", "ece": "ECE", "nll": "NLL", "brier": "Brier",
+                "local": "accuracy on own class mix", "ens_bal": "ensemble balanced acc", "ens_acc": "ensemble accuracy"}
+
+
+def pretty(k):
+    """Readable column name; fractions are reported in %."""
+    base = k[4:] if k.startswith("val_") else k
+    name = None
+    for ro in sorted(READOUT_NAMES, key=len, reverse=True):
+        if base.startswith(ro + "_") and base[len(ro) + 1:] in SUFFIX_NAMES:
+            name = f"{READOUT_NAMES[ro]}: {SUFFIX_NAMES[base[len(ro) + 1:]]}"
+            break
+    if name is None:
+        name = {"best_mean_acc": "Paper metric: best mean accuracy"}.get(base, base)
+    if k.startswith("val_"):
+        name = "Validation · " + name
+    return name + (" (%)" if is_fraction(k) else "")
 
 
 def is_fraction(k):
@@ -207,62 +227,105 @@ def main():
             c.font = BODY
     col_of = {k: get_column_letter(j) for j, k in enumerate(header, 1)}
 
-    # ---- Summary (formulas over All runs)
-    ss = wb.create_sheet("Summary")
-    sh = ["experiment", "method", "dataset", "IF", "alpha", "K", "participation", "random rare classes", "quick pass",
-          "seeds", "result folders", "runs"] + [f"{m} (mean)" for m in SUMMARY_METRICS] + [f"{m} (SD)" for m in SD_METRICS]
-    ss.append(sh)
-    gcol = f"'All runs'!${col_of['group_key']}$2:${col_of['group_key']}${n_rows}"
-    for i, (gk, g) in enumerate(groups.items(), start=2):
+    # ---- Results: one row per experiment configuration, every metric averaged over its seeds
+    ss = wb.create_sheet("Results", 1)
+    present = [k for k in ordered if any(isinstance(r.get(k), (int, float)) and not isinstance(r.get(k), bool) for r in runs)]
+    rows_by_group = defaultdict(list)
+    for r in runs:
+        quick = bool(r.get("quick")) or r["_folder"].endswith("_quick") or r.get("quick_scale", 1.0) < 1.0
+        gk = "|".join(str(x) for x in (spec_of(r["_folder"]), r.get("label"), r.get("dataset"), r.get("IF"), r.get("alpha"),
+                                        r.get("K"), r.get("pfrac", ""), "tp" if r.get("tail_perm") else "", "quick" if quick else ""))
+        rows_by_group[gk].append(r)
+    id_head = ["Experiment", "Experiment title", "Method", "Dataset", "Class imbalance", "Client label skew (Dirichlet α)",
+               "Clients", "Participation per round", "Random rare classes", "Quick pass (reduced schedule)", "Seeds",
+               "Runs averaged"]
+    sd_keys = [k for k in ("final_bal", "er_bal") if k in present]
+    head = id_head + [pretty(k) for k in present] + [pretty(k) + " SD" for k in sd_keys]
+    ss.append(head)
+
+    def imb(IF):
+        if IF is None:
+            return None
+        return "balanced" if IF >= 1 else f"{round(1 / IF):d} : 1"
+
+    def order_key(item):
+        g = groups[item[0]]
+        e = g["exp"]
+        return (e[0], int(re.sub(r"\D", "", e[1:4]) or 0), e, g["quick"], str(g["dataset"]), -(g["IF"] or 0),
+                str(g["alpha"]), g["K"] or 0, str(g["label"]))
+    for gk, g in sorted(groups.items(), key=order_key):
+        rs = rows_by_group[gk]
+        vals = []
+        for k in present:
+            xs = [r[k] for r in rs if isinstance(r.get(k), (int, float)) and not isinstance(r.get(k), bool)]
+            if not xs:
+                vals.append(None)
+            else:
+                v = sum(xs) / len(xs)
+                vals.append(round(100 * v, 2) if is_fraction(k) else round(v, 4))
+        sds = []
+        for k in sd_keys:
+            xs = [r[k] for r in rs if isinstance(r.get(k), (int, float))]
+            if len(xs) > 1:
+                m = sum(xs) / len(xs)
+                sds.append(round(100 * (sum((x - m) ** 2 for x in xs) / (len(xs) - 1)) ** 0.5, 2))
+            else:
+                sds.append(None)
         seeds = ", ".join(str(s) for s in sorted(x for x in g["seeds"] if x is not None))
-        row = [g["exp"], g["label"], g["dataset"], g["IF"], g["alpha"], g["K"], g["pfrac"], "yes" if g["tp"] else None,
-               "yes" if g["quick"] else None, seeds, ", ".join(sorted(g["folders"])), f'=COUNTIF({gcol},"{gk}")']
-        for m in SUMMARY_METRICS:
-            if m not in col_of:
-                row.append(None)
-                continue
-            rng = f"'All runs'!${col_of[m]}$2:${col_of[m]}${n_rows}"
-            row.append(f'=IFERROR(AVERAGEIF({gcol},"{gk}",{rng}),"")')
-        for m in SD_METRICS:
-            rng = f"'All runs'!${col_of[m]}$2:${col_of[m]}${n_rows}"
-            mean_cell = f"{get_column_letter(sh.index(m + ' (mean)') + 1)}{i}"
-            row.append(f'=IFERROR(SQRT(SUMPRODUCT(({gcol}="{gk}")*({rng}<>"")*({rng}-{mean_cell})^2)'
-                       f'/(COUNTIFS({gcol},"{gk}",{rng},"<>")-1)),"")')
-        ss.append(row)
+        ss.append([g["exp"], titles.get(g["exp"], ""), g["label"], g["dataset"], imb(g["IF"]), g["alpha"], g["K"], g["pfrac"],
+                   "yes" if g["tp"] else None, "yes" if g["quick"] else None, seeds, len(rs)] + vals + sds)
     # K01 CIFAR-10: only the summary table came back (3-seed means as printed on Kaggle)
     k01 = os.path.join(RES, "K01_kaggle_cifar10_svhn__cifar10", "summary.md")
+    col = {h: i for i, h in enumerate(head)}
     if os.path.exists(k01):
-        setting = None
+        setting, cols = None, None
         for line in open(k01, encoding="utf-8"):
             m = re.match(r"## (\w+)\s+IF=([\d.]+)\s+alpha=(\S+)\s+K=(\d+)", line)
             if m:
-                setting = m.groups()
-                cols = None
+                setting, cols = m.groups(), None
                 continue
             if line.startswith("| label"):
                 cols = [x.strip() for x in line.strip().strip("|").split("|")]
                 continue
-            if setting and line.startswith("|") and not line.startswith("|---") and cols:
-                c = [x.strip() for x in line.strip().strip("|").split("|")]
-                vals = dict(zip(cols, c))
-                mean = lambda s: float(s.split("±")[0]) / 100 if s and s[0].isdigit() else None
-                row = ["K01_kaggle_cifar10_svhn", vals["label"], setting[0], float(setting[1]),
-                       None if setting[2] == "None" else float(setting[2]), int(setting[3]), None, None, None,
-                       "0, 1, 2", "K01_kaggle_cifar10_svhn__cifar10 (summary table only; per-run file not returned)",
-                       int(vals["n"])]
-                for mtr in SUMMARY_METRICS:
-                    row.append(mean(vals.get(mtr, "")) if mtr in ("final_bal", "final_tail", "best_mean_acc") else None)
-                row += [None] * len(SD_METRICS)
+            if setting and cols and line.startswith("|") and not line.startswith("|---"):
+                vals = dict(zip(cols, [x.strip() for x in line.strip().strip("|").split("|")]))
+                row = [None] * len(head)
+                row[:12] = ["K01_kaggle_cifar10_svhn", titles.get("K01_kaggle_cifar10_svhn", ""), vals["label"], setting[0],
+                            imb(float(setting[1])), None if setting[2] == "None" else float(setting[2]), int(setting[3]),
+                            None, None, None, "0, 1, 2 (summary table only; per-run file not returned)", int(vals["n"])]
+                for src, key in (("best_mean_acc", "best_mean_acc"), ("final_bal", "final_bal"), ("final_tail", "final_tail"),
+                                 ("final_ens_acc", "final_ens_acc"), ("fidelity_tail", "fidelity_tail")):
+                    v = vals.get(src, "")
+                    if v and v[0].isdigit() and pretty(key) in col:
+                        row[col[pretty(key)]] = float(v.split("±")[0])
                 ss.append(row)
+    # MovieLens (E40): one row per arm and number of clients
+    e40g = defaultdict(list)
+    for r in e40:
+        e40g[(r.get("arm"), r.get("K"))].append(r)
+    ekeys = ["rmse", "rmse_kappa_lt1", "rmse_kappa_ge1", "n_kappa_lt1", "collapsed_kappa_lt1", "collapsed_kappa_ge1",
+             "median_norm_kappa_lt1", "median_norm_kappa_ge1", "spearman_logkappa_norm"]
+    extra = [f"MovieLens: {k}" for k in ekeys]
+    for j, h in enumerate(extra, start=len(head) + 1):
+        ss.cell(row=1, column=j, value=h)
+    for (arm, K), rs in sorted(e40g.items(), key=lambda x: (str(x[0][0]), x[0][1] or 0)):
+        row = [None] * len(head)
+        row[:12] = ["E40_fedembed_mf", titles.get("E40_fedembed_mf", ""), arm, "movielens-1m", None, None, K, None, None, None,
+                    ", ".join(str(r.get("seed")) for r in rs), len(rs)]
+        for k in ekeys:
+            xs = [r[k] for r in rs if isinstance(r.get(k), (int, float))]
+            row.append(round(sum(xs) / len(xs), 4) if xs else None)
+        ss.append(row)
     style_header(ss)
-    ss.freeze_panes = "D2"
-    ss.auto_filter.ref = f"A1:{get_column_letter(len(sh))}{ss.max_row}"
-    set_widths(ss, [26, 30, 10, 7, 7, 6, 10, 10, 8, 12, 30, 6] + [11] * (len(SUMMARY_METRICS) + len(SD_METRICS)))
+    ss.row_dimensions[1].height = 60
+    ss.freeze_panes = "E2"
+    ss.auto_filter.ref = f"A1:{get_column_letter(ss.max_column)}{ss.max_row}"
+    set_widths(ss, [24, 40, 30, 12, 11, 10, 8, 10, 9, 9, 12, 7] + [13] * (ss.max_column - 12))
     for row in ss.iter_rows(min_row=2):
         for j, c in enumerate(row):
             c.font = BODY
-            if j >= 12:
-                c.number_format = "0.0%"
+            if j >= 12 and isinstance(c.value, float):
+                c.number_format = "0.00" if c.value >= 0.0 else "0.00"
 
     # ---- Per-class recall / precision, and other per-class lists
     pc = wb.create_sheet("Per-class recall")
@@ -339,7 +402,7 @@ def main():
             c.font = BODY
 
     # ---- Experiments index
-    ex = wb.create_sheet("Experiments", 1)
+    ex = wb.create_sheet("Experiments", 2)
     ex.append(["experiment", "title (from the spec)", "result folder", "notebook / job", "runs logged", "datasets",
                "methods", "seeds", "status"])
     by_folder = defaultdict(list)
@@ -353,7 +416,7 @@ def main():
         exp = spec_of(folder)
         status = next((j["status"] for j in jobs if j["folder"] == folder), "")
         if not rs:
-            status = status or "results in summary / diagnostic files only (see Summary or Other results)"
+            status = status or "results in summary / diagnostic files only (see Results or Other results)"
         ex.append([exp, titles.get(exp, ""), folder, ", ".join(nb_of.get(folder, [])), len(rs),
                    ", ".join(sorted({str(r.get("dataset", r.get("task", ""))) for r in rs})),
                    len({r.get("label", r.get("arm")) for r in rs}),
@@ -425,7 +488,7 @@ def main():
          "Re-run it after adding results; do not edit numbers by hand.", BODY),
         ("", BODY),
         (f"Logged runs (one row each in 'All runs'): {len(runs)}", BOLD),
-        (f"Settings (one row each in 'Summary'): {len(groups)}", BOLD),
+        (f"Experiments, one row each in 'Results' (method x dataset x setting, seeds averaged): {ss.max_row - 1}", BOLD),
         (f"Experiments (specs): {n_exp}; result folders: {len(folders)}", BOLD),
         (f"MovieLens federated matrix-factorisation runs: {len(e40)}", BOLD),
         (f"Values from other result files (D01, T01, T02, CPU checks): {ot.max_row - 1}", BOLD),
@@ -434,7 +497,8 @@ def main():
         ("Blank cell = that run did not measure that metric (metrics were added over time: e.g. readouts from K16, "
          "precision from 22 Oct 2026).", BODY),
         ("Accuracies, recalls, F1, precision and calibration error are shown as percentages; NLL, Brier and times as numbers.", BODY),
-        ("'Summary' means are AVERAGEIF formulas over 'All runs' (blanks ignored); SD columns use the same rows.", BODY),
+        ("'Results' is the main table: one row per experiment, each metric the mean over that experiment's seeds "
+         "(the individual runs are in 'All runs'). SD columns: standard deviation over seeds.", BODY),
         ("'Experiments' also lists every planned Kaggle job whose results never came back, marked as such.", BODY),
         ("Not included: per-round training curves (the 'history' field), per-client class-count matrices and the nested "
          "instrumentation records of K25; they remain in the runs.jsonl files.", BODY),
@@ -447,9 +511,10 @@ def main():
         for c in row:
             c.alignment = Alignment(wrap_text=True, vertical="top")
 
+    wb.active = wb.sheetnames.index("Results")
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     wb.save(OUT)
-    print(f"wrote {OUT}: {len(runs)} runs, {len(groups)} settings, {len(folders)} folders, {len(e40)} E40 runs, "
+    print(f"wrote {OUT}: {len(runs)} runs, {ss.max_row - 1} experiment rows, {len(folders)} folders, {len(e40)} E40 runs, "
           f"{ot.max_row - 1} other values, {pc.max_row - 1} per-class rows, {len(ordered)} metric columns")
 
 
