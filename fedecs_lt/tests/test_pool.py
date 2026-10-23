@@ -55,3 +55,18 @@ def test_multi_chunk_slices_and_probs(monkeypatch):
     state = torch.random.get_rng_state()
     client.pool_chunk(cfg, sm, 2)
     assert torch.equal(state, torch.random.get_rng_state())   # the clients' own random stream is untouched
+
+
+def test_draw_batched_equals_whole_draw():
+    """draw() corrects batch by batch into one tensor; equal to drawing everything and correcting at once."""
+    from fedecs import MCParams
+    C, d = 4, 6
+    mc = MCParams(torch.randn(C, d), torch.randn(C, d), torch.rand(C) + 0.5)
+    sm = dict(G=FakeGen(), mc=mc, pool={}, shape=(d,))
+    y = torch.randint(0, C, (9000,))
+    torch.manual_seed(5)
+    new = client.draw(sm, y)
+    torch.manual_seed(5)
+    old = torch.cat([sm["G"].sample(y[s:s + 4096]) for s in range(0, len(y), 4096)])
+    old = mc.apply(old, y)
+    assert torch.equal(new, old)

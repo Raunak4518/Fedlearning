@@ -223,10 +223,24 @@ def sampler_of(cfg):
 
 
 @torch.no_grad()
+@torch.no_grad()
 def draw(sm, y):
-    """Generated features for labels y (moment-corrected when the server sent MC parameters)."""
-    x = torch.cat([sm["G"].sample(y[s:s + 4096]) for s in range(0, len(y), 4096)])
-    return sm["mc"].apply(x, y) if sm["mc"] is not None else x
+    """Generated features for labels y (moment-corrected when the server sent MC parameters), written batch by batch
+    into one output tensor (the correction is per sample, so this equals correcting the whole draw at once). Batches
+    of 4096 as core.py; 1024 for very large features (Track 2's 32,768 dimensions), to bound the generator's memory."""
+    d = int(np.prod(sm["shape"])) if "shape" in sm else 0
+    bs = 4096 if d <= 8192 else 1024
+    out = None
+    for s in range(0, len(y), bs):
+        yb = y[s:s + bs]
+        xb = sm["G"].sample(yb)
+        if sm["mc"] is not None:
+            xb = sm["mc"].apply(xb, yb)
+        if out is None:
+            out = torch.empty((len(y),) + tuple(xb.shape[1:]), dtype=xb.dtype, device=xb.device)
+        out[s:s + len(yb)] = xb
+        del xb
+    return out
 
 
 POOL_CHUNK_BYTES = 2 ** 30   # the pool is generated in chunks of at most 1 GiB of features
@@ -289,7 +303,7 @@ def pool_probs(cfg, sm, h, g):
         out = []
         for j in range((cfg["P"] + L - 1) // L):
             px, _ = pool_chunk(cfg, sm, j)
-            out.append(torch.cat([h(px[s:s + 4096]).softmax(1) for s in range(0, len(px), 4096)]))
+            out.append(torch.cat([h(px[s:s + 2048]).softmax(1) for s in range(0, len(px), 2048)]))
             del px
         STATE[key] = torch.cat(out)
     return STATE[key]
