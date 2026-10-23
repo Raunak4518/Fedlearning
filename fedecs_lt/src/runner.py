@@ -1,0 +1,151 @@
+"""Runs experiments: one Flower simulation per run, two runs per GPU in parallel worker processes, resumable
+(runs already in runs.jsonl are skipped), stops starting new runs at the deadline.
+
+    python runner.py --exp NAME --runs runs.json --out /kaggle/working/results --gpus 2 --per_gpu 2
+"""
+import argparse
+import json
+import os
+import subprocess
+import sys
+import threading
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+
+# Methods of the GeFL-F pipeline family (server.run_pipeline). Baselines with their own protocol are in baselines/.
+PIPELINE = {
+    "FedECS-LT": dict(pipeline="gefl", stats=True, secure=True, readout=True,
+                      gen=dict(type="gate", opt="adam", wd=1e-3, beta=0.999),
+                      head=dict(ts=10, tr=5, loss="la", tau=1.0, mc=True, csl=0.5)),
+    "GeFL-F": dict(pipeline="gefl", gen=dict(type="cvae", opt="adam", wd=1e-3, agg="flat"),
+                   head=dict(ts=1, tr=5, loss="ce")),
+    "GeFL-F + AdamW + LA": dict(pipeline="gefl", gen=dict(type="cvae", opt="adamw", wd=1e-3, agg="flat"),
+                                head=dict(ts=1, tr=5, loss="la", tau=1.0)),
+    "Real only": dict(pipeline="gefl", gen=None, head=dict(ts=0, tr=5, loss="ce")),
+    "Real only + LA (balanced softmax)": dict(pipeline="gefl", gen=None, head=dict(ts=0, tr=5, loss="la", tau=1.0)),
+    "FedLC": dict(pipeline="gefl", gen=None, head=dict(ts=0, tr=5, loss="lc", tau=1.0)),
+    "FedRS": dict(pipeline="gefl", gen=None, head=dict(ts=0, tr=5, loss="rs")),
+    "Gaussian generator + LA": dict(pipeline="gefl", stats=False, gen=dict(type="gauss"),
+                                    head=dict(ts=1, tr=5, loss="la", tau=1.0)),
+    "FedDF": dict(pipeline="gefl", gen=dict(type="cvae", opt="adam", wd=1e-3, agg="flat"),
+                  head=dict(ts=1, tr=5, loss="ce", sed=20, sed_beta=1.0, sed_lr=0.05, sed_bs=128)),
+    "FedDF + LA": dict(pipeline="gefl", gen=dict(type="cvae", opt="adam", wd=1e-3, agg="flat"),
+                       head=dict(ts=1, tr=5, loss="la", tau=1.0, sed=20, sed_beta=1.0, sed_lr=0.05, sed_bs=128)),
+    "Local only": dict(pipeline="local", head=dict(ts=0, tr=5, loss="ce")),
+}
+
+
+def method_spec(label):
+    if label in PIPELINE:
+        return PIPELINE[label]
+    from baselines import BASELINES
+    return BASELINES[label]
+
+
+def run_id(r):
+    extra = ("|tp" if r.get("tail_perm") else "") + (f"|p{r['pfrac']}" if r.get("pfrac", 1.0) < 1.0 else "")
+    return f"{r['label']}|{r['ds']}|IF{r['IF']}|a{r['alpha']}|K{r['K']}|s{r['seed']}" + extra
+
+
+def run_one(R):
+    """One run = one Flower simulation (Ray backend, one persistent client process on this process's GPU)."""
+    import torch
+    from flwr.simulation import run_simulation
+    sys.path.insert(0, HERE)
+    os.environ["PYTHONPATH"] = HERE + os.pathsep + os.environ.get("PYTHONPATH", "")
+    os.environ.setdefault("RAY_ACCEL_ENV_VAR_OVERRIDE_ON_ZERO", "0")
+    import client
+    import server
+    server.RUN.clear()
+    server.RUN.update(R)
+    gpu = 1.0 if torch.cuda.is_available() else 0.0
+    backend = {"client_resources": {"num_cpus": 1, "num_gpus": gpu},
+               "init_args": {"num_cpus": 1, "num_gpus": int(gpu), "include_dashboard": False,
+                             "logging_level": "ERROR", "log_to_driver": True}}
+    run_simulation(server_app=server.app, client_app=client.app, num_supernodes=R["K"], backend_config=backend)
+    if "result" not in server.RUN:
+        raise RuntimeError(f"run {R['run_id']} produced no result")
+    return server.RUN["result"]
+
+
+def done_ids(out_dir):
+    p = os.path.join(out_dir, "runs.jsonl")
+    if not os.path.exists(p):
+        return set()
+    out = set()
+    for line in open(p):
+        try:
+            out.add(json.loads(line)["run_id"])
+        except Exception:
+            pass
+    return out
+
+
+def worker_main(args):
+    """One worker: runs its share of the run list sequentially (same process for runs sharing stages)."""
+    runs = json.load(open(args.runs))
+    mine = [r for i, r in enumerate(runs) if r.get("worker", i) % args.n_workers == args.worker]
+    deadline = float(os.environ.get("FEDECS_DEADLINE", "inf"))
+    for r in mine:
+        if time.time() > deadline:
+            print("deadline reached: no new run started", flush=True)
+            break
+        R = dict(r)
+        R.setdefault("method", method_spec(R["label"]))
+        R["run_id"] = run_id(R)
+        if R["run_id"] in done_ids(R["out_dir"]):
+            print("already done:", R["run_id"], flush=True)
+            continue
+        t0 = time.time()
+        print("start", R["run_id"], flush=True)
+        try:
+            res = run_one(R)
+            print(f"done {R['run_id']}  bal={res.get('final_bal', float('nan')):.4f}  "
+                  f"er_bal={res.get('er_bal', float('nan')):.4f}  {time.time() - t0:.0f}s", flush=True)
+        except Exception as e:  # record the failure, continue with the next run
+            import traceback
+            traceback.print_exc()
+            os.makedirs(R["out_dir"], exist_ok=True)
+            with open(os.path.join(R["out_dir"], "failures.jsonl"), "a") as f:
+                f.write(json.dumps(dict(run_id=R["run_id"], error=repr(e)[:4000], time_s=time.time() - t0)) + "\n")
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--runs", required=True, help="JSON list of runs")
+    ap.add_argument("--gpus", type=int, default=0)
+    ap.add_argument("--per_gpu", type=int, default=2)
+    ap.add_argument("--worker", type=int, default=None)
+    ap.add_argument("--n_workers", type=int, default=1)
+    args = ap.parse_args()
+    if args.worker is not None:
+        return worker_main(args)
+    n = max(1, args.gpus * args.per_gpu) if args.gpus else 1
+    procs, threads = [], []
+    for w in range(n):
+        env = dict(os.environ)
+        if args.gpus:
+            env["CUDA_VISIBLE_DEVICES"] = str(w % args.gpus)
+        cmd = [sys.executable, os.path.abspath(__file__), "--runs", args.runs, "--worker", str(w), "--n_workers", str(n)]
+        log = open(os.path.join(os.path.dirname(args.runs), f"worker{w}.log"), "a")
+        p = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, cwd=HERE)
+
+        def stream(p=p, w=w, log=log):
+            for line in p.stdout:
+                log.write(line)
+                log.flush()
+                if line.startswith(("start", "done", "already", "deadline", "Traceback", "RuntimeError")):
+                    print(f"[w{w}] {line}", end="", flush=True)
+        t = threading.Thread(target=stream, daemon=True)
+        t.start()
+        procs.append(p)
+        threads.append(t)
+    for p in procs:
+        p.wait()
+    for t in threads:
+        t.join(timeout=5)
+
+
+if __name__ == "__main__":
+    main()
