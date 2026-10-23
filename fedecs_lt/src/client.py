@@ -213,7 +213,8 @@ def load_gen(msg, context):
             G.load_state_dict(arrays_of(msg.content, "g", DEV))
         G.eval()
         mc = arrays_of(msg.content, "mc", DEV)
-        STATE[k] = dict(G=G, mc=fedecs.MCParams(mc["mu"], mc["m"], mc["scale"]) if mc else None, pool={})
+        STATE[k] = dict(G=G, mc=fedecs.MCParams(mc["mu"], mc["m"], mc["scale"]) if mc else None, pool={},
+                        shape=shape)
     return reply(msg, dict(ok=True))
 
 
@@ -228,25 +229,70 @@ def draw(sm, y):
     return sm["mc"].apply(x, y) if sm["mc"] is not None else x
 
 
+POOL_CHUNK_BYTES = 2 ** 30   # the pool is generated in chunks of at most 1 GiB of features
+
+
+def pool_chunk_size(cfg, sm):
+    d = int(np.prod(sm["shape"]))
+    return max(1, POOL_CHUNK_BYTES // (4 * d))
+
+
 @torch.no_grad()
-def pool_of(cfg, sm):
-    """This round's shared synthetic pool, regenerated identically by every client from the server's seed."""
-    key = (cfg["round"], cfg["pool_seed"])
-    if key not in sm["pool"]:
+def pool_chunk(cfg, sm, j):
+    """Chunk j of this round's shared synthetic pool, regenerated identically by every client from the server's seed
+    (chunk j uses seed pool_seed + j). A pool that fits in one chunk (every Track-1 setting) is the same draw as one
+    generated at once; with one shared architecture the pool covers all clients' slices and is far larger, so no
+    client ever holds all of it."""
+    L = pool_chunk_size(cfg, sm)
+    n = min(L, cfg["P"] - j * L)
+    gstate = torch.random.get_rng_state()
+    cstate = torch.cuda.get_rng_state_all() if DEV == "cuda" else None
+    torch.manual_seed(cfg["pool_seed"] + j)
+    if DEV == "cuda":
+        torch.cuda.manual_seed_all(cfg["pool_seed"] + j)
+    allowed = torch.arange(cfg["C"], device=DEV)
+    py = allowed[torch.randint(0, len(allowed), (n,), device=DEV)]
+    px = draw(sm, py)
+    torch.random.set_rng_state(gstate)
+    if cstate is not None:
+        torch.cuda.set_rng_state_all(cstate)
+    return px, py
+
+
+def pool_slice(cfg, sm, o, n):
+    """Pool samples [o, o + n) (a client's slice): only the chunks that cover it are generated; the last slice is
+    cached, so a client's head step reuses what its consensus step needed."""
+    key = (cfg["round"], cfg["pool_seed"], o, n)
+    if sm["pool"].get("key") != key:
+        L = pool_chunk_size(cfg, sm)
+        xs, ys = [], []
+        for j in range(o // L, (o + n - 1) // L + 1):
+            px, py = pool_chunk(cfg, sm, j)
+            a, b = max(o, j * L) - j * L, min(o + n, (j + 1) * L) - j * L
+            xs.append(px[a:b])
+            ys.append(py[a:b])
+            del px, py
         sm["pool"].clear()
-        gstate = torch.random.get_rng_state()
-        cstate = torch.cuda.get_rng_state_all() if DEV == "cuda" else None
-        torch.manual_seed(cfg["pool_seed"])
-        if DEV == "cuda":
-            torch.cuda.manual_seed_all(cfg["pool_seed"])
-        allowed = torch.arange(cfg["C"], device=DEV)
-        py = allowed[torch.randint(0, len(allowed), (cfg["P"],), device=DEV)]
-        px = draw(sm, py)
-        torch.random.set_rng_state(gstate)
-        if cstate is not None:
-            torch.cuda.set_rng_state_all(cstate)
-        sm["pool"][key] = (px, py)
-    return sm["pool"][key]
+        sm["pool"].update(key=key, xy=(torch.cat(xs), torch.cat(ys)))
+    return sm["pool"]["xy"]
+
+
+@torch.no_grad()
+def pool_probs(cfg, sm, h, g):
+    """softmax(h_g(pool)) over the whole pool, chunk by chunk (features are dropped after use); cached per round,
+    pool and head, since every client of architecture g computes the same values."""
+    key = ("pool_probs", cfg["round"], cfg["pool_seed"], cfg["heads_key"], g)
+    if key not in STATE:
+        for old in [x for x in STATE if x[0] == "pool_probs"]:
+            del STATE[old]
+        L = pool_chunk_size(cfg, sm)
+        out = []
+        for j in range((cfg["P"] + L - 1) // L):
+            px, _ = pool_chunk(cfg, sm, j)
+            out.append(torch.cat([h(px[s:s + 4096]).softmax(1) for s in range(0, len(px), 4096)]))
+            del px
+        STATE[key] = torch.cat(out)
+    return STATE[key]
 
 
 # ---------------------------------------------------------------- stage III
@@ -298,10 +344,9 @@ def head(msg, context):
         sm = sampler_of(cfg)
         nsyn = lt.n_syn(n, B, hs["ts"])
         if "cons" in msg.content.array_records:   # consensus soft labels (CSL) on the shared pool
-            px, py = pool_of(cfg, sm)
-            o = int(cfg["pool_off"])
+            px, py = pool_slice(cfg, sm, int(cfg["pool_off"]), nsyn)
             cons = arrays_of(msg.content, "cons", DEV)["t"].float()
-            syn = ("soft", px[o:o + nsyn], fedecs.csl_targets(py[o:o + nsyn], cons, cfg["csl_beta"], C))
+            syn = ("soft", px, fedecs.csl_targets(py, cons, cfg["csl_beta"], C))
         else:                                     # uniform synthetic labels, hard targets (GeFL-F)
             ylab = lt.syn_hard_labels(C, nsyn).to(DEV)
             syn = ("hard", draw(sm, ylab), ylab)
@@ -377,13 +422,11 @@ def contributions(cfg, k):
     if what == "consensus":                 # w_k softmax(h_g(pool)), w_k = 1 / (G n_arch)
         F_ = feats_of(cfg, fed)
         sm = sampler_of(cfg)
-        px, _ = pool_of(cfg, sm)
         g = fed.arch[k]
         h = head_of(cfg, fed, g, {kk: torch.tensor(np.array(v)) for kk, v in STATE[("heads", cfg["heads_key"])][g].items()},
                     F_["te"].shape[1])
         h.eval()
-        with torch.no_grad():
-            p = torch.cat([h(px[s:s + 4096]).softmax(1) for s in range(0, len(px), 4096)])
+        p = pool_probs(cfg, sm, h, g)
         return [(cfg["w"][str(k)] * p.double()).cpu().numpy()]
     if what == "readout":                   # per architecture: n, sum e, sum e e^T of the client's real features
         F_ = feats_of(cfg, fed)
