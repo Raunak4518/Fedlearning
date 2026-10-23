@@ -502,3 +502,17 @@ If packing 2 runs per GPU fails, 4 sessions per helper (still within the week, n
 Assumptions to verify before the notebooks are written: stage times of new datasets (20k-image cap, scaled from K17
 logs); cost factor 0.35 for methods reusing a cached extractor; overhead 1.7 for Flower / Ray and full evaluation;
 Track-2 protocol details.
+
+## 20. Method name, decided 23 Oct 2026
+
+**FedECS-LT: Exact Class Statistics for Long-Tailed federated learning.** The name states the one principle behind
+every part: per-class totals (counts, feature sums, squared lengths; class-wise output sums for the readout) obtained
+exactly by secure aggregation, used instead of averaged models wherever an answer depends on the class distribution.
+"-LT" follows the field's label for long-tailed data. Checked names: FedCSA is taken (IEEE TDSC 2026, class-conditional
+anchor alignment with secure aggregation; close to ours, cite it), FedSAGE and FedTAIL taken, FedCSB too close to
+Fed-CBS (ICML 2022); no method named FedECS was found.
+
+Still to apply (not done yet): rename "Ours" / "our method" in paper_draft.md, paper.tex, the study guide and
+PROGRESS.md; decide the term replacing "holder-weighted averaging (HWA)" (proposed: class-count weighted averaging,
+since a holder-only rule weighted by class counts already exists in FedProto, cwFedAvg and MLFCIL); add FedCSA and
+MLFCIL (arXiv 2604.02356) to related work; update the study guide to T_s = 10 and no kernel herding (§12).
