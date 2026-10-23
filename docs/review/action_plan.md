@@ -521,3 +521,27 @@ Decided with the user (23 Oct 2026):
   (the Flower rewrite) use FedECS-LT and CCWA from the start.
 - At that rewrite also: add FedCSA and MLFCIL (arXiv 2604.02356) to related work; update the study guide to T_s = 10 and
   no kernel herding (§12).
+
+## 21. Figure standard: IEEE format for every plot (user, 23 Oct 2026)
+
+All 60 plots of §15 / §17b, and every later figure, follow the IEEE graphics rules. One shared style module
+(`experiments/plot_style.py`, written with the Flower code; nothing else may set fonts or sizes) applies them, so no plot
+is styled by hand.
+- **Size at final print size:** one column 3.5 in (88.9 mm) wide; two columns 7.16 in (181.9 mm); height at most
+  8.5 in, normally 2.2-2.8 in for one column. Plots are drawn at this size, never scaled in LaTeX.
+- **Fonts:** Times (serif, matching IEEEtran body text; maths in the same font), 8 pt for axis labels, ticks, legends
+  and in-plot text, never below 7 pt after any scaling. Fonts embedded (Type 42 / TrueType), no Type 3.
+- **Lines and marks:** lines at least 0.5 pt (data lines 1.0 pt), marker size 3-4 pt; each method keeps the same colour,
+  marker and line style in every plot (one table of methods -> style in the module).
+- **Colour:** RGB, colour-blind-safe palette; every plot also readable in greyscale print (methods told apart by
+  marker and line style, not by colour alone); sequential maps viridis / cividis for heatmaps, diverging map centred at
+  0 for effects (§17b).
+- **Axes:** every axis labelled with quantity and unit in parentheses, e.g. "Balanced accuracy (%)", "Round",
+  "Communication (MB)"; same y-range for plots that are compared; no chart titles inside the image (the caption says it).
+- **Subfigures:** (a), (b), ... placed below each panel; one shared legend per figure where possible.
+- **Files:** vector PDF for line art and charts; bitmaps (t-SNE with many points, confusion matrices with images)
+  at 600 dpi; file names fig_<number>_<short name>.pdf.
+- **Captions and tables (LaTeX side):** "Fig. 1." caption below the figure; tables numbered in Roman numerals
+  ("TABLE I"), caption above, IEEE table style (horizontal rules only).
+- Check before use: an automatic test in the style module renders each plot and checks width, font sizes and embedded
+  fonts; IEEE's free graphics checker (Graphics Analyzer) on a sample before submission.
