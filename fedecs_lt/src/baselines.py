@@ -7,8 +7,6 @@ the FedLTLib benchmark) runs the authors' LongTailLib code unchanged on this sui
 HTFL = ["FedProto", "FedTGP", "FedGen", "FedGH", "LG-FedAvg", "FedMRL"]
 SOURCE = {m: "HtFLlib (Zhang et al., KDD 2025), Apache-2.0, ported to Flower" for m in HTFL}
 BASELINES = {m: dict(pipeline="htfl", name=m, source=SOURCE[m]) for m in HTFL}
-# full-model version: HtFLlib's HtFE-img-8 models trained from the images (tier-1 datasets)
-BASELINES.update({f"{m} (full model)": dict(pipeline="htfl", name=m, native=True, source=SOURCE[m]) for m in HTFL})
 TRACK2 = ["FedAvg", "FedProx", "MOON", "FedLC", "CCVR", "CReFF", "FedETF", "Fed-GraB", "FedLoGe", "FedYoYo", "RUCR",
           "CLIP2FL"]
 for m in TRACK2:

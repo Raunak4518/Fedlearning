@@ -579,10 +579,11 @@ Target: IEEE (IEEEtran template, journals and conferences). No other venue profi
   stage (frozen extractor 128 x 16 x 16), T_FE = T_TN = 100 rounds (the baselines' 200), generator rounds extra and
   reported.
 - **Dropped:** FEDIC, FedGELA, FedLF, FML, FD, FedKD, FedKTL, FedMD, SCAFFOLD, CAPT (reasons in the plan of 23 Oct).
-- **Full-model version** ("both versions", user 23 Oct): FedProto, FedTGP, FedGen, FedGH, LG-FedAvg and FedMRL also
-  run as in their own papers, each client training a whole image model of HtFLlib's HtFE-img-8 family (FedAvgCNN,
-  GoogLeNet, MobileNetV2, ResNet-18/34/50/101/152) from the images, with HtFLlib's one local epoch per round, for
-  T_FE + T_TN rounds; tier-1 datasets, seeds 3-5, same splits as the main comparison (notebooks NB11).
+- **Full-model version dropped** (user, 23 Oct, after a CPU test): the six model-heterogeneous methods run only in
+  the common protocol (shared Stage-I extractor, their authors' hyperparameters). Training each client's whole
+  CNN (up to ResNet-152) would cost about 60-90 GPU-hours and ~12 GB of weights per notebook, and would not
+  compare like with like (much larger client models, no shared extractor). The code is in git history
+  (commit 24ccf7a) if a reviewer asks for it.
 - **Not run:** FedNH and FedVLS (priority B). LongTailLib contains FedNH, so it can be added to Track 2 by one
   line in `fedecs_lt/build_notebooks.py` if the main results leave room.
 - **Licences:** MIT / Apache code pasted with credit; unlicensed or GPL code downloaded at run time, never stored here.

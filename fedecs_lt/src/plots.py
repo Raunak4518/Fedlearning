@@ -206,7 +206,7 @@ def f08(E, S, out):
 
 # ---------------------------------------------------------------- B: class imbalance
 def _per_class(E, S, key, methods):
-    rows, mat = [], {}
+    mat = {}
     for m in methods:
         rs = [r.get(key) for r in E.of(m, S) if r.get(key)]
         if rs:
@@ -1227,7 +1227,6 @@ def f56(E, S, out):
         if not rs:
             continue
         r = rs[0]
-        arch = _arch(r["K"])
         rows, M, rounds = [], [], []
         for e in E.log(r, "stage3_round"):
             if not e.get("pre") or not e.get("post"):

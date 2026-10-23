@@ -3,11 +3,7 @@ system/flcore/servers/server{proto,tgp,gen,gh,lg,mrl}.py. Every method starts fr
 bodies as FedECS-LT (cached), trains for the same number of rounds and local epochs as our head stage, and uses the
 hyperparameters of the authors' run scripts (HtFLlib README / total.sh): SGD lr 0.01, batch 10, feature dimension 512;
 FedProto and FedTGP lambda 10; FedTGP server epochs 100, margin threshold 100; FedGen noise 32, hidden 512, generator
-lr 0.1, server epochs 100; FedGH server lr 0.01, server epochs 1; FedMRL sub-feature dimension 128.
-
-Full-model version (method option native=True): each client trains a whole image model of HtFLlib's HtFE-img-8
-family from the images, as in the HtFLlib benchmark (no shared extractor, no Stage I), for T_FE + T_TN rounds (the
-rounds of our whole pipeline) with HtFLlib's default of one local epoch per round."""
+lr 0.1, server epochs 100; FedGH server lr 0.01, server epochs 1; FedMRL sub-feature dimension 128."""
 import os
 import time
 
@@ -58,7 +54,7 @@ def proto_cluster(protos, masks):
 
 
 def run_htfl(grid, context, R):
-    from htfl_client import Generator, HtModel, NativeModel
+    from htfl_client import Generator, HtModel
     mon = Monitor(os.path.join(R["out_dir"], "logs"), R["run_id"], tensorboard=R.get("tensorboard", True))
     t0 = time.time()
     S = Fed(grid, context, R, mon)
@@ -66,24 +62,17 @@ def run_htfl(grid, context, R):
     spec = S.spec
     T = dict(T_FE=spec["T_FE"], T_KA=spec["T_KA"], T_TN=spec["T_TN"])
     T.update(R.get("rounds") or {})
-    native = bool(R["method"].get("native"))
-    hp = dict(HP, **METHOD_HP[meth], epochs=1 if native else 5)
-    n_rounds = T["T_FE"] + T["T_TN"] if native else T["T_TN"]
+    hp = dict(HP, **METHOD_HP[meth], epochs=5)
     res = dict(run_id=R["run_id"], label=R["label"], dataset=R["ds"], IF=R["IF"], alpha=R["alpha"], K=R["K"],
                seed=R["seed"], pfrac=R.get("pfrac", 1.0), tail_perm=R.get("tail_perm", False), method=R["method"],
                n_train=S.N, min_client=int(min(S.fed.sizes)), client_counts=S.fed.counts.astype(int).tolist(),
-               rounds=dict(T_TN=n_rounds) if native else T, framework="flower", hyperparameters=hp,
-               model_family="HtFE-img-8 (full models)" if native else "Stage-I extractor + client heads")
+               rounds=T, framework="flower", hyperparameters=hp)
     mon.log("run_start", **{k: v for k, v in res.items() if k != "client_counts"})
-    if native:
-        feat_key, s1, ref = None, None, None
-        in_ch = S.fed.x_te.shape[1]
-    else:
-        feat_key, s1 = stage_one(S, T["T_FE"])
-        res["fe_time_s"] = s1["time_s"]
-        S.ask("query.features", [(S.nid[k], pack(S.base(fe_key=feat_key), fe=s1["fe_sd"])) for k in range(S.K)])
-        ref, Xval = train_referee(S, s1["fe_sd"])
-        in_ch = Xval.shape[1]
+    feat_key, s1 = stage_one(S, T["T_FE"])
+    res["fe_time_s"] = s1["time_s"]
+    S.ask("query.features", [(S.nid[k], pack(S.base(fe_key=feat_key), fe=s1["fe_sd"])) for k in range(S.K)])
+    ref, Xval = train_referee(S, s1["fe_sd"])
+    in_ch = Xval.shape[1]
     C = S.C
     seed_all(R["seed"], "htfl_server")
     srv = {}
@@ -99,25 +88,23 @@ def run_htfl(grid, context, R):
         srv.update({f"gen.{n}": v for n, v in gen.state_dict().items()})
     if meth in ("LG-FedAvg", "FedGH", "FedGen"):
         seed_all(R["seed"], "htfl_init", 0)   # HtFLlib: the server's head starts as client 0's initial head
-        h0 = (NativeModel(0, C, hp["feature_dim"]) if native else
-              HtModel(HEADER_WIDTHS[S.arch[0]], in_ch, spec["header_bn"], C, hp["feature_dim"])).to(DEV)
+        h0 = HtModel(HEADER_WIDTHS[S.arch[0]], in_ch, spec["header_bn"], C, hp["feature_dim"]).to(DEV)
         srv.update({"head.weight": h0.head.weight.detach(), "head.bias": h0.head.bias.detach()})
     if meth == "FedMRL":
-        gmodel = (NativeModel(0, C, hp["sub_feature_dim"]) if native else
-                  HtModel(HEADER_WIDTHS[0], in_ch, spec["header_bn"], C, hp["sub_feature_dim"])).to(DEV)
+        gmodel = HtModel(HEADER_WIDTHS[0], in_ch, spec["header_bn"], C, hp["sub_feature_dim"]).to(DEV)
         srv.update({f"g.{n}": v for n, v in gmodel.state_dict().items()})
-    base_cfg = S.base(fe_key=feat_key, method=meth, native=native, **hp)
+    base_cfg = S.base(fe_key=feat_key, method=meth, **hp)
     if qualified is not None:
         base_cfg["qualified_labels"] = qualified
     history = []
     mon.start("stage3")
-    for r in range(n_rounds):
+    for r in range(T["T_TN"]):
         act = active_clients(S.K, R.get("pfrac", 1.0), R["seed"], "iii", r)
-        ev = r == 0 or (r + 1) % EVAL_EVERY == 0 or r == n_rounds - 1
+        ev = r == 0 or (r + 1) % EVAL_EVERY == 0 or r == T["T_TN"] - 1
         items = []
         for k in act:
             named = dict(srv=srv) if srv else {}
-            if r == 0 and not native:
+            if r == 0:
                 named["init"] = s1["hd_sd"][S.arch[k]]
             items.append((S.nid[k], pack(dict(base_cfg, round=r, eval=ev), **named)))
         rep = S.ask("train.htfl", items)

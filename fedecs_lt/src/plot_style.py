@@ -62,7 +62,7 @@ ORDER = ["FedECS-LT", "GeFL-F", "GeFL-F + AdamW + LA", "Real only", "Real only +
 def style(method):
     """Fixed (colour, marker, line style) for a method; ours is always the first colour, solid, circle."""
     variant = 0
-    for v, suffix in enumerate((" (full model)", " (LongTailLib)"), 1):   # same colour as the method, other dashes
+    for v, suffix in enumerate((" (LongTailLib)",), 1):   # same colour as the method, other dashes
         if method.endswith(suffix) and method[:-len(suffix)] in ORDER:
             method, variant = method[:-len(suffix)], v
     # unknown names: a stable index (str hash() changes between processes)

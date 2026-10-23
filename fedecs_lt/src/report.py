@@ -180,18 +180,24 @@ def build(res_dir, title, out_pdf, fig_dir):
     for S in E.settings:
         story.append(P("Setting: " + setting_text(S, sorted({r['seed'] for r in E.runs if plots.setting_key(r) == S}))))
     acc = os.path.join(res_dir, "acceptance.json")
+    v = None
     if os.path.exists(acc):
-        v = json.load(open(acc))
+        try:
+            v = json.load(open(acc))
+        except ValueError as e:
+            story.append(P(f"The acceptance check's output could not be read ({escape(str(e))})."))
+
+    def pct(d):
+        return "-" if d.get("new") is None else (f"{100 * d['new']:.1f} / {100 * d['old_seed3']:.1f} "
+                                                f"(±{100 * d['tolerance']:.1f})")
+    if v is not None:
         rows = []
         for c in v["checks"]:
             if "final_bal" not in c:
                 rows.append([c["check"], c["verdict"], "-", "-", "-", "-"])
                 continue
             rows.append([c["check"], c["verdict"], "yes" if c["counts_identical"] else "NO",
-                         f"{100 * c['final_bal']['new']:.1f} / {100 * c['final_bal']['old_seed3']:.1f} "
-                         f"(±{100 * c['final_bal']['tolerance']:.1f})",
-                         f"{100 * c['er_bal']['new']:.1f} / {100 * c['er_bal']['old_seed3']:.1f} "
-                         f"(±{100 * c['er_bal']['tolerance']:.1f})",
+                         pct(c["final_bal"]), pct(c["er_bal"]),
                          f"{c['F']['new']:.3f} / {c['F']['old_seed3']:.3f}" if "F" in c else "-"])
         story += [Spacer(1, 8), tcap(f"Acceptance of the Flower implementation against the earlier experiments "
                                      f"(seed 3): overall {v['overall']}. Balanced accuracy new / old (tolerance), "

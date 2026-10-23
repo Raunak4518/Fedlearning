@@ -36,59 +36,6 @@ class HtModel(nn.Module):
         return self.head(self.base(x))
 
 
-class FedAvgCNN(nn.Module):
-    """HtFLlib's FedAvgCNN (system/flcore/trainmodel/models.py), the first model of its HtFE-img-8 family."""
-
-    def __init__(self, in_features=3, num_classes=10, dim=1600):
-        super().__init__()
-        self.conv1 = nn.Sequential(nn.Conv2d(in_features, 32, 5, padding=0, stride=1, bias=True), nn.ReLU(inplace=True),
-                                   nn.MaxPool2d(kernel_size=(2, 2)))
-        self.conv2 = nn.Sequential(nn.Conv2d(32, 64, 5, padding=0, stride=1, bias=True), nn.ReLU(inplace=True),
-                                   nn.MaxPool2d(kernel_size=(2, 2)))
-        self.fc1 = nn.Sequential(nn.Linear(dim, 512), nn.ReLU(inplace=True))
-        self.fc = nn.Linear(512, num_classes)
-
-    def forward(self, x):
-        return self.fc(self.fc1(torch.flatten(self.conv2(self.conv1(x)), 1)))
-
-
-def htfe_img8(cid, C):
-    """HtFLlib's HtFE-img-8 model family (main.py): client cid gets model cid mod 8."""
-    import torchvision.models as tvm
-    i = cid % 8
-    if i == 0:
-        return FedAvgCNN(3, C, 1600)
-    if i == 1:
-        return tvm.googlenet(weights=None, aux_logits=False, init_weights=True, num_classes=C)
-    if i == 2:
-        return tvm.mobilenet_v2(weights=None, num_classes=C)
-    return [tvm.resnet18, tvm.resnet34, tvm.resnet50, tvm.resnet101, tvm.resnet152][i - 3](weights=None, num_classes=C)
-
-
-class NativeModel(nn.Module):
-    """HtFLlib BaseHeadSplit of a whole image model (the 'full-model' version of Track 1): the model's own last
-    layer is replaced by AdaptiveAvgPool1d(feature_dim) (base), followed by a new Linear head. Grey images are
-    repeated to three channels."""
-
-    def __init__(self, cid, C, feature_dim=512):
-        super().__init__()
-        m = htfe_img8(cid, C)
-        if isinstance(m, FedAvgCNN) or hasattr(m, "fc"):
-            m.fc = nn.AdaptiveAvgPool1d(feature_dim)
-        else:   # MobileNetV2: classifier = (Dropout, Linear); HtFLlib's copy keeps the dropout, replaces the Linear
-            m.classifier[1] = nn.AdaptiveAvgPool1d(feature_dim)
-        self.body = m
-        self.head = nn.Linear(feature_dim, C)
-
-    def base(self, x):
-        if x.shape[1] == 1:
-            x = x.repeat(1, 3, 1, 1)
-        return self.body(x)
-
-    def forward(self, x):
-        return self.head(self.base(x))
-
-
 class Generator(nn.Module):
     """FedGen's feature generator as in HtFLlib servergen.py (based on the official FedGen code)."""
 
@@ -111,11 +58,8 @@ def model_of(cfg, k, fed, in_ch, init=None):
         spec = spec_of(cfg)
         g = fed.arch[k]
         seed_all(cfg["seed"], "htfl_init", k)
-        if cfg.get("native"):
-            m = NativeModel(k, fed.C, cfg["feature_dim"]).to(DEV)
-        else:
-            m = HtModel(HEADER_WIDTHS[g], in_ch, spec["header_bn"], fed.C, cfg["feature_dim"]).to(DEV)
-        if init is not None and not cfg.get("native"):  # body weights of the architecture's Stage-I head
+        m = HtModel(HEADER_WIDTHS[g], in_ch, spec["header_bn"], fed.C, cfg["feature_dim"]).to(DEV)
+        if init is not None:  # body weights of the architecture's Stage-I head
             m.body.load_state_dict({kk[len("features."):]: v for kk, v in init.items() if kk.startswith("features.")})
         extra = {}
         if cfg["method"] == "FedMRL":
@@ -133,23 +77,11 @@ def agg_protos(reps, ys, C):
     return protos, mask
 
 
-def native_data(fed):
-    """Full-model version: the clients' images instead of frozen features."""
-    return dict(x=fed.x, te=fed.x_te, val=fed.x_val)
-
-
-def global_small(cfg, in_ch, C):
-    """FedMRL's shared small model: the family's first model with the sub-feature dimension."""
-    if cfg.get("native"):
-        return NativeModel(0, C, cfg["sub_feature_dim"]).to(DEV)
-    return HtModel(HEADER_WIDTHS[0], in_ch, spec_of(cfg)["header_bn"], C, cfg["sub_feature_dim"]).to(DEV)
-
-
 @app.train("htfl")
 def htfl_train(msg, context):
     cfg, k = cfg_of(msg.content), pid_of(context)
     fed = fed_of(cfg)
-    F_ = native_data(fed) if cfg.get("native") else feats_of(cfg, fed)
+    F_ = feats_of(cfg, fed)
     X, Y = F_["x"][k], fed.y[k]
     st = model_of(cfg, k, fed, X.shape[1], arrays_of(msg.content, "init", DEV))
     model = st["model"]
@@ -175,7 +107,7 @@ def htfl_train(msg, context):
         qualified = np.array(cfg["qualified_labels"])
     gmodel, proj = None, None
     if meth == "FedMRL":
-        gmodel = global_small(cfg, X.shape[1], C)
+        gmodel = HtModel(HEADER_WIDTHS[0], X.shape[1], spec_of(cfg)["header_bn"], C, cfg["sub_feature_dim"]).to(DEV)
         gmodel.load_state_dict({n[len("g."):]: v for n, v in srv.items() if n.startswith("g.")})
         gmodel.train()
         proj = st["proj"]
@@ -256,7 +188,8 @@ def predict(cfg, st, X, srv, gmodel=None):
         model.train()
         return torch.cat(out)
     if meth == "FedMRL" and gmodel is None and any(n.startswith("g.") for n in srv):
-        gmodel = global_small(cfg, X.shape[1], model.head.out_features)
+        gmodel = HtModel(HEADER_WIDTHS[0], X.shape[1], spec_of(cfg)["header_bn"], model.head.out_features,
+                         cfg["sub_feature_dim"]).to(DEV)
         gmodel.load_state_dict({n[len("g."):]: v for n, v in srv.items() if n.startswith("g.")})
     if meth == "FedMRL" and gmodel is not None:
         gmodel.eval()
@@ -281,7 +214,7 @@ def htfl_eval(msg, context):
     """Final evaluation of the client's personal model on the test set (all metrics, probabilities, embeddings)."""
     cfg, k = cfg_of(msg.content), pid_of(context)
     fed = fed_of(cfg)
-    F_ = native_data(fed) if cfg.get("native") else feats_of(cfg, fed)
+    F_ = feats_of(cfg, fed)
     st = STATE[("htfl", cfg["run_id"], k)]
     srv = arrays_of(msg.content, "srv", DEV) or {}
     logits = predict(cfg, st, F_["te"], srv)

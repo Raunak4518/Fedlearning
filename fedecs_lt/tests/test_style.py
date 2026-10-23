@@ -5,7 +5,7 @@ import subprocess
 import sys
 
 SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src")
-NAMES = ["FedECS-LT", "FedProto", "FedProto (full model)", "FedAvg (LongTailLib)", "A method not in ORDER"]
+NAMES = ["FedECS-LT", "FedLC", "FedLC (LongTailLib)", "FedAvg (LongTailLib)", "A method not in ORDER"]
 
 
 def styles(hashseed):
@@ -19,6 +19,6 @@ def styles(hashseed):
 def test_style_stable_across_processes():
     a, b = styles(1), styles(2)
     assert a == b
-    ours, proto, proto_full = a[0], a[1], a[2]
-    assert ours["linestyle"] == "-" and ours["linewidth"] > proto["linewidth"]
-    assert proto_full["color"] == proto["color"] and proto_full["linestyle"] != proto["linestyle"]
+    ours, lc, lc_lib = a[0], a[1], a[2]
+    assert ours["linestyle"] == "-" and ours["linewidth"] > lc["linewidth"]
+    assert lc_lib["color"] == lc["color"] and lc_lib["linestyle"] != lc["linestyle"]

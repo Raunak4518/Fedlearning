@@ -54,19 +54,23 @@ def check(res_dir):
             tol = max(tol_min, 3 * olds.std(ddof=1)) if len(olds) > 1 else tol_min
             new = r.get(key)
             out[key] = dict(new=new, old_seed3=ref[key][3], tolerance=round(float(tol), 4),
-                            ok=new is not None and abs(new - ref[key][3]) <= tol)
+                            ok=bool(new is not None and abs(new - ref[key][3]) <= tol))
         if r.get("class_sep_F") is not None:
             out["F"] = dict(new=r["class_sep_F"], old_seed3=ref["F"][3],
-                            ok=abs(r["class_sep_F"] - ref["F"][3]) <= 0.25 * ref["F"][3])
+                            ok=bool(abs(r["class_sep_F"] - ref["F"][3]) <= 0.25 * ref["F"][3]))
             out["gate_branch"] = dict(new=r.get("gate_branch"), expected="anchor", ok=r.get("gate_branch") == "anchor")
         out["time_s"] = dict(new=dict(fe=r.get("fe_time_s"), gen=r.get("gen_time_s"), total=r.get("time_s")),
                              old=ref["time"])
-        ok = out["counts_identical"] and all(v["ok"] for k, v in out.items() if isinstance(v, dict) and "ok" in v)
+        ok = bool(out["counts_identical"]) and all(v["ok"] for k, v in out.items() if isinstance(v, dict) and "ok" in v)
         out["verdict"] = "PASS" if ok else "FAIL"
         ok_all &= ok
         rows.append(out)
     verdict = dict(overall="PASS" if ok_all else "FAIL", checks=rows)
-    json.dump(verdict, open(os.path.join(res_dir, "acceptance.json"), "w"), indent=1)
+    # written to a temporary file first, so a crash never leaves a half-written acceptance.json behind
+    path = os.path.join(res_dir, "acceptance.json")
+    with open(path + ".tmp", "w") as f:
+        json.dump(verdict, f, indent=1, default=lambda o: o.item() if hasattr(o, "item") else str(o))
+    os.replace(path + ".tmp", path)
     return verdict
 
 
