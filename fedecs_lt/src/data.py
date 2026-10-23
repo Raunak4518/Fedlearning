@@ -282,6 +282,7 @@ class Federation:
                 part["parts"] = [p[:max(10, int(len(p) * frac_scale))] for p in part["parts"]]
                 part["counts"] = np.array([[int((data["ytr"][p] == c).sum()) for c in range(self.C)]
                                            for p in part["parts"]])
+                part["class_counts"] = part["counts"].sum(0)
         else:
             frac = frac_of(ds, len(data["ytr"])) * frac_scale
             part = make_partition(data["ytr"], self.C, K, frac, IF, alpha, seed)

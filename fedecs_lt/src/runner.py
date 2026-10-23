@@ -97,46 +97,71 @@ def worker_main(args):
     claims = os.path.join(os.path.dirname(os.path.abspath(args.runs)), "claims")
     os.makedirs(claims, exist_ok=True)
     deadline = float(os.environ.get("FEDECS_DEADLINE", "inf"))
-    for r in runs:
-        if time.time() > deadline:
-            print("deadline reached: no new run started", flush=True)
-            break
-        R = dict(r)
-        R.setdefault("method", method_spec(R["label"]))
-        R["run_id"] = run_id(R)
-        if R["run_id"] in done_ids(R["out_dir"]):
-            print("already done:", R["run_id"], flush=True)
-            continue
-        safe = "".join(ch if ch.isalnum() or ch in "-_.=" else "_" for ch in R["run_id"])
-        try:   # atomic claim: exactly one worker gets each run
-            os.close(os.open(os.path.join(claims, safe), os.O_CREAT | os.O_EXCL | os.O_WRONLY))
-        except FileExistsError:
-            continue
-        t0 = time.time()
-        print("start", R["run_id"], flush=True)
+    # pass 0: the queue; pass 1: every run that failed (out of memory while two heavy runs overlapped, a download
+    # error) is tried once more after the queue is empty
+    for attempt in (0, 1):
+        for r in runs:
+            if time.time() > deadline:
+                print("deadline reached: no new run started", flush=True)
+                return
+            R = dict(r)
+            R.setdefault("method", method_spec(R["label"]))
+            R["run_id"] = run_id(R)
+            if R["run_id"] in done_ids(R["out_dir"]):
+                if attempt == 0:
+                    print("already done:", R["run_id"], flush=True)
+                continue
+            if attempt == 1 and R["run_id"] not in failed_ids(R["out_dir"]):
+                continue
+            safe = "".join(ch if ch.isalnum() or ch in "-_.=" else "_" for ch in R["run_id"])
+            try:   # atomic claim: exactly one worker gets each run (and each retry)
+                os.close(os.open(os.path.join(claims, ("retry_" if attempt else "") + safe),
+                                 os.O_CREAT | os.O_EXCL | os.O_WRONLY))
+            except FileExistsError:
+                continue
+            execute(R, attempt)
+
+
+def failed_ids(out_dir):
+    path = os.path.join(out_dir, "failures.jsonl")
+    if not os.path.exists(path):
+        return set()
+    out = set()
+    for line in open(path):
         try:
-            res = run_one(R)
-            print(f"done {R['run_id']}  bal={res.get('final_bal', float('nan')):.4f}  "
-                  f"er_bal={(res.get('er_bal') or float('nan')):.4f}  {time.time() - t0:.0f}s", flush=True)
-        except Exception as e:  # record the failure, release this process's stage locks, continue with the next run
-            import glob
-            import traceback
-            traceback.print_exc()
-            os.makedirs(R["out_dir"], exist_ok=True)
-            with open(os.path.join(R["out_dir"], "failures.jsonl"), "a") as f:
-                f.write(json.dumps(dict(run_id=R["run_id"], error=repr(e)[:4000], time_s=time.time() - t0)) + "\n")
-            for lk in glob.glob(os.path.join(R["cache_dir"], "*", "*.lock")):
-                try:
-                    if open(lk).read().strip() == str(os.getpid()):
-                        os.remove(lk)
-                except OSError:
-                    pass
-        if os.environ.get("FEDECS_PACK_OUT"):   # protect finished work against a timeout
+            out.add(json.loads(line)["run_id"])
+        except Exception:
+            pass
+    return out
+
+
+def execute(R, attempt=0):
+    t0 = time.time()
+    print(("retry " if attempt else "") + "start", R["run_id"], flush=True)
+    try:
+        res = run_one(R)
+        print(f"done {R['run_id']}  bal={res.get('final_bal', float('nan')):.4f}  "
+              f"er_bal={(res.get('er_bal') or float('nan')):.4f}  {time.time() - t0:.0f}s", flush=True)
+    except Exception as e:  # record the failure, release this process's stage locks, continue with the next run
+        import glob
+        import traceback
+        traceback.print_exc()
+        os.makedirs(R["out_dir"], exist_ok=True)
+        with open(os.path.join(R["out_dir"], "failures.jsonl"), "a") as f:
+            f.write(json.dumps(dict(run_id=R["run_id"], attempt=attempt + 1, error=repr(e)[:4000],
+                                    time_s=time.time() - t0)) + "\n")
+        for lk in glob.glob(os.path.join(R["cache_dir"], "*", "*.lock")):
             try:
-                import pack
-                pack.quick(os.path.dirname(R["out_dir"]), os.environ["FEDECS_NAME"], os.environ["FEDECS_PACK_OUT"])
-            except Exception as e:
-                print("pack failed:", repr(e), flush=True)
+                if open(lk).read().strip() == str(os.getpid()):
+                    os.remove(lk)
+            except OSError:
+                pass
+    if os.environ.get("FEDECS_PACK_OUT"):   # protect finished work against a timeout
+        try:
+            import pack
+            pack.quick(os.path.dirname(R["out_dir"]), os.environ["FEDECS_NAME"], os.environ["FEDECS_PACK_OUT"])
+        except Exception as e:
+            print("pack failed:", repr(e), flush=True)
 
 
 def main():
@@ -168,7 +193,7 @@ def main():
             for line in p.stdout:
                 log.write(line)
                 log.flush()
-                if line.startswith(("start", "done", "already", "deadline", "Traceback", "RuntimeError")):
+                if line.startswith(("start", "retry", "done", "already", "deadline", "Traceback", "RuntimeError")):
                     print(f"[w{w}] {line}", end="", flush=True)
         t = threading.Thread(target=stream, daemon=True)
         t.start()

@@ -296,7 +296,7 @@ def f11(E, S, out):
         rows = [[i, j, float(cmn[i, j])] for i in range(C) for j in range(C)]
         p = ps.save(f, out, f"fig_11_confusion_{name}", rows, ["true", "pred", "share"], raster=C > 50)
         res.append((p, cap.simple(11, E, S, f"Row-normalised confusion matrix of {cap.mname(m)} on the test set "
-                                            "(all architectures' heads, summed over seeds); classes ordered from most "
+                                            "(all client models, summed over seeds); classes ordered from most "
                                             "to least frequent.")))
     return res
 
@@ -366,7 +366,7 @@ def f15(E, S, out):
         name = "ours" if m == OURS else "geflf"
         p = ps.save(f, out, f"fig_15_pr_curves_{name}", rows, ["class", "recall", "precision"])
         res.append((p, cap.simple(15, E, S, f"Precision-recall curves of the three rarest classes for {cap.mname(m)} "
-                                            "(averaged softmax of all architectures' heads, first seed).")))
+                                            "(averaged softmax of all client models, first seed).")))
     return res
 
 

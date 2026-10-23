@@ -148,10 +148,17 @@ def build(res_dir, title, out_pdf, fig_dir):
     fp = os.path.join(res_dir, "failures.jsonl")
     if os.path.exists(fp):
         fails = [json.loads(line) for line in open(fp) if line.strip()]
+    done_ids = {r["run_id"] for r in E.runs}
+    lost = sorted({f["run_id"] for f in fails} - done_ids)        # failed and not recovered by the retry
+    recovered = sorted({f["run_id"] for f in fails} & done_ids)
     story += [Paragraph(escape(title), h1),
-              P(f"Report generated {datetime.datetime.utcnow():%Y-%m-%d %H:%M} UTC. {done} runs completed, "
-                f"{len(fails)} failed. Framework: Flower simulation (one server, one client process per simulation); "
-                f"every client trains on its own data only."), Spacer(1, 6)]
+              P(f"Report generated {datetime.datetime.utcnow():%Y-%m-%d %H:%M} UTC. {done} runs completed"
+                + (f" ({len(recovered)} of them on a second attempt)" if recovered else "")
+                + f", {len(lost)} failed. Framework: Flower simulation (one server, one client process per simulation); "
+                  "every client trains on its own data only."
+                + (" Methods marked LongTailLib run in the authors' own code (LongTailLib, FedLTLib benchmark) on the "
+                   "same client split." if any("LongTailLib" in str(r.get("framework", "")) for r in E.runs) else "")),
+              Spacer(1, 6)]
     import torch
     try:
         import flwr
@@ -275,7 +282,8 @@ def build(res_dir, title, out_pdf, fig_dir):
                   P("Vector-valued fields (in runs.jsonl): " + ", ".join(vec), small), Spacer(1, 6)]
     if fails:
         story.append(Paragraph("Appendix D. Failed runs", h1))
-        story += [table([[f["run_id"], f["error"][:600]] for f in fails], ["Run", "Error"], [2.0 * inch, 5.0 * inch])]
+        story += [table([[f["run_id"] + (" (completed on retry)" if f["run_id"] in done_ids else ""),
+                          f["error"][:600]] for f in fails], ["Run", "Error"], [2.0 * inch, 5.0 * inch])]
 
     # ---------------------------------------------------------------- completeness check
     all_pdfs = {os.path.abspath(p) for p in glob.glob(os.path.join(fig_dir, "**", "*.pdf"), recursive=True)}
@@ -291,7 +299,7 @@ def build(res_dir, title, out_pdf, fig_dir):
     doc = SimpleDocTemplate(out_pdf, pagesize=letter, leftMargin=0.75 * inch, rightMargin=0.75 * inch,
                             topMargin=0.7 * inch, bottomMargin=0.8 * inch, title=title)
     doc.build(story, onFirstPage=page, onLaterPages=page)
-    return dict(figures=len(figs), not_applicable=len(na), runs=len(E.runs), failures=len(fails))
+    return dict(figures=len(figs), not_applicable=len(na), runs=len(E.runs), failures=len(lost))
 
 
 def main():

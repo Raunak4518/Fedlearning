@@ -25,13 +25,15 @@ def setting_text(S, seeds=None):
         data = f"{spec['name']}-LT (imbalance ratio {int(round(1 / IF))})"
     part = "IID split" if alpha is None else f"Dirichlet label split with alpha = {alpha}"
     txt = f"{data}, {K} clients, {part}"
+    if spec.get("track") == 2:
+        txt += ", one ResNet-8 shared by all clients (standard CIFAR-LT class profile)"
     if pfrac < 1.0:
         txt += f", {int(round(100 * pfrac))}% of the clients per round"
     if tail_perm:
         txt += ", rare classes chosen at random"
     if seeds:
         s = sorted(seeds)
-        txt += "; seeds " + (", ".join(str(x) for x in s[:-1]) + f" and {s[-1]}" if len(s) > 1 else str(s[0]))
+        txt += ("; seeds " + ", ".join(str(x) for x in s[:-1]) + f" and {s[-1]}") if len(s) > 1 else f"; seed {s[0]}"
     return txt + "."
 
 
@@ -50,8 +52,9 @@ def curve(num, E, S, what):
 
 
 def per_class(num, E, S, what):
-    return (f"Per-class {what} on the test set after training (heads as trained, mean over the architectures' heads "
-            f"and over seeds); classes are ordered from the most to the least frequent in the federation's training "
+    shared = DATASETS.get(S[0], {}).get("track") == 2
+    model = "the global model, mean over seeds" if shared else "the clients' models as trained, mean over them and over seeds"
+    return (f"Per-class {what} on the test set after training ({model}); classes are ordered from the most to the least frequent in the federation's training "
             f"data. {setting_text(S, _seeds(E, S))}")
 
 
