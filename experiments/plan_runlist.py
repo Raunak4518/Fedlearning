@@ -71,38 +71,23 @@ TRACK1 = {
     "FedProto": (1, 1.2, None),
     "FedTGP": (1, 1.5, None),
     "FedGen": (1, 2.0, None),
-    "CReFF": (1, 1.5, None),
-    "FedETF": (1, 1.0, None),
-    "Fed-GraB": (1, 1.3, None),
-    "FedLoGe": (1, 1.3, None),
-    "FedYoYo": (1, 2.0, None),
-    "RUCR": (2, 1.3, None),
-    "FEDIC": (2, 2.0, None),
     "FedGH": (2, 1.2, None),
     "LG-FedAvg": (2, 0.8, None),
-    "FedGELA": (3, 1.0, None),
-    "FedNH": (3, 1.2, None),
-    "FedVLS": (3, 1.5, None),
-    "FedLF": (3, 1.3, None),
-    "FML": (3, 2.0, None),
-    "FedKD": (3, 2.0, None),
-    "FD": (3, 1.0, None),
-    "FedMRL": (3, 2.0, None),
-    "FedKTL (extra resources)": (4, 2.5, None),
-    "FedMD (extra resources)": (4, 2.0, None),
+    "FedMRL": (2, 2.0, None),
 }
-# Track 2: one shared architecture (ResNet-8; protocol to be checked against CReFF / LongTailLib code): 20 clients,
-# 8 per round, 200 rounds, 10 local epochs, batch 32, SGD 0.1. Minutes per run on one T4 before OVERHEAD.
+# Reduced on 23 Oct 2026 (action plan section 22): long-tail methods built for one shared model run in Track 2 only;
+# FEDIC, FedGELA, FedLF, FML, FD, FedKD, FedKTL, FedMD, SCAFFOLD and CAPT are dropped. The notebooks actually built
+# are listed by fedecs_lt/build_notebooks.py (fedecs_lt/notebooks/START_HERE.md); this file only estimates time.
+# Track 2: one shared ResNet-8 (LongTailLib / FedLTLib protocol): 20 clients, 8 per round, 200 rounds, 10 local epochs,
+# batch 32, SGD 0.1. Minutes per run on one T4 before OVERHEAD.
 TRACK2_BASE = {"cifar10": 18, "cifar100": 18, "tinyimagenet": 55}
 TRACK2 = {
     "Ours (one architecture)": (0, 2.0), "FedAvg": (0, 1.0), "FedProx": (0, 1.1), "MOON": (0, 1.6), "FedLC": (0, 1.0),
     "CCVR": (0, 1.1), "CReFF": (1, 1.4), "FedETF": (1, 1.0), "Fed-GraB": (1, 1.3), "FedLoGe": (1, 1.3),
-    "FedYoYo": (1, 2.0), "SCAFFOLD": (3, 1.2), "RUCR": (2, 1.3), "FEDIC": (2, 2.0), "FedGELA": (3, 1.0),
-    "FedNH": (3, 1.2), "FedVLS": (3, 1.5), "FedLF": (3, 1.3), "CLIP2FL (extra resources)": (4, 2.5),
-    "CAPT (extra resources)": (4, 2.5),
+    "FedYoYo": (1, 2.0), "RUCR": (2, 1.3), "CLIP2FL (extra resources)": (4, 2.5),
 }
-SWEEP_METHODS = ["Ours", "GeFL-F", "GeFL-F + AdamW + LA", "FedDF + LA", "Gaussian generator + LA", "FedLoGe",
-                 "FedYoYo", "FedETF"]   # top baselines: replaced by the five strongest once the main results exist
+SWEEP_METHODS = ["Ours", "GeFL-F", "GeFL-F + AdamW + LA", "FedDF + LA", "Gaussian generator + LA", "FedTGP",
+                 "FedGen", "FedProto"]   # top baselines: replaced by the five strongest once the main results exist
 
 
 def main_setting(ds):

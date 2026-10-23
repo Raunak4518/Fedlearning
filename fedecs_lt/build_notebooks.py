@@ -43,8 +43,12 @@ NOTEBOOKS = {
         what="Checks the new Flower code against the earlier results (identical client splits, accuracy within seed "
              "noise) and measures run times on Kaggle's GPUs. Must say ACCEPTANCE: PASS before any other notebook "
              "is run.",
-        hours=4.0, acceptance=True,
-        runs=[run(m, ds, 3) for ds in ("mnist", "cifar10") for m in ("GeFL-F", "FedECS-LT")]),
+        hours=6.0, acceptance=True,
+        runs=[run(m, ds, 3) for ds in ("mnist", "cifar10") for m in ("GeFL-F", "FedECS-LT")]
+        # timing only (not part of the acceptance check): one run of each other kind, to size the other notebooks
+        + [run("FedTGP", "cifar10", 3), run("FedProto (full model)", "cifar10", 3),
+           run("FedECS-LT", "cifar10_t2", 3, K=20, pfrac=0.4), run("FedAvg (LongTailLib)", "cifar10_t2", 3, K=20,
+                                                                   pfrac=0.4)]),
 }
 
 
@@ -91,11 +95,9 @@ def notebook(name, nb):
         r = dict(r, data_root="/tmp/fedecs/data", out_dir=f"{work}/results", cache_dir="/tmp/fedecs/cache",
                  models_dir=f"{work}/models", tensorboard=True)
         runs.append(r)
-    # runs ordered by (dataset, seed) and dealt round-robin to the 4 workers (2 per GPU); runs that share a cached
-    # stage wait for whichever worker trains it first (lock files), so no stage is trained twice
+    # runs ordered by (dataset, seed); the 4 workers (2 per GPU) take them from this queue in order; runs that share a
+    # cached stage wait for whichever worker trains it first (lock files), so no stage is trained twice
     runs.sort(key=lambda r: (r["ds"], r["seed"]))
-    for i, r in enumerate(runs):
-        r["worker"] = i
     n_runs = len(runs)
     cells = [md(
         f"# {nb['title']}\n\n"
@@ -133,7 +135,7 @@ def notebook(name, nb):
         "print('OK - environment is correct.')"))
     extra = ""
     if any(r["label"].endswith("(LongTailLib)") for r in runs):   # what the authors' LongTailLib code imports
-        extra = " h5py tqdm calmsize ftfy regex \"git+https://github.com/openai/CLIP.git\""
+        extra = " h5py tqdm calmsize ftfy regex \"git+https://github.com/openai/CLIP.git@d05afc436d78f1c48dc0dbf8e5980a9d471f35f6\""
     cells.append(code(f"# Packages (fixed versions)\n!pip install -q \"{FLWR}\" \"{REPORTLAB}\"{extra} 2>&1 | tail -2\n"
                       "import flwr, ray; print('Flower', flwr.__version__, 'Ray', ray.__version__)"))
     cells.append(md("## Helper scripts\nThe cells below write the suite's code to disk (hidden; nothing to change)."))
@@ -186,6 +188,7 @@ def notebook(name, nb):
     return dict(nbformat=4, nbformat_minor=5, metadata=meta, cells=cells)
 
 
+HTFL = ["FedProto", "FedTGP", "FedGen", "FedGH", "LG-FedAvg", "FedMRL"]
 TRACK2_LT = ["FedAvg", "FedProx", "MOON", "FedLC", "CCVR", "CReFF", "FedETF", "Fed-GraB", "FedLoGe", "FedYoYo", "RUCR",
              "CLIP2FL"]
 
@@ -206,6 +209,22 @@ def track2_notebook(ds_key, IF, seed):
                                         "authors' code (LongTailLib).", hours=None, acceptance=False, runs=runs)
 
 
+def fullmodel_notebook(ds, seeds=SEEDS):
+    """Full-model version of Track 1: the model-heterogeneous FL methods train HtFLlib's whole image models (HtFE-img-8)
+    from the images, as in their own papers; same splits and seeds as the main comparison, so the results pair with
+    FedECS-LT's runs there."""
+    sys.path.insert(0, SRC)
+    import settings
+    spec = settings.DATASETS[ds]
+    name = f"NB11_fullmodel_{ds}"
+    title = (f"Model-heterogeneous FL methods with full client models, {spec['name']}-LT (imbalance ratio 100), "
+             "10 clients, Dirichlet 0.5")
+    runs = [run(f"{m} (full model)", ds, s) for s in seeds for m in HTFL]
+    return name, dict(title=title, what=f"{title}: each client trains its own whole CNN from the images (eight "
+                                        "architectures, from a small CNN to ResNet-152), seeds 3-5.",
+                      hours=None, acceptance=False, runs=runs)
+
+
 TIER1 = ("mnist", "fmnist", "svhn", "cifar10", "cifar100")
 TIER2 = ("dermamnist", "organamnist", "bloodmnist", "pathmnist", "gtsrb", "emnist", "fer2013")
 
@@ -214,6 +233,9 @@ def all_notebooks():
     nbs = dict(NOTEBOOKS)
     for ds in TIER1 + TIER2:
         name, nb = main_setting_notebook(ds)
+        nbs[name] = nb
+    for ds in TIER1:
+        name, nb = fullmodel_notebook(ds)
         nbs[name] = nb
     for ds_key in ("cifar10_t2", "cifar100_t2"):
         for IF in (0.1, 0.02, 0.01):

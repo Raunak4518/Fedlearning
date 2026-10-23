@@ -8,6 +8,7 @@ at 600 dpi) together with a PNG preview and a CSV of the plotted data.
 """
 import csv
 import os
+import zlib
 
 import matplotlib
 
@@ -60,9 +61,14 @@ ORDER = ["FedECS-LT", "GeFL-F", "GeFL-F + AdamW + LA", "Real only", "Real only +
 
 def style(method):
     """Fixed (colour, marker, line style) for a method; ours is always the first colour, solid, circle."""
-    i = ORDER.index(method) if method in ORDER else (len(ORDER) + abs(hash(method)) % 7)
+    variant = 0
+    for v, suffix in enumerate((" (full model)", " (LongTailLib)"), 1):   # same colour as the method, other dashes
+        if method.endswith(suffix) and method[:-len(suffix)] in ORDER:
+            method, variant = method[:-len(suffix)], v
+    # unknown names: a stable index (str hash() changes between processes)
+    i = ORDER.index(method) if method in ORDER else (len(ORDER) + zlib.crc32(method.encode()) % 7)
     return dict(color=PALETTE[i % len(PALETTE)], marker=MARKERS[i % len(MARKERS)],
-                linestyle=DASHES[i % len(DASHES)] if method != OURS else "-",
+                linestyle=DASHES[(i + 3 * variant) % len(DASHES)] if method != OURS or variant else "-",
                 linewidth=1.4 if method == OURS else 1.0, zorder=5 if method == OURS else 2)
 
 

@@ -6,6 +6,7 @@
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
 import threading
@@ -89,11 +90,14 @@ def done_ids(out_dir):
 
 
 def worker_main(args):
-    """One worker: runs its share of the run list sequentially (same process for runs sharing stages)."""
+    """One worker: takes the next run of the list that no other worker has claimed (a shared queue, so long runs do
+    not leave other workers idle) and runs it; runs are ordered by dataset and seed, so runs sharing cached stages
+    are close together."""
     runs = json.load(open(args.runs))
-    mine = [r for i, r in enumerate(runs) if r.get("worker", i) % args.n_workers == args.worker]
+    claims = os.path.join(os.path.dirname(os.path.abspath(args.runs)), "claims")
+    os.makedirs(claims, exist_ok=True)
     deadline = float(os.environ.get("FEDECS_DEADLINE", "inf"))
-    for r in mine:
+    for r in runs:
         if time.time() > deadline:
             print("deadline reached: no new run started", flush=True)
             break
@@ -102,6 +106,11 @@ def worker_main(args):
         R["run_id"] = run_id(R)
         if R["run_id"] in done_ids(R["out_dir"]):
             print("already done:", R["run_id"], flush=True)
+            continue
+        safe = "".join(ch if ch.isalnum() or ch in "-_.=" else "_" for ch in R["run_id"])
+        try:   # atomic claim: exactly one worker gets each run
+            os.close(os.open(os.path.join(claims, safe), os.O_CREAT | os.O_EXCL | os.O_WRONLY))
+        except FileExistsError:
             continue
         t0 = time.time()
         print("start", R["run_id"], flush=True)
@@ -142,6 +151,8 @@ def main():
     if args.worker is not None:
         return worker_main(args)
     n = max(1, args.gpus * args.per_gpu) if args.gpus else max(1, args.per_gpu)
+    # a new start of the queue: claims of an earlier, interrupted start are void (finished runs are skipped anyway)
+    shutil.rmtree(os.path.join(os.path.dirname(os.path.abspath(args.runs)), "claims"), ignore_errors=True)
     procs, threads = [], []
     for w in range(n):
         env = dict(os.environ)

@@ -24,6 +24,11 @@ Read `docs/review/action_plan.md`. It is the agreed list of next steps, built fr
 
 ## Code layout
 
+- `fedecs_lt/` is the Flower re-run of every experiment (action plan §22, `fedecs_lt/README.md`). Its notebooks are
+  standalone: `fedecs_lt/build_notebooks.py` pastes every `fedecs_lt/src/*.py` into each one. Edit `src/` or the
+  builder, run `python -m pytest fedecs_lt/tests -q`, then rebuild; never edit a notebook by hand. MIT/Apache code
+  is pasted with credit; unlicensed or GPL code is downloaded at run time and never stored in the repository.
+  Notebooks go out only after NB00_acceptance prints `ACCEPTANCE: PASS`.
 - `experiments/core.py` is the only pipeline. Experiments are `experiments/specs/<name>.py`. Standalone scripts are
   *built* (`python experiments/build.py`) and are not committed.
 - `docs/latex/paper.tex` is the submission paper (9 pages + appendix), written by hand from `docs/paper_draft.md`, which

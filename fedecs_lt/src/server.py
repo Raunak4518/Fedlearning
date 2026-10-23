@@ -663,11 +663,11 @@ def save_run(R, res, s1, hd_sd, G, ref, fin, er_probs, last, s2, extra=None):
                             **{f"embed_{g}": np.array(e, dtype=np.float16) for g, e in fin["test"]["embed"].items()},
                             **({f"er_probs_{g}": np.array(p, dtype=np.float16) for g, p in er_probs.items()}
                                if er_probs else {}), **(extra or {}))
-    if R.get("models_dir") and s1 is not None:
+    if R.get("models_dir") and (s1 is not None or hd_sd is not None):
         mdir = os.path.join(R["models_dir"])
         os.makedirs(mdir, exist_ok=True)
         safe = "".join(ch if ch.isalnum() or ch in "-_.=" else "_" for ch in R["run_id"])
-        torch.save(dict(fe=s1["fe_sd"], heads=hd_sd, gen=(s2["g_sd"] if s2 is not None else None),
+        torch.save(dict(fe=s1["fe_sd"] if s1 is not None else None, heads=hd_sd, gen=(s2["g_sd"] if s2 is not None else None),
                         referee=ref.state_dict() if ref is not None else None, readout=last, method=R["method"],
                         run_id=R["run_id"]), os.path.join(mdir, safe + ".pt"))
 

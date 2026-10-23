@@ -183,6 +183,7 @@ def run(algo, ds, IF, seed, lt_dir, out_dir, rounds=200, label=None, data_root=N
     tmp = os.path.join(out_dir, "predictions", safe + "_lib.npz")
     args = ["-data", name, "-algo", ALGOS[algo], "-m", "ResNet8", "-gr", str(rounds), "-ncl", str(C), "-nc", str(K2),
             "-jr", str(JR2), "-seed", str(seed), "-did", "0", "-dev", "cuda" if torch.cuda.is_available() else "cpu"]
+    args += os.environ.get("FEDECS_LT_TEST_ARGS", "").split()   # CPU tests only (e.g. "-ls 1"); unset on Kaggle
     t0 = time.time()
     os.makedirs(os.path.join(out_dir, "logs"), exist_ok=True)
     log = open(os.path.join(out_dir, "logs", safe + "_longtaillib.log"), "w")
