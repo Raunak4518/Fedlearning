@@ -546,18 +546,13 @@ is styled by hand.
 - Check before use: an automatic test in the style module renders each plot and checks width, font sizes and embedded
   fonts; IEEE's free graphics checker (Graphics Analyzer) on a sample before submission.
 
-### 21a. Several venues; resizing without breaking the rules (user, 23 Oct 2026)
-Main target IEEE; other venues possible later, so every figure must be re-made for any venue without manual work.
+### 21a. IEEE only; resizing without breaking the rules (user, 23 Oct 2026)
+Target: IEEE (IEEEtran template, journals and conferences). No other venue profiles.
 - **Never resize a finished figure in LaTeX.** Shrinking a plot shrinks its text and lines below the minimum (8 pt
-  text scaled to 80% is 6.4 pt: a violation). Instead every plot is redrawn at the width needed:
-  `python experiments/make_figures.py --venue ieee --width column` (or `page`, or a width in mm), always with 8 pt text and
-  0.5 pt minimum lines at the printed size. Resizing = re-running one command; the rules hold automatically.
-- **Venue profiles in the style module** (text font, column and page widths, minimum font size), each checked against
-  the venue's current author guide when added. Initial: IEEE journals and conferences (3.5 in / 7.16 in, Times, 8-10 pt).
-  Others are added when chosen: NeurIPS / ICLR (one column, 5.5 in), ICML (3.25 in / 6.75 in), Springer, Elsevier, ACM.
-- **Every figure saves its data** (a CSV next to the PDF), so any figure can be redrawn for a new venue, size or reviewer
+  text scaled to 80% is 6.4 pt: a violation). Every plot is redrawn at the width needed instead:
+  `python experiments/make_figures.py --width column` (3.5 in), `--width page` (7.16 in) or a width in mm, always with
+  8 pt Times text and 0.5 pt minimum lines at the printed size.
+- **Every figure saves its data** (a CSV next to the PDF), so it can be redrawn at another size or for a reviewer
   request without re-running experiments.
-- **Safe defaults for all venues:** 8 pt text (the smallest size every common venue accepts), embedded TrueType fonts,
-  vector PDF, 600 dpi for bitmaps, colour-blind-safe colours that also work in greyscale, no titles inside images.
-- **Paper text:** paper_draft.md stays the one master; one LaTeX file per venue template (IEEEtran first), filled from
-  the same draft and the same generated tables, so moving to another venue changes the template, not the content.
+- **Paper:** paper_draft.md stays the master text; the submission is written in the IEEEtran template (replacing the
+  current article-class paper.tex when the paper is rewritten after the Flower results).
