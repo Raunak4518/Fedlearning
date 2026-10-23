@@ -44,6 +44,18 @@ DATASETS = {
                    T_FE=20, T_KA=100, T_TN=50, latent=16, augment=False, C=62, imbalance="natural", tier=2),
     "fer2013": dict(name="FER-2013", in_ch=1, norm="half", header_bn=True, fe="mnist", frac=None, B=64,
                     T_FE=50, T_KA=100, T_TN=100, latent=16, augment=False, C=7, imbalance="natural", tier=2),
+    # Track 2 (one shared model, FedLTLib / CReFF protocol): standard CIFAR-LT profile, 20 clients, 40% per round,
+    # ResNet-8 split after its second stage (frozen extractor) for FedECS-LT; SGD 0.1, momentum 0.9, learning-rate
+    # decay 0.99 per round, 10 local epochs, batch 32, as the baselines in LongTailLib. T_FE + T_TN = 200 rounds, the
+    # baselines' total; the generator's rounds (T_KA) are extra and reported.
+    "cifar10_t2": dict(name="CIFAR-10", raw="cifar10", in_ch=3, norm=((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+                       header_bn=True, fe="resnet8", heads="resnet8", frac=None, B=32, T_FE=100, T_KA=100, T_TN=100,
+                       latent=50, augment=True, C=10, imbalance="IF", partition="lt_standard", single_arch=True,
+                       track=2, local_epochs=10, opt=dict(lr=0.1, momentum=0.9, decay=0.99), tier=1),
+    "cifar100_t2": dict(name="CIFAR-100", raw="cifar100", in_ch=3, norm=((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761)),
+                        header_bn=True, fe="resnet8", heads="resnet8", frac=None, B=32, T_FE=100, T_KA=100, T_TN=100,
+                        latent=50, augment=True, C=100, imbalance="IF", partition="lt_standard", single_arch=True,
+                        track=2, local_epochs=10, opt=dict(lr=0.1, momentum=0.9, decay=0.99), tier=1),
 }
 CAP_IMAGES = 20000
 HEADER_WIDTHS = [(16,), (16, 32), (20, 40), (10, 20), (16, 32, 64), (20, 40, 80),

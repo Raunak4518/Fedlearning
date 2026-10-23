@@ -49,7 +49,12 @@ def run_id(r):
 
 
 def run_one(R):
-    """One run = one Flower simulation (Ray backend, one persistent client process on this process's GPU)."""
+    """One run = one Flower simulation (Ray backend, one persistent client process on this process's GPU); Track-2
+    baselines run the authors' LongTailLib code instead (track2.py)."""
+    if R["method"].get("pipeline") == "longtaillib":
+        sys.path.insert(0, HERE)
+        import track2
+        return track2.run_for_suite(R)
     import torch
     from flwr.simulation import run_simulation
     sys.path.insert(0, HERE)
@@ -62,6 +67,7 @@ def run_one(R):
     gpu = 1.0 if torch.cuda.is_available() else 0.0
     backend = {"client_resources": {"num_cpus": 1, "num_gpus": gpu},
                "init_args": {"num_cpus": 1, "num_gpus": int(gpu), "include_dashboard": False,
+                             "object_store_memory": int(R.get("ray_object_store_gb", 2) * 2 ** 30),
                              "logging_level": "ERROR", "log_to_driver": True}}
     run_simulation(server_app=server.app, client_app=client.app, num_supernodes=R["K"], backend_config=backend)
     if "result" not in server.RUN:
@@ -102,13 +108,26 @@ def worker_main(args):
         try:
             res = run_one(R)
             print(f"done {R['run_id']}  bal={res.get('final_bal', float('nan')):.4f}  "
-                  f"er_bal={res.get('er_bal', float('nan')):.4f}  {time.time() - t0:.0f}s", flush=True)
-        except Exception as e:  # record the failure, continue with the next run
+                  f"er_bal={(res.get('er_bal') or float('nan')):.4f}  {time.time() - t0:.0f}s", flush=True)
+        except Exception as e:  # record the failure, release this process's stage locks, continue with the next run
+            import glob
             import traceback
             traceback.print_exc()
             os.makedirs(R["out_dir"], exist_ok=True)
             with open(os.path.join(R["out_dir"], "failures.jsonl"), "a") as f:
                 f.write(json.dumps(dict(run_id=R["run_id"], error=repr(e)[:4000], time_s=time.time() - t0)) + "\n")
+            for lk in glob.glob(os.path.join(R["cache_dir"], "*", "*.lock")):
+                try:
+                    if open(lk).read().strip() == str(os.getpid()):
+                        os.remove(lk)
+                except OSError:
+                    pass
+        if os.environ.get("FEDECS_PACK_OUT"):   # protect finished work against a timeout
+            try:
+                import pack
+                pack.quick(os.path.dirname(R["out_dir"]), os.environ["FEDECS_NAME"], os.environ["FEDECS_PACK_OUT"])
+            except Exception as e:
+                print("pack failed:", repr(e), flush=True)
 
 
 def main():
@@ -118,17 +137,20 @@ def main():
     ap.add_argument("--per_gpu", type=int, default=2)
     ap.add_argument("--worker", type=int, default=None)
     ap.add_argument("--n_workers", type=int, default=1)
+    ap.add_argument("--log_dir", default=None)
     args = ap.parse_args()
     if args.worker is not None:
         return worker_main(args)
-    n = max(1, args.gpus * args.per_gpu) if args.gpus else 1
+    n = max(1, args.gpus * args.per_gpu) if args.gpus else max(1, args.per_gpu)
     procs, threads = [], []
     for w in range(n):
         env = dict(os.environ)
         if args.gpus:
             env["CUDA_VISIBLE_DEVICES"] = str(w % args.gpus)
         cmd = [sys.executable, os.path.abspath(__file__), "--runs", args.runs, "--worker", str(w), "--n_workers", str(n)]
-        log = open(os.path.join(os.path.dirname(args.runs), f"worker{w}.log"), "a")
+        log_dir = args.log_dir or os.path.dirname(args.runs)
+        os.makedirs(log_dir, exist_ok=True)
+        log = open(os.path.join(log_dir, f"worker{w}.log"), "a")
         p = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, cwd=HERE)
 
         def stream(p=p, w=w, log=log):

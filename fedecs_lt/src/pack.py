@@ -36,9 +36,12 @@ def zip_dir(src, dst, skip=()):
     os.replace(tmp, dst)
 
 
-def pack(work, name, title, report=True):
+def pack(work, name, title, report=True, out_dir=None, models=True):
+    """work holds results/ and models/; the three files go to out_dir (default: work)."""
+    out_dir = out_dir or work
+    os.makedirs(out_dir, exist_ok=True)
     res = os.path.join(work, "results")
-    models = os.path.join(work, "models")
+    mdir = os.path.join(work, "models")
     os.makedirs(res, exist_ok=True)
     runs_csv(res)
     info = None
@@ -47,12 +50,23 @@ def pack(work, name, title, report=True):
         import report as rep
         figs = os.path.join(res, "figures")
         shutil.rmtree(figs, ignore_errors=True)
-        info = rep.build(res, title, os.path.join(work, f"{name}__report.pdf"), figs)
-    zip_dir(res, os.path.join(work, f"{name}__results.zip"))
-    if os.path.isdir(models):
-        zip_dir(models, os.path.join(work, f"{name}__models.zip"))
+        info = rep.build(res, title, os.path.join(out_dir, f"{name}__report.pdf"), figs)
+    zip_dir(res, os.path.join(out_dir, f"{name}__results.zip"))
+    if models and os.path.isdir(mdir):
+        zip_dir(mdir, os.path.join(out_dir, f"{name}__models.zip"))
     return info
 
 
+def quick(work, name, out_dir):
+    """After every run: results.zip only (fast), under a lock so parallel workers do not collide."""
+    import fcntl
+    os.makedirs(out_dir, exist_ok=True)
+    with open(os.path.join(work, ".pack.lock"), "w") as lk:
+        fcntl.flock(lk, fcntl.LOCK_EX)
+        runs_csv(os.path.join(work, "results"))
+        zip_dir(os.path.join(work, "results"), os.path.join(out_dir, f"{name}__results.zip"))
+
+
 if __name__ == "__main__":
-    print(pack(sys.argv[1], sys.argv[2], sys.argv[3]))
+    # python pack.py WORK NAME "TITLE" OUT_DIR
+    print(pack(sys.argv[1], sys.argv[2], sys.argv[3], out_dir=sys.argv[4] if len(sys.argv) > 4 else None))

@@ -33,6 +33,33 @@ NOT_PCT = {"final_nll", "final_brier", "comm_mb_per_client", "time_s", "fe_time_
            "class_sep_F"}
 
 
+REFS = {
+    "FedECS-LT": ("This work", "This suite (Flower)"),
+    "GeFL-F": ("Kang et al., IEEE TMC 2025", "Re-implementation of the authors' Algorithm 3, checked against the "
+                                             "earlier experiments"),
+    "GeFL-F + AdamW + LA": ("GeFL-F with decoupled weight decay (Loshchilov and Hutter, ICLR 2019) and logit "
+                            "adjustment (Menon et al., ICLR 2021)", "This suite"),
+    "Real only": ("Control: heads trained on real features only (no generator)", "This suite"),
+    "Real only + LA (balanced softmax)": ("Balanced softmax (Ren et al., NeurIPS 2020), i.e. logit adjustment "
+                                          "(Menon et al., ICLR 2021) with each client's prior", "This suite"),
+    "FedLC": ("Zhang et al., ICML 2022", "Re-implemented from the paper (loss only)"),
+    "FedRS": ("Li and Zhan, KDD 2021", "Re-implemented from the paper (loss only)"),
+    "Gaussian generator + LA": ("Control: class Gaussian from exact statistics, with logit adjustment", "This suite"),
+    "FedDF": ("Lin et al., NeurIPS 2020", "Re-implementation (server ensemble distillation on generated features)"),
+    "FedDF + LA": ("FedDF (Lin et al., NeurIPS 2020) with logit adjustment", "Re-implementation"),
+    "Local only": ("Control: no federation (each client trains alone)", "This suite"),
+}
+
+
+def method_ref(m):
+    if m in REFS:
+        return REFS[m]
+    if m.startswith("FedECS-LT"):
+        return ("This work (ablation / variant)", "This suite (Flower)")
+    base = m.split(" (")[0]
+    return (CITE.get(base, "see the experiment description"), "see the method's source field")
+
+
 def fmt(mu, sd, key):
     if np.isnan(mu):
         return "-"
@@ -139,12 +166,31 @@ def build(res_dir, title, out_pdf, fig_dir):
     meth = []
     for m in E.methods:
         r = E.of(m)[0]
-        src = r["method"].get("source", "this work" if m in ("FedECS-LT",) else "re-implementation in this suite")
-        meth.append([m, CITE.get(m.split(" (")[0].split(" + ")[0], "control / variant"), src])
+        ref, src = method_ref(m)
+        meth.append([m, ref, r["method"].get("source", src)])
     story += [tcap("Methods in this experiment, their reference and the origin of their code."), Spacer(1, 3),
               table(meth, ["Method", "Reference", "Code"], [1.9 * inch, 2.3 * inch, 2.8 * inch]), Spacer(1, 8)]
     for S in E.settings:
         story.append(P("Setting: " + setting_text(S, sorted({r['seed'] for r in E.runs if plots.setting_key(r) == S}))))
+    acc = os.path.join(res_dir, "acceptance.json")
+    if os.path.exists(acc):
+        v = json.load(open(acc))
+        rows = []
+        for c in v["checks"]:
+            if "final_bal" not in c:
+                rows.append([c["check"], c["verdict"], "-", "-", "-", "-"])
+                continue
+            rows.append([c["check"], c["verdict"], "yes" if c["counts_identical"] else "NO",
+                         f"{100 * c['final_bal']['new']:.1f} / {100 * c['final_bal']['old_seed3']:.1f} "
+                         f"(±{100 * c['final_bal']['tolerance']:.1f})",
+                         f"{100 * c['er_bal']['new']:.1f} / {100 * c['er_bal']['old_seed3']:.1f} "
+                         f"(±{100 * c['er_bal']['tolerance']:.1f})",
+                         f"{c['F']['new']:.3f} / {c['F']['old_seed3']:.3f}" if "F" in c else "-"])
+        story += [Spacer(1, 8), tcap(f"Acceptance of the Flower implementation against the earlier experiments "
+                                     f"(seed 3): overall {v['overall']}. Balanced accuracy new / old (tolerance), "
+                                     "as trained and with the exact readout; class separation F new / old."),
+                  Spacer(1, 3), table(rows, ["Check", "Verdict", "Same splits", "Bal. acc.", "Bal. acc. (ER)", "F"],
+                                      [1.6 * inch, 0.6 * inch, 0.7 * inch, 1.4 * inch, 1.4 * inch, 1.3 * inch])]
     story.append(PageBreak())
 
     # ---------------------------------------------------------------- tables

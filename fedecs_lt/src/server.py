@@ -17,13 +17,14 @@ import time
 import numpy as np
 import torch
 import torch.nn.functional as F
-from flwr.app import Context
+from flwr.app import Context, Message
 from flwr.serverapp import Grid, ServerApp
 
 import fedecs
 from data import Federation, active_clients
 from fl_common import Averager, arrays_of, cfg_of, key_of, nbytes, pack, seed_all
-from models import (GaussFeatureGen, PaperFE, PaperHeader, build_headers, make_generator, n_params, sd_clone)
+from models import (GaussFeatureGen, PaperHeader, make_fe, make_generator, make_head, make_headers, n_params,
+                    sd_clone)
 from monitor import Monitor
 from secure_sum import secure_sum
 from settings import DATASETS, EVAL_EVERY, FEDECS, HEADER_WIDTHS
@@ -62,7 +63,7 @@ class Fed:
 
     def ask(self, mtype, items, count=True, account=True):
         """Send (node, content) pairs, return replies sorted by client id; raise on any client error."""
-        msgs = [self.grid.create_message(c, mtype, n, "") for n, c in items]
+        msgs = [Message(content=c, dst_node_id=n, message_type=mtype) for n, c in items]
         down = sum(nbytes(c) for _, c in items)
         rep = list(self.grid.send_and_receive(msgs))
         for m in rep:
@@ -129,6 +130,45 @@ def cache_path(R, kind, key):
     return os.path.join(d, key + ".pt")
 
 
+def claim(path, wait_s=8 * 3600):
+    """Parallel workers sharing a stage: the first claims it (lock file holding its process id) and trains it; the
+    others wait for its result instead of training the same stage twice. A lock whose process has died is removed.
+    Returns True if this process must train the stage."""
+    lock = path + ".lock"
+    t0 = time.time()
+    while True:
+        if os.path.exists(path):
+            return False
+        try:
+            fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            os.write(fd, str(os.getpid()).encode())
+            os.close(fd)
+            return True
+        except FileExistsError:
+            try:
+                pid = int(open(lock).read() or 0)
+                os.kill(pid, 0)
+                alive = True
+            except (ValueError, ProcessLookupError, FileNotFoundError):
+                alive = False
+            except PermissionError:
+                alive = True
+            if not alive or time.time() - t0 > wait_s:
+                try:
+                    os.remove(lock)
+                except FileNotFoundError:
+                    pass
+                continue
+            time.sleep(5)
+
+
+def release(path):
+    try:
+        os.remove(path + ".lock")
+    except FileNotFoundError:
+        pass
+
+
 # ---------------------------------------------------------------- stage I
 def _bytes_delta(before, after):
     return {k: [a - b for a, b in zip(v, before.get(k, [0, 0, 0]))] for k, v in after.items()
@@ -146,7 +186,7 @@ def stage_one(S, T_FE, la=False):
     key = key_of("stage1", R["ds"], R["IF"], R["alpha"], R["K"], R["seed"], R.get("tail_perm", False),
                  R.get("frac_scale", 1.0), R.get("pfrac", 1.0), T_FE, la)
     path = cache_path(R, "stage1", key)
-    if os.path.exists(path):
+    if not claim(path):
         c = torch.load(path, weights_only=False)
         _add_bytes(mon, c.get("bytes"))
         mon.log("stage1_cached", key=key, time_s=c["time_s"])
@@ -158,8 +198,8 @@ def stage_one(S, T_FE, la=False):
     t0 = time.time()
     torch.manual_seed(R["seed"])   # same initial weights as core.py (set_seed(seed) before PaperFE, build_headers)
     np.random.seed(R["seed"])
-    fe = PaperFE(spec["in_ch"], spec["fe"])
-    headers = build_headers(fe.out_ch, spec["header_bn"], S.C, "cpu")
+    fe = make_fe(spec)
+    headers = make_headers(spec, fe.out_ch, S.C, "cpu")
     fe_sd = sd_clone(fe)
     hd_sd = [sd_clone(h) for h in headers]
     history = []
@@ -197,7 +237,9 @@ def stage_one(S, T_FE, la=False):
         mon.log("stage1_round", **rec)
         history.append(rec)
     c = dict(fe_sd=fe_sd, hd_sd=hd_sd, history=history, time_s=time.time() - t0, bytes=_bytes_delta(b0, mon.bytes))
-    torch.save(c, path)
+    torch.save(c, path + ".part")
+    os.replace(path + ".part", path)
+    release(path)
     mon.stop("stage1")
     return key, c
 
@@ -206,7 +248,7 @@ def train_referee(S, fe_sd):
     """Server-side referee on the validation set (public server data), as core.train_referee: CNN-5 with BN,
     Adam 1e-3, 40 epochs, batch 64. Used only to measure the generator's per-class fidelity."""
     spec = S.spec
-    fe = PaperFE(spec["in_ch"], spec["fe"]).to(DEV)
+    fe = make_fe(spec).to(DEV)
     fe.load_state_dict(fe_sd)
     fe.eval()
     with torch.no_grad():
@@ -254,7 +296,7 @@ def stage_two(S, gspec, feat_key, shape, T_KA, ref, proto=None, stats=None):
     seed_all(R["seed"], "gen_init")
     torch.manual_seed(R["seed"] + 1000)   # core.py: set_seed(seed + 1000) before make_gen
     G = make_generator(gspec["type"], shape[0], S.spec["latent"], S.C, proto)
-    if os.path.exists(path):
+    if not claim(path):
         c = torch.load(path, weights_only=False)
         G.load_state_dict(c["g_sd"])
         G = G.to(DEV)
@@ -277,8 +319,6 @@ def stage_two(S, gspec, feat_key, shape, T_KA, ref, proto=None, stats=None):
         act = active_clients(S.K, R.get("pfrac", 1.0), R["seed"], "ii", r)
         ev = r == 0 or (r + 1) % EVAL_EVERY == 0 or r == T_KA - 1
         cfg = S.base(round=r, fe_key=feat_key, gen=gspec, gen_key=key, send_rows=not ccwa)
-        if proto is not None:
-            cfg["proto"] = proto.flatten().tolist()
         extra = dict(ref=ref_rec) if ev else {}
         items = [(S.nid[k], pack(dict(cfg, eval=ev), g=g_sd, **extra)) for k in act]
         rep = S.ask("train.gen", items)
@@ -303,15 +343,16 @@ def stage_two(S, gspec, feat_key, shape, T_KA, ref, proto=None, stats=None):
             rec["fidelity_pre"] = {str(k): i["fidelity_pre"] for k, i in infos if "fidelity_pre" in i}
         if ev:
             copies = {"post": g_sd}
-            ep = pack(S.base(round=r, fe_key=feat_key, gen=gspec, copies=list(copies),
-                             proto=None if proto is None else proto.flatten().tolist()),
+            ep = pack(S.base(round=r, fe_key=feat_key, gen=gspec, copies=list(copies)),
                       ref=ref_rec, **{"g_" + k: v for k, v in copies.items()})
             rec["fidelity_post"] = cfg_of(S.ask("evaluate.gen", [(S.nid[0], ep)], account=False)[0].content)["post"]
         mon.log("stage2_round", **rec)
         history.append(rec)
     G.load_state_dict(g_sd)
     c = dict(g_sd=g_sd, history=history, time_s=time.time() - t0, bytes=_bytes_delta(b0, mon.bytes))
-    torch.save(c, path)
+    torch.save(c, path + ".part")
+    os.replace(path + ".part", path)
+    release(path)
     c["G"] = G
     mon.stop("stage2")
     return key, c
@@ -355,7 +396,7 @@ def stage_three(S, hs, feat_key, hd_sd, T_TN, sampler, sampler_key, gen_cfg, sec
         act = active_clients(S.K, R.get("pfrac", 1.0), R["seed"], "iii", r)
         ev = r == 0 or (r + 1) % EVAL_EVERY == 0 or r == T_TN - 1
         cfg = S.base(round=r, fe_key=feat_key, head=hs, sampler_key=sampler_key if sampler is not None else None,
-                     eval=ev, C=C, csl_beta=hs.get("csl", 0.0))
+                     eval=ev, C=C, csl_beta=hs.get("csl", 0.0), round_offset=getattr(S, "round_offset", 0))
         cons = None
         rec = dict(round=r + 1, clients=act)
         if csl:
@@ -411,7 +452,7 @@ def feddf_distill(S, hs, G, hd_sd, r):
     C = S.C
     seed_all(S.R["seed"], "feddf", r)
     in_ch = hd_sd[S.groups[0]]["features.0.weight"].shape[1]
-    headers = build_headers(in_ch, S.spec["header_bn"], C, DEV)
+    headers = make_headers(S.spec, in_ch, C, DEV)
     n_sed = hs["sed"] * hs.get("sed_bs", 128)
     sy = torch.randint(0, C, (n_sed,), device=DEV)
     with torch.no_grad():
@@ -456,7 +497,7 @@ def exact_readout(S, hd_sd, feat_key, Xval, secure, gamma=0.1):
     bounds = []
     in_ch = Xval.shape[1]
     for g in S.groups:
-        h = PaperHeader(HEADER_WIDTHS[g], in_ch, S.spec["header_bn"], S.C).to(DEV)
+        h = make_head(S.spec, g, in_ch, S.C).to(DEV)
         h.load_state_dict(hd_sd[g])
         h.eval()
         with torch.no_grad():
@@ -538,14 +579,15 @@ def run_pipeline(grid, context, R):
         sampler_key = key_of(key2, "mc" if mc_arr else "plain")
         gen_cfg = gspec
         lg = dict(sampler_key=sampler_key, gen=gspec)
-        if proto is not None:
-            lg["proto"] = proto.flatten().tolist()
         S.ask("query.load_gen", [(S.nid[k], pack(S.base(fe_key=feat_key, **lg), g=s2["g_sd"],
                                                  **({"mc": mc_arr} if mc_arr else {}))) for k in range(S.K)])
         G = sampler
     hs = dict(m["head"])
     if G is None:
         hs["ts"] = 0
+    if spec.get("local_epochs"):   # Track 2 protocol: local epochs of the benchmark
+        hs["tr"] = spec["local_epochs"]
+    S.round_offset = T["T_FE"]
     hd_sd, h_hist = stage_three(S, hs, feat_key, s1["hd_sd"], T["T_TN"], G, sampler_key, gen_cfg, secure, res)
     res["head_time_s"] = sum(h.get("time", {}).get(str(0), 0) for h in h_hist)
     # final evaluation: test (with probabilities and embeddings for the plots) and validation
@@ -589,8 +631,8 @@ def run_local(S, R, T, res, mon, t0):
     """Local only: every client trains its own extractor and head for the federated stages' epochs combined."""
     spec = S.spec
     torch.manual_seed(R["seed"])
-    fe = PaperFE(spec["in_ch"], spec["fe"])
-    headers = build_headers(fe.out_ch, spec["header_bn"], S.C, "cpu")
+    fe = make_fe(spec)
+    headers = make_headers(spec, fe.out_ch, S.C, "cpu")
     epochs = 5 * T["T_FE"] + 5 * T["T_TN"]
     rep = S.ask("train.local", [(S.nid[k], pack(S.base(epochs=epochs), fe=sd_clone(fe),
                                                 head=sd_clone(headers[S.arch[k]]))) for k in range(S.K)])

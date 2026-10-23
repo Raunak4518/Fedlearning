@@ -1,0 +1,28 @@
+# fedecs_lt: the Flower re-run of every experiment
+
+FedECS-LT (Exact Class Statistics for Long-Tailed federated learning) and every comparison, rewritten for Flower
+(1.42, simulation with the Ray backend). Decisions: `docs/review/action_plan.md` sections 16-22.
+
+## Layout
+- `src/`: the code. Every Kaggle notebook pastes all of it (`%%writefile` cells), so each notebook is standalone.
+  - `settings.py` datasets, rounds, our method's settings, secure-aggregation settings, citations
+  - `data.py` downloads, preprocessing, long tail, client split (identical to `experiments/core.py`)
+  - `models.py` extractor, the ten head architectures, CVAE-F, PC-VAE, Gaussian generator, ResNet-8 (Track 2)
+  - `fedecs.py` our method's components (statistics release, gate, CCWA, moment correction, consensus labels, exact
+    readout); `local_train.py` each client's local update
+  - `server.py`, `client.py` Flower ServerApp / ClientApp of the GeFL-F pipeline family; `secure_sum.py` SecAgg+
+  - `htfl_server.py`, `htfl_client.py` Track-1 baselines ported from HtFLlib (Apache-2.0)
+  - `track2.py` Track-2 baselines: the authors' LongTailLib code, downloaded at run time, on our splits
+  - `metrics.py`, `monitor.py`, `plot_style.py` (IEEE), `plots.py` (60-figure catalogue), `captions.py`,
+    `report.py` (report.pdf), `pack.py` (the three output files), `runner.py` (workers, resume, deadline),
+    `acceptance.py` (NB00 check against the earlier results), `baselines.py` (registry)
+- `tests/`: `python -m pytest fedecs_lt/tests -q` (partitions, networks, formulas and every client training step
+  against `experiments/core.py`; metrics against scikit-learn); `notebook_cpu_test.py` runs a notebook end to end on
+  CPU from the notebook file itself.
+- `build_notebooks.py` writes `notebooks/*.ipynb` and `notebooks/START_HERE.md`. Notebooks are generated; edit `src/`
+  or the builder, then rebuild.
+- `results/<notebook>/`: returned results (`<name>__results.zip` unpacked; the report PDF next to it).
+
+## Every notebook returns
+`NAME__results.zip` (every figure as PDF + PNG + CSV, `runs.jsonl`, `runs.csv`, per-round logs, TensorBoard,
+predictions), `NAME__report.pdf` (every table and figure with captions), `NAME__models.zip` (weights).

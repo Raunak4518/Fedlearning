@@ -224,3 +224,71 @@ def sd_from_numpy(arrs, device):
 
 def n_params(m):
     return sum(p.numel() for p in m.parameters())
+
+
+# ---------------------------------------------------------------- Track 2: ResNet-8 (FedLTLib / CReFF protocol)
+class BasicBlock(nn.Module):
+    """Standard CIFAR ResNet basic block (He et al., 2016), as in the ResNet-8 of CReFF / LongTailLib."""
+
+    def __init__(self, cin, cout, stride=1):
+        super().__init__()
+        self.conv1 = nn.Conv2d(cin, cout, 3, stride, 1, bias=False)
+        self.bn1 = nn.BatchNorm2d(cout)
+        self.conv2 = nn.Conv2d(cout, cout, 3, 1, 1, bias=False)
+        self.bn2 = nn.BatchNorm2d(cout)
+        self.down = None
+        if stride != 1 or cin != cout:
+            self.down = nn.Sequential(nn.Conv2d(cin, cout, 1, stride, bias=False), nn.BatchNorm2d(cout))
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        return F.relu(out + (x if self.down is None else self.down(x)))
+
+
+class ResNet8FE(nn.Module):
+    """ResNet-8 (one block per stage, widths 64 / 128 / 256, i.e. scaling 4) up to the second stage: the shared,
+    frozen feature extractor of FedECS-LT in Track 2; output 128 x 16 x 16."""
+
+    def __init__(self, in_ch=3, scaling=4):
+        super().__init__()
+        w = 16 * scaling
+        self.net = nn.Sequential(nn.Conv2d(in_ch, w, 3, 1, 1, bias=False), nn.BatchNorm2d(w), nn.ReLU(inplace=True),
+                                 BasicBlock(w, w), BasicBlock(w, 2 * w, 2))
+        self.out_ch = 2 * w
+
+    def forward(self, x):
+        return self.net(x)
+
+
+class ResNet8Head(nn.Module):
+    """The rest of ResNet-8 (third stage, global average pooling, linear layer): the head of every client."""
+
+    def __init__(self, in_ch, C, scaling=4):
+        super().__init__()
+        w = 64 * scaling
+        self.features = nn.Sequential(BasicBlock(in_ch, w, 2), nn.AdaptiveAvgPool2d(1))
+        self.fc = nn.Linear(w, C)
+        self.emb_dim = w
+
+    def embed(self, h):
+        return self.features(h).flatten(1)
+
+    def forward(self, h):
+        return self.fc(self.embed(h))
+
+
+def make_fe(spec):
+    return ResNet8FE(spec["in_ch"]) if spec["fe"] == "resnet8" else PaperFE(spec["in_ch"], spec["fe"])
+
+
+def make_head(spec, g, in_ch, C):
+    if spec.get("heads") == "resnet8":
+        return ResNet8Head(in_ch, C)
+    return PaperHeader(HEADER_WIDTHS[g], in_ch, spec["header_bn"], C)
+
+
+def make_headers(spec, in_ch, C, device):
+    """All architectures' heads (Track 1: CNN-1..CNN-10; Track 2: one ResNet-8 head)."""
+    n = 1 if spec.get("heads") == "resnet8" else N_ARCH
+    return [make_head(spec, g, in_ch, C).to(device) for g in range(n)]

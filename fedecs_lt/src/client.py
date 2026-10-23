@@ -26,7 +26,7 @@ import local_train as lt
 from data import Federation, batches, gpu_augment
 from fl_common import arrays_of, cfg_of, reply, seed_all
 from metrics import arch_priors, class_metrics, evaluate_heads
-from models import GraphCache, PaperFE, PaperHeader, build_headers, make_generator
+from models import GraphCache, PaperHeader, make_fe, make_generator, make_head, make_headers
 from secure_sum import client_secsum
 from settings import DATASETS, HEADER_WIDTHS
 
@@ -92,13 +92,15 @@ def stage1(msg, context):
     seed_all(cfg["seed"], "i", cfg["round"], k)
     t0 = time.time()
     g = fed.arch[k]
-    fe = PaperFE(spec["in_ch"], spec["fe"]).to(DEV)
-    head = PaperHeader(HEADER_WIDTHS[g], fe.out_ch, spec["header_bn"], fed.C).to(DEV)
+    fe = make_fe(spec).to(DEV)
+    head = make_head(spec, g, fe.out_ch, fed.C).to(DEV)
     fe.load_state_dict(arrays_of(msg.content, "fe", DEV))
     head.load_state_dict(arrays_of(msg.content, "head", DEV))
     prior = fedecs.local_log_prior(fed.counts[k], DEV) if cfg.get("la") else None
     x_k, y_k = fed.x[k], fed.y[k]
-    losses = lt.local_stage1(fe, head, x_k, y_k, spec, DEV, prior=prior, epochs=cfg.get("epochs", 5))
+    lr, mom = lt.protocol_lr(spec, cfg["round"])
+    losses = lt.local_stage1(fe, head, x_k, y_k, spec, DEV, prior=prior, epochs=spec.get("local_epochs", 5),
+                             lr=lr, momentum=mom)
     out = dict(n=len(y_k), loss=float(np.mean(losses)) if losses else None, time=time.time() - t0)
     if cfg.get("eval"):  # pre-aggregation evaluation of the local model on the test set
         with torch.no_grad():
@@ -117,7 +119,7 @@ def features(msg, context):
     fed, spec = fed_of(cfg), spec_of(cfg)
     k = ("feat", cfg["fe_key"])
     if k not in STATE:
-        fe = PaperFE(spec["in_ch"], spec["fe"]).to(DEV)
+        fe = make_fe(spec).to(DEV)
         fe.load_state_dict(arrays_of(msg.content, "fe", DEV))
         STATE[k] = dict(x=[compute_features(fe, x) for x in fed.x], te=compute_features(fe, fed.x_te),
                         val=compute_features(fe, fed.x_val))
@@ -134,7 +136,7 @@ def gen_store(cfg, fed, shape):
         spec = spec_of(cfg)
         proto = None
         if cfg["gen"]["type"] == "pcvae":
-            proto = torch.tensor(np.array(cfg["proto"]), dtype=torch.float32, device=DEV).view(fed.C, *shape)
+            proto = torch.zeros(fed.C, *shape, device=DEV)  # the class means arrive in the weights (buffer)
         G = make_generator(cfg["gen"]["type"], shape[0], spec["latent"], fed.C, proto).to(DEV)
         G.graphs = GraphCache(DEV == "cuda")
         STATE[k] = dict(G=G, opts={}, local={})
@@ -206,7 +208,7 @@ def load_gen(msg, context):
         else:
             proto = None
             if cfg["gen"]["type"] == "pcvae":
-                proto = torch.tensor(np.array(cfg["proto"]), dtype=torch.float32, device=DEV).view(fed.C, *shape)
+                proto = torch.zeros(fed.C, *shape, device=DEV)  # the class means arrive in the weights (buffer)
             G = make_generator(cfg["gen"]["type"], shape[0], spec["latent"], fed.C, proto).to(DEV)
             G.load_state_dict(arrays_of(msg.content, "g", DEV))
         G.eval()
@@ -251,7 +253,7 @@ def pool_of(cfg, sm):
 def head_of(cfg, fed, g, arrays, in_ch):
     """A fresh head module of architecture g with the given weights (inference only)."""
     spec = spec_of(cfg)
-    h = PaperHeader(HEADER_WIDTHS[g], in_ch, spec["header_bn"], fed.C).to(DEV)
+    h = make_head(spec, g, in_ch, fed.C).to(DEV)
     h.load_state_dict(arrays)
     return h
 
@@ -303,7 +305,9 @@ def head(msg, context):
         else:                                     # uniform synthetic labels, hard targets (GeFL-F)
             ylab = lt.syn_hard_labels(C, nsyn).to(DEV)
             syn = ("hard", draw(sm, ylab), ylab)
-    syn_losses, real_losses = lt.local_head(h, fwd, X, Y, B, hs, DEV, prior=prior, adj=adj, syn=syn)
+    lr, mom = lt.protocol_lr(spec, cfg.get("round_offset", 0) + cfg["round"])
+    syn_losses, real_losses = lt.local_head(h, fwd, X, Y, B, hs, DEV, prior=prior, adj=adj, syn=syn, lr=lr,
+                                            momentum=mom)
     out.update(syn_loss=float(np.mean(syn_losses)) if syn_losses else None,
                real_loss=float(np.mean(real_losses)) if real_losses else None, time=time.time() - t0)
     if cfg.get("eval"):
@@ -324,8 +328,8 @@ def local(msg, context):
     fed, spec = fed_of(cfg), spec_of(cfg)
     seed_all(cfg["seed"], "local", 0, k)
     g = fed.arch[k]
-    fe = PaperFE(spec["in_ch"], spec["fe"]).to(DEV)
-    h = PaperHeader(HEADER_WIDTHS[g], fe.out_ch, spec["header_bn"], fed.C).to(DEV)
+    fe = make_fe(spec).to(DEV)
+    h = make_head(spec, g, fe.out_ch, fed.C).to(DEV)
     fe.load_state_dict(arrays_of(msg.content, "fe", DEV))
     h.load_state_dict(arrays_of(msg.content, "head", DEV))
     opt = torch.optim.SGD(list(fe.parameters()) + list(h.parameters()), lr=0.1, momentum=0.0)
@@ -432,7 +436,7 @@ def eval_heads(msg, context):
     F_ = feats_of(cfg, fed)
     w = arrays_of(msg.content, "heads", DEV)
     in_ch = F_["te"].shape[1]
-    heads = build_headers(in_ch, spec_of(cfg)["header_bn"], fed.C, DEV)
+    heads = make_headers(spec_of(cfg), in_ch, fed.C, DEV)
     per_g = {}
     for name, v in w.items():
         g, kk = name.split("|", 1)
@@ -467,11 +471,11 @@ def eval_heads(msg, context):
 def eval_stage1(msg, context):
     cfg = cfg_of(msg.content)
     fed, spec = fed_of(cfg), spec_of(cfg)
-    fe = PaperFE(spec["in_ch"], spec["fe"]).to(DEV)
+    fe = make_fe(spec).to(DEV)
     fe.load_state_dict(arrays_of(msg.content, "fe", DEV))
     fte = compute_features(fe, fed.x_te)
     w = arrays_of(msg.content, "heads", DEV)
-    heads = build_headers(fe.out_ch, spec["header_bn"], fed.C, DEV)
+    heads = make_headers(spec, fe.out_ch, fed.C, DEV)
     per_g = {}
     for name, v in w.items():
         g, kk = name.split("|", 1)
@@ -494,7 +498,7 @@ def eval_gen(msg, context):
     shape = tuple(F_["te"].shape[1:])
     proto = None
     if cfg["gen"]["type"] == "pcvae":
-        proto = torch.tensor(np.array(cfg["proto"]), dtype=torch.float32, device=DEV).view(fed.C, *shape)
+        proto = torch.zeros(fed.C, *shape, device=DEV)  # the class means arrive in the weights (buffer)
     G = make_generator(cfg["gen"]["type"], shape[0], spec["latent"], fed.C, proto).to(DEV)
     ref = PaperHeader(HEADER_WIDTHS[4], shape[0], True, fed.C).to(DEV)
     ref.load_state_dict(arrays_of(msg.content, "ref", DEV))

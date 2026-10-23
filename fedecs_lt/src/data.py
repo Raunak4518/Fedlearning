@@ -123,12 +123,13 @@ def load_dataset(name, root, device="cpu"):
     """Whole dataset as preprocessed tensors: x (N, ch, 32, 32) float, y (N,) long. Raw images are cached once as
     uint8 tensors in root (safe tensors-only file). Preprocessing as experiments/core.py: /255, 28 -> 32 bilinear
     (antialias) for small images, then the dataset's normalisation."""
-    cache = os.path.join(root, f"_fedecs_tensors_{name}.pt")
+    raw = DATASETS[name].get("raw", name)
+    cache = os.path.join(root, f"_fedecs_tensors_{raw}.pt")
     if os.path.exists(cache):
         d = torch.load(cache, weights_only=True)
     else:
         os.makedirs(root, exist_ok=True)
-        xtr, ytr, xte, yte = _raw(name, root)
+        xtr, ytr, xte, yte = _raw(raw, root)
         d = dict(xtr=xtr.contiguous(), ytr=ytr.long(), xte=xte.contiguous(), yte=yte.long())
         torch.save(d, cache)
     spec = DATASETS[name]
@@ -272,8 +273,18 @@ class Federation:
             IF = None
         if tail_perm:
             data = permute_labels(data, seed)
-        frac = frac_of(ds, len(data["ytr"])) * frac_scale
-        part = make_partition(data["ytr"], self.C, K, frac, IF, alpha, seed)
+        if spec.get("partition") == "lt_standard":   # Track 2: the split LongTailLib's baselines get (track2.py)
+            from track2 import lt_partition
+            parts, heldout, counts = lt_partition(data["ytr"].numpy(), self.C, K, IF, alpha, seed)
+            part = dict(parts=[torch.from_numpy(np.asarray(p)).long() for p in parts], counts=counts,
+                        heldout=torch.from_numpy(heldout).long(), class_counts=counts.sum(0))
+            if frac_scale < 1.0:   # smoke tests only
+                part["parts"] = [p[:max(10, int(len(p) * frac_scale))] for p in part["parts"]]
+                part["counts"] = np.array([[int((data["ytr"][p] == c).sum()) for c in range(self.C)]
+                                           for p in part["parts"]])
+        else:
+            frac = frac_of(ds, len(data["ytr"])) * frac_scale
+            part = make_partition(data["ytr"], self.C, K, frac, IF, alpha, seed)
         self.counts, self.class_counts = part["counts"], part["class_counts"]
         # the server process keeps no client data (clients=False): only sizes and, for logging, the class counts
         self.x = [data["xtr"][p].to(device) for p in part["parts"]] if clients else None
@@ -281,5 +292,5 @@ class Federation:
         self.x_val, self.y_val = data["xtr"][part["heldout"]].to(device), data["ytr"][part["heldout"]].to(device)
         self.x_te, self.y_te = data["xte"].to(device), data["yte"].to(device)
         self.sizes = [len(p) for p in part["parts"]]
-        self.arch = assign_arch(K)
+        self.arch = [0] * K if spec.get("single_arch") else assign_arch(K)
         self.groups = sorted(set(self.arch))

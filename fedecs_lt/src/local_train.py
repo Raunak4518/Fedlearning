@@ -8,10 +8,11 @@ import fedecs
 from data import batches, gpu_augment
 
 
-def local_stage1(fe, head, x_k, y_k, spec, device, prior=None, epochs=5):
-    """Stage I: SGD(0.1) on the extractor and the client's head jointly, 5 local epochs (T_w)."""
+def local_stage1(fe, head, x_k, y_k, spec, device, prior=None, epochs=5, lr=0.1, momentum=0.0):
+    """Stage I: SGD(0.1) on the extractor and the client's head jointly, 5 local epochs (T_w). Track 2 passes the
+    FedLTLib protocol instead (10 epochs, momentum 0.9, decayed learning rate)."""
     fe.train(), head.train()
-    opt = torch.optim.SGD(list(fe.parameters()) + list(head.parameters()), lr=0.1, momentum=0.0)
+    opt = torch.optim.SGD(list(fe.parameters()) + list(head.parameters()), lr=lr, momentum=momentum)
     losses = []
     for _ in range(epochs):
         for b in batches(len(y_k), spec["B"], device):
@@ -25,7 +26,7 @@ def local_stage1(fe, head, x_k, y_k, spec, device, prior=None, epochs=5):
             opt.zero_grad(set_to_none=True)
             loss.backward()
             opt.step()
-            losses.append(float(loss))
+            losses.append(float(loss.detach()))
     return losses
 
 
@@ -43,7 +44,7 @@ def local_gen(G, opt, X, Y, device, B=64, epochs=5):
             opt.zero_grad(set_to_none=True)
             loss.backward()
             opt.step()
-            losses.append(float(loss) / len(y))
+            losses.append(float(loss.detach()) / len(y))
     return losses
 
 
@@ -52,7 +53,7 @@ def syn_hard_labels(C, n):
     return torch.from_numpy(np.random.choice(C, size=n, p=np.full(C, 1.0 / C))).long()
 
 
-def local_head(h, fwd, X, Y, B, hs, device, prior=None, adj=None, syn=None):
+def local_head(h, fwd, X, Y, B, hs, device, prior=None, adj=None, syn=None, lr=0.1, momentum=0.0):
     """Stage III: synthetic phase (one pass, batch bs) then real phase (tr epochs, batch B), fresh SGD(0.1) each.
     syn: None, ("hard", xs, ylab) or ("soft", xs, targets)."""
     n = len(Y)
@@ -60,7 +61,7 @@ def local_head(h, fwd, X, Y, B, hs, device, prior=None, adj=None, syn=None):
     syn_losses, real_losses = [], []
     if syn is not None:
         kind, xs, t = syn
-        opt = torch.optim.SGD(h.parameters(), lr=0.1, momentum=0.0)
+        opt = torch.optim.SGD(h.parameters(), lr=lr, momentum=momentum)
         for s in range(0, len(xs), bs):
             if kind == "soft":
                 loss = -(t[s:s + bs] * fwd(xs[s:s + bs]).log_softmax(1)).sum(1).mean()
@@ -69,8 +70,8 @@ def local_head(h, fwd, X, Y, B, hs, device, prior=None, adj=None, syn=None):
             opt.zero_grad(set_to_none=True)
             loss.backward()
             opt.step()
-            syn_losses.append(float(loss))
-    opt = torch.optim.SGD(h.parameters(), lr=0.1, momentum=0.0)
+            syn_losses.append(float(loss.detach()))
+    opt = torch.optim.SGD(h.parameters(), lr=lr, momentum=momentum)
     for _ in range(hs["tr"]):
         for b in batches(n, B, device):
             if b.numel() < 2:
@@ -79,8 +80,17 @@ def local_head(h, fwd, X, Y, B, hs, device, prior=None, adj=None, syn=None):
             opt.zero_grad(set_to_none=True)
             loss.backward()
             opt.step()
-            real_losses.append(float(loss))
+            real_losses.append(float(loss.detach()))
     return syn_losses, real_losses
+
+
+def protocol_lr(spec, global_round):
+    """(learning rate, momentum) of a local update: GeFL-F's SGD 0.1 without momentum (Track 1), or the FedLTLib
+    protocol (Track 2: 0.1 x 0.99^round, momentum 0.9)."""
+    o = spec.get("opt")
+    if not o:
+        return 0.1, 0.0
+    return o["lr"] * o.get("decay", 1.0) ** global_round, o.get("momentum", 0.0)
 
 
 def n_syn(n, B, ts):

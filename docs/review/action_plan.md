@@ -556,3 +556,30 @@ Target: IEEE (IEEEtran template, journals and conferences). No other venue profi
   request without re-running experiments.
 - **Paper:** paper_draft.md stays the master text; the submission is written in the IEEEtran template (replacing the
   current article-class paper.tex when the paper is rewritten after the Flower results).
+
+## 22. Implementation decisions (23 Oct 2026; folder fedecs_lt/, see its README)
+
+- **Notebooks:** standalone (every helper pasted); each returns `results.zip`, `report.pdf` (every table and figure,
+  IEEE captions) and `models.zip`. NB00 (user's account) runs first: GeFL-F and FedECS-LT on MNIST and CIFAR-10,
+  seed 3, against the old runs; helpers' notebooks go out only after `ACCEPTANCE: PASS`.
+- **Acceptance, honestly stated:** client splits identical to the old runs (checked on real data: MNIST 5,996 and
+  CIFAR-10 18,485 images, every client's counts equal); every client training step equals core.py weight for weight
+  (tests); whole runs cannot be bit-identical (Flower seeds each client action separately; core.py used one random
+  stream), so accuracy must lie within max(2 points, 3 x the old seed SD) of the old seed-3 run.
+- **Track 1** (different client models): FedECS-LT, GeFL-F, GeFL-F + AdamW + LA, Real only, Real + LA, FedLC, FedRS,
+  Gaussian generator + LA, FedDF, FedDF + LA, Local only, and the model-heterogeneous methods FedProto, FedTGP,
+  FedGen, FedGH, LG-FedAvg, FedMRL (HtFLlib, Apache-2.0, ported to Flower; their hyperparameters from the authors'
+  scripts; same rounds and local epochs as our head stage). The long-tail methods built for one shared model are
+  compared in Track 2 only (user, 23 Oct).
+- **Track 2** (one shared ResNet-8, FedLTLib protocol: 20 clients, 40% per round, 200 rounds, 10 local epochs, batch
+  32, SGD 0.1 momentum 0.9 decay 0.99): FedAvg, FedProx, MOON, FedLC, CCVR, CReFF, FedETF, Fed-GraB, FedLoGe, FedYoYo,
+  RUCR, CLIP2FL run with the authors' LongTailLib code unchanged (downloaded at run time at commit 4141678), on our
+  splits (standard CIFAR-LT profile, Dirichlet 0.5); every metric is computed from the predictions LongTailLib's own
+  evaluation ranks (recorded and checked against its accuracy). FedECS-LT in Track 2: ResNet-8 split after its second
+  stage (frozen extractor 128 x 16 x 16), T_FE = T_TN = 100 rounds (the baselines' 200), generator rounds extra and
+  reported.
+- **Dropped:** FEDIC, FedGELA, FedLF, FML, FD, FedKD, FedKTL, FedMD, SCAFFOLD, CAPT (reasons in the plan of 23 Oct).
+- **Licences:** MIT / Apache code pasted with credit; unlicensed or GPL code downloaded at run time, never stored here.
+- **Secure aggregation:** Flower SecAgg+ for every FedECS-LT release (statistics, CCWA rows, consensus, readout sums),
+  30-bit quantisation, public bounds from the federation size and the server's validation features.
+- **Sweeps and checks (phases C, D)** are built after the main results name the five strongest baselines (§19).

@@ -7,6 +7,12 @@ the FedLTLib benchmark) runs the authors' LongTailLib code unchanged on this sui
 HTFL = ["FedProto", "FedTGP", "FedGen", "FedGH", "LG-FedAvg", "FedMRL"]
 SOURCE = {m: "HtFLlib (Zhang et al., KDD 2025), Apache-2.0, ported to Flower" for m in HTFL}
 BASELINES = {m: dict(pipeline="htfl", name=m, source=SOURCE[m]) for m in HTFL}
+TRACK2 = ["FedAvg", "FedProx", "MOON", "FedLC", "CCVR", "CReFF", "FedETF", "Fed-GraB", "FedLoGe", "FedYoYo", "RUCR",
+          "CLIP2FL"]
+for m in TRACK2:
+    BASELINES[f"{m} (LongTailLib)"] = dict(pipeline="longtaillib", name=m,
+                                          source="LongTailLib (FedLTLib benchmark), authors' code unchanged, "
+                                                 "downloaded at run time")
 
 
 def run_baseline(grid, context, R):
