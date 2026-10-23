@@ -459,3 +459,16 @@ training (pre) and the aggregated model (post); effect = post - pre, per class.
 New plots 56-60: aggregation effect per class over rounds (heatmap, GeFL-F vs ours); rare-class fidelity pre vs post;
 row norm of holders' copies, non-holders' copies and the average; aggregation effect vs kappa; federated vs local-only
 per class.
+
+## 18. Datasets, decided 23 Oct 2026 (run in this order)
+
+1. Already in results: MNIST, FashionMNIST, SVHN, CIFAR-10-LT, CIFAR-100-LT.
+2. Light, natural imbalance: DermaMNIST, OrganAMNIST, BloodMNIST, PathMNIST (MedMNIST), GTSRB, EMNIST (byclass),
+   FER-2013 (facial expressions; free, 7 classes, ~16:1).
+3. Medium: Fed-ISIC2019 (FLamby, real hospitals), FEMNIST (writers as clients), Tiny-ImageNet-LT, CINIC-10,
+   Flowers-102, HAM10000 (full resolution), APTOS-2019; AffectNet only with the authors' licence, at reduced resolution.
+4. Off-topic, last (need other extractor / head families): Fed-Heart-Disease (tabular), Office-Caltech-10, AG News
+   (text), Speech Commands (audio).
+Dropped as too heavy for the week: ImageNet-LT, iNaturalist-2018, Places-LT, Fed-Camelyon16, ChestX-ray14 / CheXpert,
+DomainNet. Estimate: tier 2 about +450 runs / 60-80 GPU-h; tier 3 about +500 runs / 200-300 GPU-h; tiers 1-2 and part
+of tier 3 fit the week with 15 helpers.
