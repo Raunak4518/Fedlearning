@@ -512,7 +512,12 @@ exactly by secure aggregation, used instead of averaged models wherever an answe
 anchor alignment with secure aggregation; close to ours, cite it), FedSAGE and FedTAIL taken, FedCSB too close to
 Fed-CBS (ICML 2022); no method named FedECS was found.
 
-Still to apply (not done yet): rename "Ours" / "our method" in paper_draft.md, paper.tex, the study guide and
-PROGRESS.md; decide the term replacing "holder-weighted averaging (HWA)" (proposed: class-count weighted averaging,
-since a holder-only rule weighted by class counts already exists in FedProto, cwFedAvg and MLFCIL); add FedCSA and
-MLFCIL (arXiv 2604.02356) to related work; update the study guide to T_s = 10 and no kernel herding (§12).
+Decided with the user (23 Oct 2026):
+- "Holder-weighted averaging (HWA)" is renamed **class-count weighted averaging (CCWA)**: each class row of the generator
+  is averaged over the clients that have that class, weighted by their capped class count E(n). The rule itself exists
+  (FedProto, cwFedAvg, MLFCIL); applying it to generator rows is ours.
+- The renaming in the documents ("Ours" -> FedECS-LT, HWA -> CCWA in paper_draft.md, paper.tex, the study guide and
+  PROGRESS.md) is done **later**, when the paper is rewritten after the Flower results. New code, plots and tables
+  (the Flower rewrite) use FedECS-LT and CCWA from the start.
+- At that rewrite also: add FedCSA and MLFCIL (arXiv 2604.02356) to related work; update the study guide to T_s = 10 and
+  no kernel herding (§12).
