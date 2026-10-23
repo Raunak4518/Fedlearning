@@ -437,3 +437,25 @@ results stay as the record; they lack the new metrics and per-round logs).
   ours vs core.py on MNIST and CIFAR-10 seed 3, CPU smoke test of every plugin.
 - Risks: SecAgg+ precision on second moments; CCVR per-class covariances on CIFAR-100 (low-rank if needed); Ray
   overhead; Kaggle CPU count.
+
+### 17a. Design decisions (user, 23 Oct 2026)
+- SecAgg+ on the method's releases only (statistics, class rows, consensus predictions, readout sums); extractor and
+  generator weights plain FedAvg.
+- Every run in Flower (sweeps included); parallelism set after a benchmark of Ray overhead.
+- Evaluation: clients evaluate on a shared test copy, the server collects through the evaluation channel.
+- Clean rewrite (no import of core.py). Acceptance before any large run: identical partitions (client counts equal to
+  those logged by the old runs), identical class statistics, GeFL-F and ours on MNIST and CIFAR-10 within seed noise
+  of the old results.
+
+### 17b. Aggregation effect (pre- vs post-aggregation evaluation)
+Every evaluation round (every 5 rounds) each averaged model is scored twice: each client's copy right after local
+training (pre) and the aggregated model (post); effect = post - pre, per class.
+- Generator (Stage II): per-class row norm, per-class fidelity (referee on 200 fakes per class), signal fraction,
+  fake-vs-real MMD. Prediction (contraction theorem, T01 / K25): GeFL-F's rare classes lose after every aggregation;
+  ours do not.
+- Extractor (Stage I): balanced accuracy of local vs averaged extractor + heads.
+- Heads (Stage III, K = 50 / 100): per-class recall before vs after within-architecture averaging.
+- Local-only baseline (no federation): per-class benefit of collaboration.
+New plots 56-60: aggregation effect per class over rounds (heatmap, GeFL-F vs ours); rare-class fidelity pre vs post;
+row norm of holders' copies, non-holders' copies and the average; aggregation effect vs kappa; federated vs local-only
+per class.
