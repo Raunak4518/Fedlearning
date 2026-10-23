@@ -46,8 +46,11 @@ def simple(num, E, S, text):
     return f"{text} {setting_text(S, _seeds(E, S))}"
 
 
-def curve(num, E, S, what):
-    return (f"Test-set {what}, per evaluation round (every 5 rounds), mean over seeds; the shaded band is one standard "
+def curve(num, E, S, what, split="Test-set"):
+    """split: "Test-set" for evaluated quantities; None for training-time quantities (losses, drift), whose text
+    starts with its own capital."""
+    head = f"{split} {what}" if split else what
+    return (f"{head}, per evaluation round (every 5 rounds), mean over seeds; the shaded band is one standard "
             f"deviation. {setting_text(S, _seeds(E, S))}")
 
 
@@ -82,6 +85,12 @@ NA = {
     53: "privacy figure: made from the membership-inference experiment",
     54: "privacy figure: made from the differential-privacy experiment",
     55: "the pipeline diagram is drawn once for the paper", 57: "no generator copies were evaluated",
+    56: "every head architecture has a single client here (10 clients, 10 architectures), so aggregating a head "
+        "leaves it unchanged; the figure is made for the 50- and 100-client federations (or FedECS-LT and GeFL-F "
+        "are not part of this experiment)",
+    59: "every head architecture has a single client here (10 clients, 10 architectures), so aggregating a head "
+        "leaves it unchanged; the figure is made for the 50- and 100-client federations (or FedECS-LT and GeFL-F "
+        "are not part of this experiment)",
     58: "no class-row generator in this experiment", 60: "local-only training is not part of this experiment",
 }
 

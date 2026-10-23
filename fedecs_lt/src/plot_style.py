@@ -84,12 +84,92 @@ def panel_labels(axes, y=-0.32):
         ax.text(0.5, y, f"({chr(97 + i)})", transform=ax.transAxes, ha="center", va="top", fontsize=FONT_PT)
 
 
+def enforce(fig):
+    """IEEE minimums on every figure, whatever the plotting code set: text at least FONT_PT (8 pt), drawn lines at
+    least MIN_LINE_PT (0.5 pt). Returns the number of artists changed."""
+    from matplotlib.lines import Line2D
+    from matplotlib.text import Text
+    n = 0
+    for t in fig.findobj(Text):
+        if t.get_visible() and t.get_text().strip() and t.get_fontsize() < FONT_PT - 1e-6:
+            t.set_fontsize(FONT_PT)
+            n += 1
+    for ln in fig.findobj(Line2D):
+        if ln.get_visible() and ln.get_linestyle() not in ("None", "none", "") and 0 < ln.get_linewidth() < MIN_LINE_PT:
+            ln.set_linewidth(MIN_LINE_PT)
+            n += 1
+    from matplotlib.ticker import AutoLocator, MaxNLocator
+    for ax in fig.axes:   # rounds are whole numbers
+        if ax.get_xlabel() == "Round" and isinstance(ax.xaxis.get_major_locator(), AutoLocator):
+            ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+    place_legends(fig)
+    fit_width(fig)
+    return n
+
+
+def fit_width(fig, tol=0.01):
+    """Keep the saved figure at its nominal width (3.5 or 7.16 in): when tick labels, legends or colour bars reach
+    past the figure's edges, the axes are narrowed (text keeps its 8 pt size) until everything fits."""
+    W = fig.get_figwidth()
+    r = fig.canvas.get_renderer()
+    for _ in range(8):
+        tb = fig.get_tightbbox(r)
+        if tb.width <= W + tol:
+            return
+        a, b = -tb.x0 / W + tol / W, 1 - (tb.x1 - W) / W - tol / W   # where [0, 1] of the axes' span must map to
+        for ax in fig.axes:
+            pos = ax.get_position()
+            ax.set_position([a + pos.x0 * (b - a), pos.y0, pos.width * (b - a), pos.height])
+
+
+WIDTH_PROBLEMS = []   # (figure name, saved width in inches, nominal width) of every figure wider than it should be
+
+
+def place_legends(fig):
+    """Legends never cover data: one with more than 6 entries goes below the axes (under the tick and axis labels)
+    with as many columns as fit the figure's width; a bar chart's short legend goes in one row above the axes."""
+    from matplotlib.container import BarContainer
+    r = fig.canvas.get_renderer()
+    for ax in fig.axes:
+        leg = ax.get_legend()
+        if leg is None:
+            continue
+        handles, labels = leg.legend_handles, [t.get_text() for t in leg.texts]
+        bars = any(isinstance(c, BarContainer) for c in ax.containers)
+        too_wide = leg.get_window_extent(r).width > 0.98 * fig.get_figwidth() * fig.dpi
+        if len(labels) <= 6 and not bars and not too_wide:
+            continue
+        kw = dict(frameon=False, borderaxespad=0.0, handlelength=2.2, columnspacing=1.2,
+                  markerscale=leg.markerscale)
+        leg.remove()
+        box = ax.get_window_extent(r)
+        if len(labels) <= 6 and bars and not too_wide:
+            ax.legend(handles, labels, loc="lower center", bbox_to_anchor=(0.5, 1.02), ncol=len(labels), **kw)
+            continue
+        tight = ax.get_tightbbox(r)
+        fig_w, fig_h = fig.get_figwidth() * fig.dpi, fig.get_figheight() * fig.dpi
+        y = tight.y0 / fig_h - 0.02            # just under the axes' tick and axis labels, in figure coordinates
+        x = 0.5 if len(fig.axes) == 1 else (box.x0 + box.x1) / 2 / fig_w
+        # widest column count whose legend still fits inside the figure's width (centred on the figure)
+        for ncol in range(min(6, len(labels)), 0, -1):
+            new = ax.legend(handles, labels, loc="upper center", bbox_to_anchor=(x, y), bbox_transform=fig.transFigure,
+                            ncol=ncol, **kw)
+            if new.get_window_extent(r).width <= 0.98 * fig_w or ncol == 1:
+                break
+            new.remove()
+
+
 def save(fig, out_dir, name, data_rows=None, header=None, raster=False):
     """Save PDF (vector; 600 dpi when raster), PNG preview and the plotted data as CSV. Returns the PDF path."""
     os.makedirs(out_dir, exist_ok=True)
     base = os.path.join(out_dir, name)
     for ax in fig.axes:
         ax.set_title("")  # no titles inside images: the caption says what the figure shows
+    enforce(fig)
+    nominal = fig.get_figwidth()
+    width = fig.get_tightbbox(fig.canvas.get_renderer()).width   # inches, as saved with bbox_inches="tight"
+    if width > nominal + 0.02:
+        WIDTH_PROBLEMS.append((name, round(width, 2), nominal))
     fig.savefig(base + ".pdf", dpi=600 if raster else None, metadata={"Creator": None, "Producer": None,
                                                                       "CreationDate": None})
     fig.savefig(base + ".png", dpi=200)

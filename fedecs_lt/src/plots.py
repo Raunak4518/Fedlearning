@@ -124,7 +124,23 @@ def _curve(E, label, setting, event, getter):
     return np.array(rounds), vals.mean(0), vals.std(0, ddof=1) if len(per) > 1 else np.zeros(len(rounds))
 
 
-def _lines(E, S, out, num, event, getter, ylabel, name, what, scale=100.0, methods=None, width="column"):
+def _one_client_per_arch(r):
+    """True when every head architecture has a single client (K <= 10 with ten architectures): aggregating a head
+    then averages one copy and leaves it unchanged, so the aggregation-effect figures say nothing."""
+    from settings import DATASETS, N_ARCH
+    return not DATASETS.get(r["dataset"], {}).get("single_arch") and r["K"] <= N_ARCH
+
+
+def _round_ticks(ax, rounds, n=6):
+    """Heatmap columns are evaluation rounds (not evenly spaced: round 1, then every 5th): ticks at the column
+    centres, labelled with the round numbers."""
+    idx = sorted(set(np.linspace(0, len(rounds) - 1, min(n, len(rounds))).round().astype(int)))
+    ax.set_xticks(idx)
+    ax.set_xticklabels([str(rounds[i]) for i in idx])
+
+
+def _lines(E, S, out, num, event, getter, ylabel, name, what, scale=100.0, methods=None, width="column",
+           split="Test-set"):
     f, ax = ps.figure(width, 2.4)
     rows = []
     for m in methods or E.methods:
@@ -140,9 +156,9 @@ def _lines(E, S, out, num, event, getter, ylabel, name, what, scale=100.0, metho
         return []
     ax.set_xlabel("Round")
     ax.set_ylabel(ylabel)
-    ax.legend(ncol=1 if len(set(r[0] for r in rows)) < 6 else 2, fontsize=6.5)
+    ax.legend(ncol=1 if len(set(r[0] for r in rows)) < 6 else 2)
     p = ps.save(f, out, f"fig_{num:02d}_{name}", rows, ["method", "round", "mean", "sd"])
-    return [(p, cap.curve(num, E, S, what))]
+    return [(p, cap.curve(num, E, S, what, split))]
 
 
 @fig(1, "A")
@@ -162,16 +178,16 @@ def f02(E, S, out):
 @fig(3, "A")
 def f03(E, S, out):
     return _lines(E, S, out, 3, "stage2_round", lambda e: np.mean(list(e["loss"].values())) if e.get("loss") else None,
-                  "Generator loss per sample", "generator_loss", "mean training loss of the clients' generator copies "
-                  "(reconstruction + KL) during Stage II", scale=1.0)
+                  "Generator loss per sample", "generator_loss", "Mean training loss of the clients' generator copies "
+                  "(reconstruction + KL) during Stage II", scale=1.0, split=None)
 
 
 @fig(4, "A")
 def f04(E, S, out):
     a = _lines(E, S, out, 4, "stage3_round",
                lambda e: np.mean([v for v in e["real_loss"].values() if v is not None]) if e.get("real_loss") else None,
-               "Real-phase loss", "head_real_loss", "mean real-feature training loss of the clients' heads during "
-               "Stage III", scale=1.0)
+               "Real-phase loss", "head_real_loss", "Mean real-feature training loss of the clients' heads during "
+               "Stage III", scale=1.0, split=None)
     return a
 
 
@@ -192,16 +208,16 @@ def f06(E, S, out):
 @fig(7, "A")
 def f07(E, S, out):
     return _lines(E, S, out, 7, "stage3_round", lambda e: e.get("consensus_entropy"), "Consensus entropy (nats)",
-                  "consensus_entropy", "mean entropy of the consensus soft labels on the round's generated features",
-                  scale=1.0, methods=[OURS])
+                  "consensus_entropy", "Mean entropy of the consensus soft labels on the round's generated features",
+                  scale=1.0, methods=[OURS], split=None)
 
 
 @fig(8, "A")
 def f08(E, S, out):
     return _lines(E, S, out, 8, "stage1_round", lambda e: float(np.mean(e["drift"])) if e.get("drift") else None,
-                  "Client drift (L2)", "client_drift", "mean L2 distance of the clients' feature extractors from "
+                  "Client drift (L2)", "client_drift", "Mean L2 distance of the clients' feature extractors from "
                   "their average after each Stage I round (client drift)", scale=1.0,
-                  methods=E.methods[:1])
+                  methods=E.methods[:1], split=None)
 
 
 # ---------------------------------------------------------------- B: class imbalance
@@ -229,7 +245,7 @@ def _class_lines(E, S, out, num, key, ylabel, name, what):
         rows += [[m, int(c), float(a), float(b)] for c, a, b in zip(x, mu, sd)]
     ax.set_xlabel("Class (ordered from most to least frequent)")
     ax.set_ylabel(ylabel)
-    ax.legend(ncol=3, fontsize=6.5, loc="best")
+    ax.legend(ncol=3, loc="best")
     p = ps.save(f, out, f"fig_{num:02d}_{name}", rows, ["method", "class", "mean", "sd"])
     return [(p, cap.per_class(num, E, S, what))]
 
@@ -267,7 +283,7 @@ def f10(E, S, out):
     ax.set_xscale("log")
     ax.set_xlabel("Training images of the class (federation)")
     ax.set_ylabel("Recall (%)")
-    ax.legend(fontsize=6, ncol=2)
+    ax.legend(ncol=2)
     p = ps.save(f, out, "fig_10_recall_vs_class_size", rows, ["method", "class_size", "recall"])
     return [(p, cap.simple(10, E, S, "Per-class recall against the number of training images of the class in the "
                                      "federation (logarithmic axis); each point is one class, mean over seeds."))]
@@ -318,7 +334,7 @@ def f14(E, S, out):
         ax.bar(x + (i - 1) * w, [r[1 + i] for r in rows], w, yerr=[r[4 + i] for r in rows], label=g, hatch=hatch,
                color=["#BBBBBB", "#777777", "#333333"][i], edgecolor="black", linewidth=0.4, error_kw=dict(lw=0.6))
     ax.set_xticks(x)
-    ax.set_xticklabels([r[0] for r in rows], rotation=35, ha="right", fontsize=6.5)
+    ax.set_xticklabels([r[0] for r in rows], rotation=35, ha="right")
     ax.set_ylabel("Recall (%)")
     ax.legend(ncol=3)
     p = ps.save(f, out, "fig_14_head_medium_tail", rows, ["method", "head", "medium", "tail", "sd_head", "sd_medium",
@@ -401,7 +417,7 @@ def f16(E, S, out):
     ax.plot([0, 100], [0, 100], color="#999999", linewidth=0.6, linestyle=":")
     ax.set_xlabel("Confidence (%)")
     ax.set_ylabel("Accuracy (%)")
-    ax.legend(fontsize=6.5)
+    ax.legend()
     p = ps.save(f, out, "fig_16_reliability", rows, ["method", "confidence", "accuracy"])
     return [(p, cap.simple(16, E, S, "Reliability diagram: accuracy against confidence in 15 equal-width bins "
                                      "(bins with more than 20 test images); the dotted line is perfect calibration."))]
@@ -444,7 +460,7 @@ def _bars(E, S, out, num, rows, ylabel, name, text, width="page"):
         ax.bar(i, r[1], 0.7, yerr=r[2], color=st["color"], edgecolor="black", linewidth=0.4,
                hatch="///" if r[0] == OURS else None, error_kw=dict(lw=0.6))
     ax.set_xticks(x)
-    ax.set_xticklabels([r[0] for r in rows], rotation=35, ha="right", fontsize=6.5)
+    ax.set_xticklabels([r[0] for r in rows], rotation=35, ha="right")
     ax.set_ylabel(ylabel)
     p = ps.save(f, out, f"fig_{num:02d}_{name}", rows, ["method", "mean", "sd"])
     return [(p, cap.simple(num, E, S, text))]
@@ -487,7 +503,7 @@ def _emb_fig(E, S, out, num, m, name):
     f, ax = ps.figure("column", 3.0)
     _scatter_classes(ax, Z, y, C)
     if C <= 10:
-        ax.legend(markerscale=3, fontsize=6, ncol=5, loc="upper center", bbox_to_anchor=(0.5, -0.02))
+        ax.legend(markerscale=3, ncol=5, loc="upper center", bbox_to_anchor=(0.5, -0.02))
     ax.set_xlabel("t-SNE 1")
     ax.set_ylabel("t-SNE 2")
     p = ps.save(f, out, f"fig_{num:02d}_{name}", [[float(a), float(b), int(c)] for (a, b), c in zip(Z, y)],
@@ -618,7 +634,7 @@ def f25(E, S, out):
         return []
     ax.set_xlabel("Class (ordered from most to least frequent)")
     ax.set_ylabel("Last-layer weight norm")
-    ax.legend(ncol=3, fontsize=6.5)
+    ax.legend(ncol=3)
     p = ps.save(f, out, "fig_25_classifier_norms", rows, ["method", "class", "norm"])
     return [(p, cap.simple(25, E, S, "L2 norm of each class's last-layer weight vector after Stage III, averaged over "
                                      "architectures and seeds; a falling line means the classifier favours frequent "
@@ -676,7 +692,7 @@ def f28(E, S, out):
         return []
     ax.set_xlabel("Class (ordered from most to least frequent)")
     ax.set_ylabel("Fidelity (%)")
-    ax.legend(ncol=2, fontsize=6.5)
+    ax.legend(ncol=2)
     p = ps.save(f, out, "fig_28_generator_fidelity", rows, ["generator", "class", "fidelity"])
     return [(p, cap.simple(28, E, S, "Per-class fidelity of the trained generator: share of 300 generated class-c "
                                      "features that a referee classifier trained on the server's validation features "
@@ -699,7 +715,7 @@ def f29(E, S, out):
     ax.axhline(1.0, color="#999999", linewidth=0.6, linestyle=":")
     ax.set_xlabel("Class")
     ax.set_ylabel("Generated / real spread")
-    ax.legend(fontsize=6.5)
+    ax.legend()
     p = ps.save(f, out, "fig_29_spread_ratio", rows, ["method", "class", "ratio"])
     return [(p, cap.simple(29, E, S, "Within-class spread of the generated features over the exact real spread "
                                      "(1 = realistic diversity, 0 = copies of the class mean), per class."))]
@@ -720,7 +736,7 @@ def f30(E, S, out):
         return []
     ax.set_xlabel("Class (ordered from most to least frequent)")
     ax.set_ylabel("Class-row norm")
-    ax.legend(fontsize=6.5)
+    ax.legend()
     p = ps.save(f, out, "fig_30_class_row_norms", rows, ["method", "class", "norm"])
     return [(p, cap.simple(30, E, S, "L2 norm of each class's conditioning row of the generator after Stage II "
                                      "(class-row generators only); mean over seeds."))]
@@ -731,8 +747,9 @@ def f31(E, S, out):
     return _lines(E, S, out, 31, "stage2_round",
                   lambda e: (np.mean(e["fidelity_post"][class_groups(len(e["fidelity_post"]))[2]])
                              if e.get("fidelity_post") else None),
-                  "Tail-class fidelity (%)", "fidelity_rounds", "fidelity of the aggregated generator on the tail "
-                  "classes during Stage II")
+                  "Tail-class fidelity (%)", "fidelity_rounds", "Fidelity of the aggregated generator on the tail "
+                  "classes during Stage II (share of generated features the server's referee assigns to their class)",
+                  split=None)
 
 
 @fig(32, "D")
@@ -765,18 +782,20 @@ def f33(E, S, out):
         if not rs:
             continue
         ev = E.log(rs[0], "stage2_round")
-        mats = [e["row_norm_global"] for e in ev if e.get("row_norm_global")]
-        if not mats:
+        ev = [e for e in ev if e.get("row_norm_global")]
+        if not ev:
             continue
-        A = np.array(mats).T
+        A = np.array([e["row_norm_global"] for e in ev]).T
+        rr = [e["round"] for e in ev]
         f, ax = ps.figure("column", 2.4)
         im = ax.imshow(A, aspect="auto", cmap="viridis", origin="lower")
+        _round_ticks(ax, rr)
         ax.set_xlabel("Round")
         ax.set_ylabel("Class")
         f.colorbar(im, ax=ax, fraction=0.046, pad=0.04).set_label("Class-row norm")
         name = "".join(ch for ch in m if ch.isalnum()).lower()
         p = ps.save(f, out, f"fig_33_row_norm_rounds_{name}",
-                    [[r_, c, float(A[c, r_])] for c in range(A.shape[0]) for r_ in range(A.shape[1])],
+                    [[rr[j], c, float(A[c, j])] for c in range(A.shape[0]) for j in range(A.shape[1])],
                     ["round", "class", "norm"])
         res.append((p, cap.simple(33, E, S, f"Norm of each class's conditioning row of the aggregated generator over "
                                             f"the rounds of Stage II for {cap.mname(m)} (first seed).")))
@@ -819,7 +838,7 @@ def f34(E, S, out):
         ax.plot([r[1] for r in rr], [r[3] for r in rr], label=f"{m}: non-holders' shrink", **dict(st, linestyle=":"))
     ax.set_xlabel("Round")
     ax.set_ylabel("Row-norm change per round")
-    ax.legend(fontsize=6)
+    ax.legend()
     p = ps.save(f, out, "fig_34_holder_gain_vs_shrink", rows, ["method", "round", "holder_gain", "nonholder_shrink"])
     return [(p, cap.simple(34, E, S, "Mean change of a class row's norm in one round of local training: growth on "
                                      "clients that hold the class against shrinkage on clients that do not (class-row "
@@ -843,7 +862,7 @@ def f35(E, S, out):
         ax.scatter([r[1] for r in rr], [r[2] for r in rr], s=8, marker=st["marker"], color=st["color"], label=m)
     ax.set_xlabel("Clients holding the class")
     ax.set_ylabel("Final class-row norm")
-    ax.legend(fontsize=6.5)
+    ax.legend()
     p = ps.save(f, out, "fig_35_row_norm_vs_holders", rows, ["method", "holders", "norm"])
     return [(p, cap.simple(35, E, S, "Final norm of each class's conditioning row against the number of clients that "
                                      "hold the class; one point per class and seed."))]
@@ -853,8 +872,8 @@ def f35(E, S, out):
 def f36(E, S, out):
     return _lines(E, S, out, 36, "stage2_round",
                   lambda e: (float(np.mean([np.mean(v) for v in e["row_v"].values()])) if e.get("row_v") else None),
-                  "Adam second moment of rows", "adam_row_v", "mean Adam second-moment estimate of the class rows over "
-                  "clients during Stage II", scale=1.0)
+                  "Adam second moment of rows", "adam_row_v", "Mean Adam second-moment estimate of the class rows over "
+                  "clients during Stage II", scale=1.0, split=None)
 
 
 @fig(37, "E")
@@ -873,7 +892,7 @@ def f37(E, S, out):
     ax.bar(x + 0.18, [r[2] for r in rows], 0.36, yerr=[r[4] for r in rows], label="Exact readout", color="#333333",
            edgecolor="black", linewidth=0.4, hatch="///", error_kw=dict(lw=0.6))
     ax.set_xticks(x)
-    ax.set_xticklabels([r[0] for r in rows], rotation=35, ha="right", fontsize=6.5)
+    ax.set_xticklabels([r[0] for r in rows], rotation=35, ha="right")
     ax.set_ylabel("Balanced accuracy (%)")
     ax.legend(ncol=2)
     p = ps.save(f, out, "fig_37_readout_gap", rows, ["method", "as_trained", "exact_readout", "sd_trained", "sd_er"])
@@ -923,7 +942,7 @@ def f39(E, S, out):
                     elinewidth=0.8, capsize=2)
     ax.axvline(0, color="#999999", linewidth=0.6, linestyle=":")
     ax.set_yticks(y)
-    ax.set_yticklabels([r[0] for r in rows], fontsize=6.5)
+    ax.set_yticklabels([r[0] for r in rows])
     ax.set_xlabel("Difference in balanced accuracy (points)")
     p = ps.save(f, out, "fig_39_forest", rows, ["baseline", "mean_diff", "ci_low", "ci_high", "n_seeds"])
     return [(p, cap.simple(39, E, S, "Paired difference in balanced accuracy, FedECS-LT minus each baseline, over the "
@@ -959,9 +978,9 @@ def f40(E, S, out):
     f, ax = ps.figure("page", 0.18 * k + 1.0)
     for i, j in enumerate(order):
         ax.plot([avg[j]], [i], "o", color=ps.style(E.methods[j])["color"], markersize=4)
-        ax.text(avg[j] + 0.08, i, E.methods[j], va="center", fontsize=6.5)
+        ax.text(avg[j] + 0.08, i, E.methods[j], va="center")
     ax.plot([1, 1 + cd], [-1, -1], color="black", linewidth=1.0)
-    ax.text(1 + cd / 2, -1.6, f"CD = {cd:.2f}", ha="center", fontsize=6.5)
+    ax.text(1 + cd / 2, -1.6, f"CD = {cd:.2f}", ha="center")
     ax.set_yticks([])
     ax.set_xlabel("Average rank (1 = best)")
     ax.set_ylim(-2.2, k)
@@ -978,7 +997,10 @@ def f41(E, S, out):
     keys = [("final_bal", "Bal. acc."), ("final_f1", "Macro-F1"), ("final_precision", "Precision"),
             ("final_mcc", "MCC"), ("final_gmean", "G-mean"), ("final_tail", "Tail recall"),
             ("final_worst", "Worst class"), ("final_auc_pr", "AUC-PR")]
-    ms_ = [m for m in E.methods][:6]
+    # FedECS-LT and the five other methods with the highest balanced accuracy
+    others = sorted((m for m in E.methods if m != OURS and not np.isnan(metric(E, m, "final_bal", S)[0])),
+                    key=lambda m: -metric(E, m, "final_bal", S)[0])
+    ms_ = ([OURS] if OURS in E.methods else []) + others[:5]
     vals = {m: [metric(E, m, k, S)[0] for k, _ in keys] for m in ms_}
     vals = {m: v for m, v in vals.items() if not any(np.isnan(v))}
     if len(vals) < 2:
@@ -993,12 +1015,11 @@ def f41(E, S, out):
         ax.plot(ang + ang[:1], [x * 100 for x in v] + [v[0] * 100], color=st["color"], linestyle=st["linestyle"],
                 linewidth=st["linewidth"], label=m)
     ax.set_xticks(ang)
-    ax.set_xticklabels([n for _, n in keys], fontsize=6.5)
-    ax.tick_params(axis="y", labelsize=6)
-    ax.legend(fontsize=6, loc="upper center", bbox_to_anchor=(0.5, -0.08), ncol=2)
+    ax.set_xticklabels([n for _, n in keys])
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.08), ncol=2)
     p = ps.save(f, out, "fig_41_radar", [[m] + v for m, v in vals.items()], ["method"] + [n for _, n in keys])
-    return [(p, cap.simple(41, E, S, "Main metrics (%, test set, mean over seeds) of FedECS-LT and the strongest "
-                                     "baselines; larger is better on every axis."))]
+    return [(p, cap.simple(41, E, S, "Main metrics (%, test set, mean over seeds) of FedECS-LT and the five other "
+                                     "methods with the highest balanced accuracy; larger is better on every axis."))]
 
 
 @fig(42, "F")
@@ -1029,7 +1050,7 @@ def _pareto(E, S, out, num, key, xlabel, name, what, logx=False):
         ax.set_xscale("log")
     ax.set_xlabel(xlabel)
     ax.set_ylabel("Balanced accuracy (%)")
-    ax.legend(fontsize=5.5, ncol=2)
+    ax.legend(ncol=2)
     p = ps.save(f, out, f"fig_{num:02d}_{name}", rows, ["method", "x", "balanced_accuracy"])
     return [(p, cap.simple(num, E, S, f"Balanced accuracy against {what}; mean over seeds. Up and left is better."))]
 
@@ -1049,12 +1070,12 @@ def f44(E, S, out):
     for i in range(M.shape[0]):
         for j in range(M.shape[1]):
             if not np.isnan(M[i, j]):
-                ax.text(j, i, f"{M[i, j]:.1f}", ha="center", va="center", fontsize=5.5,
+                ax.text(j, i, f"{M[i, j]:.1f}", ha="center", va="center",
                         color="white" if abs(Z[i, j]) > 1.6 else "black")
     ax.set_xticks(range(len(keys)))
-    ax.set_xticklabels([n for _, n in keys], fontsize=6.5)
+    ax.set_xticklabels([n for _, n in keys], rotation=35, ha="right")
     ax.set_yticks(range(len(E.methods)))
-    ax.set_yticklabels(E.methods, fontsize=6.5)
+    ax.set_yticklabels(E.methods)
     f.colorbar(im, ax=ax, fraction=0.03, pad=0.02).set_label("Standardised score")
     p = ps.save(f, out, "fig_44_metric_heatmap", [[m] + list(r) for m, r in zip(E.methods, M)],
                 ["method"] + [n for _, n in keys])
@@ -1092,9 +1113,9 @@ def f47(E, S, out):
                hatch=["", "///", "...", "xx", "\\\\"][i % 5], edgecolor="black", linewidth=0.3)
         bottom += v
     ax.set_xticks(np.arange(len(ms_)))
-    ax.set_xticklabels(ms_, rotation=35, ha="right", fontsize=6.5)
+    ax.set_xticklabels(ms_, rotation=35, ha="right")
     ax.set_ylabel("MB per client")
-    ax.legend(fontsize=5.5, ncol=3)
+    ax.legend(ncol=3)
     p = ps.save(f, out, "fig_47_communication", rows, ["method", "message_type", "mb_per_client"])
     return [(p, cap.simple(47, E, S, "Communication per client over the whole training, by message type (model "
                                      "weights, statistics, secure sums); first seed. Cached shared stages count once."))]
@@ -1117,7 +1138,7 @@ def f48(E, S, out):
         ax.bar(np.arange(len(ms_)) + (i - 1) * 0.27, v, 0.27, label=lab, color=["#BBBBBB", "#777777", "#333333"][i],
                edgecolor="black", linewidth=0.3)
     ax.set_xticks(np.arange(len(ms_)))
-    ax.set_xticklabels(ms_, rotation=35, ha="right", fontsize=6.5)
+    ax.set_xticklabels(ms_, rotation=35, ha="right")
     ax.set_ylabel("Time (s)")
     ax.legend(ncol=3)
     p = ps.save(f, out, "fig_48_time_per_stage", rows, ["method", "stage", "seconds"])
@@ -1177,7 +1198,7 @@ def f51(E, S, out):
         return []
     ax.set_xlabel("Cumulative communication per client (MB)")
     ax.set_ylabel("Balanced accuracy (%)")
-    ax.legend(fontsize=6, ncol=2)
+    ax.legend(ncol=2)
     p = ps.save(f, out, "fig_51_accuracy_vs_cumulative_communication", rows, ["method", "mb", "bal"])
     return [(p, cap.simple(51, E, S, "Balanced accuracy of the aggregated heads against cumulative communication "
                                      "per client (Stage III rounds placed proportionally on the total)."))]
@@ -1227,6 +1248,8 @@ def f56(E, S, out):
         if not rs:
             continue
         r = rs[0]
+        if _one_client_per_arch(r):
+            continue
         rows, M, rounds = [], [], []
         for e in E.log(r, "stage3_round"):
             if not e.get("pre") or not e.get("post"):
@@ -1241,8 +1264,8 @@ def f56(E, S, out):
         A = np.array(M).T
         f, ax = ps.figure("column", 2.4)
         lim = max(1e-6, float(np.abs(A).max()))
-        im = ax.imshow(A, aspect="auto", cmap="RdBu", vmin=-lim, vmax=lim, origin="lower",
-                       extent=[rounds[0], rounds[-1], -0.5, A.shape[0] - 0.5])
+        im = ax.imshow(A, aspect="auto", cmap="RdBu", vmin=-lim, vmax=lim, origin="lower")
+        _round_ticks(ax, rounds)
         ax.set_xlabel("Round")
         ax.set_ylabel("Class")
         f.colorbar(im, ax=ax, fraction=0.046, pad=0.04).set_label("Recall after - before (points)")
@@ -1276,7 +1299,7 @@ def f57(E, S, out):
         ax.plot([r[1] for r in rr], [r[3] for r in rr], label=f"{m}: aggregate", **st)
     ax.set_xlabel("Round")
     ax.set_ylabel("Tail-class fidelity (%)")
-    ax.legend(fontsize=6)
+    ax.legend()
     p = ps.save(f, out, "fig_57_fidelity_pre_post", rows, ["method", "round", "pre", "post"])
     return [(p, cap.simple(57, E, S, "Tail-class fidelity of the clients' generator copies just before aggregation "
                                      "(mean over clients) and of the aggregated generator, during Stage II."))]
@@ -1312,7 +1335,7 @@ def f58(E, S, out):
         ax.plot([r[1] for r in rr], [r[4] for r in rr], label=f"{m}: aggregate", **dict(st, linestyle="--"))
     ax.set_xlabel("Round")
     ax.set_ylabel("Tail class-row norm")
-    ax.legend(fontsize=5.5)
+    ax.legend()
     p = ps.save(f, out, "fig_58_row_norm_holders_nonholders", rows,
                 ["method", "round", "holders", "non_holders", "aggregate"])
     return [(p, cap.simple(58, E, S, "Norm of the tail classes' conditioning rows in the copies of clients that hold "
@@ -1324,7 +1347,7 @@ def f58(E, S, out):
 def f59(E, S, out):
     rows = []
     for m in [x for x in (OURS, REF) if x in E.methods]:
-        for r in E.of(m, S)[:1]:
+        for r in [x for x in E.of(m, S)[:1] if not _one_client_per_arch(x)]:
             holders = (np.array(r["client_counts"]) > 0).sum(0)
             effs = []
             for e in E.log(r, "stage3_round"):
@@ -1344,7 +1367,7 @@ def f59(E, S, out):
     ax.axhline(0, color="#999999", linewidth=0.6, linestyle=":")
     ax.set_xlabel("Clients holding the class")
     ax.set_ylabel("Mean aggregation effect (points)")
-    ax.legend(fontsize=6.5)
+    ax.legend()
     p = ps.save(f, out, "fig_59_effect_vs_holders", rows, ["method", "holders", "effect"])
     return [(p, cap.simple(59, E, S, "Mean aggregation effect on a class's recall (aggregate minus local heads, over "
                                      "Stage III) against the number of clients holding the class; one point per "

@@ -64,6 +64,8 @@ def fmt(mu, sd, key):
     if np.isnan(mu):
         return "-"
     if key in NOT_PCT:
+        if abs(mu) >= 1000:   # times in seconds, bytes: whole numbers, no exponent
+            return f"{mu:,.0f}" if sd == 0 or np.isnan(sd) else f"{mu:,.0f} ± {sd:,.0f}"
         return f"{mu:.3g}" if sd == 0 or np.isnan(sd) else f"{mu:.3g} ± {sd:.2g}"
     return f"{100 * mu:.1f} ± {100 * sd:.1f}"
 
