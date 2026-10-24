@@ -39,7 +39,7 @@ for c in nb["cells"]:
     if src.startswith("# Run list"):
         src += ("\nfor r in RUNS:\n    r.update(rounds=dict(T_FE=2, T_KA=2, T_TN=2, T=2), frac_scale=0.2)\n"
                 f"json.dump(RUNS, open('{T}/work/runs.json', 'w'))\n")
-    src = src.replace("'--gpus', '2', '--per_gpu', '2'", "'--gpus', '0', '--per_gpu', '2'")
+    src = re.sub(r"'--gpus', '2', '--per_gpu', '\d'", "'--gpus', '0', '--per_gpu', '2'", src)
     script.append(src)
 open(os.path.join(test_dir, "nb_as_script.py"), "w").write("\n\n".join(script))
 # LongTailLib runs: one local epoch instead of ten, so that the CPU test finishes (Kaggle runs the protocol's ten)

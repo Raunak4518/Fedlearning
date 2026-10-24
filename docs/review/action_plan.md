@@ -589,6 +589,14 @@ Target: IEEE (IEEEtran template, journals and conferences). No other venue profi
   the exact readout): recall, precision, F1, average precision, AUC-ROC and MCC of the class against the rest,
   calibration error of p(c|x), NLL, Brier, top-5 recall, share of predictions (`metrics.PER_CLASS`, checked
   against scikit-learn). The report has a per-class table for each (blocks of 20 classes) and figures 61-70.
+- **Track-2 scope reduced** (user, 24 Oct, after NB00 measured 3.3 h for one LongTailLib FedAvg run; the full plan
+  was ~1,250 run-hours): imbalance ratio 100 with seeds 3-5, ratios 10 and 50 with seed 3; CLIP2FL dropped (pretrained
+  CLIP model = outside knowledge, slowest method); LongTailLib evaluates every 5th round (training unchanged).
+  Diagnosis run in the first Track-2 notebook: FedECS-LT with its extractor trained for all 200 rounds (NB00:
+  FedECS-LT 59.6 vs FedAvg 61.1 balanced accuracy, better tail 48.0 vs 44.2 and worst class 33.7 vs 19.4).
+- **Notebook split** by `fedecs_lt/plan_time.py` (run times fitted to NB00 within 5%; each part estimated <= 9.5 h):
+  47 notebooks, ~326 session-hours (Track 1: 23, ~142 h; Track 2: 23, ~179 h). FedYoYo at ratio 10 (CIFAR-10/100)
+  runs alone on a GPU (NB29; the speed-up of not sharing a GPU is assumed, 25%, and is measured there).
 - **Not run:** FedNH and FedVLS (priority B). LongTailLib contains FedNH, so it can be added to Track 2 by one
   line in `fedecs_lt/build_notebooks.py` if the main results leave room.
 - **Licences:** MIT / Apache code pasted with credit; unlicensed or GPL code downloaded at run time, never stored here.

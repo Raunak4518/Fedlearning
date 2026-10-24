@@ -35,6 +35,9 @@ PIPELINE = {
                        head=dict(ts=1, tr=5, loss="la", tau=1.0, sed=20, sed_beta=1.0, sed_lr=0.05, sed_bs=128)),
     "Local only": dict(pipeline="local", head=dict(ts=0, tr=5, loss="ce")),
 }
+# Track 2 diagnosis (user, 24 Oct): FedECS-LT with its extractor trained for all 200 rounds of the baselines (the run
+# sets rounds T_FE = 200; generator and heads as FedECS-LT, so 300 rounds in total, reported as such)
+PIPELINE["FedECS-LT (extractor 200 rounds)"] = dict(PIPELINE["FedECS-LT"])
 
 
 def method_spec(label):

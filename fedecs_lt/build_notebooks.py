@@ -154,13 +154,13 @@ def notebook(name, nb):
         f"open('/tmp/fedecs/work/results/code_version.txt', 'w').write({code_version()!r})\n"
         "print(len(RUNS), 'runs')"))
     cells.append(code(
-        "# Run everything: 2 GPUs x 2 runs per GPU; resumable; no new run after 11 h\n"
+        f"# Run everything: 2 GPUs x {nb.get('per_gpu', 2)} run(s) per GPU; resumable; no new run after 11 h\n"
         "import subprocess, os, sys, time\n"
         "env = dict(os.environ, FEDECS_DEADLINE=str(time.time() + 11 * 3600), FEDECS_PACK_OUT='/kaggle/working',\n"
         f"           FEDECS_NAME={name!r}, FEDECS_CODE_VERSION=open('/tmp/fedecs/work/results/code_version.txt').read(),\n"
         "           PYTHONPATH='/kaggle/working/fedecs_lt')\n"
         "p = subprocess.Popen([sys.executable, '/kaggle/working/fedecs_lt/runner.py', '--runs', '/tmp/fedecs/work/runs.json',\n"
-        "                      '--gpus', '2', '--per_gpu', '2', '--log_dir', '/tmp/fedecs/work/results/logs'], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,\n"
+        f"                      '--gpus', '2', '--per_gpu', '{nb.get('per_gpu', 2)}', '--log_dir', '/tmp/fedecs/work/results/logs'], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,\n"
         "                     text=True, cwd='/kaggle/working/fedecs_lt')\n"
         "for line in p.stdout:\n"
         "    print(line, end='')\n"
@@ -188,12 +188,14 @@ def notebook(name, nb):
     return dict(nbformat=4, nbformat_minor=5, metadata=meta, cells=cells)
 
 
-TRACK2_LT = ["FedAvg", "FedProx", "MOON", "FedLC", "CCVR", "CReFF", "FedETF", "Fed-GraB", "FedLoGe", "FedYoYo", "RUCR",
-             "CLIP2FL"]
+# CLIP2FL dropped (user, 24 Oct): it uses a pretrained CLIP model (outside knowledge) and is the slowest method; the CLIP
+# package is still installed because LongTailLib's main.py imports it for every method
+TRACK2_LT = ["FedAvg", "FedProx", "MOON", "FedLC", "CCVR", "CReFF", "FedETF", "Fed-GraB", "FedLoGe", "FedYoYo", "RUCR"]
+TRACK2_SEEDS = {0.01: SEEDS, 0.02: [3], 0.1: [3]}   # imbalance ratio 100: seeds 3-5; ratios 50 and 10: seed 3
 
 
 def track2_notebook(ds_key, IF, seed):
-    """Track 2 (FedLTLib protocol): FedECS-LT in Flower and the 12 long-tail baselines in the authors' LongTailLib
+    """Track 2 (FedLTLib protocol): FedECS-LT in Flower and the 11 long-tail baselines in the authors' LongTailLib
     code, on the same split; one seed per notebook."""
     sys.path.insert(0, SRC)
     import settings
@@ -203,31 +205,71 @@ def track2_notebook(ds_key, IF, seed):
     title = (f"One shared model (FedLTLib protocol): {spec['name']}-LT, imbalance ratio {ratio}, 20 clients, "
              f"40% per round, seed {seed}")
     runs = [run("FedECS-LT", ds_key, seed, IF=IF, K=20, pfrac=0.4)]
+    if ds_key == "cifar10_t2" and IF == 0.01 and seed == 3:   # diagnosis: extractor trained for all 200 rounds
+        runs.append(run("FedECS-LT (extractor 200 rounds)", ds_key, seed, IF=IF, K=20, pfrac=0.4,
+                        rounds=dict(T_FE=200)))
     runs += [run(f"{m} (LongTailLib)", ds_key, seed, IF=IF, K=20, pfrac=0.4) for m in TRACK2_LT]
-    return name, dict(title=title, what=f"{title}: FedECS-LT against 12 long-tail FL methods run with their "
-                                        "authors' code (LongTailLib).", hours=None, acceptance=False, runs=runs)
+    return name, dict(title=title, what=f"{title}: FedECS-LT against {len(TRACK2_LT)} long-tail FL methods run with "
+                                        "their authors' code (LongTailLib).", hours=None, acceptance=False, runs=runs)
 
 
 TIER1 = ("mnist", "fmnist", "svhn", "cifar10", "cifar100")
 TIER2 = ("dermamnist", "organamnist", "bloodmnist", "pathmnist", "gtsrb", "emnist", "fer2013")
 
 
+def _parts(name, nb, parts):
+    """One notebook per part (plan_time.py: each part's estimate fits one Kaggle session); a notebook that fits
+    keeps its name. Parts of one experiment share `group`, so that their results can be merged."""
+    import plan_time
+    if len(parts) == 1:
+        return {name: dict(nb, hours=plan_time.hours(parts[0]), group=name)}
+    out = {}
+    for i, runs in enumerate(parts, 1):
+        ms = list(dict.fromkeys(r["label"] for r in runs))
+        ss = sorted({r["seed"] for r in runs})
+        what = (", ".join(ms) if len(ms) <= 6 else f"{len(ms)} methods") + (
+            "; seed" + ("s " if len(ss) > 1 else " ") + ", ".join(map(str, ss)))
+        out[f"{name}_part{i}of{len(parts)}"] = dict(
+            nb, title=f"{nb['title']} (part {i} of {len(parts)})", what=f"{nb['what']} Part {i} of {len(parts)}: {what}.",
+            runs=runs, hours=plan_time.hours(runs), group=name)
+    return out
+
+
 def all_notebooks():
-    nbs = dict(NOTEBOOKS)
+    import plan_time
+    nbs = {k: dict(v, group=k, hours=plan_time.hours(v["runs"])) for k, v in NOTEBOOKS.items()}
+    pipe = [m for m in TRACK1_MAIN if m not in plan_time.HTFL_METHODS]
+    htfl = [m for m in TRACK1_MAIN if m in plan_time.HTFL_METHODS]
     for ds in TIER1 + TIER2:
         name, nb = main_setting_notebook(ds)
-        nbs[name] = nb
+        nbs.update(_parts(name, nb, plan_time.split_track1(nb["runs"], pipe, htfl, SEEDS)))
+    long_runs = []
     for ds_key in ("cifar10_t2", "cifar100_t2"):
         for IF in (0.1, 0.02, 0.01):
-            for seed in SEEDS:
+            for seed in TRACK2_SEEDS[IF]:
                 name, nb = track2_notebook(ds_key, IF, seed)
-                nbs[name] = nb
+                parts, long_ = plan_time.split_track2(nb["runs"])
+                nbs.update(_parts(name, nb, parts))
+                long_runs += long_
+    # runs too long to share a GPU within one session: two per notebook, each alone on its GPU
+    for i in range(0, len(long_runs), 2):
+        runs = long_runs[i:i + 2]
+        name = f"NB29_track2_long_runs_{i // 2 + 1}"
+        what = "; ".join(f"{r['label']} on {r['ds'].split('_')[0].upper().replace('CIFAR', 'CIFAR-')}-LT, imbalance "
+                         f"ratio {round(1 / r['IF'])}, seed {r['seed']}" for r in runs)
+        nbs[name] = dict(title="One shared model (FedLTLib protocol): runs too long to share a GPU",
+                         what=f"Runs that need a GPU each to finish within one session: {what}.", runs=runs,
+                         acceptance=False, per_gpu=1, group=name, hours=plan_time.hours(runs, per_gpu=1))
     return nbs
 
 
 def main():
     os.makedirs(OUT, exist_ok=True)
     nbs = all_notebooks()
+    if not sys.argv[1:]:   # a full build: remove notebooks that are no longer in the plan (e.g. now split in parts)
+        for f in glob.glob(os.path.join(OUT, "*.ipynb")):
+            if os.path.basename(f)[:-6] not in nbs:
+                os.remove(f)
     sel = [n for n in nbs if not sys.argv[1:] or any(n.startswith(a) for a in sys.argv[1:])]
     for n in sel:
         path = os.path.join(OUT, n + ".ipynb")
@@ -241,10 +283,13 @@ def main():
             "2. Right panel → **Settings**: **Accelerator = GPU T4 x2**, **Internet = On**.",
             "3. Top right: **Save Version** → **Save & Run All (Commit)** → **Save**. You can close the tab.",
             "4. When the version shows a green tick: open it → **Output** → download the three files → send them back.",
-            "", "| Notebook | What it runs | Runs | Send back |", "|---|---|---|---|"]
+            "", "Expected hours are estimates from NB00's measured run times (fedecs_lt/plan_time.py); a notebook "
+            "starts no new run after 11 h and always saves what has finished.", "",
+            f"**{len(nbs)} notebooks, about {sum(nb['hours'] for nb in nbs.values()):.0f} session-hours in total.**", "",
+            "| Notebook | What it runs | Runs | Expected hours | Send back |", "|---|---|---|---|---|"]
     for n, nb in nbs.items():
-        rows.append(f"| {n}.ipynb | {nb['what']} | {len(nb['runs'])} | `{n}__results.zip`, `{n}__report.pdf`, "
-                    f"`{n}__models.zip` |")
+        rows.append(f"| {n}.ipynb | {nb['what']} | {len(nb['runs'])} | {nb['hours']:.1f} | `{n}__results.zip`, "
+                    f"`{n}__report.pdf`, `{n}__models.zip` |")
     open(os.path.join(OUT, "START_HERE.md"), "w").write("\n".join(rows) + "\n")
 
 
