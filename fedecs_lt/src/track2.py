@@ -112,17 +112,6 @@ def _wrap(cls):
             return orig(self, *a, **k)
         train._fedecs = True
         cls.train = train
-import importlib, pkgutil, flcore.servers as fs
-for m in pkgutil.iter_modules(fs.__path__):
-    mod = importlib.import_module("flcore.servers." + m.name)
-    for v in list(vars(mod).values()):
-        if isinstance(v, type) and issubclass(v, sb.Server):
-            _wrap(v)
-            for _n in ("compute_global_test_accuracy", "_evaluate_global"):
-                if _n in v.__dict__:
-                    _wrap_eval(v, _n)
-            if "aggregate_parameters" in v.__dict__:
-                _wrap_round(v)
 args, out = json.loads(sys.argv[1]), sys.argv[2]
 # every global evaluation the library makes (every eval_gap rounds): record the scores it ranks and compute every
 # per-class metric with the suite's metrics.py (wrappers chain, so the final re-evaluation below still records)
@@ -183,6 +172,17 @@ def _wrap_eval(cls, name):
         return res
     f._fedecs = True
     setattr(cls, name, f)
+import importlib, pkgutil, flcore.servers as fs
+for m in pkgutil.iter_modules(fs.__path__):
+    mod = importlib.import_module("flcore.servers." + m.name)
+    for v in list(vars(mod).values()):
+        if isinstance(v, type) and issubclass(v, sb.Server):
+            _wrap(v)
+            for _n in ("compute_global_test_accuracy", "_evaluate_global"):
+                if _n in v.__dict__:
+                    _wrap_eval(v, _n)
+            if "aggregate_parameters" in v.__dict__:
+                _wrap_round(v)
 sys.argv = ["main.py"] + args
 t0 = time.time()
 runpy.run_path("main.py", run_name="__main__")
