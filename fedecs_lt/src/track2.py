@@ -105,11 +105,12 @@ sys.path.insert(0, os.getcwd())
 import flcore.servers.serverbase as sb
 CAP = {}
 def _wrap(cls):
-    if "train" in cls.__dict__:
+    if "train" in cls.__dict__ and not getattr(cls.__dict__["train"], "_fedecs", False):
         orig = cls.__dict__["train"]
         def train(self, *a, **k):
             CAP["server"] = self
             return orig(self, *a, **k)
+        train._fedecs = True
         cls.train = train
 import importlib, pkgutil, flcore.servers as fs
 for m in pkgutil.iter_modules(fs.__path__):
@@ -117,7 +118,71 @@ for m in pkgutil.iter_modules(fs.__path__):
     for v in list(vars(mod).values()):
         if isinstance(v, type) and issubclass(v, sb.Server):
             _wrap(v)
+            for _n in ("compute_global_test_accuracy", "_evaluate_global"):
+                if _n in v.__dict__:
+                    _wrap_eval(v, _n)
+            if "aggregate_parameters" in v.__dict__:
+                _wrap_round(v)
 args, out = json.loads(sys.argv[1]), sys.argv[2]
+# every global evaluation the library makes (every eval_gap rounds): record the scores it ranks and compute every
+# per-class metric with the suite's metrics.py (wrappers chain, so the final re-evaluation below still records)
+import importlib.util
+sys.path.append(os.environ["FEDECS_SRC"])
+_spec = importlib.util.spec_from_file_location("fedecs_metrics", os.path.join(os.environ["FEDECS_SRC"], "metrics.py"))
+FM = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(FM)
+_name = args[args.index("-data") + 1]
+Y = torch.from_numpy(np.load(os.path.join("..", "dataset", _name, "global_test.npz"), allow_pickle=True)["data"]
+                     .item()["y"]).long()
+C_ = int(args[args.index("-ncl") + 1])
+PER, DEPTH, ROUND = [], [0], [0]
+def _wrap_round(cls):
+    """Counts completed rounds (one aggregation per round; a subclass calling super() counts once)."""
+    orig = cls.__dict__["aggregate_parameters"]
+    if getattr(orig, "_fedecs", False):
+        return
+    def f(self, *a, **k):
+        DEPTH[0] += 1
+        try:
+            return orig(self, *a, **k)
+        finally:
+            DEPTH[0] -= 1
+            if DEPTH[0] == 0:
+                ROUND[0] += 1
+    f._fedecs = True
+    setattr(cls, "aggregate_parameters", f)
+def _wrap_eval(cls, name):
+    orig = cls.__dict__[name]
+    if getattr(orig, "_fedecs", False):
+        return
+    def f(self, *a, **k):
+        if DEPTH[0]:
+            return orig(self, *a, **k)
+        rec, pmax, ptmax = [], torch.max, torch.Tensor.max
+        def m1(x, *aa, **kk):
+            if torch.is_tensor(x) and x.dim() == 2 and x.is_floating_point() and (aa[:1] == (1,) or kk.get("dim") == 1):
+                rec.append(x.detach().float().cpu())
+            return pmax(x, *aa, **kk)
+        def m2(t, *aa, **kk):
+            if t.dim() == 2 and t.is_floating_point() and (aa[:1] == (1,) or kk.get("dim") == 1):
+                rec.append(t.detach().float().cpu())
+            return ptmax(t, *aa, **kk)
+        DEPTH[0] += 1
+        torch.max, torch.Tensor.max = m1, m2
+        try:
+            res = orig(self, *a, **k)
+        finally:
+            torch.max, torch.Tensor.max = pmax, ptmax
+            DEPTH[0] -= 1
+        try:
+            lg = torch.cat(rec)[-len(Y):] if rec else None
+            if lg is not None and len(lg) == len(Y) and lg.shape[1] == C_:
+                PER.append(dict(round=ROUND[0], post=FM.log_view(FM.class_metrics(lg, Y, C_))))
+        except Exception as e:
+            print("per-class evaluation not recorded:", repr(e))
+        return res
+    f._fedecs = True
+    setattr(cls, name, f)
 sys.argv = ["main.py"] + args
 t0 = time.time()
 runpy.run_path("main.py", run_name="__main__")
@@ -163,12 +228,14 @@ np.savez_compressed(out, logits=logits.numpy() if logits is not None else np.zer
     embed=emb if emb is not None else np.zeros(0),
     gpu_peak_mb=np.array([torch.cuda.max_memory_allocated() / 2 ** 20 if torch.cuda.is_available() else 0.0]))
 json.dump(hist, open(out + ".hist.json", "w"))
+json.dump(PER, open(out + ".perclass.json", "w"))
 '''
 
 
 def run(algo, ds, IF, seed, lt_dir, out_dir, rounds=200, label=None, data_root=None, ds_key=None):
     """One LongTailLib run on our split; writes a suite-format record into out_dir/runs.jsonl."""
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from class_names import CLASS_NAMES
     from metrics import PER_CLASS, class_metrics, summarize
     import torch
     C = 100 if ds == "cifar100" else 10
@@ -191,7 +258,8 @@ def run(algo, ds, IF, seed, lt_dir, out_dir, rounds=200, label=None, data_root=N
     t0 = time.time()
     os.makedirs(os.path.join(out_dir, "logs"), exist_ok=True)
     log = open(os.path.join(out_dir, "logs", safe + "_longtaillib.log"), "w")
-    p = subprocess.run([sys.executable, drv, json.dumps(args), tmp], cwd=sysdir, stdout=log, stderr=subprocess.STDOUT)
+    p = subprocess.run([sys.executable, drv, json.dumps(args), tmp], cwd=sysdir, stdout=log, stderr=subprocess.STDOUT,
+                       env=dict(os.environ, FEDECS_SRC=os.path.dirname(os.path.abspath(__file__))))
     log.close()
     if p.returncode != 0:
         raise RuntimeError(f"LongTailLib {algo} failed (see logs/{safe}_longtaillib.log)")
@@ -208,6 +276,7 @@ def run(algo, ds, IF, seed, lt_dir, out_dir, rounds=200, label=None, data_root=N
                method=dict(pipeline="longtaillib", algo=ALGOS[algo], model="ResNet8", commit=LT_COMMIT,
                            source="LongTailLib (FedLTLib benchmark), authors' code unchanged, downloaded at run time"),
                client_counts=np.load(os.path.join(root, "suite_split.npz"))["counts"].tolist(),
+               class_order=list(range(C)), class_names=CLASS_NAMES.get(ds),
                library_accuracy=lib_acc, accuracy_check=abs(m["acc"] - lib_acc) < 1e-6 if lib_acc == lib_acc else None,
                time_s=time.time() - t0, rounds=dict(T=rounds))
     if "gpu_peak_mb" in d.files and d["gpu_peak_mb"][0] > 0:   # the library's process (a fresh one per run)
@@ -221,10 +290,20 @@ def run(algo, ds, IF, seed, lt_dir, out_dir, rounds=200, label=None, data_root=N
             rec["final_confusion"] = v
     hist = json.load(open(tmp + ".hist.json"))
     rec["history_library"] = hist
+    # every evaluation of the library (every 5th round, and the final model): every metric for every class, as the
+    # suite's per-round logs (event "round_eval", round = rounds of training completed)
+    per = json.load(open(tmp + ".perclass.json")) if os.path.exists(tmp + ".perclass.json") else []
+    with open(os.path.join(out_dir, "logs", safe + ".jsonl"), "w") as f:
+        f.write(json.dumps(dict(t=time.time(), event="run_start", run_id=rid, label=label, dataset=ds_key)) + "\n")
+        for e in per:
+            f.write(json.dumps(dict(t=time.time(), event="round_eval", round=e["round"], post=e["post"])) + "\n")
+    rec["evaluations_logged"] = len(per)
     np.savez_compressed(os.path.join(out_dir, "predictions", safe + ".npz"), y_full=y, probs_0=probs.astype(np.float16),
                         **({"embed_0": d["embed"].astype(np.float16), "y": y[:len(d["embed"])]}
                            if d["embed"].size else {}))
-    os.remove(tmp)
+    for f_ in (tmp, tmp + ".hist.json", tmp + ".perclass.json"):   # temporary files of the driver
+        if os.path.exists(f_):
+            os.remove(f_)
     with open(os.path.join(out_dir, "runs.jsonl"), "a") as f:
         f.write(json.dumps(rec) + "\n")
     return rec

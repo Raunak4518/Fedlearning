@@ -225,6 +225,21 @@ def build(res_dir, title, out_pdf, fig_dir):
     for S in E.settings:
         st = setting_text(S, sorted({r['seed'] for r in E.runs if plots.setting_key(r) == S}))
         story.append(Paragraph(escape(st), h2))
+        # the classes of this setting, in the order every per-class table and figure uses
+        r0 = next((r for r in E.runs if plots.setting_key(r) == S and r.get("class_order")), None)
+        if r0 is not None:
+            C = len(r0["class_order"])
+            ntr = np.array(r0.get("client_counts") or [[0] * C]).sum(0)
+            cm = r0.get("final_confusion")
+            nte = np.array(cm).sum(1) if cm else [None] * C
+            names = r0.get("class_names") or [None] * C
+            rows = [[str(c), str(o), escape(names[c] or "-"), str(int(ntr[c])), "-" if nte[c] is None else str(int(nte[c]))]
+                    for c, o in enumerate(r0["class_order"])]
+            story += [tcap("Classes in the order used by every per-class table and figure (0 = most frequent in the "
+                           "federation's training data): original label in the dataset's files, name, training images "
+                           "held by all clients together, test images. " + st), Spacer(1, 3),
+                      table(rows, ["Class", "Original label", "Name", "Training images", "Test images"],
+                            [0.6 * inch, 1.0 * inch, 3.4 * inch, 1.0 * inch, 1.0 * inch]), Spacer(1, 10)]
         story += metric_table(S, MAIN, "Main metrics (%, test set, heads as trained; mean ± standard deviation over "
                                        "seeds; shaded = best). " + st)
         story += metric_table(S, READOUT, "The same heads with the exact class-balanced readout (last layer recomputed "

@@ -35,7 +35,7 @@ import numpy as np
 
 import captions as cap
 import plot_style as ps
-from settings import class_groups
+from settings import DATASETS, class_groups
 
 OURS = ps.OURS
 REF = "GeFL-F"
@@ -363,6 +363,102 @@ def f70(E, S, out):
         res.append((p, cap.simple(70, E, S, f"Recall of every class at each evaluation round of head training "
                                             f"(Stage III) for {cap.mname(m)}: aggregated heads, test set, first seed. "
                                             "Every per-class metric of every evaluation round is in the run logs.")))
+    return res
+
+
+# ---------------------------------------------------------------- Track 2: over all communication rounds
+def _global_series(E, r):
+    """(round, evaluation) pairs of a run on one round axis: LongTailLib's own evaluations (every 5th round); for the
+    suite's pipeline, Stage I's evaluations (extractor and heads) and Stage III's, the latter counted after the T_FE
+    rounds of Stage I (the generator stage in between is not a training round of the classifier)."""
+    out = []
+    if r["method"].get("pipeline") == "longtaillib":
+        out = [(e["round"], e["post"]) for e in E.log(r, "round_eval") if e.get("post")]
+    else:
+        T_FE = (r.get("rounds") or {}).get("T_FE", 0)
+        out = [(e["round"], e["post"]) for e in E.log(r, "stage1_round") if e.get("post")]
+        out += [(T_FE + e["round"], e["post"]) for e in E.log(r, "stage3_round") if e.get("post")]
+    return sorted(out, key=lambda t: t[0])
+
+
+def _track2(S):
+    return DATASETS.get(S[0], {}).get("track") == 2
+
+
+def _global_lines(E, S, out, num, key, ylabel, name, what):
+    if not _track2(S):
+        return []
+    f, ax = ps.figure("page", 2.8)
+    rows = []
+    for m in E.methods:
+        per = []
+        for r in E.of(m, S):
+            pts = {g: p.get(key) for g, p in _global_series(E, r) if p.get(key) is not None}
+            if pts:
+                per.append(pts)
+        if not per:
+            continue
+        rr = sorted(set.intersection(*[set(p) for p in per]))
+        if not rr:
+            continue
+        V = np.array([[p[g] for g in rr] for p in per], dtype=float) * 100
+        mu, sd = V.mean(0), (V.std(0, ddof=1) if len(V) > 1 else np.zeros(len(rr)))
+        st = ps.style(m)
+        ax.plot(rr, mu, label=m, markevery=max(1, len(rr) // 8), **st)
+        ax.fill_between(rr, mu - sd, mu + sd, color=st["color"], alpha=0.12, linewidth=0)
+        rows += [[m, int(g), float(a), float(b)] for g, a, b in zip(rr, mu, sd)]
+    if not rows:
+        return []
+    ax.set_xlabel("Round")
+    ax.set_ylabel(ylabel)
+    ax.legend(ncol=3)
+    p = ps.save(f, out, f"fig_{num:02d}_{name}", rows, ["method", "round", "mean", "sd"])
+    return [(p, cap.simple(num, E, S, f"Test-set {what} of the global model over the communication rounds, mean over "
+                                      "seeds (band: one standard deviation). LongTailLib methods: every 5th round; "
+                                      "FedECS-LT: its extractor stage, then its head stage counted after the "
+                                      "extractor's rounds (its generator stage in between is not shown)."))]
+
+
+@fig(71, "F")
+def f71(E, S, out):
+    return _global_lines(E, S, out, 71, "bal", "Balanced accuracy (%)", "track2_balanced_accuracy_rounds",
+                         "balanced accuracy")
+
+
+@fig(72, "F")
+def f72(E, S, out):
+    return _global_lines(E, S, out, 72, "tail", "Tail-class recall (%)", "track2_tail_recall_rounds",
+                         "recall of the tail classes (the rarest 40%)")
+
+
+@fig(73, "F")
+def f73(E, S, out):
+    """Per-class recall over the rounds, one heatmap per method (Track 2; first seed)."""
+    if not _track2(S):
+        return []
+    res = []
+    for m in E.methods:
+        rs = E.of(m, S)
+        if not rs:
+            continue
+        ser = [(g, p["recall_c"]) for g, p in _global_series(E, rs[0]) if p.get("recall_c")]
+        if len(ser) < 2:
+            continue
+        A = np.array([v for _, v in ser], dtype=float).T * 100
+        rr = [g for g, _ in ser]
+        f, ax = ps.figure("column", 2.6)
+        im = ax.imshow(A, aspect="auto", cmap="viridis", origin="lower", vmin=0, vmax=100)
+        _round_ticks(ax, rr)
+        ax.set_xlabel("Round")
+        ax.set_ylabel("Class (0 = most frequent)")
+        f.colorbar(im, ax=ax, fraction=0.046, pad=0.04).set_label("Recall (%)")
+        name = "".join(ch for ch in m if ch.isalnum()).lower()
+        p = ps.save(f, out, f"fig_73_track2_per_class_recall_rounds_{name}",
+                    [[rr[j], c, float(A[c, j])] for c in range(A.shape[0]) for j in range(A.shape[1])],
+                    ["round", "class", "recall"])
+        res.append((p, cap.simple(73, E, S, f"Recall of every class of {cap.mname(m)}'s global model at each "
+                                            "evaluation over the communication rounds (test set, first seed). Every "
+                                            "per-class metric of every evaluation is in the run logs.")))
     return res
 
 

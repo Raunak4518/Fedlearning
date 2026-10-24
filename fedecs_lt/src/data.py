@@ -296,11 +296,20 @@ class Federation:
         spec = DATASETS[ds]
         self.ds, self.C, self.K, self.seed, self.device = ds, spec["C"], K, seed, device
         data = load_dataset(ds, root, device)
+        to_new = np.arange(self.C)              # original label -> label used here
         if spec["imbalance"] == "natural":
-            data = relabel(data, natural_order(data["ytr"], self.C))
+            perm = natural_order(data["ytr"], self.C)
+            data = relabel(data, perm)
+            to_new = perm.numpy()[to_new]
             IF = None
         if tail_perm:
             data = permute_labels(data, seed)
+            to_new = np.random.RandomState(1000 + seed).permutation(self.C)[to_new]   # the permutation it used
+        # class_order[c] = original label of class c; class_names in that order (for every per-class table)
+        self.class_order = np.argsort(to_new).tolist()
+        from class_names import CLASS_NAMES
+        names = CLASS_NAMES.get(ds)
+        self.class_names = [names[o] for o in self.class_order] if names and len(names) == self.C else None
         if spec.get("partition") == "lt_standard":   # Track 2: the split LongTailLib's baselines get (track2.py)
             from track2 import lt_partition
             parts, heldout, counts = lt_partition(data["ytr"].numpy(), self.C, K, IF, alpha, seed)

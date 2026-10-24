@@ -109,6 +109,8 @@ NA = {
         "are not part of this experiment)",
     58: "no class-row generator in this experiment", 60: "local-only training is not part of this experiment",
     69: "the exact readout is computed only for FedECS-LT and the GeFL-F family of methods",
+    71: "a figure of the one-shared-model setting (Track 2)", 72: "a figure of the one-shared-model setting (Track 2)",
+    73: "a figure of the one-shared-model setting (Track 2)",
     70: "FedECS-LT and GeFL-F are not part of this experiment (their per-round, per-class metrics are in the logs)",
 }
 

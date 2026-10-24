@@ -3,7 +3,10 @@ scripts are written from its %%writefile cells, its run list is shrunk (2 rounds
 under /kaggle/working and /tmp/fedecs are moved to a test folder, the GPU / Internet / pip cells are skipped.
 Checks that the run cell, the acceptance cell and the packing cell complete and that the three output files exist.
 
-    python fedecs_lt/tests/run_notebook_on_cpu.py fedecs_lt/notebooks/NB00_acceptance.ipynb TEST_DIR
+    python fedecs_lt/tests/run_notebook_on_cpu.py fedecs_lt/notebooks/NB00_acceptance.ipynb TEST_DIR [SEEDS] [LABELS]
+
+SEEDS (e.g. "3") and LABELS ("FedECS-LT;FedProto") keep only those runs, so that a notebook with 51 runs can be tested
+in about an hour.
 """
 import json
 import os
@@ -12,6 +15,8 @@ import subprocess
 import sys
 
 nb_path, test_dir = sys.argv[1], os.path.abspath(sys.argv[2])
+keep_seeds = [int(x) for x in sys.argv[3].split(",")] if len(sys.argv) > 3 and sys.argv[3] else None
+keep_labels = sys.argv[4].split(";") if len(sys.argv) > 4 and sys.argv[4] else None
 nb = json.load(open(nb_path))
 name = os.path.basename(nb_path)[:-6]
 W, T = os.path.join(test_dir, "working"), os.path.join(test_dir, "tmp")
@@ -37,7 +42,10 @@ for c in nb["cells"]:
         continue
     src = sub(src)
     if src.startswith("# Run list"):
-        src += ("\nfor r in RUNS:\n    r.update(rounds=dict(T_FE=2, T_KA=2, T_TN=2, T=2), frac_scale=0.2)\n"
+        src += (f"\nRUNS = [r for r in RUNS if ({keep_seeds!r} is None or r['seed'] in {keep_seeds!r}) and "
+                f"({keep_labels!r} is None or r['label'] in {keep_labels!r})]\n"
+                "print('CPU test:', len(RUNS), 'runs kept')\n"
+                "for r in RUNS:\n    r.update(rounds=dict(T_FE=2, T_KA=2, T_TN=2, T=2), frac_scale=0.2)\n"
                 f"json.dump(RUNS, open('{T}/work/runs.json', 'w'))\n")
     src = re.sub(r"'--gpus', '2', '--per_gpu', '\d'", "'--gpus', '0', '--per_gpu', '2'", src)
     script.append(src)
