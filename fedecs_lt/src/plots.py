@@ -482,10 +482,36 @@ def _scatter_classes(ax, Z, y, C, marker="o", alpha=0.8, label_prefix=None):
     for c in range(C):
         sel = y == c
         if sel.any():
-            ax.scatter(Z[sel, 0], Z[sel, 1], s=2.5, color=cmap(c % cmap.N), marker=marker, alpha=alpha, linewidths=0,
+            # filled markers need no edge; line markers ("x") are drawn only by their edge, so they need a width
+            lw = 0.6 if marker in ("x", "+", "1", "2", "3", "4") else 0
+            ax.scatter(Z[sel, 0], Z[sel, 1], s=2.5 if lw == 0 else 6, color=cmap(c % cmap.N), marker=marker,
+                       alpha=alpha, linewidths=lw,
                        label=f"{label_prefix or ''}{c}" if C <= 10 else None, rasterized=True)
     ax.set_xticks([])
     ax.set_yticks([])
+
+
+def _class_legend(ax, C, sources=False):
+    """Class legend inside the axes, top right (embedding scatter plots): one entry per class (10 classes or fewer;
+    with more, the caption says the points are coloured by class), plus the marker of real and generated features.
+    The y range gets 35% headroom so that the legend sits above the points instead of on them."""
+    import matplotlib.pyplot as plt
+    from matplotlib.lines import Line2D
+    if C > 10 and not sources:
+        return
+    cmap = plt.get_cmap("tab10")
+    handles = [Line2D([], [], marker="o", linestyle="", color=cmap(c), markersize=4, label=str(c))
+               for c in range(C)] if C <= 10 else []
+    if sources:
+        handles += [Line2D([], [], marker="o", linestyle="", color="0.45", markersize=4, label="real"),
+                    Line2D([], [], marker="x", linestyle="", color="0.45", markersize=4, label="generated")]
+    y0, y1 = ax.get_ylim()
+    ax.set_ylim(y0, y1 + 0.35 * (y1 - y0))
+    leg = ax.legend(handles=handles, loc="upper right", ncol=min(5, len(handles)), frameon=True, framealpha=0.9,
+                    edgecolor="0.7", fancybox=False, handletextpad=0.1, columnspacing=0.6, borderpad=0.3,
+                    labelspacing=0.25, borderaxespad=0.3)
+    leg.get_frame().set_linewidth(0.5)
+    leg.set_gid("keep")   # plot_style.place_legends leaves it where it is
 
 
 def _emb_fig(E, S, out, num, m, name):
@@ -502,8 +528,7 @@ def _emb_fig(E, S, out, num, m, name):
     Z = _tsne(d[g].astype(np.float32))
     f, ax = ps.figure("column", 3.0)
     _scatter_classes(ax, Z, y, C)
-    if C <= 10:
-        ax.legend(markerscale=3, ncol=5, loc="upper center", bbox_to_anchor=(0.5, -0.02))
+    _class_legend(ax, C)
     ax.set_xlabel("t-SNE 1")
     ax.set_ylabel("t-SNE 2")
     p = ps.save(f, out, f"fig_{num:02d}_{name}", [[float(a), float(b), int(c)] for (a, b), c in zip(Z, y)],
@@ -543,13 +568,14 @@ def f21(E, S, out):
         y = d["y"]
         Z = PCA(2, random_state=0).fit_transform(d[keys[0]].astype(np.float32))
         _scatter_classes(ax, Z, y, int(y.max()) + 1)
+        _class_legend(ax, int(y.max()) + 1)
         ax.set_xlabel("Principal component 1")
         ax.set_ylabel("Principal component 2")
         rows += [[m, float(a), float(b), int(c)] for (a, b), c in zip(Z, y)]
         ok = True
     if not ok:
         return []
-    ps.panel_labels(axes)
+    ps.panel_labels(axes, y=-0.1)   # no tick labels on embedding plots: the labels sit just under the axis title
     p = ps.save(f, out, "fig_21_pca_embeddings", rows, ["method", "pc1", "pc2", "class"], raster=True)
     res.append((p, cap.simple(21, E, S, "First two principal components of the test-set embeddings: (a) "
                               + " (b) ".join(cap.mname(m) for m in ms_) + "; coloured by true class.")))
@@ -567,6 +593,7 @@ def _real_vs_gen(E, S, out, num, m, name):
     f, ax = ps.figure("column", 3.0)
     _scatter_classes(ax, Z[:len(Xr)], yr, C, marker="o", alpha=0.5)
     _scatter_classes(ax, Z[len(Xr):], yg, C, marker="x", alpha=0.9)
+    _class_legend(ax, C, sources=True)
     ax.set_xlabel("t-SNE 1")
     ax.set_ylabel("t-SNE 2")
     rows = [[float(a), float(b), int(c), "real"] for (a, b), c in zip(Z[:len(Xr)], yr)] + \

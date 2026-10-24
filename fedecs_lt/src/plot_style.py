@@ -132,7 +132,7 @@ def place_legends(fig):
     r = fig.canvas.get_renderer()
     for ax in fig.axes:
         leg = ax.get_legend()
-        if leg is None:
+        if leg is None or leg.get_gid() == "keep":   # placed on purpose by the figure (e.g. inside a scatter plot)
             continue
         handles, labels = leg.legend_handles, [t.get_text() for t in leg.texts]
         bars = any(isinstance(c, BarContainer) for c in ax.containers)

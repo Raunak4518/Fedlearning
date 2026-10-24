@@ -17,7 +17,7 @@ from data import active_clients
 from fl_common import arrays_of, cfg_of, pack, seed_all
 from metrics import summarize
 from monitor import Monitor
-from server import DEV, EVAL_EVERY, Fed, flat, save_run, stage_one, train_referee
+from server import DEV, EVAL_EVERY, Fed, flat, gpu_peaks, save_run, stage_one, train_referee
 from settings import HEADER_WIDTHS
 
 HP = dict(lr=0.01, B=10, feature_dim=512)
@@ -235,8 +235,7 @@ def run_htfl(grid, context, R):
     res["stage_time_s"] = dict(mon.stage_t)
     res["bytes"] = {k: dict(down=v[0], up=v[1], messages=v[2]) for k, v in mon.bytes.items()}
     res["comm_mb_per_client"] = sum(v[0] + v[1] for v in mon.bytes.values()) / 2 ** 20 / S.K
-    if torch.cuda.is_available():
-        res["gpu_peak_mb"] = round(torch.cuda.max_memory_allocated() / 2 ** 20)
+    res.update(gpu_peaks(S))
     fin = dict(test=dict(probs={k: v for k, v in probs.items()}, embed={"0": emb[0]} if emb else {},
                          embed_y=emb[1] if emb else []))
     extra = dict(y_full=S.fed.y_te.cpu().numpy())

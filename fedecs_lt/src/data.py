@@ -29,8 +29,9 @@ def _download(url, dst, tries=4):
     for i in range(tries):
         try:
             log(f"downloading {url}")
-            urllib.request.urlretrieve(url, dst + ".part")
-            os.replace(dst + ".part", dst)
+            part = f"{dst}.{os.getpid()}.part"   # one temporary file per process; the rename is atomic
+            urllib.request.urlretrieve(url, part)
+            os.replace(part, dst)
             return dst
         except Exception as e:  # network hiccup: retry with backoff
             log(f"download failed ({e}); retry {i + 1}/{tries}")
@@ -51,8 +52,33 @@ def _read_parquet_images(path, img_col, label_col, mode):
 HF = "https://huggingface.co/datasets/"
 
 
+class _DatasetLock:
+    """Exclusive lock across processes for one dataset's files (download, conversion, tensor cache): the workers of
+    a notebook start together and would otherwise download the same file into the same place at the same time."""
+
+    def __init__(self, root, name):
+        os.makedirs(root, exist_ok=True)
+        self.path = os.path.join(root, f"_fedecs_lock_{name}")
+
+    def __enter__(self):
+        import fcntl
+        self.f = open(self.path, "w")
+        fcntl.flock(self.f, fcntl.LOCK_EX)
+        return self
+
+    def __exit__(self, *exc):
+        import fcntl
+        fcntl.flock(self.f, fcntl.LOCK_UN)
+        self.f.close()
+
+
 def _raw(name, root):
-    """Raw uint8 images (N, ch, H, W) and int64 labels, train and test."""
+    """Raw uint8 images (N, ch, H, W) and int64 labels, train and test (one process at a time per dataset)."""
+    with _DatasetLock(root, name):
+        return _raw_unlocked(name, root)
+
+
+def _raw_unlocked(name, root):
     import torchvision.datasets as tvd
     if name in ("mnist", "fmnist"):
         cls = tvd.MNIST if name == "mnist" else tvd.FashionMNIST
@@ -125,13 +151,15 @@ def load_dataset(name, root, device="cpu"):
     (antialias) for small images, then the dataset's normalisation."""
     raw = DATASETS[name].get("raw", name)
     cache = os.path.join(root, f"_fedecs_tensors_{raw}.pt")
-    if os.path.exists(cache):
-        d = torch.load(cache, weights_only=True)
-    else:
-        os.makedirs(root, exist_ok=True)
-        xtr, ytr, xte, yte = _raw(raw, root)
-        d = dict(xtr=xtr.contiguous(), ytr=ytr.long(), xte=xte.contiguous(), yte=yte.long())
-        torch.save(d, cache)
+    with _DatasetLock(root, raw):   # the cache is built by one process; the others wait and then read it
+        if os.path.exists(cache):
+            d = torch.load(cache, weights_only=True)
+        else:
+            xtr, ytr, xte, yte = _raw_unlocked(raw, root)
+            d = dict(xtr=xtr.contiguous(), ytr=ytr.long(), xte=xte.contiguous(), yte=yte.long())
+            tmp = f"{cache}.{os.getpid()}.tmp"
+            torch.save(d, tmp)
+            os.replace(tmp, cache)
     spec = DATASETS[name]
 
     def prep(x):

@@ -160,7 +160,8 @@ except Exception as e:
     print("embeddings not available:", repr(e))
 np.savez_compressed(out, logits=logits.numpy() if logits is not None else np.zeros(0), lib_acc=np.array(
     [lib_acc if lib_acc is not None else np.nan]), time_s=np.array([time.time() - t0]),
-    embed=emb if emb is not None else np.zeros(0))
+    embed=emb if emb is not None else np.zeros(0),
+    gpu_peak_mb=np.array([torch.cuda.max_memory_allocated() / 2 ** 20 if torch.cuda.is_available() else 0.0]))
 json.dump(hist, open(out + ".hist.json", "w"))
 '''
 
@@ -206,6 +207,8 @@ def run(algo, ds, IF, seed, lt_dir, out_dir, rounds=200, label=None, data_root=N
                client_counts=np.load(os.path.join(root, "suite_split.npz"))["counts"].tolist(),
                library_accuracy=lib_acc, accuracy_check=abs(m["acc"] - lib_acc) < 1e-6 if lib_acc == lib_acc else None,
                time_s=time.time() - t0, rounds=dict(T=rounds))
+    if "gpu_peak_mb" in d.files and d["gpu_peak_mb"][0] > 0:   # the library's process (a fresh one per run)
+        rec["gpu_peak_mb"] = round(float(d["gpu_peak_mb"][0]))
     for k, v in summ.items():
         if isinstance(v, (int, float)):
             rec[f"final_{k}"] = v

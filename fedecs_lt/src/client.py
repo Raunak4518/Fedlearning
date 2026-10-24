@@ -81,7 +81,16 @@ def graphs_for(name):
 # ---------------------------------------------------------------- hello
 @app.query("hello")
 def hello(msg, context):
+    if DEV == "cuda":   # a new run: this process's GPU memory peak is measured from here
+        torch.cuda.reset_peak_memory_stats()
     return reply(msg, dict(pid=pid_of(context), device=DEV, pidproc=os.getpid()))
+
+
+@app.query("gpu")
+def gpu(msg, context):
+    """Peak GPU memory of this client process since the run's hello (MB)."""
+    peak = round(torch.cuda.max_memory_allocated() / 2 ** 20) if DEV == "cuda" else 0
+    return reply(msg, dict(peak_mb=peak, pidproc=os.getpid()))
 
 
 # ---------------------------------------------------------------- stage I

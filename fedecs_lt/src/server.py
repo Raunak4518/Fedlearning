@@ -46,6 +46,8 @@ class Fed:
                 raise RuntimeError("clients did not register")
             time.sleep(0.2)
         nodes = sorted(grid.get_node_ids())
+        if DEV == "cuda":   # a new run: the server's GPU memory peak is measured from here
+            torch.cuda.reset_peak_memory_stats()
         rep = self.ask("query.hello", [(n, pack(self.base())) for n in nodes], count=False)
         self.nid = {cfg_of(m.content)["pid"]: m.metadata.src_node_id for m in rep}
         self.pid = {v: k for k, v in self.nid.items()}
@@ -609,8 +611,7 @@ def run_pipeline(grid, context, R):
     res["stage_time_s"] = dict(mon.stage_t)
     res["bytes"] = {k: dict(down=v[0], up=v[1], messages=v[2]) for k, v in mon.bytes.items()}
     res["comm_mb_per_client"] = sum(v[0] + v[1] for v in mon.bytes.values()) / 2 ** 20 / S.K
-    if DEV == "cuda":
-        res["gpu_peak_mb"] = round(torch.cuda.max_memory_allocated() / 2 ** 20)
+    res.update(gpu_peaks(S))
     extra = dict(y_full=S.fed.y_te.cpu().numpy())
     nv = min(2000, len(Xval))
     sub = np.random.RandomState(0).choice(len(Xval), nv, replace=False)
@@ -646,6 +647,21 @@ def run_local(S, R, T, res, mon, t0):
     save_run(R, res, None, None, None, None, None, None, None, None)
     mon.close()
     return res
+
+
+def gpu_peaks(S):
+    """Peak GPU memory of the run (MB): the server process and the client process(es) share the worker's GPU, so
+    their sum is an upper bound of what the run needed (CUDA's own context, ~0.3-0.5 GB per process, comes on top)."""
+    rep = S.ask("query.gpu", [(S.nid[k], pack(S.base())) for k in range(S.K)], account=False)   # (also on CPU)
+    procs = {}
+    for m in rep:
+        o = cfg_of(m.content)
+        procs[o["pidproc"]] = max(procs.get(o["pidproc"], 0), o["peak_mb"])
+    if DEV != "cuda":
+        return {}
+    server = round(torch.cuda.max_memory_allocated() / 2 ** 20)
+    client = sum(procs.values())
+    return dict(gpu_peak_mb=server + client, gpu_peak_server_mb=server, gpu_peak_clients_mb=client)
 
 
 def save_run(R, res, s1, hd_sd, G, ref, fin, er_probs, last, s2, extra=None):
