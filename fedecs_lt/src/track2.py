@@ -169,7 +169,7 @@ json.dump(hist, open(out + ".hist.json", "w"))
 def run(algo, ds, IF, seed, lt_dir, out_dir, rounds=200, label=None, data_root=None, ds_key=None):
     """One LongTailLib run on our split; writes a suite-format record into out_dir/runs.jsonl."""
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from metrics import class_metrics, summarize
+    from metrics import PER_CLASS, class_metrics, summarize
     import torch
     C = 100 if ds == "cifar100" else 10
     name = folder(ds, IF, seed)
@@ -212,7 +212,7 @@ def run(algo, ds, IF, seed, lt_dir, out_dir, rounds=200, label=None, data_root=N
     for k, v in summ.items():
         if isinstance(v, (int, float)):
             rec[f"final_{k}"] = v
-        elif k in ("recall_c", "precision_c", "f1_c", "ap_c"):
+        elif k in PER_CLASS:
             rec[f"final_{k}"] = [round(float(x), 4) for x in v]
         elif k == "confusion":
             rec["final_confusion"] = v

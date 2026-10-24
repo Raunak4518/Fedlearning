@@ -14,7 +14,7 @@ import platform
 import numpy as np
 
 import plots
-from captions import setting_slug, setting_text
+from captions import proto_note, setting_slug, setting_text
 from settings import CITE
 
 MAIN = [("final_bal", "Bal. acc."), ("final_f1", "Macro-F1"), ("final_precision", "Precision"), ("final_mcc", "MCC"),
@@ -49,6 +49,18 @@ REFS = {
     "FedDF + LA": ("FedDF (Lin et al., NeurIPS 2020) with logit adjustment", "Re-implementation"),
     "Local only": ("Control: no federation (each client trains alone)", "This suite"),
 }
+
+
+# (runs.jsonl key, name in the caption, shown in %): every per-class metric (metrics.PER_CLASS), heads as trained,
+# then the exact readout's per-class recall
+PER_CLASS_TABLES = [
+    ("final_recall_c", "recall (%)", True), ("final_precision_c", "precision (%)", True),
+    ("final_f1_c", "F1 score (%)", True), ("final_ap_c", "average precision, AUC-PR (%)", True),
+    ("final_auc_c", "AUC-ROC, class against the rest (%)", True), ("final_mcc_c", "MCC, class against the rest (%)", True),
+    ("final_ece_c", "calibration error of p(c|x) (%)", True), ("final_nll_c", "NLL on the images of the class (nats)", False),
+    ("final_brier_c", "Brier score on the images of the class", False),
+    ("final_top5_c", "top-5 recall (%)", True), ("final_pred_share_c", "share of all predictions (%)", True),
+    ("er_recall_c", "recall with the exact class-balanced readout (%)", True)]
 
 
 def method_ref(m):
@@ -219,7 +231,8 @@ def build(res_dir, title, out_pdf, fig_dir):
                                           "from secure sums of every client's embeddings). " + st)
         story += metric_table(S, SECOND, "Further metrics (%, test set, heads as trained). Own-mix accuracy: accuracy "
                                          "re-weighted to each architecture's own clients' class mix. " + st)
-        story += metric_table(S, CALIB, "Calibration (ECE and class-wise ECE in %, NLL in nats, Brier score). " + st)
+        story += metric_table(S, CALIB, "Calibration (ECE and class-wise ECE in %, NLL in nats, Brier score)."
+                              + proto_note([m for m in E.methods if E.of(m, S)]) + " " + st)
         story += metric_table(S, VAL, "Balanced accuracy on the validation set (images no client holds), used to select "
                                       "settings without the test set. " + st)
         story += metric_table(S, SYSTEM, "Cost: communication per client over the whole training, wall-clock time and "
@@ -237,20 +250,32 @@ def build(res_dir, title, out_pdf, fig_dir):
                            "readout, tail recall, macro-F1 (%), time (s). " + st), Spacer(1, 3),
                       table(rows, ["Method", "Seed", "Bal.", "Bal. (ER)", "Tail", "F1", "Time"],
                             [1.9 * inch, 0.5 * inch] + [0.9 * inch] * 5), Spacer(1, 10)]
-        # per-class recall table
-        recs = []
-        for m in E.methods:
-            v = [r.get("final_recall_c") for r in E.of(m, S) if r.get("final_recall_c")]
-            if v:
-                mu = np.mean(v, 0) * 100
-                recs.append([m] + [f"{x:.0f}" for x in mu])
-        if recs:
-            C = len(recs[0]) - 1
-            cols = list(range(C)) if C <= 20 else None
-            if cols is not None:
-                story += [tcap("Per-class recall (%, test set, mean over seeds); class 0 is the most frequent. " + st),
-                          Spacer(1, 3), table(recs, ["Method"] + [str(c) for c in cols],
-                                              [1.55 * inch] + [(7.0 - 1.55) * inch / C] * C), Spacer(1, 10)]
+        # per-class tables: every metric that has a per-class form, for every class (blocks of 20 classes)
+        for key, name, pct in PER_CLASS_TABLES:
+            recs = []
+            for m in E.methods:
+                v = [r.get(key) for r in E.of(m, S) if r.get(key)]
+                if v:
+                    mu = np.nanmean(np.array(v, dtype=float), 0) * (100 if pct else 1)
+                    recs.append((m, mu))
+            if not recs:
+                continue
+            if key == "final_pred_share_c":   # reference row: each class's true share of the test set
+                cm = next((np.array(r["final_confusion"], dtype=float) for r in E.of(recs[0][0], S)
+                           if r.get("final_confusion")), None)
+                if cm is not None:
+                    recs.append(("Test set (true share)", cm.sum(1) / cm.sum() * 100))
+            C = len(recs[0][1])
+            for c0 in range(0, C, 20):
+                cols = list(range(c0, min(C, c0 + 20)))
+                rows = [[m] + ["-" if np.isnan(mu[c]) else (f"{mu[c]:.0f}" if pct else f"{mu[c]:.2f}") for c in cols]
+                        for m, mu in recs]
+                part = "" if C <= 20 else f" Classes {cols[0]}-{cols[-1]} of {C}."
+                note = proto_note([m for m, _ in recs]) if key in ("final_ece_c", "final_nll_c", "final_brier_c") else ""
+                story += [tcap(f"Per-class {name} (test set, mean over seeds); class 0 is the most frequent.{part}{note} "
+                               + st), Spacer(1, 3),
+                          table(rows, ["Method"] + [str(c) for c in cols],
+                                [1.55 * inch] + [(7.0 - 1.55) * inch / len(cols)] * len(cols)), Spacer(1, 10)]
     story.append(PageBreak())
 
     # ---------------------------------------------------------------- figures

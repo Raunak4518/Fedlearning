@@ -25,7 +25,7 @@ import fedecs
 import local_train as lt
 from data import Federation, batches, gpu_augment
 from fl_common import arrays_of, cfg_of, reply, seed_all
-from metrics import arch_priors, class_metrics, evaluate_heads
+from metrics import arch_priors, class_metrics, evaluate_heads, log_view
 from models import GraphCache, PaperHeader, make_fe, make_generator, make_head, make_headers
 from secure_sum import client_secsum
 from settings import DATASETS, HEADER_WIDTHS
@@ -117,7 +117,7 @@ def stage1(msg, context):
             head.eval()
             logits = torch.cat([head(fte[s:s + 2000]) for s in range(0, len(fed.y_te), 2000)])
         m = class_metrics(logits, fed.y_te, fed.C)
-        out["pre"] = {kk: m[kk] for kk in ("acc", "bal", "f1", "tail", "worst", "recall_c")}
+        out["pre"] = log_view(m)
     return reply(msg, out, fe=fe.state_dict(), head=head.state_dict())
 
 
@@ -383,7 +383,7 @@ def head(msg, context):
         with torch.no_grad():
             logits = torch.cat([h(F_["te"][s:s + 2000]) for s in range(0, len(fed.y_te), 2000)])
         m = class_metrics(logits, fed.y_te, C)
-        out["pre"] = {kk: m[kk] for kk in ("acc", "bal", "f1", "tail", "worst", "recall_c")}
+        out["pre"] = log_view(m)
     return reply(msg, out, head=h.state_dict())
 
 
@@ -412,12 +412,15 @@ def local(msg, context):
             opt.zero_grad(set_to_none=True)
             loss.backward()
             opt.step()
-    with torch.no_grad():
-        fte = compute_features(fe, fed.x_te)
-        h.eval()
-        logits = torch.cat([h(fte[s:s + 2000]) for s in range(0, len(fed.y_te), 2000)])
-    m = class_metrics(logits, fed.y_te, fed.C)
-    return reply(msg, dict(n=len(y_k), metrics={kk: v for kk, v in m.items() if kk != "probs"}))
+    out = {}
+    for split, x, y in (("metrics", fed.x_te, fed.y_te), ("val_metrics", fed.x_val, fed.y_val)):
+        with torch.no_grad():
+            f_ = compute_features(fe, x)
+            h.eval()
+            logits = torch.cat([h(f_[s:s + 2000]) for s in range(0, len(y), 2000)])
+        m = class_metrics(logits, y, fed.C)
+        out[split] = {kk: v for kk, v in m.items() if kk != "probs"}
+    return reply(msg, dict(n=len(y_k), **out))
 
 
 # ---------------------------------------------------------------- statistics for sums (secure or plain)

@@ -54,11 +54,27 @@ def curve(num, E, S, what, split="Test-set"):
             f"deviation. {setting_text(S, _seeds(E, S))}")
 
 
-def per_class(num, E, S, what):
+PROTOTYPE_METHODS = ("FedProto", "FedTGP")
+
+
+def proto_note(methods):
+    """Methods that classify by the nearest prototype score classes by negative distances; a softmax of those is no
+    probability estimate, so calibration, NLL and Brier score are not comparable with the other methods."""
+    ps_ = [m for m in methods if m in PROTOTYPE_METHODS]
+    if not ps_:
+        return ""
+    one = len(ps_) == 1
+    return (" " + " and ".join(ps_) + (" classifies" if one else " classify") + " by the nearest prototype; "
+            + ("its" if one else "their") + " scores are a softmax of negative distances, not probability estimates, "
+            "so " + ("its" if one else "their") + " calibration, NLL and Brier values are not comparable with those of "
+            "the other methods.")
+
+
+def per_class(num, E, S, what, note=""):
     shared = DATASETS.get(S[0], {}).get("track") == 2
     model = "the global model, mean over seeds" if shared else "the clients' models as trained, mean over them and over seeds"
     return (f"Per-class {what} on the test set after training ({model}); classes are ordered from the most to the least frequent in the federation's training "
-            f"data. {setting_text(S, _seeds(E, S))}")
+            f"data.{note} {setting_text(S, _seeds(E, S))}")
 
 
 def setting_slug(S):
@@ -92,6 +108,8 @@ NA = {
         "leaves it unchanged; the figure is made for the 50- and 100-client federations (or FedECS-LT and GeFL-F "
         "are not part of this experiment)",
     58: "no class-row generator in this experiment", 60: "local-only training is not part of this experiment",
+    69: "the exact readout is computed only for FedECS-LT and the GeFL-F family of methods",
+    70: "FedECS-LT and GeFL-F are not part of this experiment (their per-round, per-class metrics are in the logs)",
 }
 
 

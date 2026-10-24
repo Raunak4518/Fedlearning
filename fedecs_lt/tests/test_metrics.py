@@ -37,6 +37,22 @@ def test_against_sklearn_and_core():
         assert abs(m["auc_roc"] - skm.roc_auc_score(yy, prob, multi_class="ovr", average="macro", labels=range(C))) < 1e-6
         assert abs(m["brier"] - ((prob - np.eye(C)[yy]) ** 2).sum(1).mean()) < 1e-9
         assert abs(m["nll"] - skm.log_loss(yy, np.clip(prob, 1e-6, 1), labels=range(C))) < 1e-3
+        # per-class versions
+        onehot = np.eye(C)[yy]
+        for c in (0, C // 2, C - 1):
+            pc, yc = pred == c, yy == c
+            assert abs(m["precision_c"][c] - skm.precision_score(yc, pc, zero_division=0)) < 1e-9
+            assert abs(m["f1_c"][c] - skm.f1_score(yc, pc, zero_division=0)) < 1e-9
+            assert abs(m["ap_c"][c] - skm.average_precision_score(yc, prob[:, c])) < 1e-9
+            assert abs(m["auc_c"][c] - skm.roc_auc_score(yc, prob[:, c])) < 1e-9
+            assert abs(m["mcc_c"][c] - skm.matthews_corrcoef(yc, pc)) < 1e-9
+            assert abs(m["nll_c"][c] - (-np.log(np.clip(prob[yc, c], 1e-6, None))).mean()) < 1e-9
+            assert abs(m["brier_c"][c] - ((prob[yc] - onehot[yc]) ** 2).sum(1).mean()) < 1e-9
+            assert abs(m["top5_c"][c] - skm.top_k_accuracy_score(yy[yc], prob[yc], k=min(5, C), labels=range(C))) < 1e-9
+            assert abs(m["pred_share_c"][c] - pc.mean()) < 1e-12
+        assert abs(np.mean(m["ece_c"]) - m["cw_ece"]) < 1e-12
+        assert abs(np.nanmean(m["auc_c"]) - m["auc_roc"]) < 1e-6
+        assert abs(np.sum(m["pred_share_c"]) - 1) < 1e-9
         core.NUM_CLASSES = C
         r = core._class_metrics(logits, y, C, prior=np.full(C, 1.0 / C))
         for k in ("acc", "precision", "f1", "gmean", "ece", "nll", "brier", "local"):

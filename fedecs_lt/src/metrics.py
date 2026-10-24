@@ -12,6 +12,13 @@ from settings import class_groups
 
 SCALARS = ("acc", "bal", "precision", "f1", "mcc", "kappa", "gmean", "worst", "head", "medium", "tail", "rec_std",
            "auc_roc", "auc_pr", "top5", "ece", "cw_ece", "nll", "brier", "local")
+# Per-class versions of every metric that has one (the class-averaged metrics above are their means, except NLL and
+# Brier, which average over images): recall, precision, F1, average precision (AUC-PR), AUC-ROC and MCC of class c
+# against the rest, calibration error of p(c|x), NLL and Brier score on the images of class c, top-5 recall, and the
+# share of all predictions that go to class c (pred_share_c against the true share shows the bias towards frequent
+# classes).
+PER_CLASS = ("recall_c", "precision_c", "f1_c", "ap_c", "auc_c", "mcc_c", "ece_c", "nll_c", "brier_c", "top5_c",
+             "pred_share_c")
 
 
 def _ece(conf, correct, bins=15):
@@ -26,10 +33,11 @@ def _ece(conf, correct, bins=15):
 
 def _classwise_ece(prob, y, C, bins=15):
     """Class-wise ECE (Kull et al., 2019): per class, calibration of p(c|x) against 1[y = c], averaged over classes."""
-    vals = []
-    for c in range(C):
-        vals.append(_ece(prob[:, c], (y == c).astype(float), bins))
-    return float(np.mean(vals))
+    return float(np.mean(_ece_per_class(prob, y, C, bins)))
+
+
+def _ece_per_class(prob, y, C, bins=15):
+    return np.array([_ece(prob[:, c], (y == c).astype(float), bins) for c in range(C)])
 
 
 def class_metrics(logits, y, C, prior=None, keep_probs=False):
@@ -62,8 +70,22 @@ def class_metrics(logits, y, C, prior=None, keep_probs=False):
     except ValueError:
         auc_roc = float("nan")
     ap_c = np.array([average_precision_score(onehot[:, c], prob[:, c]) if present[c] else np.nan for c in range(C)])
+    auc_c = np.array([roc_auc_score(onehot[:, c], prob[:, c]) if present[c] and ny[c] < N else np.nan
+                      for c in range(C)])
     k5 = min(5, C)
-    top5 = float((np.argsort(-prob, 1)[:, :k5] == yy[:, None]).any(1).mean())
+    in5 = (np.argsort(-prob, 1)[:, :k5] == yy[:, None]).any(1)
+    top5 = float(in5.mean())
+    # per class: MCC of "class c" against the rest; NLL, Brier and top-5 recall on the images of class c
+    fp, fn = npred - tp, ny - tp
+    tn = N - tp - fp - fn
+    den = np.sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn))
+    mcc_c = np.where(den > 0, (tp * tn - fp * fn) / np.where(den > 0, den, 1), 0.0)
+    nll_i = -np.log(np.clip(prob[np.arange(N), yy], 1e-6, None))
+    brier_i = ((prob - onehot) ** 2).sum(1)
+    by_class = [yy == c for c in range(C)]
+    nll_c = np.array([nll_i[s].mean() if s.any() else np.nan for s in by_class])
+    brier_c = np.array([brier_i[s].mean() if s.any() else np.nan for s in by_class])
+    top5_c = np.array([in5[s].mean() if s.any() else np.nan for s in by_class])
     conf = prob.max(1)
     hd, md, tl = class_groups(C)
     out = dict(
@@ -72,13 +94,26 @@ def class_metrics(logits, y, C, prior=None, keep_probs=False):
         head=float(rec[hd].mean()), medium=float(rec[md].mean()), tail=float(rec[tl].mean()), rec_std=float(rec.std()),
         auc_roc=auc_roc, auc_pr=float(np.nanmean(ap_c)), top5=top5,
         ece=_ece(conf, (pred == yy).astype(float)), cw_ece=_classwise_ece(prob, yy, C),
-        nll=float(-np.log(np.clip(prob[np.arange(N), yy], 1e-6, None)).mean()),
-        brier=float(((prob - onehot) ** 2).sum(1).mean()),
-        recall_c=rec.tolist(), precision_c=prec.tolist(), f1_c=f1_c.tolist(), ap_c=ap_c.tolist(), confusion=cm.tolist())
+        nll=float(nll_i.mean()), brier=float(brier_i.mean()),
+        recall_c=rec.tolist(), precision_c=prec.tolist(), f1_c=f1_c.tolist(), ap_c=ap_c.tolist(), auc_c=auc_c.tolist(),
+        mcc_c=mcc_c.tolist(), ece_c=_ece_per_class(prob, yy, C).tolist(), nll_c=nll_c.tolist(),
+        brier_c=brier_c.tolist(), top5_c=top5_c.tolist(), pred_share_c=(npred / N).tolist(), confusion=cm.tolist())
     if prior is not None:
         out["local"] = float((np.asarray(prior, dtype=float) * rec).sum())
     if keep_probs:
         out["probs"] = prob.astype(np.float32)
+    return out
+
+
+def log_view(m, digits=4):
+    """What a per-round evaluation logs: every scalar and every per-class metric (rounded; no confusion matrix or
+    probabilities, which only the final evaluation keeps)."""
+    out = {k: (round(float(m[k]), digits) if m[k] is not None and not np.isnan(m[k]) else None)
+           for k in SCALARS + ("worst_arch", "ens_acc", "ens_bal") if k in m}
+    for k in PER_CLASS:
+        if k in m:
+            out[k] = [None if v is None or (isinstance(v, float) and np.isnan(v)) else round(float(v), digits)
+                      for v in m[k]]
     return out
 
 
@@ -97,8 +132,9 @@ def summarize(per_arch, ens=None):
     out.update(bal=float(rec.mean()), head=float(rec[hd].mean()), medium=float(rec[md].mean()),
                tail=float(rec[tl].mean()), worst=float(rec.min()), rec_std=float(rec.std()),
                worst_arch=float(min(np.mean(v["recall_c"]) for v in vals)), recall_c=rec.tolist())
-    for k in ("precision_c", "f1_c", "ap_c"):
-        out[k] = np.nanmean([v[k] for v in vals], 0).tolist()
+    for k in PER_CLASS[1:]:
+        if all(k in v for v in vals):
+            out[k] = np.nanmean([v[k] for v in vals], 0).tolist()
     out["confusion"] = np.sum([v["confusion"] for v in vals], 0).tolist()
     if ens is not None:
         out["ens_acc"], out["ens_bal"] = ens["acc"], ens["bal"]

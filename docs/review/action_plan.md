@@ -584,6 +584,11 @@ Target: IEEE (IEEEtran template, journals and conferences). No other venue profi
   CNN (up to ResNet-152) would cost about 60-90 GPU-hours and ~12 GB of weights per notebook, and would not
   compare like with like (much larger client models, no shared extractor). The code is in git history
   (commit 24ccf7a) if a reviewer asks for it.
+- **Per-class logging (user, 24 Oct):** every metric that has a per-class form is computed for every class at
+  every evaluation (each round's pre- and post-aggregation evaluation, the final test and validation evaluation,
+  the exact readout): recall, precision, F1, average precision, AUC-ROC and MCC of the class against the rest,
+  calibration error of p(c|x), NLL, Brier, top-5 recall, share of predictions (`metrics.PER_CLASS`, checked
+  against scikit-learn). The report has a per-class table for each (blocks of 20 classes) and figures 61-70.
 - **Not run:** FedNH and FedVLS (priority B). LongTailLib contains FedNH, so it can be added to Track 2 by one
   line in `fedecs_lt/build_notebooks.py` if the main results leave room.
 - **Licences:** MIT / Apache code pasted with credit; unlicensed or GPL code downloaded at run time, never stored here.

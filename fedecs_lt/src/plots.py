@@ -230,7 +230,9 @@ def _per_class(E, S, key, methods):
     return mat
 
 
-def _class_lines(E, S, out, num, key, ylabel, name, what):
+def _class_lines(E, S, out, num, key, ylabel, name, what, scale=100.0, ref=None, prob_metric=False):
+    """One line per method over the classes (most to least frequent). ref = (label, values) adds a grey reference
+    line (e.g. the true class share)."""
     mat = _per_class(E, S, key, E.methods)
     if not mat:
         return []
@@ -239,15 +241,19 @@ def _class_lines(E, S, out, num, key, ylabel, name, what):
     rows = []
     x = np.arange(C)
     for m, v in mat.items():
-        mu, sd = v.mean(0) * 100, (v.std(0, ddof=1) * 100 if len(v) > 1 else np.zeros(C))
+        mu = np.nanmean(v, 0) * scale
+        sd = np.nanstd(v, 0, ddof=1) * scale if len(v) > 1 else np.zeros(C)
         st = ps.style(m)
         ax.plot(x, mu, label=m, markevery=max(1, C // 12), **st)
         rows += [[m, int(c), float(a), float(b)] for c, a, b in zip(x, mu, sd)]
+    if ref is not None:
+        ax.plot(x, np.asarray(ref[1]) * scale, color="0.5", linestyle=(0, (1, 1)), linewidth=1.2, label=ref[0])
+        rows += [[ref[0], int(c), float(a), 0.0] for c, a in zip(x, np.asarray(ref[1]) * scale)]
     ax.set_xlabel("Class (ordered from most to least frequent)")
     ax.set_ylabel(ylabel)
     ax.legend(ncol=3, loc="best")
     p = ps.save(f, out, f"fig_{num:02d}_{name}", rows, ["method", "class", "mean", "sd"])
-    return [(p, cap.per_class(num, E, S, what))]
+    return [(p, cap.per_class(num, E, S, what, note=cap.proto_note(mat) if prob_metric else ""))]
 
 
 @fig(9, "B")
@@ -263,6 +269,101 @@ def f12(E, S, out):
 @fig(13, "B")
 def f13(E, S, out):
     return _class_lines(E, S, out, 13, "final_f1_c", "F1 score (%)", "per_class_f1", "F1 score")
+
+
+# every other metric with a per-class form (metrics.PER_CLASS), one figure each
+@fig(61, "B")
+def f61(E, S, out):
+    return _class_lines(E, S, out, 61, "final_ap_c", "Average precision (%)", "per_class_auc_pr",
+                        "average precision (area under the precision-recall curve)")
+
+
+@fig(62, "B")
+def f62(E, S, out):
+    return _class_lines(E, S, out, 62, "final_auc_c", "AUC-ROC (%)", "per_class_auc_roc",
+                        "area under the ROC curve of the class against all others")
+
+
+@fig(63, "B")
+def f63(E, S, out):
+    return _class_lines(E, S, out, 63, "final_mcc_c", "MCC (%)", "per_class_mcc",
+                        "Matthews correlation coefficient of the class against all others")
+
+
+@fig(64, "B")
+def f64(E, S, out):
+    return _class_lines(E, S, out, 64, "final_ece_c", "Calibration error (%)", "per_class_calibration",
+                        "calibration error of the predicted probability of the class (15 bins; lower is better)",
+                        prob_metric=True)
+
+
+@fig(65, "B")
+def f65(E, S, out):
+    return _class_lines(E, S, out, 65, "final_nll_c", "NLL (nats)", "per_class_nll",
+                        "negative log-likelihood on the test images of the class (lower is better)", scale=1.0,
+                        prob_metric=True)
+
+
+@fig(66, "B")
+def f66(E, S, out):
+    return _class_lines(E, S, out, 66, "final_brier_c", "Brier score", "per_class_brier",
+                        "Brier score on the test images of the class (lower is better)", scale=1.0,
+                        prob_metric=True)
+
+
+@fig(67, "B")
+def f67(E, S, out):
+    return _class_lines(E, S, out, 67, "final_top5_c", "Top-5 recall (%)", "per_class_top5",
+                        "top-5 recall (true class among the five most probable)")
+
+
+@fig(68, "B")
+def f68(E, S, out):
+    true = None
+    for r in E.runs:
+        if setting_key(r) == S and r.get("final_confusion"):
+            cm = np.array(r["final_confusion"], dtype=float)
+            true = cm.sum(1) / cm.sum()
+            break
+    return _class_lines(E, S, out, 68, "final_pred_share_c", "Share of predictions (%)", "per_class_prediction_share",
+                        "share of all test predictions that go to the class; the dotted grey line is the class's "
+                        "true share of the test set (a line above it: the class is over-predicted)",
+                        ref=("Test set (true share)", true) if true is not None else None)
+
+
+@fig(69, "B")
+def f69(E, S, out):
+    return _class_lines(E, S, out, 69, "er_recall_c", "Recall, exact readout (%)", "per_class_recall_exact_readout",
+                        "recall after the exact class-balanced readout")
+
+
+@fig(70, "B")
+def f70(E, S, out):
+    """Per-class recall of the aggregated heads at every evaluation round of Stage III (FedECS-LT and GeFL-F)."""
+    res = []
+    for m in [x for x in (OURS, REF) if x in E.methods]:
+        rs = E.of(m, S)
+        if not rs:
+            continue
+        ev = [e for e in E.log(rs[0], "stage3_round") if (e.get("post") or {}).get("recall_c")]
+        if len(ev) < 2:
+            continue
+        A = np.array([e["post"]["recall_c"] for e in ev], dtype=float).T * 100
+        rr = [e["round"] for e in ev]
+        f, ax = ps.figure("column", 2.6)
+        im = ax.imshow(A, aspect="auto", cmap="viridis", origin="lower", vmin=0, vmax=100)
+        _round_ticks(ax, rr)
+        ax.set_xlabel("Round")
+        ax.set_ylabel("Class (0 = most frequent)")
+        f.colorbar(im, ax=ax, fraction=0.046, pad=0.04).set_label("Recall (%)")
+        name = "".join(ch for ch in m if ch.isalnum()).lower()
+        p = ps.save(f, out, f"fig_70_per_class_recall_rounds_{name}",
+                    [[rr[j], c, float(A[c, j])] for c in range(A.shape[0]) for j in range(A.shape[1])],
+                    ["round", "class", "recall"])
+        res.append((p, cap.simple(70, E, S, f"Recall of every class at each evaluation round of head training "
+                                            f"(Stage III) for {cap.mname(m)}: aggregated heads, test set, first seed. "
+                                            "Every per-class metric of every evaluation round is in the run logs.")))
+    return res
 
 
 @fig(10, "B")

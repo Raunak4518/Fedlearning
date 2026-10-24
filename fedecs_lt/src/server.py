@@ -23,6 +23,7 @@ from flwr.serverapp import Grid, ServerApp
 import fedecs
 from data import Federation, active_clients
 from fl_common import Averager, arrays_of, cfg_of, key_of, nbytes, pack, seed_all
+from metrics import PER_CLASS, log_view, summarize
 from models import (GaussFeatureGen, PaperHeader, make_fe, make_generator, make_head, make_headers, n_params,
                     sd_clone)
 from monitor import Monitor
@@ -118,7 +119,7 @@ def flat(prefix, summ):
     keep = ("acc", "bal", "precision", "f1", "mcc", "kappa", "gmean", "worst", "worst_arch", "head", "medium", "tail",
             "rec_std", "auc_roc", "auc_pr", "top5", "ece", "cw_ece", "nll", "brier", "local", "ens_acc", "ens_bal")
     out = {f"{prefix}_{k}": summ[k] for k in keep if k in summ}
-    for k in ("recall_c", "precision_c", "f1_c", "ap_c"):
+    for k in PER_CLASS:
         if k in summ:
             out[f"{prefix}_{k}"] = [round(float(v), 4) for v in summ[k]]
     if "confusion" in summ:
@@ -235,7 +236,7 @@ def stage_one(S, T_FE, la=False):
             rec["pre"] = {str(k): i["pre"] for k, i in infos if "pre" in i}
             post = S.ask("evaluate.stage1", [(S.nid[0], pack(S.base(), fe=fe_sd, heads=heads_rec(hd_sd, S.groups)))],
                          account=False)
-            rec["post"] = cfg_of(post[0].content)["summary"]
+            rec["post"] = log_view(cfg_of(post[0].content)["summary"])
         mon.log("stage1_round", **rec)
         history.append(rec)
     c = dict(fe_sd=fe_sd, hd_sd=hd_sd, history=history, time_s=time.time() - t0, bytes=_bytes_delta(b0, mon.bytes))
@@ -441,7 +442,7 @@ def stage_three(S, hs, feat_key, hd_sd, T_TN, sampler, sampler_key, gen_cfg, sec
         if ev:
             rec["pre"] = {str(k): i["pre"] for k, i in infos if "pre" in i}
             post = eval_heads(S, hd_sd, feat_key)["test"]
-            rec["post"] = {k: v for k, v in post["summary"].items() if k != "confusion"}
+            rec["post"] = log_view(post["summary"])
             rec["post_pred_counts"] = np.array(post["summary"]["confusion"]).sum(0).tolist()
         mon.log("stage3_round", **rec)
         history.append(rec)
@@ -638,11 +639,11 @@ def run_local(S, R, T, res, mon, t0):
     rep = S.ask("train.local", [(S.nid[k], pack(S.base(epochs=epochs), fe=sd_clone(fe),
                                                 head=sd_clone(headers[S.arch[k]]))) for k in range(S.K)])
     per_client = {str(S.pid[m.metadata.src_node_id]): cfg_of(m.content)["metrics"] for m in rep}
-    keys = ("acc", "bal", "f1", "precision", "mcc", "kappa", "gmean", "worst", "tail", "head", "medium", "auc_pr", "ece")
-    for k in keys:
-        res[f"final_{k}"] = float(np.mean([v[k] for v in per_client.values()]))
-    res["final_recall_c"] = np.mean([v["recall_c"] for v in per_client.values()], 0).tolist()
-    res["local_per_client"] = per_client
+    per_client_val = {str(S.pid[m.metadata.src_node_id]): cfg_of(m.content)["val_metrics"] for m in rep}
+    # every scalar and every per-class metric, averaged over the clients (each client's own model)
+    res.update(flat("final", summarize(per_client)))
+    res.update(flat("val_final", summarize(per_client_val)))
+    res["local_per_client"] = {k: log_view(v) for k, v in per_client.items()}
     res["time_s"] = time.time() - t0
     save_run(R, res, None, None, None, None, None, None, None, None)
     mon.close()

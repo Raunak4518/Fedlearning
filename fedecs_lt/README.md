@@ -13,7 +13,7 @@ FedECS-LT (Exact Class Statistics for Long-Tailed federated learning) and every 
   - `server.py`, `client.py` Flower ServerApp / ClientApp of the GeFL-F pipeline family; `secure_sum.py` SecAgg+
   - `htfl_server.py`, `htfl_client.py` Track-1 baselines ported from HtFLlib (Apache-2.0)
   - `track2.py` Track-2 baselines: the authors' LongTailLib code, downloaded at run time, on our splits
-  - `metrics.py`, `monitor.py`, `plot_style.py` (IEEE), `plots.py` (60-figure catalogue), `captions.py`,
+  - `metrics.py`, `monitor.py`, `plot_style.py` (IEEE), `plots.py` (70-figure catalogue), `captions.py`,
     `report.py` (report.pdf), `pack.py` (the three output files), `runner.py` (workers, resume, deadline),
     `acceptance.py` (NB00 check against the earlier results), `baselines.py` (registry)
 - `tests/`: `python -m pytest fedecs_lt/tests -q` (partitions, networks, formulas and every client training step

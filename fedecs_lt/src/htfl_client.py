@@ -14,7 +14,7 @@ import torch.nn.functional as F
 
 from client import DEV, STATE, app, fed_of, feats_of, pid_of, spec_of
 from fl_common import arrays_of, cfg_of, reply, seed_all
-from metrics import class_metrics
+from metrics import class_metrics, log_view
 from models import PaperHeader
 from settings import HEADER_WIDTHS
 
@@ -206,7 +206,7 @@ def evaluate_client(cfg, st, F_, fed, srv, gmodel=None):
     logits = predict(cfg, st, F_["te"], srv, gmodel)
     logits = torch.where(torch.isfinite(logits), logits, torch.full_like(logits, -1e9))
     m = class_metrics(logits, fed.y_te, fed.C)
-    return {kk: m[kk] for kk in ("acc", "bal", "f1", "tail", "worst", "recall_c")}
+    return log_view(m)
 
 
 @app.evaluate("htfl")

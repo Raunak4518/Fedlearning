@@ -202,10 +202,16 @@ def run_htfl(grid, context, R):
             rec["pre"] = {str(k): i["pre"] for k, i in infos if "pre" in i}
             rec["post_clients"] = {str(k): i["post"] for k, i in infos if "post" in i}
             pre = [i["pre"] for _, i in infos if "pre" in i]
-            if pre:
-                rec["post"] = dict(bal=float(np.mean([p["bal"] for p in pre])),
-                                   tail=float(np.mean([p["tail"] for p in pre])),
-                                   recall_c=np.mean([p["recall_c"] for p in pre], 0).tolist())
+            if pre:   # mean over the clients' personal models of every scalar and every per-class metric
+                rec["post"] = {}
+                for k in pre[0]:
+                    vals = [p[k] for p in pre if p.get(k) is not None]
+                    if not vals:
+                        continue
+                    if isinstance(vals[0], list):
+                        rec["post"][k] = [round(float(x), 4) for x in np.nanmean(np.array(vals, dtype=float), 0)]
+                    else:
+                        rec["post"][k] = round(float(np.mean(vals)), 4)
         mon.log("stage3_round", **rec)
         history.append(rec)
     mon.stop("stage3")
@@ -225,9 +231,7 @@ def run_htfl(grid, context, R):
         if "embed" in o:
             emb = (o["embed"], o["embed_y"])
     for split, prefix in (("test", "final"), ("val", "val_final")):
-        summ = summarize({k: dict(v[split], recall_c=v[split]["recall_c"], precision_c=v[split]["precision_c"],
-                                  f1_c=v[split]["f1_c"], ap_c=v[split]["ap_c"], confusion=v[split]["confusion"])
-                          for k, v in per.items()})
+        summ = summarize({k: v[split] for k, v in per.items()})
         res.update(flat(prefix, summ))
     res["final_per_client"] = {str(k): {kk: v["test"][kk] for kk in ("acc", "bal", "f1", "tail", "worst")}
                                for k, v in per.items()}
