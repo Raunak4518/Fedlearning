@@ -48,9 +48,13 @@ def pack(work, name, title, report=True, out_dir=None, models=True):
     if report:
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
         import report as rep
+        import audit
         figs = os.path.join(res, "figures")
         shutil.rmtree(figs, ignore_errors=True)
+        audit.audit(res, figures=False)          # runs and logs; the report shows its findings
         info = rep.build(res, title, os.path.join(out_dir, f"{name}__report.pdf"), figs)
+        a = audit.audit(res)                     # again with the figures the report has drawn
+        info = dict(info or {}, audit_problems=a["n_problems"])
     zip_dir(res, os.path.join(out_dir, f"{name}__results.zip"))
     if models and os.path.isdir(mdir):
         zip_dir(mdir, os.path.join(out_dir, f"{name}__models.zip"))

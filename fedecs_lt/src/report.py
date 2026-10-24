@@ -173,6 +173,13 @@ def build(res_dir, title, out_pdf, fig_dir):
                 + (" Methods marked LongTailLib run in the authors' own code (LongTailLib, FedLTLib benchmark) on the "
                    "same client split." if any("LongTailLib" in str(r.get("framework", "")) for r in E.runs) else "")),
               Spacer(1, 6)]
+    aud = None
+    if os.path.exists(os.path.join(res_dir, "audit.json")):
+        aud = json.load(open(os.path.join(res_dir, "audit.json")))
+        story += [P("<b>Logging audit:</b> " + (
+            f"every run has every metric for every class on every evaluation ({aud['checked']['runs']} runs, "
+            f"{aud['checked']['round_evaluations']} per-round evaluations checked)." if aud["n_problems"] == 0 else
+            f"{aud['n_problems']} problems found; see the appendix 'Logging audit'.")), Spacer(1, 6)]
     import torch
     try:
         import flwr
@@ -332,6 +339,10 @@ def build(res_dir, title, out_pdf, fig_dir):
         story.append(Paragraph("Appendix D. Failed runs", h1))
         story += [table([[f["run_id"] + (" (completed on retry)" if f["run_id"] in done_ids else ""),
                           f["error"][:600]] for f in fails], ["Run", "Error"], [2.0 * inch, 5.0 * inch])]
+    if aud is not None and aud["n_problems"]:
+        story.append(Paragraph("Appendix E. Logging audit", h1))
+        story += [P(f"{aud['n_problems']} problems (at most 200 listed)."),
+                  table([[escape(p_)] for p_ in aud["problems"]], ["Problem"], [7.0 * inch])]
 
     # ---------------------------------------------------------------- completeness check
     all_pdfs = {os.path.abspath(p) for p in glob.glob(os.path.join(fig_dir, "**", "*.pdf"), recursive=True)}
