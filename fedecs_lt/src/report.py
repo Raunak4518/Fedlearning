@@ -265,7 +265,10 @@ def build(res_dir, title, out_pdf, fig_dir):
             def mean_of(k):
                 v = [x[k] for x in col if x.get(k) is not None]
                 return f"{np.mean(v):.3f}" if v else "-"
-            row = [m, mean_of("nc2_equinorm"), mean_of("nc2_equiangle"), mean_of("nc3"),
+            def pct_of(k):
+                v = [x[k] for x in col if x.get(k) is not None]
+                return f"{100 * np.mean(v):.1f}" if v else "-"
+            row = [m, pct_of("knn"), pct_of("knn_tail"), mean_of("nc2_equinorm"), mean_of("nc2_equiangle"), mean_of("nc3"),
                    (f"{np.mean([x['minority_angle'] for x in col if x.get('minority_angle') is not None]):.1f}"
                     if any(x.get("minority_angle") is not None for x in col) else "-"),
                    f"{100 * np.mean(au):.0f}" if au else "-",
@@ -275,14 +278,17 @@ def build(res_dir, title, out_pdf, fig_dir):
                 body.append(row)
         if not body:
             return []
-        return [tcap("Representation and generator: NC2 equinorm and equiangularity and NC3 self-duality of the test "
+        return [tcap("Representation and generator: leave-one-out 10-nearest-neighbour accuracy of the test embeddings "
+                     "(%, all classes and the tail classes), NC2 equinorm and equiangularity and NC3 self-duality of "
+                     "the test "
                      "embeddings and last layers (lower = closer to neural collapse), mean angle between the tail "
                      "classes' classifier vectors (degrees; small = minority collapse), active latent units of the "
                      "generator (%), and the mean over classes of the squared MMD and of the mean mismatch (in "
                      "within-class standard deviations) between generated and real validation features; mean over "
                      "architectures and seeds. " + st), Spacer(1, 3),
-                table(body, ["Method", "NC2 norm", "NC2 angle", "NC3", "Tail angle", "Active units", "MMD^{2}",
-                             "Mean mism."], [1.55 * inch] + [(7.0 - 1.55) * inch / 7] * 7), Spacer(1, 10)]
+                table(body, ["Method", "10-NN acc.", "10-NN tail", "NC2 norm", "NC2 angle", "NC3", "Tail angle",
+                             "Active units", "MMD^{2}", "Mean mism."], [1.55 * inch] + [(7.0 - 1.55) * inch / 9] * 9),
+                Spacer(1, 10)]
 
     # ---------------------------------------------------------------- cover
     done = len(E.runs)

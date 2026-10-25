@@ -99,6 +99,12 @@ Check every figure in `results/figures/` at 100% zoom of its print size.
 13. Empty or degenerate figures (all values equal, one point, a single bar) are not drawn, or are listed as not
     applicable with a reason.
 14. Every figure has PDF (vector, fonts embedded), PNG and CSV of its data.
+15. Embedding maps (t-SNE / PCA), following Wattenberg et al. (Distill 2016) and Kobak and Berens (Nat. Commun.
+    2019): PCA to 50 dimensions, PCA initialisation, perplexity 30 for ~2,000 points, learning rate n/12; the same
+    images and settings for every method compared; a baseline-vs-ours panel pair (as in the FedLTLib benchmark's
+    feature-space figure); tail classes emphasised; a quantitative companion computed on the embeddings themselves
+    (leave-one-out 10-NN accuracy, all and tail classes); a perplexity check (10 / 30 / 100); the caption says that
+    cluster sizes and distances between clusters are not interpretable.
 
 ### D. Captions
 

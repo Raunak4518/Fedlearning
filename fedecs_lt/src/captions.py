@@ -198,6 +198,8 @@ NA = {
     79: "CKA compares the embeddings of several head architectures of FedECS-LT or GeFL-F",
     80: "no generator in this experiment", 81: "no generator in this experiment",
     82: "no variational generator in this experiment",
+    83: "made when FedECS-LT and GeFL-F with saved test embeddings are both part of the experiment",
+    84: "no saved test embeddings of FedECS-LT in this experiment",
 }
 
 

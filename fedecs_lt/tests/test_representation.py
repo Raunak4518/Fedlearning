@@ -79,3 +79,12 @@ def test_nc1_nonnegative_and_zero_at_collapse():
     k = w > 1e-8 * w.max()
     ref = np.trace(Sw @ (V[:, k] / w[k]) @ V[:, k].T) / C
     assert abs(v - ref) < 1e-8 * max(1.0, ref)
+
+
+def test_knn_correct():
+    rs = np.random.RandomState(5)
+    y = np.repeat(np.arange(3), 30)
+    H = np.eye(3)[y] * 10 + 0.1 * rs.randn(90, 3)
+    assert rp.knn_correct(H, y).all()                       # separated classes: every neighbour vote right
+    Hn = rs.randn(90, 3)
+    assert 0.1 < rp.knn_correct(Hn, y).mean() < 0.6          # no structure: about chance (1/3)

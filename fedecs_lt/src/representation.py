@@ -127,3 +127,22 @@ def holm(p):
         run = max(run, (len(p) - i) * p[j])
         adj[j] = min(1.0, run)
     return adj.tolist()
+
+
+def knn_correct(H, y, k=10):
+    """Leave-one-out k-nearest-neighbour classification in the embedding space (Euclidean, majority vote, ties to the
+    nearest neighbour's class): a quantitative companion of a t-SNE map, computed on the embeddings themselves, not
+    on the map (t-SNE can make unclustered data look clustered). Returns one bool per image."""
+    H = np.asarray(H, dtype=np.float64)
+    y = np.asarray(y)
+    sq = (H * H).sum(1)
+    D = sq[:, None] + sq[None, :] - 2 * H @ H.T
+    np.fill_diagonal(D, np.inf)
+    nn = np.argsort(D, 1)[:, :k]
+    lab = y[nn]
+    out = np.empty(len(y), bool)
+    for i in range(len(y)):
+        vals, cnt = np.unique(lab[i], return_counts=True)
+        best = vals[cnt == cnt.max()]
+        out[i] = (best[0] if len(best) == 1 else lab[i][np.isin(lab[i], best)][0]) == y[i]
+    return out
