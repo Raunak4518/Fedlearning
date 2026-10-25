@@ -65,6 +65,9 @@ class Exp:
                     pass
             if recs and recs[0].get("event") == "run_start":
                 self.logs[recs[0]["run_id"]] = recs
+        for r in self.runs:   # names as printed (captions.display); the suite's own label is kept
+            r.setdefault("label_internal", r["label"])
+            r["label"] = cap.display(r["label_internal"])
         self.methods = [m for m in ps.ORDER if any(r["label"] == m for r in self.runs)]
         self.methods += sorted({r["label"] for r in self.runs} - set(self.methods))
         self.settings = sorted({setting_key(r) for r in self.runs})
@@ -587,7 +590,7 @@ def f15(E, S, out):
 def f16(E, S, out):
     f, ax = ps.figure("column", 2.6)
     rows = []
-    for m in [x for x in (OURS, REF, "GeFL-F + AdamW + LA") if x in E.methods]:
+    for m in [x for x in (OURS, REF, "GeFL-F + LA") if x in E.methods]:
         rs = E.of(m, S)
         d = E.pred(rs[0]) if rs else None
         if d is None or "y_full" not in d.files:
@@ -1615,7 +1618,7 @@ def f59(E, S, out):
 
 @fig(60, "17b")
 def f60(E, S, out):
-    loc = E.of("Local only", S)
+    loc = E.of("Local", S)
     if not loc:
         return []
     l_rec = np.mean([r["final_recall_c"] for r in loc], 0) * 100

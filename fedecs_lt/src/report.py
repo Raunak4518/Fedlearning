@@ -38,17 +38,21 @@ REFS = {
     "FedECS-LT": ("This work", "This suite (Flower)"),
     "GeFL-F": ("Kang et al., IEEE TMC 2025", "Re-implementation of the authors' Algorithm 3, checked against the "
                                              "earlier experiments"),
-    "GeFL-F + AdamW + LA": ("GeFL-F with decoupled weight decay (Loshchilov and Hutter, ICLR 2019) and logit "
-                            "adjustment (Menon et al., ICLR 2021)", "This suite"),
-    "Real only": ("Control: heads trained on real features only (no generator)", "This suite"),
-    "Real only + LA (balanced softmax)": ("Balanced softmax (Ren et al., NeurIPS 2020), i.e. logit adjustment "
-                                          "(Menon et al., ICLR 2021) with each client's prior", "This suite"),
+    "GeFL-F + LA": ("Ablation: GeFL-F with logit adjustment (Menon et al., ICLR 2021) and decoupled weight decay "
+                    "(Loshchilov and Hutter, ICLR 2019)", "This suite"),
+    "GeFL-F w/o generator": ("Ablation: GeFL-F without its generator (heads trained on real features only)",
+                             "This suite"),
+    "Balanced Softmax": ("Ren et al., NeurIPS 2020 (each client's head trained with its own class prior; equal to "
+                         "logit adjustment, Menon et al., ICLR 2021, with tau = 1)", "This suite (loss only)"),
     "FedLC": ("Zhang et al., ICML 2022", "Re-implemented from the paper (loss only)"),
     "FedRS": ("Li and Zhan, KDD 2021", "Re-implemented from the paper (loss only)"),
-    "Gaussian generator + LA": ("Control: class Gaussian from exact statistics, with logit adjustment", "This suite"),
+    "GeFL-F w/ Gaussian generator + LA": ("Ablation: GeFL-F with its generator replaced by class Gaussians from the "
+                                          "exact class statistics, with logit adjustment", "This suite"),
     "FedDF": ("Lin et al., NeurIPS 2020", "Re-implementation (server ensemble distillation on generated features)"),
-    "FedDF + LA": ("FedDF (Lin et al., NeurIPS 2020) with logit adjustment", "Re-implementation"),
-    "Local only": ("Control: no federation (each client trains alone)", "This suite"),
+    "FedDF + LA": ("Ablation: FedDF (Lin et al., NeurIPS 2020) with logit adjustment", "Re-implementation"),
+    "Local": ("Lower bound: each client trains its own model alone, without federation", "This suite"),
+    "FedECS-LT (T_FE = 200)": ("This work, with the feature extractor trained for 200 rounds (diagnosis run)",
+                               "This suite (Flower)"),
 }
 
 
@@ -173,8 +177,9 @@ def build(res_dir, title, out_pdf, fig_dir):
                 + (f" ({len(recovered)} of them on a second attempt)" if recovered else "")
                 + f", {len(lost)} failed. Framework: Flower simulation (one server, one client process per simulation); "
                   "every client trains on its own data only."
-                + (" Methods marked LongTailLib run in the authors' own code (LongTailLib, FedLTLib benchmark) on the "
-                   "same client split." if any("LongTailLib" in str(r.get("framework", "")) for r in E.runs) else "")),
+                + (" The long-tail baselines of the one-shared-model setting run in their authors' own code "
+                   "(LongTailLib, FedLTLib benchmark) on the same client split (Table II)."
+                   if any("LongTailLib" in str(r.get("framework", "")) for r in E.runs) else "")),
               Spacer(1, 6)]
     aud = None
     if os.path.exists(os.path.join(res_dir, "audit.json")):

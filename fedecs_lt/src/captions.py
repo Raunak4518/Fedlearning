@@ -48,6 +48,19 @@ def one_seed(text, seeds):
     return text
 
 
+# Names as printed in reports and figures. Inside the suite the baselines of the one-shared-model setting carry the
+# suffix " (LongTailLib)" (it selects their code, and pairs them with earlier runs); the reports print the method's
+# name only, and the methods table names the code each method ran in.
+DISPLAY = {"FedECS-LT (extractor 200 rounds)": "FedECS-LT (T_FE = 200)"}
+LT_SUFFIX = " (LongTailLib)"
+
+
+def display(label):
+    if label in DISPLAY:
+        return DISPLAY[label]
+    return label[:-len(LT_SUFFIX)] if label.endswith(LT_SUFFIX) else label
+
+
 def mname(m):
     """Method name as written in the text (with its citation where it has one)."""
     base = m.split(" (")[0].split(" + ")[0]

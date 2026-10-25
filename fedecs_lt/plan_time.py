@@ -17,7 +17,7 @@ HEAD_FEDECS = (531.0, 8.88e-4)    # FedECS-LT Stage III (consensus, readout, sec
 HTFL = (60.0, 3.81e-3)            # FedTGP: 7,040 s at 18,485 x 100 (HtFLlib batch 10)
 # relative cost of each method's own stage (measured: GeFL-F, FedECS-LT, FedTGP; the others are estimates from what
 # each adds: FedDF a server distillation, FedGen a generator, FedMRL a second model)
-HEAD_FACTOR = {"FedDF": 2.0, "FedDF + LA": 2.0, "Local only": 1.5, "Gaussian generator + LA": 1.2}
+HEAD_FACTOR = {"FedDF": 2.0, "FedDF + LA": 2.0, "Local": 1.5, "GeFL-F w/ Gaussian generator + LA": 1.2}
 HTFL_FACTOR = {"FedProto": 1.0, "FedTGP": 1.0, "FedGen": 1.2, "FedGH": 0.9, "LG-FedAvg": 0.8, "FedMRL": 1.6}
 # Track 2 (one shared ResNet-8): FedECS-LT 7,409 s and LongTailLib FedAvg 12,018 s measured on CIFAR-10-LT IF 100;
 # the other LongTailLib methods relative to FedAvg (estimates from what each adds per round)
@@ -30,7 +30,7 @@ BUDGET_H = 9.5                    # a part's estimate must stay below this (no n
 SETUP_S = 25 * 60                 # packages, data, report and packing
 
 PIPE_GEN = {"FedECS-LT": "fedecs", "GeFL-F": "cvae", "FedDF": "cvae", "FedDF + LA": "cvae",
-            "GeFL-F + AdamW + LA": "cvae_adamw"}
+            "GeFL-F + LA": "cvae_adamw"}
 HTFL_METHODS = tuple(HTFL_FACTOR)
 
 

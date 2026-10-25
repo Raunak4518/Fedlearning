@@ -632,7 +632,7 @@ def run_pipeline(grid, context, R):
 
 
 def run_local(S, R, T, res, mon, t0):
-    """Local only: every client trains its own extractor and head for the federated stages' epochs combined."""
+    """Local (no federation): every client trains its own extractor and head for the federated stages' epochs combined."""
     spec = S.spec
     torch.manual_seed(R["seed"])
     fe = make_fe(spec)

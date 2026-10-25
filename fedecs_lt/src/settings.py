@@ -98,6 +98,6 @@ CITE = {
     "RUCR": "Huang et al., IEEE TIFS 2024", "FedGH": "Yi et al., ACM MM 2023", "LG-FedAvg": "Liang et al., 2020",
     "FedNH": "Dai et al., AAAI 2023", "FedVLS": "Guo et al., AAAI 2025", "FedMRL": "Yi et al., NeurIPS 2024",
     "FedAvg": "McMahan et al., AISTATS 2017", "FedProx": "Li et al., MLSys 2020", "MOON": "Li et al., CVPR 2021",
-    "CLIP2FL": "Shi et al., AAAI 2024", "Balanced softmax": "Ren et al., NeurIPS 2020",
+    "CLIP2FL": "Shi et al., AAAI 2024", "Balanced Softmax": "Ren et al., NeurIPS 2020",
     "LA": "Menon et al., ICLR 2021",
 }

@@ -566,10 +566,14 @@ Target: IEEE (IEEEtran template, journals and conferences). No other venue profi
   CIFAR-10 18,485 images, every client's counts equal); every client training step equals core.py weight for weight
   (tests); whole runs cannot be bit-identical (Flower seeds each client action separately; core.py used one random
   stream), so accuracy must lie within max(2 points, 3 x the old seed SD) of the old seed-3 run.
-- **Track 1** (different client models): FedECS-LT, GeFL-F, GeFL-F + AdamW + LA, Real only, Real + LA, FedLC, FedRS,
-  Gaussian generator + LA, FedDF, FedDF + LA, Local only, and the model-heterogeneous methods FedProto, FedTGP,
-  FedGen, FedGH, LG-FedAvg, FedMRL (HtFLlib, Apache-2.0, ported to Flower; their hyperparameters from the authors'
-  scripts; same rounds and local epochs as our head stage). The long-tail methods built for one shared model are
+- **Track 1** (different client models): FedECS-LT, GeFL-F, Balanced Softmax, FedLC, FedRS, FedDF, Local, and the
+  model-heterogeneous methods FedProto, FedTGP, FedGen, FedGH, LG-FedAvg, FedMRL (HtFLlib, Apache-2.0, ported to
+  Flower; their hyperparameters from the authors' scripts; same rounds and local epochs as our head stage).
+  **Published names only (user, 25 Oct):** the ablations GeFL-F w/o generator, GeFL-F + LA (AdamW), GeFL-F w/
+  Gaussian generator + LA and FedDF + LA are out of the main comparison and run in their own notebooks
+  (NB30_ablation_cifar10 / _cifar100, seeds 3-5), paired with the main notebooks' FedECS-LT and GeFL-F runs (same
+  splits and seeds). Reports print the method's name only (no "(LongTailLib)" suffix; the methods table names the
+  code), and each method keeps one colour and marker, unique within every report. The long-tail methods built for one shared model are
   compared in Track 2 only (user, 23 Oct).
 - **Track 2** (one shared ResNet-8, FedLTLib protocol: 20 clients, 40% per round, 200 rounds, 10 local epochs, batch
   32, SGD 0.1 momentum 0.9 decay 0.99): FedAvg, FedProx, MOON, FedLC, CCVR, CReFF, FedETF, Fed-GraB, FedLoGe, FedYoYo,

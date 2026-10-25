@@ -53,20 +53,32 @@ PALETTE = ["#0072B2", "#D55E00", "#009E73", "#CC79A7", "#E69F00", "#882255", "#0
 MARKERS = ["o", "s", "^", "D", "v", "P", "X", "<", ">", "h", "*", "p", "d", "8", "H", "1", "2", "3"]
 DASHES = ["-", "--", "-.", ":", (0, (5, 1)), (0, (3, 1, 1, 1)), (0, (1, 1)), (0, (5, 2, 1, 2))]
 OURS = "FedECS-LT"
-ORDER = ["FedECS-LT", "GeFL-F", "GeFL-F + AdamW + LA", "Real only", "Real only + LA (balanced softmax)", "FedLC",
-         "FedRS", "Gaussian generator + LA", "FedDF", "FedDF + LA", "Local only", "FedProto", "FedTGP", "FedGen",
-         "CReFF", "CCVR", "FedETF", "FedLoGe", "Fed-GraB", "FedYoYo", "RUCR", "FedGH", "LG-FedAvg", "FedNH",
-         "FedVLS", "FedMRL", "FedAvg", "FedProx", "MOON", "CLIP2FL"]
+# Order of the methods in tables and legends: the main comparison, the ablations, then the one-shared-model baselines
+ORDER = ["FedECS-LT", "FedECS-LT (T_FE = 200)", "GeFL-F", "Balanced Softmax", "FedLC", "FedRS", "FedDF", "Local",
+         "FedProto", "FedTGP", "FedGen", "FedGH", "LG-FedAvg", "FedMRL",
+         "GeFL-F w/o generator", "GeFL-F + LA", "GeFL-F w/ Gaussian generator + LA", "FedDF + LA",
+         "FedAvg", "FedProx", "MOON", "CCVR", "CReFF", "FedETF", "Fed-GraB", "FedLoGe", "FedYoYo", "RUCR", "CLIP2FL",
+         "FedNH", "FedVLS"]
+# Colour and marker index of every method (18 of each): unique among the methods one report can show together
+# (main comparison 0-12, ablations 13-16 with 0-1, the variant 17; the one-shared-model baselines avoid 0, 1, 3, 8
+# and 17, the indices of FedECS-LT, GeFL-F, FedLC, FedTGP and the variant, which share reports with them)
+STYLE_INDEX = {m: i for i, m in enumerate(["FedECS-LT", "GeFL-F", "Balanced Softmax", "FedLC", "FedRS", "FedDF",
+                                           "Local", "FedProto", "FedTGP", "FedGen", "FedGH", "LG-FedAvg", "FedMRL",
+                                           "GeFL-F w/o generator", "GeFL-F + LA",
+                                           "GeFL-F w/ Gaussian generator + LA", "FedDF + LA",
+                                           "FedECS-LT (T_FE = 200)"])}
+STYLE_INDEX.update({"FedAvg": 2, "FedProx": 4, "MOON": 5, "CCVR": 6, "CReFF": 7, "FedETF": 9, "Fed-GraB": 10,
+                    "FedLoGe": 11, "FedYoYo": 12, "RUCR": 13, "CLIP2FL": 14, "FedNH": 15, "FedVLS": 16})
 
 
 def style(method):
     """Fixed (colour, marker, line style) for a method; ours is always the first colour, solid, circle."""
     variant = 0
     for v, suffix in enumerate((" (LongTailLib)",), 1):   # same colour as the method, other dashes
-        if method.endswith(suffix) and method[:-len(suffix)] in ORDER:
+        if method.endswith(suffix) and method[:-len(suffix)] in STYLE_INDEX:
             method, variant = method[:-len(suffix)], v
     # unknown names: a stable index (str hash() changes between processes)
-    i = ORDER.index(method) if method in ORDER else (len(ORDER) + zlib.crc32(method.encode()) % 7)
+    i = STYLE_INDEX[method] if method in STYLE_INDEX else zlib.crc32(method.encode()) % len(PALETTE)
     return dict(color=PALETTE[i % len(PALETTE)], marker=MARKERS[i % len(MARKERS)],
                 linestyle=DASHES[(i + 3 * variant) % len(DASHES)] if method != OURS or variant else "-",
                 linewidth=1.4 if method == OURS else 1.0, zorder=5 if method == OURS else 2)

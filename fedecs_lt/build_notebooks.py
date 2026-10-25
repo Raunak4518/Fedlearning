@@ -34,9 +34,13 @@ def run(label, ds, seed, IF=0.01, alpha=0.5, K=10, **extra):
     return dict(label=label, ds=ds, seed=seed, IF=IF, alpha=alpha, K=K, **extra)
 
 
-TRACK1_MAIN = ["FedECS-LT", "GeFL-F", "GeFL-F + AdamW + LA", "Real only", "Real only + LA (balanced softmax)", "FedLC",
-               "FedRS", "Gaussian generator + LA", "FedDF", "FedDF + LA", "Local only", "FedProto", "FedTGP", "FedGen",
-               "FedGH", "LG-FedAvg", "FedMRL"]
+# main comparison: published methods only (and the lower bound Local)
+TRACK1_MAIN = ["FedECS-LT", "GeFL-F", "Balanced Softmax", "FedLC", "FedRS", "FedDF", "Local", "FedProto", "FedTGP",
+               "FedGen", "FedGH", "LG-FedAvg", "FedMRL"]
+# ablations (user, 25 Oct 2026: out of the main comparison, into their own notebooks on CIFAR-10-LT and CIFAR-100-LT,
+# seeds 3-5). Their references, FedECS-LT and GeFL-F, are the main notebooks' runs on the same splits and seeds.
+ABLATIONS = ["GeFL-F w/o generator", "GeFL-F + LA", "GeFL-F w/ Gaussian generator + LA", "FedDF + LA"]
+ABLATION_DATASETS = ("cifar10", "cifar100")
 
 NOTEBOOKS = {
     "NB00_acceptance": dict(
@@ -63,8 +67,21 @@ def main_setting_notebook(ds, part=None, methods=None, seeds=SEEDS):
     title = (f"Main comparison on {spec['name']}" + ("-LT (imbalance ratio 100)" if IF else " (natural imbalance)")
              + ", 10 clients, Dirichlet 0.5")
     runs = [run(m, ds, s, IF=IF) for s in seeds for m in (methods or TRACK1_MAIN)]
-    return name, dict(title=title, what=f"{title}: FedECS-LT against every Track-1 method, seeds 3-5.",
+    return name, dict(title=title, what=f"{title}: FedECS-LT against {len(TRACK1_MAIN) - 2} published methods and the Local lower bound, seeds 3-5.",
                       hours=None, acceptance=False, runs=runs, **from_settings)
+
+
+def ablation_notebook(ds, seeds=SEEDS):
+    sys.path.insert(0, SRC)
+    import settings
+    spec = settings.DATASETS[ds]
+    name = f"NB30_ablation_{ds}"
+    title = f"Ablations on {spec['name']}-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5"
+    runs = [run(m, ds, s) for s in seeds for m in ABLATIONS]
+    return name, dict(title=title, what=f"{title}: GeFL-F without its generator, with logit adjustment, with a "
+                                        "Gaussian generator, and FedDF with logit adjustment; seeds 3-5. FedECS-LT and "
+                                        "GeFL-F, the references, come from the main notebook of this dataset (same "
+                                        "client splits and seeds).", hours=None, acceptance=False, runs=runs)
 
 
 # ---------------------------------------------------------------- cells
@@ -245,6 +262,9 @@ def all_notebooks():
     for ds in TIER1 + TIER2:
         name, nb = main_setting_notebook(ds)
         nbs.update(_parts(name, nb, plan_time.split_track1(nb["runs"], pipe, htfl, SEEDS)))
+    for ds in ABLATION_DATASETS:
+        name, nb = ablation_notebook(ds)
+        nbs.update(_parts(name, nb, plan_time.split_track1(nb["runs"], list(ABLATIONS), [], SEEDS)))
     long_runs = []
     for ds_key in ("cifar10_t2", "cifar100_t2"):
         for IF in (0.1, 0.02, 0.01):
@@ -266,14 +286,14 @@ def all_notebooks():
 
 
 def priority(name):
-    """Run order: 0 NB00 (done), 1 Track 1 on the tier-1 datasets, 2 Track 2 at imbalance ratio 100, 3 Track 1 on the
-    tier-2 datasets, 4 Track 2 at ratios 50 and 10 and the long runs."""
+    """Run order: 0 NB00 (done), 1 Track 1 on the tier-1 datasets, 2 Track 2 at imbalance ratio 100 and the ablations,
+    3 Track 1 on the tier-2 datasets, 4 Track 2 at ratios 50 and 10 and the long runs."""
     if name.startswith("NB00"):
         return 0
     if name.startswith("NB10"):
         return 1 if any(f"NB10_main_{d}" in name and not name.startswith(f"NB10_main_{d}mnist")
                         for d in TIER1) else 3
-    if name.startswith("NB20") and "_IF100_" in name:
+    if (name.startswith("NB20") and "_IF100_" in name) or name.startswith("NB30"):
         return 2
     return 4
 
