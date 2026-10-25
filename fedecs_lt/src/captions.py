@@ -21,7 +21,9 @@ ONE_SEED = [
 
 # Track 2 has one model shared by all clients (one architecture): the stage figures' wording for it
 TRACK2_WORDS = [
-    (r"the aggregated heads", "the aggregated head"),
+    (r"aggregated heads", "aggregated head"),
+    (r"the clients' local heads", "the clients' local copies of the head"),
+    (r"minus local heads", "minus local copies"),
     (r"the architecture heads", "its head"),
     (r"the clients' heads", "the clients' copies of the head"),
     (r"of the heads as trained", "of the head as trained"),
