@@ -711,35 +711,64 @@ def _scatter_classes(ax, Z, y, C, marker="o", alpha=0.8, label_prefix=None):
         sel = y == c
         if sel.any():
             # filled markers need no edge; line markers ("x") are drawn only by their edge, so they need a width
-            lw = 0.6 if marker in ("x", "+", "1", "2", "3", "4") else 0
-            ax.scatter(Z[sel, 0], Z[sel, 1], s=2.5 if lw == 0 else 6, color=cmap(c % cmap.N), marker=marker,
+            lw = 0.7 if marker in ("x", "+", "1", "2", "3", "4") else 0
+            ax.scatter(Z[sel, 0], Z[sel, 1], s=4 if lw == 0 else 9, color=cmap(c % cmap.N), marker=marker,
                        alpha=alpha, linewidths=lw,
                        label=f"{label_prefix or ''}{c}" if C <= 10 else None, rasterized=True)
     ax.set_xticks([])
     ax.set_yticks([])
+    for sp in ax.spines.values():   # embedding axes have no scale: a full thin frame, no ticks
+        sp.set_visible(True)
+        sp.set_linewidth(0.5)
 
 
-def _class_legend(ax, C, sources=False):
+def _class_labels(C, names):
+    """Legend labels: the class index, with its name when the dataset has short names (CIFAR-10: "0 airplane");
+    datasets whose names are digits or long phrases keep the index (the class table gives every name)."""
+    if not names or len(names) < C:
+        return [str(c) for c in range(C)]
+    nm = [str(n) for n in names[:C]]
+    if all(n == str(c) for c, n in enumerate(nm)) or max(len(n) for n in nm) > 12:
+        return [str(c) for c in range(C)]
+    return [f"{c} {n}" for c, n in enumerate(nm)]
+
+
+def _class_legend(ax, C, sources=False, names=None):
     """Class legend inside the axes, top right (embedding scatter plots): one entry per class (10 classes or fewer;
     with more, the caption says the points are coloured by class), plus the marker of real and generated features.
-    The y range gets 35% headroom so that the legend sits above the points instead of on them."""
+    The view is then extended upwards (and if needed to the right) only as far as it takes for the legend to cover
+    no point, so the points keep as much of the panel as possible."""
     import matplotlib.pyplot as plt
     from matplotlib.lines import Line2D
     if C > 10 and not sources:
         return
     cmap = plt.get_cmap("tab10")
-    handles = [Line2D([], [], marker="o", linestyle="", color=cmap(c), markersize=4, label=str(c))
-               for c in range(C)] if C <= 10 else []
+    labels = _class_labels(C, names) if C <= 10 else []
+    handles = [Line2D([], [], marker="o", linestyle="", color=cmap(c), markersize=4, label=lab)
+               for c, lab in enumerate(labels)]
     if sources:
         handles += [Line2D([], [], marker="o", linestyle="", color="0.45", markersize=4, label="Real"),
                     Line2D([], [], marker="x", linestyle="", color="0.45", markersize=4, label="Generated")]
-    y0, y1 = ax.get_ylim()
-    ax.set_ylim(y0, y1 + 0.35 * (y1 - y0))
-    leg = ax.legend(handles=handles, loc="upper right", ncol=min(5, len(handles)), frameon=True, framealpha=0.9,
-                    edgecolor="0.7", fancybox=False, handletextpad=0.1, columnspacing=0.6, borderpad=0.3,
-                    labelspacing=0.25, borderaxespad=0.3)
+    long_ = any(len(h.get_label()) > 3 for h in handles)
+    leg = ax.legend(handles=handles, loc="upper right", ncol=2 if long_ else min(5, len(handles)), frameon=True,
+                    framealpha=0.9, edgecolor="0.7", fancybox=False, handletextpad=0.1, columnspacing=0.6,
+                    borderpad=0.3, labelspacing=0.2, borderaxespad=0.3)
     leg.get_frame().set_linewidth(0.5)
     leg.set_gid("keep")   # plot_style.place_legends leaves it where it is
+    fig = ax.figure
+    r = fig.canvas.get_renderer()
+    y0, y1 = ax.get_ylim()
+    x0, x1 = ax.get_xlim()
+    for step in range(1, 26):   # headroom in steps of 4% until the legend covers no point (at most 100%)
+        fig.canvas.draw()
+        if not ps.points_under(ax, leg, r):
+            return
+        ax.set_ylim(y0, y1 + 0.04 * step * (y1 - y0))
+    for step in range(1, 16):   # a legend taller than the cloud: room on the right as well
+        ax.set_xlim(x0, x1 + 0.05 * step * (x1 - x0))
+        fig.canvas.draw()
+        if not ps.points_under(ax, leg, r):
+            return
 
 
 def _colour_note(C):
@@ -762,9 +791,9 @@ def _emb_fig(E, S, out, num, m, name):
     C = int(y.max()) + 1
     g = keys[0]
     Z = _tsne(d[g].astype(np.float32))
-    f, ax = ps.figure("column", 3.0)
+    f, ax = ps.figure("column", 3.3)
     _scatter_classes(ax, Z, y, C)
-    _class_legend(ax, C)
+    _class_legend(ax, C, names=rs[0].get("class_names"))
     ax.set_xlabel("t-SNE 1")
     ax.set_ylabel("t-SNE 2")
     p = ps.save(f, out, f"fig_{num:02d}_{name}", [[float(a), float(b), int(c)] for (a, b), c in zip(Z, y)],
@@ -772,7 +801,8 @@ def _emb_fig(E, S, out, num, m, name):
     arch = int(g.split("_")[1]) + 1
     head = "ResNet-8 head" if DATASETS.get(S[0], {}).get("track") == 2 else f"head CNN-{arch}"
     return [(p, cap.simple(num, E, S, f"t-SNE of the test-set embeddings of {cap.mname(m)}'s {head} "
-                                      f"(2,000 test images, first seed), coloured by true class.{_colour_note(C)}"))]
+                                      f"(2,000 test images, first seed), coloured by true class (classes numbered from the most to the "
+                                      f"least frequent).{_colour_note(C)}"))]
 
 
 @fig(19, "C")
@@ -828,10 +858,10 @@ def _real_vs_gen(E, S, out, num, m, name):
     Xr, yr, Xg, yg = d["val_x"].astype(np.float32), d["val_y"], d["gen_x"].astype(np.float32), d["gen_y"]
     Z = _tsne(np.concatenate([Xr, Xg]))
     C = int(max(yr.max(), yg.max())) + 1
-    f, ax = ps.figure("column", 3.0)
+    f, ax = ps.figure("column", 3.3)
     _scatter_classes(ax, Z[:len(Xr)], yr, C, marker="o", alpha=0.5)
     _scatter_classes(ax, Z[len(Xr):], yg, C, marker="x", alpha=0.9)
-    _class_legend(ax, C, sources=True)
+    _class_legend(ax, C, sources=True, names=rs[0].get("class_names"))
     ax.set_xlabel("t-SNE 1")
     ax.set_ylabel("t-SNE 2")
     rows = [[float(a), float(b), int(c), "real"] for (a, b), c in zip(Z[:len(Xr)], yr)] + \
@@ -839,7 +869,7 @@ def _real_vs_gen(E, S, out, num, m, name):
     p = ps.save(f, out, f"fig_{num:02d}_{name}", rows, ["tsne1", "tsne2", "class", "source"], raster=True)
     return [(p, cap.simple(num, E, S, f"t-SNE of real validation features (circles) and features generated by "
                                       f"{cap.mname(m)}'s generator (crosses) in the frozen feature space, coloured by "
-                                      f"class (first seed).{_colour_note(C)}"))]
+                                      f"class (numbered from the most to the least frequent; first seed).{_colour_note(C)}"))]
 
 
 @fig(22, "C")
