@@ -291,8 +291,8 @@ def main():
         json.dump(notebook(n, nbs[n]), open(path, "w"), indent=1)
         print("wrote", path, len(nbs[n]["runs"]), "runs")
     rows = ["# Kaggle notebooks of the FedECS-LT suite: one per person and session", "",
-            "Run **NB00_acceptance** first, on your own account. Send the others only after it prints "
-            "`ACCEPTANCE: PASS`.", "",
+            "**NB00_acceptance passed on 24 Oct 2026** (results in `fedecs_lt/results/NB00_acceptance/`); every other "
+            "notebook can be run now.", "",
             "## For each person (5 minutes)",
             "1. Kaggle → **Create** → **New Notebook** → **File** → **Import Notebook** → upload your `.ipynb`.",
             "2. Right panel → **Settings**: **Accelerator = GPU T4 x2**, **Internet = On**.",
@@ -302,7 +302,8 @@ def main():
             "(large: predictions and weights) on Google Drive.",
             "", "Expected hours are estimates from NB00's measured run times (fedecs_lt/plan_time.py); a notebook "
             "starts no new run after 11 h and always saves what has finished.", "",
-            f"**{len(nbs)} notebooks, about {sum(nb['hours'] for nb in nbs.values()):.0f} session-hours in total.**", "",
+            f"**{len(nbs) - 1} notebooks to run, about "
+            f"{sum(nb['hours'] for n, nb in nbs.items() if not n.startswith('NB00')):.0f} session-hours in total.**", "",
             "## Run order",
             "Priority 1 first (the paper's main tables), then 2, 3, 4. One notebook per account at a time; any free "
             "account takes the next notebook of the lowest priority number still open.", "",

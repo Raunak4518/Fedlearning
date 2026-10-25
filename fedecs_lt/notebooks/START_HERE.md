@@ -1,6 +1,6 @@
 # Kaggle notebooks of the FedECS-LT suite: one per person and session
 
-Run **NB00_acceptance** first, on your own account. Send the others only after it prints `ACCEPTANCE: PASS`.
+**NB00_acceptance passed on 24 Oct 2026** (results in `fedecs_lt/results/NB00_acceptance/`); every other notebook can be run now.
 
 ## For each person (5 minutes)
 1. Kaggle → **Create** → **New Notebook** → **File** → **Import Notebook** → upload your `.ipynb`.
@@ -10,7 +10,7 @@ Run **NB00_acceptance** first, on your own account. Send the others only after i
 
 Expected hours are estimates from NB00's measured run times (fedecs_lt/plan_time.py); a notebook starts no new run after 11 h and always saves what has finished.
 
-**47 notebooks, about 326 session-hours in total.**
+**46 notebooks to run, about 320 session-hours in total.**
 
 ## Run order
 Priority 1 first (the paper's main tables), then 2, 3, 4. One notebook per account at a time; any free account takes the next notebook of the lowest priority number still open.
