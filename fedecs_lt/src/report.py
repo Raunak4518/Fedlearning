@@ -131,7 +131,7 @@ def build(res_dir, title, out_pdf, fig_dir):
     used_keys = set()
 
     def table(rows, header, widths=None, bold_best=None):
-        data = [[Paragraph(f"<b>{escape(h)}</b>", cell) for h in header]]
+        data = [[Paragraph(f"<b>{sub_super(escape(h))}</b>", cell) for h in header]]
         for r in rows:
             data.append([Paragraph(escape(str(x)), cell) for x in r])
         t = Table(data, colWidths=widths, repeatRows=1)
@@ -179,8 +179,8 @@ def build(res_dir, title, out_pdf, fig_dir):
             lower_better = k in ("final_ece", "final_cw_ece", "final_nll", "final_brier", "final_rec_std",
                                  "comm_mb_per_client", "time_s", "fe_time_s", "gen_time_s", "gpu_peak_mb",
                                  "fwd_mflops", "train_gflops_round", "final_own_mix_sd")
-            i = int(np.nanargmin(col) if lower_better else np.nanargmax(col))
-            best.append((i, j + 1))
+            b = np.nanmin(col) if lower_better else np.nanmax(col)
+            best += [(i, j + 1) for i in np.where(np.isclose(col, b, rtol=0, atol=1e-9))[0]]   # ties: all shaded
         w = [1.55 * inch] + [(7.0 - 1.55) * inch / len(keys)] * len(keys)
         return [tcap(caption), Spacer(1, 3), table(rows, ["Method"] + [n for _, n in keys], w, best), Spacer(1, 10)]
 
@@ -281,7 +281,7 @@ def build(res_dir, title, out_pdf, fig_dir):
                      "generator (%), and the mean over classes of the squared MMD and of the mean mismatch (in "
                      "within-class standard deviations) between generated and real validation features; mean over "
                      "architectures and seeds. " + st), Spacer(1, 3),
-                table(body, ["Method", "NC2 norm", "NC2 angle", "NC3", "Tail angle", "Active units", "MMD2",
+                table(body, ["Method", "NC2 norm", "NC2 angle", "NC3", "Tail angle", "Active units", "MMD^{2}",
                              "Mean mism."], [1.55 * inch] + [(7.0 - 1.55) * inch / 7] * 7), Spacer(1, 10)]
 
     # ---------------------------------------------------------------- cover

@@ -93,9 +93,27 @@ def figure(width="column", height=2.4, ncols=1, nrows=1, **kw):
 
 
 def panel_labels(axes, y=-0.32):
-    """(a), (b), ... below each panel (IEEE subfigure convention)."""
+    """(a), (b), ... below each panel (IEEE subfigure convention). y is a first guess; enforce() moves each label
+    just below everything its panel draws (tick and axis labels), whatever their length."""
     for i, ax in enumerate(list(axes)):
-        ax.text(0.5, y, f"({chr(97 + i)})", transform=ax.transAxes, ha="center", va="top", fontsize=FONT_PT)
+        t = ax.text(0.5, y, f"({chr(97 + i)})", transform=ax.transAxes, ha="center", va="top", fontsize=FONT_PT)
+        t.set_gid("panel_label")
+
+
+def _place_panel_labels(fig):
+    from matplotlib.text import Text
+    r = fig.canvas.get_renderer()
+    for ax in fig.axes:
+        labels = [t for t in ax.texts if isinstance(t, Text) and t.get_gid() == "panel_label"]
+        if not labels:
+            continue
+        for t in labels:
+            t.set_visible(False)
+        lowest = ax.get_tightbbox(r).y0                    # display units, without the panel label itself
+        y = ax.transAxes.inverted().transform((0, lowest - 4))[1]
+        for t in labels:
+            t.set_visible(True)
+            t.set_y(y)
 
 
 def enforce(fig):
@@ -118,6 +136,7 @@ def enforce(fig):
             ax.xaxis.set_major_locator(MaxNLocator(integer=True, min_n_ticks=1))   # also with one round
     place_legends(fig)
     fit_width(fig)
+    _place_panel_labels(fig)
     return n
 
 
