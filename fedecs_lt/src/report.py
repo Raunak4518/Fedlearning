@@ -23,9 +23,9 @@ MAIN = [("final_bal", "Bal. acc."), ("final_f1", "Macro-F1"), ("final_precision"
         ("final_gmean", "G-mean"), ("final_tail", "Tail rec."), ("final_worst", "Worst rec."),
         ("final_auc_pr", "AUC-PR")]
 SECOND = [("final_acc", "Accuracy"), ("final_kappa", "Kappa"), ("final_top5", "Top-5"), ("final_auc_roc", "AUC-ROC"),
-          ("final_head", "Head rec."), ("final_medium", "Med. rec."), ("final_rec_std", "Recall SD"),
-          ("final_worst_arch", "Worst-arch. bal."), ("final_local", "Own-mix acc."),
-          ("final_own_mix_sd", "Own-mix SD"), ("final_own_mix_min", "Own-mix min.")]
+          ("final_head", "Head rec."), ("final_medium", "Med. rec."), ("final_rec_std", "Recall SD")]
+CLIENTS = [("final_worst_arch", "Worst-arch. bal."), ("final_local", "Own-mix acc."),
+           ("final_own_mix_sd", "Own-mix SD"), ("final_own_mix_min", "Own-mix min.")]
 CALIB = [("final_ece", "ECE"), ("final_cw_ece", "Class-wise ECE"), ("final_nll", "NLL"), ("final_brier", "Brier")]
 READOUT = [("er_bal", "Bal. acc."), ("er_f1", "Macro-F1"), ("er_tail", "Tail rec."), ("er_worst", "Worst rec."),
            ("er_mcc", "MCC"), ("er_gmean", "G-mean")]
@@ -219,7 +219,10 @@ def build(res_dir, title, out_pdf, fig_dir):
             for r in E.of(m, S):
                 series = plots._global_series(E, r) if shared else \
                     [(e["round"], e["post"]) for e in E.log(r, "stage3_round") if e.get("post")]
-                hit = [rd for rd, p in series if p.get("bal") is not None and p["bal"] >= tgt]
+                if not series:      # no rounds (Local trains once, alone)
+                    continue
+                # the per-round logs keep 4 decimals: a round reaches the target within that rounding
+                hit = [rd for rd, p in series if p.get("bal") is not None and p["bal"] >= tgt - 5e-5]
                 first.append(min(hit) if hit else None)
             if not first:
                 continue
@@ -373,12 +376,12 @@ def build(res_dir, title, out_pdf, fig_dir):
         story += metric_table(S, READOUT, ("The same model" if shared else "The same heads") + " with the exact "
                               "class-balanced readout (last layer recomputed from secure sums of every client's "
                               "embeddings). " + st)
-        second = [kv for kv in SECOND if not (shared and kv[0] in ("final_worst_arch", "final_local"))]
-        story += metric_table(S, second, f"Further metrics (%, test set, {trained})."
-                              + ("" if shared else " Worst-arch. bal.: balanced accuracy of the weakest head architecture. Own-mix accuracy: "
-                                 "accuracy re-weighted to each architecture's own clients' class mix (mean, standard "
-                                 "deviation and minimum over the architectures, or over the clients' own models).")
-                              + " " + st)
+        story += metric_table(S, SECOND, f"Further metrics (%, test set, {trained}). " + st)
+        if not shared:   # one shared model: no architectures, every client evaluates the same model
+            story += metric_table(S, CLIENTS, f"Fairness across clients (%, test set, {trained}): balanced accuracy of "
+                                  "the weakest head architecture, and the accuracy re-weighted to each architecture's "
+                                  "own clients' class mix (own-mix accuracy; mean, standard deviation and minimum over "
+                                  "the architectures, or over the clients' own models). " + st)
         story += metric_table(S, CALIB, "Calibration (ECE and class-wise ECE in %, NLL in nats, Brier score)."
                               + proto_note([m for m in E.methods if E.of(m, S)]) + " " + st)
         story += metric_table(S, VAL, "Balanced accuracy on the validation set (images no client holds), used to select "
@@ -422,7 +425,9 @@ def build(res_dir, title, out_pdf, fig_dir):
             C = len(recs[0][1])
             for c0 in range(0, C, 20):
                 cols = list(range(c0, min(C, c0 + 20)))
-                rows = [[m] + ["-" if np.isnan(mu[c]) else (f"{mu[c]:.0f}" if pct else f"{mu[c]:.2f}") for c in cols]
+                def cell_(x):   # no "-0" for a value that rounds to zero
+                    return "-" if np.isnan(x) else (f"{int(round(x))}" if pct else f"{x:.2f}".replace("-0.00", "0.00"))
+                rows = [[m] + [cell_(mu[c]) for c in cols]
                         for m, mu in recs]
                 part = "" if C <= 20 else f" Classes {cols[0]}-{cols[-1]} of {C}."
                 note = proto_note([m for m, _ in recs]) if key in ("final_ece_c", "final_nll_c", "final_brier_c") else ""

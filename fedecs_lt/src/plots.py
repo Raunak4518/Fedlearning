@@ -1759,7 +1759,8 @@ def f78(E, S, out):
                 rows.append([m, k, float(np.mean(v)), float(np.std(v, ddof=1)) if len(v) > 1 else 0.0])
     if not rows:
         return []
-    f, axes = ps.figure("page", 4.6, ncols=2, nrows=2)
+    f, axes = ps.figure("page", 5.8, ncols=2, nrows=2)
+    f.subplots_adjust(hspace=1.0, wspace=0.3)   # room for the rotated method names and the panel labels
     axes = list(np.ravel(axes))
     for ax, (k, name) in zip(axes, keys):
         rr = [r for r in rows if r[1] == k]
@@ -1770,7 +1771,7 @@ def f78(E, S, out):
         ax.set_xticks(np.arange(len(rr)))
         ax.set_xticklabels([r[0] for r in rr], rotation=35, ha="right")
         ax.set_ylabel(name)
-    ps.panel_labels(axes, y=-0.62)
+    ps.panel_labels(axes, y=-0.58)
     p = ps.save(f, out, "fig_78_neural_collapse_nc2_nc3", rows, ["method", "statistic", "mean", "sd"])
     return [(p, cap.simple(78, E, S, "Neural collapse of the test-set embeddings and last layers (lower = closer to "
                                      "collapse in (a)-(c)): (a) NC2 equinorm, the coefficient of variation of the "
