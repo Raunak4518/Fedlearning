@@ -2,6 +2,9 @@
   <name>__results.zip  every figure (PDF, PNG, CSV), every metric (runs.jsonl, runs.csv), every log, failures
   <name>__report.pdf   the readable report (report.py)
   <name>__models.zip   trained weights (feature extractor, heads, generator, referee, readout) for later re-plotting
+  <name>__summary.zip  small (a few MB), to send when the others are too big to upload: runs.jsonl / runs.csv, every
+                       per-round log, the audit, failures and the data (CSV) of every figure; no predictions, images,
+                       TensorBoard files or weights
 Called after every run, so a timeout never loses finished work."""
 import csv
 import json
@@ -36,6 +39,21 @@ def zip_dir(src, dst, skip=()):
     os.replace(tmp, dst)
 
 
+def summary_zip(res, dst):
+    """The small results file: every metric and log as text, no predictions, images or TensorBoard files."""
+    tmp = dst + ".part"
+    with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
+        for root, _, files in os.walk(res):
+            rel = os.path.relpath(root, res)
+            if rel.split(os.sep)[0] in ("predictions", "tb") or os.sep + "tb" in root:
+                continue
+            for fn in files:
+                if fn.endswith((".jsonl", ".json", ".csv", ".txt")):
+                    p = os.path.join(root, fn)
+                    z.write(p, os.path.relpath(p, os.path.dirname(res)))
+    os.replace(tmp, dst)
+
+
 def pack(work, name, title, report=True, out_dir=None, models=True):
     """work holds results/ and models/; the three files go to out_dir (default: work)."""
     out_dir = out_dir or work
@@ -56,6 +74,7 @@ def pack(work, name, title, report=True, out_dir=None, models=True):
         a = audit.audit(res)                     # again with the figures the report has drawn
         info = dict(info or {}, audit_problems=a["n_problems"])
     zip_dir(res, os.path.join(out_dir, f"{name}__results.zip"))
+    summary_zip(res, os.path.join(out_dir, f"{name}__summary.zip"))
     if models and os.path.isdir(mdir):
         zip_dir(mdir, os.path.join(out_dir, f"{name}__models.zip"))
     return info
@@ -69,6 +88,7 @@ def quick(work, name, out_dir):
         fcntl.flock(lk, fcntl.LOCK_EX)
         runs_csv(os.path.join(work, "results"))
         zip_dir(os.path.join(work, "results"), os.path.join(out_dir, f"{name}__results.zip"))
+        summary_zip(os.path.join(work, "results"), os.path.join(out_dir, f"{name}__summary.zip"))
 
 
 if __name__ == "__main__":

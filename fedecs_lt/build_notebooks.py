@@ -2,10 +2,11 @@
 
 Every notebook contains every helper script (fedecs_lt/src/*.py, written to disk by hidden %%writefile cells), its own
 run list, and the cells that run, check and pack it. Nothing is imported from GitHub; only pip packages (Flower, Ray,
-reportlab) and the datasets are downloaded at run time. Each notebook returns three files:
+reportlab) and the datasets are downloaded at run time. Each notebook returns four files:
   NAME__results.zip   every figure (PDF, PNG, CSV), metric file and log
   NAME__report.pdf    the readable report with every table and figure
   NAME__models.zip    trained weights, for re-plotting without re-running
+  NAME__summary.zip   small: every metric and log as text (what is sent back when the others are too big)
 
     python fedecs_lt/build_notebooks.py            # all notebooks
     python fedecs_lt/build_notebooks.py NB00       # those whose name starts with NB00
@@ -110,10 +111,11 @@ def notebook(name, nb):
         "## How to run\n"
         "**Save Version** → **Save & Run All (Commit)** → **Save**. You can close the tab.\n\n"
         "## What to send back\n"
-        "When the version shows a green tick: open it → **Output** tab → download all three files:\n"
-        f"- `{name}__results.zip` (every image, metric and log)\n"
+        "When the version shows a green tick: open it → **Output** tab → download the files:\n"
+        f"- `{name}__summary.zip` (small, a few MB: every metric and log; **send this one first**)\n"
         f"- `{name}__report.pdf` (everything in one readable document)\n"
-        f"- `{name}__models.zip` (trained weights)\n\n"
+        f"- `{name}__results.zip` (every image, metric, log and prediction; keep it)\n"
+        f"- `{name}__models.zip` (trained weights; keep it)\n\n"
         "If the run stops with a red **STOP** message, it tells you which setting to change; change it and run again.")]
     cells.append(code(
         "# Environment check\n"
@@ -282,14 +284,16 @@ def main():
             "1. Kaggle → **Create** → **New Notebook** → **File** → **Import Notebook** → upload your `.ipynb`.",
             "2. Right panel → **Settings**: **Accelerator = GPU T4 x2**, **Internet = On**.",
             "3. Top right: **Save Version** → **Save & Run All (Commit)** → **Save**. You can close the tab.",
-            "4. When the version shows a green tick: open it → **Output** → download the three files → send them back.",
+            "4. When the version shows a green tick: open it → **Output** → download the four files. Send back "
+            "`NAME__summary.zip` and `NAME__report.pdf` (small); keep `NAME__results.zip` and `NAME__models.zip` "
+            "(large: predictions and weights) on Google Drive.",
             "", "Expected hours are estimates from NB00's measured run times (fedecs_lt/plan_time.py); a notebook "
             "starts no new run after 11 h and always saves what has finished.", "",
             f"**{len(nbs)} notebooks, about {sum(nb['hours'] for nb in nbs.values()):.0f} session-hours in total.**", "",
             "| Notebook | What it runs | Runs | Expected hours | Send back |", "|---|---|---|---|---|"]
     for n, nb in nbs.items():
-        rows.append(f"| {n}.ipynb | {nb['what']} | {len(nb['runs'])} | {nb['hours']:.1f} | `{n}__results.zip`, "
-                    f"`{n}__report.pdf`, `{n}__models.zip` |")
+        rows.append(f"| {n}.ipynb | {nb['what']} | {len(nb['runs'])} | {nb['hours']:.1f} | `{n}__summary.zip`, "
+                    f"`{n}__report.pdf` |")
     open(os.path.join(OUT, "START_HERE.md"), "w").write("\n".join(rows) + "\n")
 
 

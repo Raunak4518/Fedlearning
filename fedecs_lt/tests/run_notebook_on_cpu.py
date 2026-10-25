@@ -56,6 +56,6 @@ p = subprocess.run([sys.executable, os.path.join(test_dir, "nb_as_script.py")], 
 outs = sorted(f for f in os.listdir(W) if f.startswith(name))
 print("outputs:", outs)
 assert p.returncode == 0, "notebook script failed"
-for suffix in ("__results.zip", "__report.pdf", "__models.zip"):
+for suffix in ("__results.zip", "__report.pdf", "__models.zip", "__summary.zip"):
     assert name + suffix in outs, f"missing {name + suffix}"
 print("NOTEBOOK CPU TEST PASSED")

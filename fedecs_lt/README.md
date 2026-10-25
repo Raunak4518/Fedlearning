@@ -25,4 +25,6 @@ FedECS-LT (Exact Class Statistics for Long-Tailed federated learning) and every 
 
 ## Every notebook returns
 `NAME__results.zip` (every figure as PDF + PNG + CSV, `runs.jsonl`, `runs.csv`, per-round logs, TensorBoard,
-predictions), `NAME__report.pdf` (every table and figure with captions), `NAME__models.zip` (weights).
+predictions), `NAME__report.pdf` (every table and figure with captions; its cover shows the logging audit),
+`NAME__models.zip` (weights) and `NAME__summary.zip` (a few MB: every metric and log as text, the figures' CSV data;
+the file to send back when the others are too big to upload).
