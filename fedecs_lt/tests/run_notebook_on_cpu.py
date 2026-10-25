@@ -62,6 +62,7 @@ import zipfile  # noqa: E402
 with zipfile.ZipFile(os.path.join(W, name + "__results.zip")) as z:
     info = json.loads(z.read(next(n for n in z.namelist() if n.endswith("report_info.json"))))
 print("report:", info)
-for key in ("failures", "audit_problems", "figure_errors"):
+assert "report_error" not in info, info.get("report_error")
+for key in ("failures", "audit_problems", "figure_errors", "table_errors"):
     assert info.get(key, 0) == 0, f"{key}: {info.get(key)}"
 print("NOTEBOOK CPU TEST PASSED")

@@ -1728,7 +1728,7 @@ def _collapse(E, m, S):
     out = []
     for r in E.of(m, S):
         d = E.pred(r)
-        if d is None:
+        if d is None or "y" not in d.files:   # runs without saved embeddings (one-shared-model baselines)
             continue
         y = d["y"]
         for k in d.files:

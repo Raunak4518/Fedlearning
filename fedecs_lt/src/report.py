@@ -133,6 +133,7 @@ def build(res_dir, title, out_pdf, fig_dir):
         return t
 
     tab_no = [0]
+    table_errors = []
 
     def tcap(text):
         tab_no[0] += 1
@@ -301,6 +302,7 @@ def build(res_dir, title, out_pdf, fig_dir):
     if n_err:
         story += [P(f"Figure errors: {n_err} figures could not be drawn; Appendix A gives the error of each."),
                   Spacer(1, 6)]
+    cover_at = len(story)   # table errors are known only after the tables: their note is inserted here
     import torch
     try:
         import flwr
@@ -391,9 +393,11 @@ def build(res_dir, title, out_pdf, fig_dir):
                                          "head, or the whole model) and training FLOPs of one round over all clients "
                                          "(3 x forward; the head stage for the methods on the frozen extractor, every "
                                          "round of the one shared model otherwise). " + st)
-        story += paired_table(S, st)
-        story += rounds_table(S, st)
-        story += representation_table(S, st)
+        for fn in (paired_table, rounds_table, representation_table):
+            try:
+                story += fn(S, st)
+            except Exception as e:   # a failing table is reported, never stops the report
+                table_errors.append(f"{fn.__name__} ({setting_slug(S)}): {e!r}"[:400])
         # per-seed table
         rows = []
         for m in E.methods:
@@ -492,11 +496,17 @@ def build(res_dir, title, out_pdf, fig_dir):
         canvas.setFont("Times-Roman", 8)
         canvas.drawRightString(letter[0] - 0.75 * inch, 0.5 * inch, f"{title} - page {doc.page}")
         canvas.restoreState()
+    if table_errors:   # on the cover, and listed in an appendix
+        story.insert(cover_at, P(f"Table errors: {len(table_errors)} tables could not be computed; Appendix F lists "
+                                 "them."))
+        story.append(Paragraph("Appendix F. Table errors", h1))
+        story += [table([[escape(t)] for t in table_errors], ["Error"], [7.0 * inch])]
     doc = SimpleDocTemplate(out_pdf, pagesize=letter, leftMargin=0.75 * inch, rightMargin=0.75 * inch,
                             topMargin=0.7 * inch, bottomMargin=0.8 * inch, title=title)
     doc.build(story, onFirstPage=page, onLaterPages=page)
     return dict(figures=len(figs), not_applicable=len(na), runs=len(E.runs), failures=len(lost),
-                figure_errors=sum(1 for _, _, reason, _ in na if str(reason).startswith("error:")))
+                figure_errors=sum(1 for _, _, reason, _ in na if str(reason).startswith("error:")),
+                table_errors=len(table_errors))
 
 
 def main():

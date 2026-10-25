@@ -70,7 +70,15 @@ def pack(work, name, title, report=True, out_dir=None, models=True):
         figs = os.path.join(res, "figures")
         shutil.rmtree(figs, ignore_errors=True)
         audit.audit(res, figures=False)          # runs and logs; the report shows its findings
-        info = rep.build(res, title, os.path.join(out_dir, f"{name}__report.pdf"), figs)
+        try:
+            info = rep.build(res, title, os.path.join(out_dir, f"{name}__report.pdf"), figs)
+        except Exception:                        # the results are still zipped: the report can be rebuilt from them
+            import traceback
+            err = traceback.format_exc()
+            print("REPORT FAILED (results are still packed):\n" + err, flush=True)
+            with open(os.path.join(res, "report_error.txt"), "w") as f:
+                f.write(err)
+            info = dict(report_error=err[-500:])
         a = audit.audit(res)                     # again with the figures the report has drawn
         info = dict(info or {}, audit_problems=a["n_problems"])
         with open(os.path.join(res, "report_info.json"), "w") as f:   # checked by the CPU tests
