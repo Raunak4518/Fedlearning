@@ -15,6 +15,7 @@ from torch.utils.data import DataLoader
 
 from data import active_clients
 from fl_common import arrays_of, cfg_of, pack, seed_all
+from flops import forward_flops
 from metrics import summarize
 from monitor import Monitor
 from server import DEV, EVAL_EVERY, Fed, flat, gpu_peaks, save_run, stage_one, train_referee
@@ -51,6 +52,28 @@ def proto_cluster(protos, masks):
     cnt = M.sum(0)
     avg = (P * M[:, :, None]).sum(0) / cnt.clamp(min=1)[:, None]
     return avg, (cnt > 0).float()
+
+
+def htfl_flops(S, hp, meth, HtModel):
+    """Forward FLOPs per image of every client's model (FedMRL: with its shared small model and projection) and the
+    expected training FLOPs of one round over all clients (3 x forward; the local epochs over full batches)."""
+    from models import make_fe
+    fe = make_fe(S.spec).to(DEV)
+    f_fe = forward_flops(fe, torch.zeros(2, S.spec["in_ch"], 32, 32, device=DEV))
+    with torch.no_grad():
+        shape = tuple(fe(torch.zeros(1, S.spec["in_ch"], 32, 32, device=DEV)).shape[1:])
+    f_head = {}
+    for g in S.groups:
+        f = forward_flops(HtModel(HEADER_WIDTHS[g], shape[0], S.spec["header_bn"], S.C, hp["feature_dim"]).to(DEV),
+                          torch.zeros(2, *shape, device=DEV))
+        if meth == "FedMRL":
+            f += forward_flops(HtModel(HEADER_WIDTHS[0], shape[0], S.spec["header_bn"], S.C,
+                                       hp["sub_feature_dim"]).to(DEV), torch.zeros(2, *shape, device=DEV))
+            f += 2 * (hp["feature_dim"] + hp["sub_feature_dim"]) * hp["feature_dim"]
+        f_head[str(g)] = f
+    per_round = sum(3 * f_head[str(S.arch[k])] * hp["epochs"] * (int(S.fed.sizes[k]) // hp["B"]) * hp["B"]
+                    for k in range(S.K))
+    return dict(flops_fe=f_fe, flops_head=f_head, head_stage_gflops_per_round=S.R.get("pfrac", 1.0) * per_round / 1e9)
 
 
 def run_htfl(grid, context, R):
@@ -235,16 +258,21 @@ def run_htfl(grid, context, R):
     for split, prefix in (("test", "final"), ("val", "val_final")):
         summ = summarize({k: v[split] for k, v in per.items()})
         res.update(flat(prefix, summ))
-    res["final_per_client"] = {str(k): {kk: v["test"][kk] for kk in ("acc", "bal", "f1", "tail", "worst")}
+    res["final_per_client"] = {str(k): {kk: v["test"][kk] for kk in ("acc", "bal", "f1", "tail", "worst", "local")
+                                        if kk in v["test"]}
                                for k, v in per.items()}
     res["time_s"] = time.time() - t0
     res["stage_time_s"] = dict(mon.stage_t)
     res["bytes"] = {k: dict(down=v[0], up=v[1], messages=v[2]) for k, v in mon.bytes.items()}
     res["comm_mb_per_client"] = sum(v[0] + v[1] for v in mon.bytes.values()) / 2 ** 20 / S.K
     res.update(gpu_peaks(S))
+    res.update(htfl_flops(S, hp, meth, HtModel))
     fin = dict(test=dict(probs={k: v for k, v in probs.items()}, embed={"0": emb[0]} if emb else {},
                          embed_y=emb[1] if emb else []))
     extra = dict(y_full=S.fed.y_te.cpu().numpy())
+    if "head.weight" in personal.get(0, {}):   # client 0's classifier (its embeddings are the saved ones)
+        extra["fcw_0"] = np.asarray(personal[0]["head.weight"], dtype=np.float32)
+        extra["fcb_0"] = np.asarray(personal[0]["head.bias"], dtype=np.float32)
     save_run(R, res, s1, personal, None, ref, fin, None, None, None, extra)
     mon.log("run_end", time_s=res["time_s"])
     mon.close()

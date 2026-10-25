@@ -573,7 +573,14 @@ Target: IEEE (IEEEtran template, journals and conferences). No other venue profi
   Gaussian generator + LA and FedDF + LA are out of the main comparison and run in their own notebooks
   (NB30_ablation_cifar10 / _cifar100, seeds 3-5), paired with the main notebooks' FedECS-LT and GeFL-F runs (same
   splits and seeds). Reports print the method's name only (no "(LongTailLib)" suffix; the methods table names the
-  code), and each method keeps one colour and marker, unique within every report. The long-tail methods built for one shared model are
+  code), and each method keeps one colour and marker, unique within every report.
+- **Every §14 / §15 quantity is now measured (25 Oct; audit against this plan found gaps):** paired tests with Holm
+  adjustment, rounds to a target accuracy, own-mix accuracy SD and minimum, forward FLOPs per image and training FLOPs
+  per round, NC2 / NC3 and the minority-collapse angle (last layers saved with the embeddings), CKA between
+  architectures, per-class MMD and mean mismatch of the generated features, active latent units, consensus
+  agreement, logit spread before / after the synthetic phase and retention (figures 74-82 and four report tables).
+  Membership inference and DP stay in the privacy experiments (not built). A figure that fails to draw now fails
+  the CPU test and is counted on the report's cover. The long-tail methods built for one shared model are
   compared in Track 2 only (user, 23 Oct).
 - **Track 2** (one shared ResNet-8, FedLTLib protocol: 20 clients, 40% per round, 200 rounds, 10 local epochs, batch
   32, SGD 0.1 momentum 0.9 decay 0.99): FedAvg, FedProx, MOON, FedLC, CCVR, CReFF, FedETF, Fed-GraB, FedLoGe, FedYoYo,

@@ -21,8 +21,10 @@ from flwr.app import Context, Message
 from flwr.serverapp import Grid, ServerApp
 
 import fedecs
+import local_train as lt
 from data import Federation, active_clients
 from fl_common import Averager, arrays_of, cfg_of, key_of, nbytes, pack, seed_all
+from flops import forward_flops
 from metrics import PER_CLASS, log_view, summarize
 from models import (GaussFeatureGen, PaperHeader, make_fe, make_generator, make_head, make_headers, n_params,
                     sd_clone)
@@ -434,10 +436,14 @@ def stage_three(S, hs, feat_key, hd_sd, T_TN, sampler, sampler_key, gen_cfg, sec
         for g in S.groups:
             if hd_avg[g].n:
                 hd_sd[g] = hd_avg[g].result()
+        agree = [i["consensus_agreement"] for _, i in infos if i.get("consensus_agreement") is not None]
+        if agree:
+            rec["consensus_agreement"] = float(np.mean(agree))
         if hs.get("sed") and G is not None:
             hd_sd = feddf_distill(S, hs, G, hd_sd, r)
         rec.update(syn_loss={str(k): i["syn_loss"] for k, i in infos}, real_loss={str(k): i["real_loss"] for k, i in infos},
                    time={str(k): i["time"] for k, i in infos},
+                   probe={str(k): i["probe"] for k, i in infos if i.get("probe")},
                    fc_norm={str(g): hd_sd[g]["fc.weight"].float().norm(dim=1).tolist() for g in S.groups})
         if ev:
             rec["pre"] = {str(k): i["pre"] for k, i in infos if "pre" in i}
@@ -517,6 +523,49 @@ def exact_readout(S, hd_sd, feat_key, Xval, secure, gamma=0.1):
     return last
 
 
+# ---------------------------------------------------------------- representation and cost measurements
+def active_units(G, X, y, thr=0.01):
+    """Active latent units of a VAE generator (Burda et al., ICLR 2016): latent dimensions whose posterior mean
+    varies over the validation features by more than thr. None for generators without an encoder."""
+    if G is None or not hasattr(G, "encode"):
+        return {}
+    modes = [(m, m.training) for m in G.modules()]
+    G.eval()
+    with torch.no_grad():
+        mus = torch.cat([G.encode(X[s:s + 2048].float(), y[s:s + 2048])[0] for s in range(0, len(y), 2048)])
+    for m, t in modes:
+        m.training = t
+    var = mus.float().var(0)
+    return dict(active_units=int((var > thr).sum()), latent_dim=int(var.numel()), latent_var=var.tolist())
+
+
+class _Sampler(torch.nn.Module):
+    def __init__(self, G):
+        super().__init__()
+        self.G = G
+
+    def forward(self, y):
+        return self.G.sample(y)
+
+
+def model_flops(S, shape, G, hs, pfrac=1.0):
+    """Forward FLOPs per image of the extractor, of every head architecture and of one generated feature, and the
+    expected training FLOPs of one head-stage round over all clients (3 x forward: forward and backward pass;
+    real epochs plus the synthetic pass; pfrac of the clients per round)."""
+    fe = make_fe(S.spec).to(DEV)
+    f_fe = forward_flops(fe, torch.zeros(2, S.spec["in_ch"], 32, 32, device=DEV))
+    headers = make_headers(S.spec, shape[0], S.C, DEV)
+    f_head = {str(g): forward_flops(headers[g], torch.zeros(2, *shape, device=DEV)) for g in S.groups}
+    f_gen = forward_flops(_Sampler(G), torch.zeros(2, dtype=torch.long, device=DEV)) if G is not None else 0.0
+    per_round = 0.0
+    for k in range(S.K):
+        n = int(S.fed.sizes[k])
+        nsyn = lt.n_syn(n, S.spec["B"], hs["ts"]) if hs.get("ts", 0) > 0 and G is not None else 0
+        per_round += 3 * f_head[str(S.arch[k])] * (hs["tr"] * n + nsyn)
+    return dict(flops_fe=f_fe, flops_head=f_head, flops_gen=f_gen,
+                head_stage_gflops_per_round=pfrac * per_round / 1e9)
+
+
 # ---------------------------------------------------------------- one run
 def run_pipeline(grid, context, R):
     mon = Monitor(os.path.join(R["out_dir"], "logs"), R["run_id"], tensorboard=R.get("tensorboard", True))
@@ -571,6 +620,7 @@ def run_pipeline(grid, context, R):
             rn = s2["g_sd"]["label_proj"].float().norm(dim=1)
             res["cond_norms_end"] = rn.tolist()
         res["fidelity"] = fidelity(ref, G, S.C, seed=R["seed"])
+        res.update(active_units(G, Xval, S.fed.y_val))
         sampler = G
         mc_arr = None
         if m["head"].get("mc"):
@@ -599,7 +649,7 @@ def run_pipeline(grid, context, R):
     fin = eval_heads(S, hd_sd, feat_key, splits=("test", "val"), probs=True, embed=True)
     res.update(flat("final", fin["test"]["summary"]))
     res.update(flat("val_final", fin["val"]["summary"]))
-    res["final_per_arch"] = {g: {k: v for k, v in mm.items() if k in ("acc", "bal", "f1", "tail", "worst")}
+    res["final_per_arch"] = {g: {k: v for k, v in mm.items() if k in ("acc", "bal", "f1", "tail", "worst", "local")}
                              for g, mm in fin["test"]["per_arch"].items()}
     # exact readout (reported with and without)
     if m.get("readout", True):
@@ -610,12 +660,21 @@ def run_pipeline(grid, context, R):
         er_probs = er["test"].get("probs")
     else:
         er_probs, last = None, None
+    res.update(model_flops(S, shape, s2["G"] if gspec is not None and gspec["type"] != "gauss" else None, hs,
+                           R.get("pfrac", 1.0)))
     res["time_s"] = time.time() - t0
     res["stage_time_s"] = dict(mon.stage_t)
     res["bytes"] = {k: dict(down=v[0], up=v[1], messages=v[2]) for k, v in mon.bytes.items()}
     res["comm_mb_per_client"] = sum(v[0] + v[1] for v in mon.bytes.values()) / 2 ** 20 / S.K
     res.update(gpu_peaks(S))
     extra = dict(y_full=S.fed.y_te.cpu().numpy())
+    # last layers (classifier vectors) of the heads as trained and of the exact readout: neural-collapse NC2 / NC3
+    # and the minority-collapse angle are computed from them with the test embeddings
+    for g in S.groups:
+        extra[f"fcw_{g}"] = hd_sd[g]["fc.weight"].float().cpu().numpy()
+        extra[f"fcb_{g}"] = hd_sd[g]["fc.bias"].float().cpu().numpy()
+        if last is not None and f"{g}|W" in last:
+            extra[f"erw_{g}"] = last[f"{g}|W"].float().cpu().numpy()
     nv = min(2000, len(Xval))
     sub = np.random.RandomState(0).choice(len(Xval), nv, replace=False)
     extra.update(val_x=Xval[sub].flatten(1).cpu().numpy().astype(np.float16), val_y=S.fed.y_val[sub].cpu().numpy())

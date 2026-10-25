@@ -73,6 +73,8 @@ def pack(work, name, title, report=True, out_dir=None, models=True):
         info = rep.build(res, title, os.path.join(out_dir, f"{name}__report.pdf"), figs)
         a = audit.audit(res)                     # again with the figures the report has drawn
         info = dict(info or {}, audit_problems=a["n_problems"])
+        with open(os.path.join(res, "report_info.json"), "w") as f:   # checked by the CPU tests
+            json.dump(info, f)
     zip_dir(res, os.path.join(out_dir, f"{name}__results.zip"))
     summary_zip(res, os.path.join(out_dir, f"{name}__summary.zip"))
     if models and os.path.isdir(mdir):

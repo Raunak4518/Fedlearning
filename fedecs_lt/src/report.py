@@ -24,15 +24,17 @@ MAIN = [("final_bal", "Bal. acc."), ("final_f1", "Macro-F1"), ("final_precision"
         ("final_auc_pr", "AUC-PR")]
 SECOND = [("final_acc", "Accuracy"), ("final_kappa", "Kappa"), ("final_top5", "Top-5"), ("final_auc_roc", "AUC-ROC"),
           ("final_head", "Head rec."), ("final_medium", "Med. rec."), ("final_rec_std", "Recall SD"),
-          ("final_worst_arch", "Worst-arch. bal."), ("final_local", "Own-mix acc.")]
+          ("final_worst_arch", "Worst-arch. bal."), ("final_local", "Own-mix acc."),
+          ("final_own_mix_sd", "Own-mix SD"), ("final_own_mix_min", "Own-mix min.")]
 CALIB = [("final_ece", "ECE"), ("final_cw_ece", "Class-wise ECE"), ("final_nll", "NLL"), ("final_brier", "Brier")]
 READOUT = [("er_bal", "Bal. acc."), ("er_f1", "Macro-F1"), ("er_tail", "Tail rec."), ("er_worst", "Worst rec."),
            ("er_mcc", "MCC"), ("er_gmean", "G-mean")]
 VAL = [("val_final_bal", "Val. bal. acc."), ("val_er_bal", "Val. bal. acc., exact readout")]
 SYSTEM = [("comm_mb_per_client", "Comm./client (MB)"), ("time_s", "Time (s)"), ("fe_time_s", "Stage I (s)"),
-          ("gen_time_s", "Stage II (s)"), ("gpu_peak_mb", "Peak GPU (MB)")]
+          ("gen_time_s", "Stage II (s)"), ("gpu_peak_mb", "Peak GPU (MB)"), ("fwd_mflops", "MFLOPs/img"),
+          ("train_gflops_round", "Train. GFLOPs/round")]
 NOT_PCT = {"final_nll", "final_brier", "comm_mb_per_client", "time_s", "fe_time_s", "gen_time_s", "gpu_peak_mb",
-           "class_sep_F"}
+           "class_sep_F", "fwd_mflops", "train_gflops_round"}
 
 
 REFS = {
@@ -163,11 +165,109 @@ def build(res_dir, title, out_pdf, fig_dir):
             if np.all(np.isnan(col)):
                 continue
             lower_better = k in ("final_ece", "final_cw_ece", "final_nll", "final_brier", "final_rec_std",
-                                 "comm_mb_per_client", "time_s", "fe_time_s", "gen_time_s", "gpu_peak_mb")
+                                 "comm_mb_per_client", "time_s", "fe_time_s", "gen_time_s", "gpu_peak_mb",
+                                 "fwd_mflops", "train_gflops_round", "final_own_mix_sd")
             i = int(np.nanargmin(col) if lower_better else np.nanargmax(col))
             best.append((i, j + 1))
         w = [1.55 * inch] + [(7.0 - 1.55) * inch / len(keys)] * len(keys)
         return [tcap(caption), Spacer(1, 3), table(rows, ["Method"] + [n for _, n in keys], w, best), Spacer(1, 10)]
+
+    def paired_table(S, st):
+        """FedECS-LT minus each method in balanced accuracy, paired over the common seeds: mean, 95% t interval,
+        paired t-test p and Holm-adjusted p over the methods."""
+        from scipy import stats
+        import representation as rp
+        ours = {r["seed"]: r for r in E.of(plots.OURS, S)}
+        rows_ = []
+        for m in E.methods:
+            if m == plots.OURS:
+                continue
+            other = {r["seed"]: r for r in E.of(m, S)}
+            d = [100 * (ours[x]["final_bal"] - other[x]["final_bal"]) for x in sorted(set(ours) & set(other))
+                 if ours[x].get("final_bal") is not None and other[x].get("final_bal") is not None]
+            if len(d) >= 2:
+                sd = float(np.std(d, ddof=1))
+                half = float(stats.t.ppf(0.975, len(d) - 1) * sd / np.sqrt(len(d)))
+                pv = float(stats.ttest_1samp(d, 0.0).pvalue) if sd > 0 else (0.0 if np.mean(d) != 0 else 1.0)
+                rows_.append([m, len(d), float(np.mean(d)), half, pv])
+        if not ours:
+            return []
+        if not rows_:
+            return [P("Paired tests: FedECS-LT and the other methods share fewer than two seeds in this experiment, "
+                      "so no paired test is computed (the merged experiment computes them over seeds 3-5).", small),
+                    Spacer(1, 8)]
+        adj = rp.holm([r[4] for r in rows_])
+        body = [[r[0], r[1], f"{r[2]:+.1f}", f"[{r[2] - r[3]:+.1f}, {r[2] + r[3]:+.1f}]", f"{r[4]:.3g}", f"{a:.3g}"]
+                for r, a in zip(rows_, adj)]
+        return [tcap("Balanced accuracy of FedECS-LT minus each method (points, test set, heads as trained), paired "
+                     "over the common seeds: mean, 95% t confidence interval, two-sided paired t-test p-value and "
+                     "Holm-adjusted p-value over the methods. " + st), Spacer(1, 3),
+                table(body, ["Method", "Seeds", "Difference", "95% CI", "p", "p (Holm)"],
+                      [1.9 * inch, 0.6 * inch, 1.0 * inch, 1.4 * inch, 1.0 * inch, 1.1 * inch]), Spacer(1, 10)]
+
+    def rounds_table(S, st):
+        """Rounds each method needs to reach a target balanced accuracy: the final balanced accuracy of the
+        reference (GeFL-F, or FedAvg in the one-shared-model setting)."""
+        shared = DATASETS.get(S[0], {}).get("track") == 2
+        ref = "FedAvg" if shared else plots.REF
+        tgt = plots.metric(E, ref, "final_bal", S)[0]
+        if np.isnan(tgt):
+            return []
+        body = []
+        for m in E.methods:
+            first = []
+            for r in E.of(m, S):
+                series = plots._global_series(E, r) if shared else \
+                    [(e["round"], e["post"]) for e in E.log(r, "stage3_round") if e.get("post")]
+                hit = [rd for rd, p in series if p.get("bal") is not None and p["bal"] >= tgt]
+                first.append(min(hit) if hit else None)
+            if not first:
+                continue
+            got = [x for x in first if x is not None]
+            body.append([m, f"{np.mean(got):.0f}" if got else "not reached", f"{len(got)} of {len(first)}"])
+        if not body:
+            return []
+        stage = "communication rounds of the one shared model (FedECS-LT: extractor rounds, then head rounds)" \
+            if shared else "head-training rounds (Stage III, or the method's own rounds)"
+        return [tcap(f"Rounds to the target balanced accuracy {100 * tgt:.1f}% (the final balanced accuracy of {ref}): "
+                     f"first evaluated round, in {stage}, at which a method's test balanced accuracy reaches it; mean "
+                     "over the seeds that reach it. " + st), Spacer(1, 3),
+                table(body, ["Method", "Rounds", "Seeds reaching it"], [2.4 * inch, 1.6 * inch, 1.6 * inch]),
+                Spacer(1, 10)]
+
+    def representation_table(S, st):
+        import representation as rp
+        gen_mmd = plots._gen_class_stat(E, S, rp.mmd_rbf)
+        gen_mis = plots._gen_class_stat(E, S, rp.mean_mismatch)
+        body = []
+        for m in E.methods:
+            col = plots._collapse(E, m, S)
+            mmd = [x[2] for x in gen_mmd if x[0] == m]
+            mis = [x[2] for x in gen_mis if x[0] == m]
+            au = [r["active_units"] / r["latent_dim"] for r in E.of(m, S) if r.get("active_units") is not None
+                  and r.get("latent_dim")]
+
+            def mean_of(k):
+                v = [x[k] for x in col if x.get(k) is not None]
+                return f"{np.mean(v):.3f}" if v else "-"
+            row = [m, mean_of("nc2_equinorm"), mean_of("nc2_equiangle"), mean_of("nc3"),
+                   (f"{np.mean([x['minority_angle'] for x in col if x.get('minority_angle') is not None]):.1f}"
+                    if any(x.get("minority_angle") is not None for x in col) else "-"),
+                   f"{100 * np.mean(au):.0f}" if au else "-",
+                   f"{np.nanmean(mmd):.3f}" if mmd and not np.all(np.isnan(mmd)) else "-",
+                   f"{np.nanmean(mis):.2f}" if mis and not np.all(np.isnan(mis)) else "-"]
+            if any(x != "-" for x in row[1:]):
+                body.append(row)
+        if not body:
+            return []
+        return [tcap("Representation and generator: NC2 equinorm and equiangularity and NC3 self-duality of the test "
+                     "embeddings and last layers (lower = closer to neural collapse), mean angle between the tail "
+                     "classes' classifier vectors (degrees; small = minority collapse), active latent units of the "
+                     "generator (%), and the mean over classes of the squared MMD and of the mean mismatch (in "
+                     "within-class standard deviations) between generated and real validation features; mean over "
+                     "architectures and seeds. " + st), Spacer(1, 3),
+                table(body, ["Method", "NC2 norm", "NC2 angle", "NC3", "Tail angle", "Active units", "MMD2",
+                             "Mean mism."], [1.55 * inch] + [(7.0 - 1.55) * inch / 7] * 7), Spacer(1, 10)]
 
     # ---------------------------------------------------------------- cover
     done = len(E.runs)
@@ -194,6 +294,10 @@ def build(res_dir, title, out_pdf, fig_dir):
             f"every run has every metric for every class on every evaluation ({aud['checked']['runs']} runs, "
             f"{aud['checked']['round_evaluations']} per-round evaluations checked)." if aud["n_problems"] == 0 else
             f"{aud['n_problems']} problems found; see the appendix 'Logging audit'.")), Spacer(1, 6)]
+    n_err = sum(1 for _, _, reason, _ in na if str(reason).startswith("error:"))
+    if n_err:
+        story += [P(f"Figure errors: {n_err} figures could not be drawn; Appendix A gives the error of each."),
+                  Spacer(1, 6)]
     import torch
     try:
         import flwr
@@ -272,13 +376,21 @@ def build(res_dir, title, out_pdf, fig_dir):
         second = [kv for kv in SECOND if not (shared and kv[0] in ("final_worst_arch", "final_local"))]
         story += metric_table(S, second, f"Further metrics (%, test set, {trained})."
                               + ("" if shared else " Worst-arch. bal.: balanced accuracy of the weakest head architecture. Own-mix accuracy: "
-                                 "accuracy re-weighted to each architecture's own clients' class mix.") + " " + st)
+                                 "accuracy re-weighted to each architecture's own clients' class mix (mean, standard "
+                                 "deviation and minimum over the architectures, or over the clients' own models).")
+                              + " " + st)
         story += metric_table(S, CALIB, "Calibration (ECE and class-wise ECE in %, NLL in nats, Brier score)."
                               + proto_note([m for m in E.methods if E.of(m, S)]) + " " + st)
         story += metric_table(S, VAL, "Balanced accuracy on the validation set (images no client holds), used to select "
                                       "settings without the test set. " + st)
-        story += metric_table(S, SYSTEM, "Cost: communication per client over the whole training, wall-clock time and "
-                                         "peak GPU memory on one GPU. " + st)
+        story += metric_table(S, SYSTEM, "Cost: communication per client over the whole training, wall-clock time, "
+                                         "peak GPU memory on one GPU, forward FLOPs per image (extractor and the mean "
+                                         "head, or the whole model) and training FLOPs of one round over all clients "
+                                         "(3 x forward; the head stage for the methods on the frozen extractor, every "
+                                         "round of the one shared model otherwise). " + st)
+        story += paired_table(S, st)
+        story += rounds_table(S, st)
+        story += representation_table(S, st)
         # per-seed table
         rows = []
         for m in E.methods:
@@ -378,7 +490,8 @@ def build(res_dir, title, out_pdf, fig_dir):
     doc = SimpleDocTemplate(out_pdf, pagesize=letter, leftMargin=0.75 * inch, rightMargin=0.75 * inch,
                             topMargin=0.7 * inch, bottomMargin=0.8 * inch, title=title)
     doc.build(story, onFirstPage=page, onLaterPages=page)
-    return dict(figures=len(figs), not_applicable=len(na), runs=len(E.runs), failures=len(lost))
+    return dict(figures=len(figs), not_applicable=len(na), runs=len(E.runs), failures=len(lost),
+                figure_errors=sum(1 for _, _, reason, _ in na if str(reason).startswith("error:")))
 
 
 def main():

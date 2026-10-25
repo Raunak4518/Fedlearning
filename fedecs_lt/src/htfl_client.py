@@ -220,11 +220,12 @@ def htfl_eval(msg, context):
     logits = predict(cfg, st, F_["te"], srv)
     logits = torch.where(torch.isfinite(logits), logits, torch.full_like(logits, -1e9))
     out = {}
-    m = class_metrics(logits, fed.y_te, fed.C, keep_probs=cfg.get("probs", False))
+    prior = fed.counts[k] / max(fed.counts[k].sum(), 1)     # own-mix accuracy: the client's own class mix
+    m = class_metrics(logits, fed.y_te, fed.C, prior=prior, keep_probs=cfg.get("probs", False))
     out["test"] = {kk: (v.tolist() if hasattr(v, "tolist") else v) for kk, v in m.items()}
     lv = predict(cfg, st, F_["val"], srv)
     lv = torch.where(torch.isfinite(lv), lv, torch.full_like(lv, -1e9))
-    mv = class_metrics(lv, fed.y_val, fed.C)
+    mv = class_metrics(lv, fed.y_val, fed.C, prior=prior)
     out["val"] = {kk: v for kk, v in mv.items() if kk != "probs"}
     if cfg.get("embed"):
         sub = np.random.RandomState(0).choice(len(fed.y_te), min(2000, len(fed.y_te)), replace=False)

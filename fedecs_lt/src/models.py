@@ -89,6 +89,11 @@ class PaperCVAE(nn.Module):
         h = F.relu(self.dec_z(z) + self.label_proj[y]).view(-1, self.flat, 1, 1)
         return F.relu(self.dec(h))
 
+    def encode(self, x, y):
+        ymap = y.float().view(-1, 1, 1, 1).expand(-1, 1, x.size(2), x.size(3))
+        h = self.enc(torch.cat([x, ymap], 1)).flatten(1)
+        return self.mu(h), self.logvar(h)
+
     def loss(self, x, y):
         ymap = y.float().view(-1, 1, 1, 1).expand(-1, 1, x.size(2), x.size(3))
         h = self.enc(torch.cat([x, ymap], 1)).flatten(1)

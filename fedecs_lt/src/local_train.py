@@ -53,12 +53,31 @@ def syn_hard_labels(C, n):
     return torch.from_numpy(np.random.choice(C, size=n, p=np.full(C, 1.0 / C))).long()
 
 
-def local_head(h, fwd, X, Y, B, hs, device, prior=None, adj=None, syn=None, lr=0.1, momentum=0.0):
+def probe_head(h, X, Y, C):
+    """The head on the client's own real features, without changing it (eval mode, no gradients, so BatchNorm
+    statistics and the random streams are untouched): logit spread (mean over images of the standard deviation of
+    the logits over classes) and balanced accuracy over the classes the client holds."""
+    was = h.training
+    h.eval()
+    with torch.no_grad():
+        lg = torch.cat([h(X[s:s + 2000]) for s in range(0, len(X), 2000)]).float()
+    h.train(was)
+    pred = lg.argmax(1)
+    rec = [float((pred[Y == c] == c).float().mean()) for c in range(C) if (Y == c).any()]
+    return dict(logit_spread=float(lg.std(1).mean()), bal=float(np.mean(rec)) if rec else None)
+
+
+def local_head(h, fwd, X, Y, B, hs, device, prior=None, adj=None, syn=None, lr=0.1, momentum=0.0, probe_C=None):
     """Stage III: synthetic phase (one pass, batch bs) then real phase (tr epochs, batch B), fresh SGD(0.1) each.
-    syn: None, ("hard", xs, ylab) or ("soft", xs, targets)."""
+    syn: None, ("hard", xs, ylab) or ("soft", xs, targets). probe_C: number of classes; when given, the head is
+    probed on the client's real features at the start, after the synthetic phase and at the end (probe_head);
+    returned as a third value."""
     n = len(Y)
     nb, bs = (n // B, B) if n >= B else (1, n)
     syn_losses, real_losses = [], []
+    probes = {}
+    if probe_C:
+        probes["start"] = probe_head(h, X, Y, probe_C)
     if syn is not None:
         kind, xs, t = syn
         opt = torch.optim.SGD(h.parameters(), lr=lr, momentum=momentum)
@@ -71,6 +90,8 @@ def local_head(h, fwd, X, Y, B, hs, device, prior=None, adj=None, syn=None, lr=0
             loss.backward()
             opt.step()
             syn_losses.append(float(loss.detach()))
+        if probe_C:
+            probes["after_syn"] = probe_head(h, X, Y, probe_C)
     opt = torch.optim.SGD(h.parameters(), lr=lr, momentum=momentum)
     for _ in range(hs["tr"]):
         for b in batches(n, B, device):
@@ -81,6 +102,9 @@ def local_head(h, fwd, X, Y, B, hs, device, prior=None, adj=None, syn=None, lr=0
             loss.backward()
             opt.step()
             real_losses.append(float(loss.detach()))
+    if probe_C:
+        probes["end"] = probe_head(h, X, Y, probe_C)
+        return syn_losses, real_losses, probes
     return syn_losses, real_losses
 
 

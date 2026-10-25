@@ -370,13 +370,15 @@ def head(msg, context):
             px, py = pool_slice(cfg, sm, int(cfg["pool_off"]), nsyn)
             cons = arrays_of(msg.content, "cons", DEV)["t"].float()
             syn = ("soft", px, fedecs.csl_targets(py, cons, cfg["csl_beta"], C))
+            # agreement: share of the client's pool features whose consensus class is the generated label
+            out["consensus_agreement"] = float((cons.argmax(1) == py).float().mean())
         else:                                     # uniform synthetic labels, hard targets (GeFL-F)
             ylab = lt.syn_hard_labels(C, nsyn).to(DEV)
             syn = ("hard", draw(sm, ylab), ylab)
     lr, mom = lt.protocol_lr(spec, cfg.get("round_offset", 0) + cfg["round"])
-    syn_losses, real_losses = lt.local_head(h, fwd, X, Y, B, hs, DEV, prior=prior, adj=adj, syn=syn, lr=lr,
-                                            momentum=mom)
-    out.update(syn_loss=float(np.mean(syn_losses)) if syn_losses else None,
+    syn_losses, real_losses, probes = lt.local_head(h, fwd, X, Y, B, hs, DEV, prior=prior, adj=adj, syn=syn, lr=lr,
+                                                    momentum=mom, probe_C=C)
+    out.update(probe=probes, syn_loss=float(np.mean(syn_losses)) if syn_losses else None,
                real_loss=float(np.mean(real_losses)) if real_losses else None, time=time.time() - t0)
     if cfg.get("eval"):
         h.eval()
@@ -418,7 +420,7 @@ def local(msg, context):
             f_ = compute_features(fe, x)
             h.eval()
             logits = torch.cat([h(f_[s:s + 2000]) for s in range(0, len(y), 2000)])
-        m = class_metrics(logits, y, fed.C)
+        m = class_metrics(logits, y, fed.C, prior=fed.counts[k] / max(fed.counts[k].sum(), 1))   # own mix
         out[split] = {kk: v for kk, v in m.items() if kk != "probs"}
     return reply(msg, dict(n=len(y_k), **out))
 

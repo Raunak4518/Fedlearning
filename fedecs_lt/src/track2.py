@@ -296,6 +296,17 @@ def run(algo, ds, IF, seed, lt_dir, out_dir, rounds=200, label=None, data_root=N
                test_class_counts=np.bincount(y, minlength=C).tolist(),
                library_accuracy=lib_acc, accuracy_check=abs(m["acc"] - lib_acc) < 1e-6 if lib_acc == lib_acc else None,
                time_s=time.time() - t0, rounds=dict(T=rounds))
+    # FLOPs of the ResNet-8 forward pass per image (this suite's ResNet-8, the architecture of LongTailLib's) and the
+    # expected training FLOPs of one round (3 x forward; the library's local epochs over its batches of 32; JR2 of
+    # the clients per round)
+    from flops import forward_flops
+    from models import ResNet8FE, ResNet8Head
+    net = torch.nn.Sequential(ResNet8FE(3), ResNet8Head(128, C))
+    f_fwd = forward_flops(net, torch.zeros(2, 3, 32, 32))
+    ls = int(args[args.index("-ls") + 1]) if "-ls" in args else 10
+    n_k = np.array(rec["client_counts"]).sum(1)
+    rec.update(flops_model=f_fwd,
+               train_gflops_per_round=JR2 * float(sum(3 * f_fwd * ls * (n // 32) * 32 for n in n_k)) / 1e9)
     if "gpu_peak_mb" in d.files and d["gpu_peak_mb"][0] > 0:   # the library's process (a fresh one per run)
         rec["gpu_peak_mb"] = round(float(d["gpu_peak_mb"][0]))
     for k, v in summ.items():

@@ -121,12 +121,13 @@ def simple(num, E, S, text):
     return track2_words(one_seed(f"{text} {setting_text(S, seeds)}", seeds), S)
 
 
-def curve(num, E, S, what, split="Test-set"):
+def curve(num, E, S, what, split="Test-set", every=5):
     """split: "Test-set" for evaluated quantities; None for training-time quantities (losses, drift), whose text
-    starts with its own capital."""
+    starts with its own capital. every: rounds between the plotted points (1: every round)."""
     head = f"{split} {what}" if split else what
     seeds = _seeds(E, S)
-    return track2_words(one_seed(f"{head}, per evaluation round (every 5 rounds), mean over seeds; the shaded band is "
+    when = "per round" if every == 1 else f"per evaluation round (every {every} rounds)"
+    return track2_words(one_seed(f"{head}, {when}, mean over seeds; the shaded band is "
                                  f"one standard deviation. {setting_text(S, seeds)}", seeds), S)
 
 
@@ -189,6 +190,14 @@ NA = {
     71: "made for the one-shared-model setting only", 72: "made for the one-shared-model setting only",
     73: "made for the one-shared-model setting only",
     70: "FedECS-LT and GeFL-F are not part of this experiment (their per-round, per-class metrics are in the logs)",
+    74: "the head-training probes are logged by FedECS-LT and the GeFL-F family of methods only",
+    75: "no method of this experiment has a synthetic phase in its head training",
+    76: "no method of this experiment has a synthetic phase in its head training",
+    77: "consensus soft labels are used only by FedECS-LT",
+    78: "no saved test embeddings with last layers in this experiment",
+    79: "CKA compares the embeddings of several head architectures of FedECS-LT or GeFL-F",
+    80: "no generator in this experiment", 81: "no generator in this experiment",
+    82: "no variational generator in this experiment",
 }
 
 

@@ -26,6 +26,12 @@ Catalogue (numbering fixed here and in docs/review/action_plan.md section 15):
  17b aggregation effect    56 aggregation effect per class over rounds 57 fidelity before vs after aggregation
                            58 row norms of holders' copies, non-holders' copies and the average 59 effect vs holders
                            60 federated vs local-only per class
+ B' per-class metrics      61-68 per-class AP, AUC, MCC, ECE, NLL, Brier, top-5, prediction share 69 recall after the
+                           exact readout 70 per-class recall over the rounds
+ F' one shared model       71 balanced accuracy over rounds 72 tail recall over rounds 73 per-class recall over rounds
+ A' head stage             74 logit spread 75 its change in the synthetic phase 76 retention 77 consensus agreement
+ C' representation         78 NC2 / NC3 / minority-collapse angle 79 CKA between architectures
+ D' generator quality      80 per-class MMD 81 per-class mean mismatch 82 active latent units
 """
 import glob
 import json
@@ -35,6 +41,7 @@ import numpy as np
 
 import captions as cap
 import plot_style as ps
+import representation as rp
 from settings import DATASETS, class_groups
 
 OURS = ps.OURS
@@ -68,6 +75,7 @@ class Exp:
         for r in self.runs:   # names as printed (captions.display); the suite's own label is kept
             r.setdefault("label_internal", r["label"])
             r["label"] = cap.display(r["label_internal"])
+            derived(r)
         self.methods = [m for m in ps.ORDER if any(r["label"] == m for r in self.runs)]
         self.methods += sorted({r["label"] for r in self.runs} - set(self.methods))
         self.settings = sorted({setting_key(r) for r in self.runs})
@@ -82,6 +90,24 @@ class Exp:
         safe = "".join(ch if ch.isalnum() or ch in "-_.=" else "_" for ch in run["run_id"])
         p = os.path.join(self.dir, "predictions", safe + ".npz")
         return np.load(p) if os.path.exists(p) else None
+
+
+def derived(r):
+    """Quantities derived from a run's record for the tables: forward MFLOPs per image (extractor plus the mean head,
+    or the whole model), training GFLOPs per round, and the spread and minimum over the clients' models (or head
+    architectures) of the accuracy on their own class mix."""
+    if r.get("flops_model"):
+        r["fwd_mflops"] = r["flops_model"] / 1e6
+    elif r.get("flops_head"):
+        r["fwd_mflops"] = (r.get("flops_fe", 0.0) + float(np.mean(list(r["flops_head"].values())))) / 1e6
+    g = r.get("head_stage_gflops_per_round", r.get("train_gflops_per_round"))
+    if g is not None:
+        r["train_gflops_round"] = g
+    units = r.get("final_per_arch") or r.get("final_per_client") or r.get("local_per_client") or {}
+    own = [u["local"] for u in units.values() if isinstance(u, dict) and u.get("local") is not None]
+    if len(own) > 1:
+        r["final_own_mix_sd"] = float(np.std(own))
+        r["final_own_mix_min"] = float(np.min(own))
 
 
 def setting_key(r):
@@ -161,7 +187,9 @@ def _lines(E, S, out, num, event, getter, ylabel, name, what, scale=100.0, metho
     ax.set_ylabel(ylabel)
     ax.legend(ncol=1 if len(set(r[0] for r in rows)) < 6 else 2)
     p = ps.save(f, out, f"fig_{num:02d}_{name}", rows, ["method", "round", "mean", "sd"])
-    return [(p, cap.curve(num, E, S, what, split))]
+    gaps = {b[1] - a[1] for a, b in zip(rows, rows[1:]) if a[0] == b[0]}   # rounds between the plotted points
+    every = 1 if gaps <= {1} else 5
+    return [(p, cap.curve(num, E, S, what, split, every))]
 
 
 @fig(1, "A")
@@ -1642,6 +1670,215 @@ def f60(E, S, out):
     return [(p, cap.simple(60, E, S, "Per-class benefit of federation: recall of each federated method minus the "
                                      "recall of local-only training (each client trains on its own data), mean over "
                                      "seeds."))]
+
+
+# ---------------------------------------------------------------- 74-82: head stage, representation, generator
+def _probe_mean(e, point, key):
+    vals = [c[point][key] for c in (e.get("probe") or {}).values()
+            if c.get(point) and c[point].get(key) is not None]
+    return float(np.mean(vals)) if vals else None
+
+
+def _probe_change(e, key):
+    vals = [c["after_syn"][key] - c["start"][key] for c in (e.get("probe") or {}).values()
+            if c.get("after_syn") and c.get("start") and c["after_syn"].get(key) is not None
+            and c["start"].get(key) is not None]
+    return float(np.mean(vals)) if vals else None
+
+
+@fig(74, "A")
+def f74(E, S, out):
+    return _lines(E, S, out, 74, "stage3_round", lambda e: _probe_mean(e, "end", "logit_spread"),
+                  "Logit spread", "logit_spread_rounds",
+                  "Logit spread of the clients' heads on their own real features at the end of each head-training "
+                  "round (mean over images of the standard deviation of the logits over classes; mean over clients)",
+                  scale=1.0, split=None)
+
+
+@fig(75, "A")
+def f75(E, S, out):
+    return _lines(E, S, out, 75, "stage3_round", lambda e: _probe_change(e, "logit_spread"),
+                  "Change of the logit spread", "logit_spread_synthetic_phase",
+                  "Change of the logit spread of the clients' heads on their own real features during the synthetic "
+                  "phase of each head-training round (after minus before; mean over clients; methods with a "
+                  "synthetic phase)", scale=1.0, split=None)
+
+
+@fig(76, "A")
+def f76(E, S, out):
+    return _lines(E, S, out, 76, "stage3_round", lambda e: _probe_change(e, "bal"),
+                  "Change of balanced accuracy (points)", "retention_synthetic_phase",
+                  "Retention: change of each client's balanced accuracy on its own real features (over the classes "
+                  "it holds) during the synthetic phase of each head-training round (after minus before; mean over "
+                  "clients; negative = the synthetic phase erases what the head knew)", split=None)
+
+
+@fig(77, "A")
+def f77(E, S, out):
+    return _lines(E, S, out, 77, "stage3_round", lambda e: e.get("consensus_agreement"),
+                  "Consensus agreement (%)", "consensus_agreement",
+                  "Consensus agreement: share of the pooled generated features whose consensus soft label (the "
+                  "averaged prediction of all head architectures) puts the most mass on the generated class, per "
+                  "head-training round", split=None)
+
+
+def _collapse(E, m, S):
+    """Neural-collapse statistics of every head architecture (and seed) of a method from its saved test embeddings
+    and last layers."""
+    out = []
+    for r in E.of(m, S):
+        d = E.pred(r)
+        if d is None:
+            continue
+        y = d["y"]
+        for k in d.files:
+            if not k.startswith("embed_"):
+                continue
+            g = k[len("embed_"):]
+            H = d[k].astype(np.float64)
+            C = int(max(y.max() + 1, len(r.get("class_order") or [])))
+            row = rp.nc2(H, y, C)
+            if f"fcw_{g}" in d.files:
+                W = d[f"fcw_{g}"]
+                row["nc3"] = rp.nc3(H, y, C, W)
+                row["minority_angle"] = rp.minority_angle(W, range(C)[class_groups(C)[2]])
+            out.append(row)
+    return out
+
+
+@fig(78, "C")
+def f78(E, S, out):
+    keys = [("nc2_equinorm", "NC2 equinorm"), ("nc2_equiangle", "NC2 equiangularity"),
+            ("nc3", "NC3 self-duality"), ("minority_angle", "Tail classifier angle (deg)")]
+    rows = []
+    for m in E.methods:
+        vals = _collapse(E, m, S)
+        for k, _ in keys:
+            v = [x[k] for x in vals if x.get(k) is not None]
+            if v:
+                rows.append([m, k, float(np.mean(v)), float(np.std(v, ddof=1)) if len(v) > 1 else 0.0])
+    if not rows:
+        return []
+    f, axes = ps.figure("page", 4.6, ncols=2, nrows=2)
+    axes = list(np.ravel(axes))
+    for ax, (k, name) in zip(axes, keys):
+        rr = [r for r in rows if r[1] == k]
+        for i, r in enumerate(rr):
+            st = ps.style(r[0])
+            ax.bar(i, r[2], 0.7, yerr=r[3], color=st["color"], edgecolor="black", linewidth=0.4,
+                   hatch="///" if r[0] == OURS else None, error_kw=dict(lw=0.6))
+        ax.set_xticks(np.arange(len(rr)))
+        ax.set_xticklabels([r[0] for r in rr], rotation=35, ha="right")
+        ax.set_ylabel(name)
+    ps.panel_labels(axes, y=-0.62)
+    p = ps.save(f, out, "fig_78_neural_collapse_nc2_nc3", rows, ["method", "statistic", "mean", "sd"])
+    return [(p, cap.simple(78, E, S, "Neural collapse of the test-set embeddings and last layers (lower = closer to "
+                                     "collapse in (a)-(c)): (a) NC2 equinorm, the coefficient of variation of the "
+                                     "centred class-mean norms; (b) NC2 equiangularity, the standard deviation of their "
+                                     "pairwise cosines; (c) NC3 self-duality, the squared distance between the "
+                                     "normalised classifier and the normalised class means; (d) mean pairwise angle "
+                                     "between the classifier vectors of the tail classes (minority collapse: small "
+                                     "angles); mean over architectures and seeds."))]
+
+
+@fig(79, "C")
+def f79(E, S, out):
+    ms_ = [m for m in (OURS, REF) if m in E.methods]
+    mats = []
+    for m in ms_:
+        rs = E.of(m, S)
+        d = E.pred(rs[0]) if rs else None
+        keys = sorted((k for k in (d.files if d is not None else []) if k.startswith("embed_")),
+                      key=lambda k: int(k.split("_")[1]))
+        if len(keys) < 2:
+            continue
+        M = np.array([[rp.linear_cka(d[a].astype(np.float64), d[b].astype(np.float64)) for b in keys] for a in keys])
+        mats.append((m, M, [int(k.split("_")[1]) + 1 for k in keys]))
+    if not mats:
+        return []
+    f, axes = ps.figure("page", 3.0, ncols=len(mats))
+    axes = list(np.ravel(axes)) if len(mats) > 1 else [axes]
+    rows = []
+    for ax, (m, M, archs) in zip(axes, mats):
+        im = ax.imshow(M, vmin=0, vmax=1, cmap="viridis")
+        ax.set_xticks(range(len(archs)))
+        ax.set_xticklabels([f"CNN-{a}" for a in archs], rotation=90)
+        ax.set_yticks(range(len(archs)))
+        ax.set_yticklabels([f"CNN-{a}" for a in archs])
+        rows += [[m, archs[i], archs[j], float(M[i, j])] for i in range(len(archs)) for j in range(len(archs))]
+    f.colorbar(im, ax=axes, fraction=0.046, pad=0.04).set_label("Linear CKA")
+    if len(mats) > 1:
+        ps.panel_labels(axes, y=-0.45)
+    p = ps.save(f, out, "fig_79_cka_architectures", rows, ["method", "arch_a", "arch_b", "cka"])
+    return [(p, cap.simple(79, E, S, "Linear centred kernel alignment (CKA) between the test-set embeddings of every "
+                                     "pair of head architectures (same 2,000 test images; 1 = the same representation "
+                                     "up to rotation and scale): " + " and ".join(
+                                         f"({chr(97 + i)}) {cap.mname(m)}" for i, (m, _, _) in enumerate(mats))
+                                     + "; first seed."))]
+
+
+def _gen_class_stat(E, S, fn):
+    rows = []
+    for m in E.methods:
+        per = []
+        for r in E.of(m, S):
+            d = E.pred(r)
+            if d is None or "gen_x" not in d.files or "val_x" not in d.files:
+                continue
+            Xg, yg, Xr, yr = (d["gen_x"].astype(np.float64), d["gen_y"], d["val_x"].astype(np.float64),
+                              d["val_y"])
+            C = int(max(yg.max(), yr.max()) + 1)
+            per.append([fn(Xg[yg == c][:300], Xr[yr == c][:300]) if (yg == c).sum() > 1 and (yr == c).sum() > 1
+                        else np.nan for c in range(C)])
+        if per:
+            mu = np.nanmean(np.array(per, dtype=float), 0)
+            rows += [[m, c, float(v)] for c, v in enumerate(mu)]
+    return rows
+
+
+def _gen_class_fig(E, S, out, num, fn, ylabel, name, text):
+    rows = _gen_class_stat(E, S, fn)
+    if not rows:
+        return []
+    f, ax = ps.figure("page", 2.4)
+    for m in sorted({r[0] for r in rows}, key=E.methods.index):
+        rr = [r for r in rows if r[0] == m]
+        ax.plot([r[1] for r in rr], [r[2] for r in rr], label=m, markevery=max(1, len(rr) // 12), **ps.style(m))
+    ax.set_xlabel("Class (ordered from most to least frequent)")
+    ax.set_ylabel(ylabel)
+    ax.legend()
+    p = ps.save(f, out, f"fig_{num:02d}_{name}", rows, ["method", "class", "value"])
+    return [(p, cap.simple(num, E, S, text))]
+
+
+@fig(80, "D")
+def f80(E, S, out):
+    return _gen_class_fig(E, S, out, 80, rp.mmd_rbf, "MMD$^2$", "per_class_mmd",
+                          "Per-class squared maximum mean discrepancy between the generated features and the real "
+                          "validation features of the class (Gaussian kernel, bandwidth = median distance; at most 300 "
+                          "of each; 0 = same distribution); methods with a generator, mean over seeds.")
+
+
+@fig(81, "D")
+def f81(E, S, out):
+    return _gen_class_fig(E, S, out, 81, rp.mean_mismatch, "Mean mismatch (SD units)", "per_class_mean_mismatch",
+                          "Per-class distance between the mean of the generated features and the mean of the real "
+                          "validation features, in units of the real within-class standard deviation; methods with a "
+                          "generator, mean over seeds.")
+
+
+@fig(82, "D")
+def f82(E, S, out):
+    rows = []
+    for m in E.methods:
+        v = [r["active_units"] / r["latent_dim"] * 100 for r in E.of(m, S) if r.get("active_units") is not None
+             and r.get("latent_dim")]
+        if v:
+            rows.append([m, float(np.mean(v)), float(np.std(v, ddof=1)) if len(v) > 1 else 0.0])
+    return _bars(E, S, out, 82, rows, "Active latent units (%)", "active_latent_units",
+                 "Active latent units of the generator: share of latent dimensions whose posterior mean varies over "
+                 "the validation features by more than 0.01 (Burda et al., ICLR 2016); methods with a variational "
+                 "generator, mean over seeds.", width="column")
 
 
 def _arch(K):

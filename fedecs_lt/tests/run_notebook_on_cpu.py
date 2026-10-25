@@ -58,4 +58,10 @@ print("outputs:", outs)
 assert p.returncode == 0, "notebook script failed"
 for suffix in ("__results.zip", "__report.pdf", "__models.zip", "__summary.zip"):
     assert name + suffix in outs, f"missing {name + suffix}"
+import zipfile  # noqa: E402
+with zipfile.ZipFile(os.path.join(W, name + "__results.zip")) as z:
+    info = json.loads(z.read(next(n for n in z.namelist() if n.endswith("report_info.json"))))
+print("report:", info)
+for key in ("failures", "audit_problems", "figure_errors"):
+    assert info.get(key, 0) == 0, f"{key}: {info.get(key)}"
 print("NOTEBOOK CPU TEST PASSED")
