@@ -80,7 +80,7 @@ balanced accuracy.
 2. **The generator loses rare classes through the optimiser (§3).** Coupled Adam decay on clients that lack a class
    shrinks its conditioning row; a count-only step ratio predicts which rows collapse (Approximation 5; 352 of 352
    predicted collapses observed). Without decay, flat averaging still dilutes and mis-weights rare rows
-   (Proposition 6); holder-weighted averaging (HWA) fixes both.
+   (Proposition 6); class-count weighted averaging (CCWA) fixes both.
 3. **The last layer is the largest loss and is fixed exactly (§4.1, §4.4).** Per-client logit corrections cannot
    change a single-client body (Proposition 7). A readout computed from aggregated sums equals the centralised readout
    (Theorem 10) and recovers 7–20 points.
@@ -236,7 +236,7 @@ Without weight decay the non-holder term vanishes; the data step is then only di
 **Predictions.** (i) GeFL-F's tail-to-head row-norm ratio is $\ll 1$ under a long tail, even when every class is held
 by more than half the clients. (ii) It is the same for every $\lambda$ with $\lambda\|r\| \gg \epsilon$ and disappears
 at $\lambda = 0$. (iii) It worsens with $K$ for fixed data, because more clients are non-holders of each tail class.
-(iv) Removing non-holders from row $c$'s average (HWA) removes the $\bar D_c$ term; the row can still shrink when
+(iv) Removing non-holders from row $c$'s average (CCWA) removes the $\bar D_c$ term; the row can still shrink when
 holder updates cancel, but no longer systematically.
 
 ### 3.2 Verification on the real generator (T01)
@@ -256,7 +256,7 @@ Dir 0.5, $K = 10$, 40 generator rounds, seed 0; `experiments/T01_collapse_thresh
 * *Only the presence of decay matters.* $\lambda = 10^{-4}$ and $\lambda = 10^{-3}$ give the same trajectories (final
   tail/head ratio 0.155 vs 0.152; non-holder loss $1.49\times10^{-2}$ per step in both). At $\lambda = 0$ the ratio
   stays at 0.85 and only 2 of 400 row-rounds contract.
-* *HWA removes the systematic contraction.* With the same decay ($\lambda = 10^{-3}$), aggregating the rows over holders only
+* *CCWA removes the systematic contraction.* With the same decay ($\lambda = 10^{-3}$), aggregating the rows over holders only
   makes the tail rows *grow* to 1.17–1.25× their initial norm (against 0.04–0.10 under flat averaging); they shrink
   in 1–6 of 40 rounds instead of 35–40. The final tail/head ratio is 0.72, against 0.15, because head rows grow
   faster still.
@@ -266,7 +266,7 @@ exactly (a non-holder's gradient on class $c$'s parameters is zero; checked on T
 non-holder change 0.0 in 40 rounds), and flat averaging gives $r_c^+ - r_c = p_c \times$ (mean holder update): dilution,
 not contraction. Rare classes still learn slowly, mainly because a holder moves the row only on steps whose batch
 contains the class; the predicted per-class rate $\frac1K\sum_k S_k\,[1-(1-\pi_{k,c})^B]$ matches the measured row
-growth on T01 (Spearman 0.85, $p = 0.002$; `experiments/T02_dilution_rates.py`). HWA speeds the rarest rows up by
+growth on T01 (Spearman 0.85, $p = 0.002$; `experiments/T02_dilution_rates.py`). CCWA speeds the rarest rows up by
 about 1× at $K = 10$ and 2–3× at $K = 100$. The shared parameters see the rarest class in 0.4% of the loss, the same
 imbalance under which centralised diffusion models and conditional GANs already lose their tail classes [CBDM,
 CVPR 2023; gSR, ECCV 2022], and class conditioning alone can cause mode collapse in limited-data GANs [Shahbazi et
@@ -282,15 +282,15 @@ a referee classifier, trained on real held-out features, on generated features o
 | | MNIST row ratio | MNIST tail fidelity | FMNIST row ratio | FMNIST tail fidelity |
 |---|---|---|---|---|
 | GeFL-F | 0.33 (0.09, 0.17, 0.72) | 8.8 | 0.22 (0.55, 0.09, 0.03) | 19.6 |
-| + HWA + LA | 0.80 (0.71, 0.80, 0.88) | 27.2 | 1.01 (1.15, 1.03, 0.85) | 66.2 |
+| + CCWA + LA | 0.80 (0.71, 0.80, 0.88) | 27.2 | 1.01 (1.15, 1.03, 0.85) | 66.2 |
 
-On SVHN (Kaggle, 3 seeds) the GeFL-F ratio is 0.49, 0.32 and 0.18, against 0.99, 0.96 and 1.05 with HWA. A quick-pass
-ablation (E02) shows that removing weight decay, lazy decay, and HWA each restore the ratio. Prediction (iii) holds.
+On SVHN (Kaggle, 3 seeds) the GeFL-F ratio is 0.49, 0.32 and 0.18, against 0.99, 0.96 and 1.05 with CCWA. A quick-pass
+ablation (E02) shows that removing weight decay, lazy decay, and CCWA each restore the ratio. Prediction (iii) holds.
 
 ### 3.4 The intervention at full scale: fixing the optimiser vs fixing the aggregation (K15)
 
 If coupled decay on non-holders causes the collapse, any fix that removes it should restore the rows. K15 tests the
-existing fixes against HWA, all with logit adjustment (LA) in the heads, on the same splits and seeds as the
+existing fixes against CCWA, all with logit adjustment (LA) in the heads, on the same splits and seeds as the
 references (long tail, 3 seeds; tables T17 / T18):
 
 | balanced accuracy | MNIST K=10 | K=50 | K=100 | FMNIST K=10 | K=50 | K=100 |
@@ -299,20 +299,20 @@ references (long tail, 3 seeds; tables T17 / T18):
 | + AdamW, decay 1e-3 (decoupled) | 86.4 | 84.7 | 81.6 | 75.9 | 74.0 | 71.8 |
 | + no decay on the class rows only | 86.8 | 84.4 | 81.8 | 75.9 | 74.5 | 71.9 |
 | + lazy decay (only rows in the batch) | 85.1 | 83.9 | 81.7 | 75.8 | 74.2 | 71.6 |
-| + HWA (coupled decay kept) | **87.9** | **86.5** | **83.1** | 76.0 | **75.5** | **73.3** |
-| HWA minus best fix [95% CI] | +1.1 [−0.9, 3.1] | +1.8 [0.3, 3.2] | +1.3 [0.6, 2.0] | −0.1 | +0.9 (n.s.) | +1.4 (n.s.) |
+| + CCWA (coupled decay kept) | **87.9** | **86.5** | **83.1** | 76.0 | **75.5** | **73.3** |
+| CCWA minus best fix [95% CI] | +1.1 [−0.9, 3.1] | +1.8 [0.3, 3.2] | +1.3 [0.6, 2.0] | −0.1 | +0.9 (n.s.) | +1.4 (n.s.) |
 
 * **The diagnosis holds.** Every fix restores the tail rows (tail/head norm 0.73–0.97, against 0.04–0.34 under coupled
   decay) and recovers 2–11 points over GeFL-F + LA (7–11 with 10 clients, less as the number of clients grows). AdamW at decay 1e-2 equals AdamW at 1e-3 (86.5 vs 86.4 on MNIST, 76.1 vs 75.9 on
   FashionMNIST), and the row-only fix equals the global one: the decay *term on the rows* is the cause.
-* **HWA's extra gain is the dilution term.** Without collapse, a rare row still learns at a rate diluted by $m_c/K$
-  (§3.2). HWA removes that too. Its advantage over the best optimiser fix is 1.3–1.8 points at K = 50 / 100 on MNIST
+* **CCWA's extra gain is the dilution term.** Without collapse, a rare row still learns at a rate diluted by $m_c/K$
+  (§3.2). CCWA removes that too. Its advantage over the best optimiser fix is 1.3–1.8 points at K = 50 / 100 on MNIST
   (confidence intervals exclude zero) and points the same way on FashionMNIST; tail recall shows it more clearly
   (MNIST, K = 50: 74.6 vs 69.9).
-* **Practical reading.** Removing coupled decay is the first fix and costs nothing (2–11 points); HWA is a refinement worth 1–2
+* **Practical reading.** Removing coupled decay is the first fix and costs nothing (2–11 points); CCWA is a refinement worth 1–2
   points that grows with the number of clients. The anchored generator of §5.5 has no class rows at all, so for it the
-  question does not arise; HWA matters for the minimal variant and for the class-row branch used on SVHN.
-* **On SVHN (K18)** the same pattern holds with harder data: HWA − decay fix is +0.5 / +1.8 points at K = 50 / 100 (heads
+  question does not arise; CCWA matters for the minimal variant and for the class-row branch used on SVHN.
+* **On SVHN (K18)** the same pattern holds with harder data: CCWA − decay fix is +0.5 / +1.8 points at K = 50 / 100 (heads
   as trained; −0.1 / +0.9 with the exact readout).
 
 ### 3.5 A count-only predictor of collapse
@@ -354,8 +354,8 @@ run with coupled decay and flat averaging (MNIST and FashionMNIST at $K=10/50/10
   client's row back in.
 * **Prospective test (K18).** SVHN at $K=50/100$ is a dataset the predictor had not seen; the prediction was written
   into this draft before the runs returned: every row with $\kappa_c<1$ collapses (≤ 0.15 of its initial norm) under
-  GeFL-F, and none does under HWA. Result (3 seeds, 60 rows per arm, $\kappa_c$ from the per-client counts the runs
-  log): all 16 rows with $\kappa_c<1$ collapsed under GeFL-F (largest final norm 0.04); none did under HWA (smallest
+  GeFL-F, and none does under CCWA. Result (3 seeds, 60 rows per arm, $\kappa_c$ from the per-client counts the runs
+  log): all 16 rows with $\kappa_c<1$ collapsed under GeFL-F (largest final norm 0.04); none did under CCWA (smallest
   final norm 1.25); Spearman(log $\kappa_c$, final norm) = 0.99 (`docs/research/math_checks/x2_kappa_svhn_prospective.py`).
 * **Round by round (K25).** Instrumenting every Stage-II round (MNIST and CIFAR-10, seed 3): for every class that some
   client lacks, the mean per-round shrinkage of its row on non-holders is 2–10 times the holders' growth under GeFL-F,
@@ -374,7 +374,7 @@ mean. Then:
    ($M_{kc}\to0$) it is the **unweighted** mean of the holders' local means.
 2. In the saturated regime its mean squared error is $V_c=\frac{n_c}{m_c^2}\sum_{k\in H_c}1/n_{kc}\ge1$ times that of
    the pooled estimate, with equality iff all holders have equal counts.
-3. HWA with weights $E(n_{kc})$ gives $V_c\approx1$ in the saturated regime (since $E(n)\approx n$ for $n\ll10^3$).
+3. CCWA with weights $E(n_{kc})$ gives $V_c\approx1$ in the saturated regime (since $E(n)\approx n$ for $n\ll10^3$).
 
 *Proof.* Non-holders contribute the identity map and drop out of the fixed-point equation; the rest is the
 fixed-point formula for quadratic clients and, for item 2, the variance of independent unbiased local means
@@ -382,8 +382,8 @@ fixed-point formula for quadratic clients and, for item 2, the variance of indep
 
 *Measured.* Simulated error ratios on the actual MNIST seed-0 counts match $V_c$ to two decimals ($V_c$ = 2.0–2.8 for
 the tail classes, 5.4–9.2 for head classes, which Dirichlet splits give holders with one or two samples). The flat
-per-round rate of the rarest class, relative to HWA's, explains why HWA's advantage over the decay fixes appears only
-with more clients: the HWA / flat rate ratio of MNIST's rarest class is 1.15 / 2.28 / 3.14 at $K=10/50/100$, and HWA's
+per-round rate of the rarest class, relative to CCWA's, explains why CCWA's advantage over the decay fixes appears only
+with more clients: the CCWA / flat rate ratio of MNIST's rarest class is 1.15 / 2.28 / 3.14 at $K=10/50/100$, and CCWA's
 measured gain over the best decay fix is +1.1 (n.s.) / +1.8 / +1.3 points (§3.4).
 
 ---
@@ -474,7 +474,7 @@ hurts the body (relative to real-only heads) when $s$ is near zero and helps onc
 *Test (K17, seeds 3–5).* We estimate $s=(a-1/C)/(1-1/C)$ from the held-out referee's accuracy $a$ on generated
 features, and measure the synthetic gain as ER(arm) − ER(heads trained on real data only), same seeds and splits:
 
-| $s$ / synthetic gain (ER points) | GeFL-F | GeFL-F + AdamW + LA | Ours ($T_s=10$) |
+| $s$ / synthetic gain (ER points) | GeFL-F | GeFL-F + LA | Ours ($T_s=10$) |
 |---|---|---|---|
 | MNIST | 0.31 / +1.0 | 0.53 / +2.6 | 0.97 / +4.7 |
 | FashionMNIST | 0.50 / +2.1 | 0.72 / +2.8 | 0.87 / +3.4 |
@@ -549,7 +549,7 @@ models). Consequences:
 
 ## 5. Method
 
-### 5.1 HWA: holder-weighted aggregation of conditioning rows
+### 5.1 CCWA: class-count weighted averaging of conditioning rows
 
 Let $n_{k,c}$ be client $k$'s count of class $c$, and $E(n) = (1-\beta^n)/(1-\beta)$ the effective number of samples
 (Cui et al., 2019), with $\beta = 0.999$. The server aggregates
@@ -558,7 +558,7 @@ $$w_c \leftarrow \frac{\sum_k E(n_{k,c})\, w_c^{(k)}}{\sum_k E(n_{k,c})}, \qquad
 
 * **Effect on §3.1.** Non-holders have $E(0) = 0$, so the decay-only copies are excluded. By the same triangle
   inequality, $\|r_c^+\| \le \|r_c\| + \sum_{k\in H_c}\omega_k\Delta_k$ with $\omega_k \propto E(n_{k,c})$: the
-  $-(1-p_c)\bar D_c$ term of Theorem 3 disappears for every class with at least one holder. HWA does not force the row
+  $-(1-p_c)\bar D_c$ term of Theorem 3 disappears for every class with at least one holder. CCWA does not force the row
   to grow; it leaves it to the holders, weighted toward those with the most samples.
 * **Why effective number (a heuristic).** A holder's row estimate has variance that falls with its sample count but
   plausibly saturates (correlated samples, a finite number of local steps). $E(n)$-weighting is a convenient
@@ -566,8 +566,8 @@ $$w_c \leftarrow \frac{\sum_k E(n_{k,c})\, w_c^{(k)}}{\sum_k E(n_{k,c})}, \qquad
   not derive it. K02 ablates both limits: the three rules are within one point of each other (counts 89.97 / 76.45,
   uniform 89.02 / 76.33, $E(n)$ 90.15 / 76.51 on MNIST / FMNIST; 2 seeds), so what matters is excluding non-holders,
   not the exact weights.
-* **Do-no-harm.** When every client has the same class counts, HWA *equals* FedAvg. Random IID splits give nearly
-  equal counts. On SVHN IID, HWA + LA scores 0.18 points below GeFL-F (75.64 vs 75.82), a small but consistent cost.
+* **Do-no-harm.** When every client has the same class counts, CCWA *equals* FedAvg. Random IID splits give nearly
+  equal counts. On SVHN IID, CCWA + LA scores 0.18 points below GeFL-F (75.64 vs 75.82), a small but consistent cost.
 * **Privacy.** The server needs $\sum_k E(n_{k,c}) w_c^{(k)}$ and $\sum_k E(n_{k,c})$, which are sums. Under secure
   aggregation it learns neither any client's row nor any client's histogram. We also test Laplace-noised counts
   ($\varepsilon \in \{10, 1, 0.1\}$; K02).
@@ -638,12 +638,12 @@ $\lambda n_s$) past it *hurts*, or at best does nothing. This is the paper's Fig
 $t = (1-\beta)e_y + \beta\,\bar p$ moves $t$ toward the posterior, which lowers $b$ and pushes $\lambda^\star$ up, so the
 same extra epochs now help. The proposition predicts an *interaction*, not a main effect: the gain from more synthetic
 epochs should be larger with CSL than without it. That is exactly what E16 measures (FMNIST IID: +0.22 from $T_s = 1$
-to 5 without CSL, +0.83 with it). It also explains why the budget helps more under the long tail once HWA has made
+to 5 without CSL, +0.83 with it). It also explains why the budget helps more under the long tail once CCWA has made
 tail features faithful, since a lower generator error is a lower $b$ as well.
 
 ### 5.5 Anchoring every stage to exact statistics
 
-HWA repairs a FedAvg-trained generator. The diagnosis of §3, together with the measurements of §6, points to a
+CCWA repairs a FedAvg-trained generator. The diagnosis of §3, together with the measurements of §6, points to a
 cleaner design. Wherever the data decides the result, use a statistic that secure aggregation computes **exactly** —
 sums over clients of per-class quantities — instead of a parameter that FedAvg *estimates*. Every statistic below
 costs one upload per client and reveals only federation-level sums.
@@ -682,9 +682,9 @@ Taking expectations bounds $W_1$. $\square$
   roughly 6–10 times more sensitive to the anchor than to its noise. The ELBO offers a cheaper route: the encoder sees $x$, so it can carry the label
   in $z$ for a KL cost of order $\log C$ nats per sample, small against the reconstruction term. Samples drawn from
   the prior are then class-agnostic. This is what we measure (§B.11): after KH, tail fidelity is 24% on SVHN, against
-  36% for the CVAE + HWA and 0.9 on MNIST.
+  36% for the CVAE + CCWA and 0.9 on MNIST.
 * *The fix.* Free class rows $r_y$ inside the decoder, $g(Z, A m_y + r_y)$, remove the bound: the separation
-  $\|r_c - r_{c'}\|$ is then a learned parameter, and HWA keeps it from collapsing. This is the hybrid generator PCR.
+  $\|r_c - r_{c'}\|$ is then a learned parameter, and CCWA keeps it from collapsing. This is the hybrid generator PCR.
 
 **MC: the minimum-displacement moment correction.** The server also knows each class's exact spread
 $V_c = \mathbb E\|h - m_c\|^2$, from the sums of $\|h\|^2$. Let $\tilde m_c$ and $\tilde V_c$ be the mean and spread
@@ -854,7 +854,7 @@ tested and does not help (§6.8).
 **Ours = anchored generator + LA/CSL heads + exact readout.**
 * *Generator.* $F = \overline{\|m_c - \bar m\|^2} / \overline{V_c}$ is computed from the released sums.
   $F \ge 0.05$: the PC-VAE, conditioned on the exact class mean (no class rows). $F < 0.05$: the paper's CVAE-F with
-  class rows protected by HWA (or, equivalently for the collapse, by decoupled decay; §3.4). Implemented as the `GATE`
+  class rows protected by CCWA (or, equivalently for the collapse, by decoupled decay; §3.4). Implemented as the `GATE`
   component, read at run time. The threshold was set after the SVHN failure; measured $F$ is 0.005–0.013 on SVHN,
   0.054–0.080 on CIFAR-10, 0.18–0.25 on CIFAR-100 and at least 0.25 on MNIST / FashionMNIST, so CIFAR-10 lies close to
   it (its row branch is tested in K17).
@@ -864,7 +864,7 @@ tested and does not help (§6.8).
   (chosen on test results so far; K17 chooses it on validation data).
 * *Readout.* ER after training (§5.6); BBC is an alternative that needs no extra round but is weaker.
 
-**The minimal variant** for an existing GeFL-F deployment is HWA (or decoupled decay) + LA + CSL, with the paper's
+**The minimal variant** for an existing GeFL-F deployment is CCWA (or decoupled decay) + LA + CSL, with the paper's
 generator, plus ER.
 
 ## 6. Experiments
@@ -954,7 +954,7 @@ GeFL-F, GeFL-F + LA, the minimal variant and our method, trained once per seed (
 
 ### 6.4 Fixing the collapse: optimiser vs aggregation (K15)
 
-See §3.4: removing coupled decay recovers 2–11 points; HWA adds 1.3–1.8 at K = 50 / 100 on MNIST.
+See §3.4: removing coupled decay recovers 2–11 points; CCWA adds 1.3–1.8 at K = 50 / 100 on MNIST.
 
 ### 6.5 GeFL-F's balanced setting (K16, IID)
 
@@ -986,9 +986,9 @@ seeds, 95% CI, Holm-corrected over the nine baselines:
 |---|---|---|---|---|---|
 | Ours (selected $T_s$, readout) | 95.6 (10, CCVR) | 82.1 (10, CCVR) | 65.6 (10, CCVR) | 53.1 (1, ER) | 18.7 (10, ER) |
 | − GeFL-F | **+3.4** [3.2, 3.6] | +1.0 [−0.0, 2.1] | +1.5 [0.6, 2.5] | **+2.4** [1.8, 3.0] | **+4.0** [2.6, 5.4] |
-| − GeFL-F + AdamW + LA (decay fix) | **+2.0** [1.9, 2.2] | +0.5 [−0.2, 1.2] | +1.5 [0.4, 2.6] | +1.5 [0.8, 2.2] | **+3.0** [2.3, 3.7] |
-| − real-data heads + LA (balanced softmax) | **+4.7** | **+2.6** | **+11.3** | +1.5 (n.s.) | **+1.6** [0.7, 2.6] |
-| − real-data heads + FedLC / FedRS | **+4.7** | **+2.6** | **+11.2** | +1.6 (n.s.) | **+1.7 / +1.8** |
+| − GeFL-F + LA (decay fix) | **+2.0** [1.9, 2.2] | +0.5 [−0.2, 1.2] | +1.5 [0.4, 2.6] | +1.5 [0.8, 2.2] | **+3.0** [2.3, 3.7] |
+| − Balanced Softmax (= LA on real-data heads) | **+4.7** | **+2.6** | **+11.3** | +1.5 (n.s.) | **+1.6** [0.7, 2.6] |
+| − FedLC / FedRS | **+4.7** | **+2.6** | **+11.2** | +1.6 (n.s.) | **+1.7 / +1.8** |
 | − FSG + LA | **+2.9** [1.7, 4.1] | **+1.3** [1.3, 1.4] | **+12.4** | +0.5 [−1.1, 2.1] | **+1.6** [0.4, 2.8] |
 | − FedDF | **+1.9** [1.4, 2.5] | +0.3 [−0.6, 1.2] | +0.5 [−1.0, 2.0] | +2.3 [0.9, 3.7] | **+3.5** [2.5, 4.5] |
 | − FedDF + LA | **+2.0** [1.2, 2.8] | +0.3 [−0.4, 1.0] | −0.3 [−1.6, 1.0] | +1.7 [0.4, 3.0] | **+3.5** [2.2, 4.9] |
@@ -1110,8 +1110,8 @@ not run.
   too) and nothing measurable on CIFAR-100.
 * **Ranking of the losses for GeFL-F** (federated vs centralised, same pooled long-tailed data, same frozen-extractor
   design): last layer 7–20 points (fixed exactly by ER, Theorem 10); generator-row collapse 7–11 at $K=10$ (fixed by
-  the decay fix, HWA or the mean anchor); one-client bodies 3.0–4.2 (closed by high-$s$ synthetic data); synthetic data
-  with $s\approx0$ up to −2.2 (removed by raising $s$); row dilution 1.3–1.8 at $K=50/100$ (HWA); federated extractor
+  the decay fix, CCWA or the mean anchor); one-client bodies 3.0–4.2 (closed by high-$s$ synthetic data); synthetic data
+  with $s\approx0$ up to −2.2 (removed by raising $s$); row dilution 1.3–1.8 at $K=50/100$ (CCWA); federated extractor
   0–1.1 (not touched by any of our changes).
 * *Why the margin over strong baselines is small (§6.6).* The decay fix removes the generator term and ER the readout
   term; what is left for a better generator is the body term, part of which the decay-fixed GeFL-F's generator already
@@ -1134,7 +1134,7 @@ not run.
   at about 6× the head-stage cost; demoted to optional.
 * **Class-balanced Stage-I loss (BALFE, K21, §6.7).** Positive in the CPU pilot, neutral on MNIST / FashionMNIST and
   harmful on the CIFARs in the full pipeline (unnormalised weights).
-* Earlier negative results (prior-completing batches, lazy decay on top of HWA, the Gaussian and hybrid generators,
+* Earlier negative results (prior-completing batches, lazy decay on top of CCWA, the Gaussian and hybrid generators,
   server-side distillation, Bayesian consensus labels, real–synthetic alignment, VCT vs MixUp) are in Appendix B.7 and
   B.11.
 
@@ -1169,32 +1169,32 @@ not protect rare classes; the added statistics should be released with noise whe
 | | K = 50 | K = 100 |
 |---|---|---|
 | GeFL-F | 58.0 / 42.2 | 58.8 / 42.2 |
-| GeFL-F + AdamW + LA (decay fix) | 60.3 / 54.3 | 59.9 / 51.4 |
-| GeFL-F + HWA + LA | 60.3 / 54.8 | 60.8 / 53.2 |
+| GeFL-F + LA (decay fix) | 60.3 / 54.3 | 59.9 / 51.4 |
+| GeFL-F + CCWA + LA | 60.3 / 54.8 | 60.8 / 53.2 |
 | **Ours** | **61.8 / 58.2** | **61.0 / 55.2** |
 
-Pre-registered: P1 (HWA − decay fix larger at K = 100 than at K = 10) holds (+1.8 vs ≈ 0 as trained; +0.9 vs −0.1
+Pre-registered: P1 (CCWA − decay fix larger at K = 100 than at K = 10) holds (+1.8 vs ≈ 0 as trained; +0.9 vs −0.1
 with ER); P2 (ours + ER ≥ GeFL-F + ER + 2 at both K) holds (+3.8 / +2.2); P3 (own-client CCVR within 2 points of
 all-client CCVR at K = 100, where each architecture has 10 clients) **fails**: own-client CCVR is still 12.6–15.2
 points lower for every method, so the published per-architecture readouts stay weak even with ten clients per
 architecture.
 
 *Partial participation (K23, K = 100, 10% / 20% of the clients per round, the same seeded subset for every method;
-31 of 48 runs so far).* On FashionMNIST at 10% participation HWA beats the decay fix by +3.6 / +2.7 points as trained
+31 of 48 runs so far).* On FashionMNIST at 10% participation CCWA beats the decay fix by +3.6 / +2.7 points as trained
 (two seeds) but not with ER (−0.04 / −0.11); ours reaches 73.2 as trained and 79.8 with ER against 69.1 / 78.4 for
-HWA. **[PENDING: NB71]** The MNIST decay-fix and ours arms and the remaining FashionMNIST seed.
+CCWA. **[PENDING: NB71]** The MNIST decay-fix and ours arms and the remaining FashionMNIST seed.
 
 *CIFAR-10 with five clients per architecture (K26, K = 50, long tail, seeds 3–5).* Test balanced accuracy:
 
 | | as trained | + ER | tail classes, as trained |
 |---|---|---|---|
-| GeFL-F + AdamW + LA (decay fix) | 35.7 | 45.1 | 21.4 |
-| GeFL-F + HWA + LA | 35.9 | 45.2 | 22.5 |
+| GeFL-F + LA (decay fix) | 35.7 | 45.1 | 21.4 |
+| GeFL-F + CCWA + LA | 35.9 | 45.2 | 22.5 |
 | **Ours** (gated; anchor branch on every seed, $F$ = 0.08–0.10) | **40.4** | **46.1** | **31.2** |
 
-Pre-registered: D1 (HWA − decay fix ≥ 0) holds, but only just: +0.24 [0.08, 0.40] as trained and +0.10 [−0.22, 0.41]
+Pre-registered: D1 (CCWA − decay fix ≥ 0) holds, but only just: +0.24 [0.08, 0.40] as trained and +0.10 [−0.22, 0.41]
 with ER, far from MNIST's +1.8 at K = 50 (K15). D2 (ours + ER ≥ both baselines + ER) holds: +1.0 [0.2, 1.8] over the
-decay fix and +0.9 [−0.0, 1.9] over HWA; as trained the margin is +4.7, and +9.8 on the tail classes. Every method is
+decay fix and +0.9 [−0.0, 1.9] over CCWA; as trained the margin is +4.7, and +9.8 on the tail classes. Every method is
 6.5–7 points below its K = 10 value on the same seeds (K17: 51.6 and 53.1 with ER), so splitting each architecture's
 data over five clients costs more than any method recovers.
 
@@ -1202,8 +1202,8 @@ data over five clients costs more than any method recovers.
 
 | | IF = 10 | Dirichlet 0.1 | Dirichlet 1.0 | random rare classes |
 |---|---|---|---|---|
-| real-data heads + LA | 80.8 / 62.8 | 76.6 / 51.1 | 78.4 / 56.9 | 77.7 / 54.9 |
-| decay fix (AdamW + LA) | 83.2 / 72.3 | 78.9 / 62.1 | 80.8 / 65.2 | 79.5 / 63.7 |
+| Balanced Softmax (= LA on real-data heads) | 80.8 / 62.8 | 76.6 / 51.1 | 78.4 / 56.9 | 77.7 / 54.9 |
+| GeFL-F + LA (decay fix) | 83.2 / 72.3 | 78.9 / 62.1 | 80.8 / 65.2 | 79.5 / 63.7 |
 | **Ours** | **84.2 / 74.8** | **80.4 / 63.9** | **81.5 / 66.2** | **80.1 / 64.8** |
 | ours − decay fix, SVHN [95% CI] | +2.6 [1.0, 4.1] | +1.7 [1.0, 2.5] | +1.0 [−0.0, 2.0] | +1.1 [0.8, 1.3] |
 
@@ -1231,12 +1231,12 @@ Items with $\kappa_c<1$ (895 of 3,706 at K = 10; 2,108 at K = 50):
 | same, optimiser state reset every round | 99.7% / 100% | 1.107 / 1.109 | 0.882 / 0.950 |
 | AdamW (decoupled), FedAvg | 0% / 0% | 1.036 / 0.992 | 0.904 / 0.907 |
 | Adam, no decay | 0% / 0% | 1.036 / 0.992 | 0.904 / 0.907 |
-| Adam + L2, rows averaged over holders (HWA) | 23.3% / 8.7% | 1.042 / **0.967** | **0.857** / **0.894** |
+| Adam + L2, rows averaged over holders (CCWA) | 23.3% / 8.7% | 1.042 / **0.967** | **0.857** / **0.894** |
 | SGD + L2, FedAvg | 0% / 0% | 1.160 / 1.144 | 0.967 / 1.010 |
 | **centralised** Adam + coupled L2 | **78.0%** | 1.099 | 0.888 |
 
 * **The count rule ranks the collapse** (Spearman(log $\kappa_c$, final norm) 0.93 / 0.96), and the collapse grows
-  with K (22% → 48% of all items; E4 holds). The accuracy cost is real: Adam + L2 is worse than AdamW and HWA on
+  with K (22% → 48% of all items; E4 holds). The accuracy cost is real: Adam + L2 is worse than AdamW and CCWA on
   these items at both K (E3 holds).
 * **Two predictions fail.** E1 ("every $\kappa_c<1$ row collapses"): 83–85% do; the rest end at 0.15–0.3 of their norm,
   the items with the most ratings among them. E2 ("no collapse centrally"): centralised Adam + L2 collapses 78% of the
@@ -1248,7 +1248,7 @@ Items with $\kappa_c<1$ (895 of 3,706 at K = 10; 2,108 at K = 50):
   K = 50, federation collapses moderately rare items (seen every 100–1,000 steps) about 10 times harder than
   centralised training (median norm 0.006–0.016 vs 0.07–0.13; `docs/research/math_checks/x5_step_frequency_mf.py`).
 * **Practical reading.** Coupled L2 regularises popular items well (best overall error at K = 10) and destroys rare
-  ones; AdamW removes both effects; HWA keeps the regularisation and gives the best rare-item error at K = 50.
+  ones; AdamW removes both effects; CCWA keeps the regularisation and gives the best rare-item error at K = 50.
 * *Novelty.* Count-weighted item aggregation is known (FedNCF [64]) and weak or skewed item embeddings in federated
   recommendation have been reported [65]; we found no account of the optimiser mechanism or of a count-based predictor.
 
@@ -1282,11 +1282,11 @@ clients. FedVTC [17] shares feature mean and covariance statistics, from which c
 heterogeneous models; it is the closest precedent for a generator driven by federated class statistics. GeFL [1]
 trains the generator itself by FedAvg across clients, with CVAE, DCGAN or DDPM
 backbones, in image space (GeFL) or feature space (GeFL-F). FedGen and FedFTG apply label-count weights to the
-*teacher predictions or losses* that train a server-side generator. HWA instead weights the *parameters* of a
+*teacher predictions or losses* that train a server-side generator. CCWA instead weights the *parameters* of a
 client-trained generator, namely its per-class conditioning rows, during aggregation. It is derived from a failure
 that is specific to that setting: under FedAvg with Adam's coupled weight decay, non-holders shrink a class's
 row at Adam's step size while holders barely grow it, so tail rows contract even when most clients hold the class. Closely related ideas exist elsewhere: federated recommendation aggregates each item embedding over the clients that updated it (FedNCF, Perifanis & Efraimidis, Knowledge-Based Systems 2022), and class embeddings can collapse under FedAvg when clients see only positive labels (FedAwS, Yu et al., ICML 2020), a different cause from decay. Class-conditional collapse in centralised generators is also known (Shahbazi et al., ICLR 2022; Qin et al., CVPR 2023; Rangwani et al., ECCV 2022). Per-class aggregation over the clients that hold a class also appears in cwFedAvg [29] and in FedProto's
-prototype averaging [10]; HWA applies the same rule to a generator's class rows. What we add is the federated
+prototype averaging [10]; CCWA applies the same rule to a generator's class rows. What we add is the federated
 mechanism: coupled Adam decay on non-holders combined with flat averaging.
 
 **FL under class imbalance and long tails.** Much of this work locates the bias in the classifier. CCVR [18]
@@ -1338,7 +1338,7 @@ CSL does not distil at the server. It only relabels the clients' synthetic phase
 classifiers are established outside FL (f-CLSWGAN [53], Delta-encoder [54]), and a generator trained by MMD against
 random-feature class embeddings is DP-MERF [55], which our server-only KME-Gen reproduces on federated sums.
 
-**Privacy.** Secure aggregation [44] lets a server learn only the sum of client vectors. HWA needs only the sums
+**Privacy.** Secure aggregation [44] lets a server learn only the sum of client vectors. CCWA needs only the sums
 $\sum_k E(n_{k,c})\,w_c^{(k)}$ and $\sum_k E(n_{k,c})$, so it runs inside such a protocol and reveals neither
 individual rows nor individual histograms. Differential privacy [45] and its use in deep learning [46] and in
 federated training at the user or client level [47, 48] give formal guarantees. Our DP experiments add Laplace
@@ -1361,14 +1361,14 @@ sidesteps. Training bodies under a fixed head (FedBABU [62]) is related to our n
 
 GeFL/GeFL-F [1] was evaluated only with IID clients and aggregates every generator parameter by flat FedAvg. We
 show that, combined with Adam's coupled weight decay, this contracts the conditioning rows of tail classes even
-when most clients hold them (Theorem 3), and HWA removes exactly the non-holder term while reducing to FedAvg when
+when most clients hold them (Theorem 3), and CCWA removes exactly the non-holder term while reducing to FedAvg when
 class counts are equal. FedGen [11] and FedFTG [12] also use label-count weights, but on the teacher predictions or losses that train
 a *server-side* generator; we weight the *parameters* of a *client-trained* generator. Both label generated samples
 with the hard conditioning label, whereas CSL relabels them with a one-hot/cross-architecture-consensus mixture.
 CReFF [19] and CCVR [18] use synthetic or virtual features to re-train one homogeneous classifier after training,
 while we keep per-architecture heads and change how the generator is aggregated and its samples labelled throughout
 training. FedLC [21] already debiases local training with client label frequencies; our LA belongs to the same
-family, and our claim for it is only empirical: it is needed, but it pays off fully only after HWA. FedDF-style
+family, and our claim for it is only empirical: it is needed, but it pays off fully only after CCWA. FedDF-style
 server distillation [4] of the ensemble on generated features lowers IID accuracy in our hands. CSL uses the same
 ensemble only as a low-variance label inside the clients' synthetic phase, and this is what makes a larger
 synthetic budget pay off. The closest labelling scheme is Felo/Velo [16]. Its server averages clients' logits
@@ -1392,7 +1392,7 @@ consensus is what tracks the generator's per-sample label error, the bias $b$ of
 * **Selection on the test set.** For seeds 0–2, $T_s$, $\beta$, $\tau$, the gate threshold and the choice among
   variants were made on the reported test sets. K17 (new seeds, validation-selected, Holm-corrected) re-tests the
   main comparison; $\beta$, $\tau$ and the gate threshold were still fixed from the earlier runs.
-* **HWA's contribution is modest.** Once coupled decay is removed, HWA adds 1–2 points, significant only on MNIST at
+* **CCWA's contribution is modest.** Once coupled decay is removed, CCWA adds 1–2 points, significant only on MNIST at
   50 and 100 clients.
 * **Reproducibility.** Seeds fix the splits and initialisations, but GPU training was not deterministic; a
   `--deterministic` option and the code commit are recorded for runs from now on.
@@ -1416,11 +1416,11 @@ consensus is what tracks the generator's per-sample label error, the bias $b$ of
 
 * **The generator gate is set from five datasets.** $F$ separates SVHN from MNIST and FashionMNIST by more than a
   factor of ten, but CIFAR-10 is within a factor of two of the threshold, and a dataset with intermediate separation
-  would need both branches evaluated. Under the gate, the rows branch inherits HWA's
+  would need both branches evaluated. Under the gate, the rows branch inherits CCWA's
   cost (aggregated class counts).
 * Results are on small images and on the paper's backbone sizes. Larger FEs could change the generator's failure
   profile.
-* HWA uses aggregated class counts. LCD is the fully local alternative but is weaker.
+* CCWA uses aggregated class counts. LCD is the fully local alternative but is weaker.
 * CSL's gain in IID data is small (+0.5 to +0.7 points), although it is consistent across seeds.
 * MND in feature space is a proxy for privacy, not a guarantee. A formal DP accounting of the generator itself is
   future work.
@@ -1435,7 +1435,7 @@ consensus is what tracks the generator's per-sample label error, the bias $b$ of
   and were not tuned further.
 * **The scale predictions are partial.** The prospective $\kappa$ test (K18) ran on SVHN only and its third
   prediction failed; the partial-participation runs (K23) are incomplete. With five clients per architecture on
-  CIFAR-10 (K26) HWA's advantage over the decay fix is about zero and every method loses 6.5–7 points to K = 10.
+  CIFAR-10 (K26) CCWA's advantage over the decay fix is about zero and every method loses 6.5–7 points to K = 10.
 * **The recommendation result (§6.11) is one dataset.** MovieLens-1M, explicit ratings, 30 rounds, three seeds, one
   embedding size. Two of its four predictions failed: not every $\kappa_c<1$ item collapses, and centralised Adam with
   coupled L2 collapses most of the same items, so in recommendation the federated part is the extra severity (about
@@ -1459,11 +1459,11 @@ consensus is what tracks the generator's per-sample label error, the bias $b$ of
 | LG-FedAvg + LA | 67.8 ± 1.2 | 50.6 | 57.6 ± 2.4 | 41.0 |
 | GeFL-F | 74.6 ± 1.8 | 51.9 | 58.6 ± 3.4 | 35.4 |
 | GeFL-F + LA | 78.9 ± 2.3 | 60.1 | 64.8 ± 3.3 | 45.5 |
-| **GeFL-F + HWA + LA** | **87.9 ± 1.6** | **81.1** | **76.0 ± 0.7** | **68.8** |
+| **GeFL-F + CCWA + LA** | **87.9 ± 1.6** | **81.1** | **76.0 ± 0.7** | **68.8** |
 
 Against GeFL-F, the gain is +13.3 (p = 0.004) on MNIST and +17.4 (p = 0.015) on FMNIST. Tail recall rises by +29 and
 +33. On the paper's own metric (`best_mean_acc`) the gain is +13.5 and +17.3. LA alone accounts for +4.3 and +6.2;
-HWA adds +9.0 and +11.2 on top of it. Worst-class recall rises from 29.2 / 19.3 (GeFL-F) to 68.9 / 33.5 (MNIST /
+CCWA adds +9.0 and +11.2 on top of it. Worst-class recall rises from 29.2 / 19.3 (GeFL-F) to 68.9 / 33.5 (MNIST /
 FMNIST); the Gaussian exact-statistics generator FSG + LA (F01, same seeds) reaches 87.0 / 73.6 balanced accuracy, so
 on MNIST the repaired CVAE is not clearly better than it. All baselines here are in the GeFL-F family or simple FL
 references: no dedicated long-tailed FL method and no recalibration of GeFL-F's own heads is compared yet (§B.11, §8).
@@ -1474,23 +1474,23 @@ references: no dedicated long-tailed FL method and no recalibration of GeFL-F's 
 |---|---|---|---|
 | GeFL-F | 74.2 | 78.1 | 76.0 |
 | + LA | 78.9 | 81.4 | 79.5 |
-| + HWA + LA | 87.8 | 86.5 | 83.1 |
-| + HWA + LA + CSL (ours) | **89.9** | – | 83.0 (n = 2) |
+| + CCWA + LA | 87.8 | 86.5 | 83.1 |
+| + CCWA + LA + CSL (ours) | **89.9** | – | 83.0 (n = 2) |
 | FSG + LA | 87.0 | **87.7** | **86.1** |
 | FSG + LA + CSL | – | – | 86.3 (n = 1) |
-| MIX + HWA + LA + CSL | – | – | 85.3 (n = 2) |
+| MIX + CCWA + LA + CSL | – | – | 85.3 (n = 2) |
 
 The consensus-label arms at K = 50 and 100 were re-run after a bug fix in CSL; the cells marked "–" have no valid
 post-fix run, and the earlier values are not reported.
 
-* Every variant beats GeFL-F at every K: HWA + LA gains +8.4 at K = 50 and +7.1 at K = 100.
+* Every variant beats GeFL-F at every K: CCWA + LA gains +8.4 at K = 50 and +7.1 at K = 100.
 * The best *generator* changes with K. The repaired CVAE-F wins at K = 10. The Gaussian sufficient-statistics
-  generator (FSG) is ahead at K = 50 (87.7 vs 86.5 for HWA + LA) and at K = 100 (86.1 vs 83.1 for HWA + LA and 83.0
-  for HWA + LA + CSL, 2 seeds).
-* On FashionMNIST (K03, 3 seeds) the picture is the same: at K = 50 / 100, HWA + LA scores 75.5 / 73.3, FSG + LA
-  75.1 / 74.6, GeFL-F 61.9 / 62.0, and adding CSL to HWA + LA *lowers* balanced accuracy (74.5 / 71.2).
+  generator (FSG) is ahead at K = 50 (87.7 vs 86.5 for CCWA + LA) and at K = 100 (86.1 vs 83.1 for CCWA + LA and 83.0
+  for CCWA + LA + CSL, 2 seeds).
+* On FashionMNIST (K03, 3 seeds) the picture is the same: at K = 50 / 100, CCWA + LA scores 75.5 / 73.3, FSG + LA
+  75.1 / 74.6, GeFL-F 61.9 / 62.0, and adding CSL to CCWA + LA *lowers* balanced accuracy (74.5 / 71.2).
 * This is the expected structure. FSG's federated estimate equals the centralised one at any K, because it
-  aggregates exact sums. The CVAE's rows, even under HWA, are fitted by clients that each hold fewer samples as K
+  aggregates exact sums. The CVAE's rows, even under CCWA, are fitted by clients that each hold fewer samples as K
   grows: about 60 images per client at K = 100. The server can see the per-client sample size from aggregated
   counts, so a rule (CVAE-F when clients are data-rich, FSG when they are data-poor) is possible, but it has not been
   specified or tested in advance.
@@ -1499,7 +1499,7 @@ post-fix run, and the earlier values are not reported.
 a gain of +12.0. Tail recall is 47.8 against 24.8. On `best_mean_acc` the result is 66.86 vs 57.36 (p = 0.045). The
 Gaussian generator falls to 44.2.
 **CIFAR-10** (Kaggle, long tail, 3 seeds; realised imbalance 48:1). GeFL-F collapses hardest here, with a row
-ratio of 0.06. HWA + LA scores 40.73 against 33.74 for GeFL-F (+7.0) and 37.3 for + LA. The Gaussian generator does
+ratio of 0.06. CCWA + LA scores 40.73 against 33.74 for GeFL-F (+7.0) and 37.3 for + LA. The Gaussian generator does
 better, at 44.17: its exact class means beat a CVAE trained on about 25 tail samples on CIFAR features, the opposite
 of SVHN. The anchored method is in §B.11.
 
@@ -1531,18 +1531,18 @@ Matched seeds and splits, 3 seeds.
 |---|---|---|---|---|
 | GeFL-F | 74.24 | 58.74 | 96.01 | 82.80 |
 | + CSL | 76.35 | 58.59 | **96.82** | **83.25** |
-| + HWA + LA | 87.78 | 75.99 | 96.01 | 82.74 |
-| **+ HWA + LA + CSL (ours)** | **89.87** | **76.37** | 96.77 | 83.21 |
+| + CCWA + LA | 87.78 | 75.99 | 96.01 | 82.74 |
+| **+ CCWA + LA + CSL (ours)** | **89.87** | **76.37** | 96.77 | 83.21 |
 | ours − GeFL-F (p) | +15.6 (0.008) | +17.6 (0.019) | +0.76 (0.004) | +0.41 (0.008) |
 
-* **Long tail.** The full method beats HWA + LA on every seed: +3.29, +2.21 and +0.77 on MNIST, and +0.28, +0.65 and
+* **Long tail.** The full method beats CCWA + LA on every seed: +3.29, +2.21 and +0.77 on MNIST, and +0.28, +0.65 and
   +0.20 on FMNIST. With 3 seeds this is not yet significant (p ≈ 0.1). Tail recall is 82.7 against 51.4 on MNIST and
   69.8 against 35.6 on FMNIST.
-* **CSL alone under the long tail.** It gives +2.1 on MNIST (p = 0.003) and nothing on FMNIST. It works best once HWA
+* **CSL alone under the long tail.** It gives +2.1 on MNIST (p = 0.003) and nothing on FMNIST. It works best once CCWA
   has made the tail features faithful, as §5.3 predicts: relabelling class-agnostic features cannot help.
-* **IID.** The full method is within 0.05 of + CSL. HWA + LA neither helps nor hurts there.
+* **IID.** The full method is within 0.05 of + CSL. CCWA + LA neither helps nor hurts there.
 
-### B.6 Regimes, privacy and ablations (K02, Kaggle; minimal variant HWA + LA + CSL)
+### B.6 Regimes, privacy and ablations (K02, Kaggle; minimal variant CCWA + LA + CSL)
 
 **The gain grows with imbalance** (balanced accuracy, K = 10, 3 seeds):
 
@@ -1556,8 +1556,8 @@ Dirichlet(0.5) already leaves some clients without some classes, so the non-hold
 without a global tail.
 
 **Ablations** (IF = 100):
-* *Necessary components.* Removing HWA costs 7–8 points, and removing LA 5–8.
-* *HWA's weighting rule matters little.* Effective number, raw counts and uniform weighting over holders give
+* *Necessary components.* Removing CCWA costs 7–8 points, and removing LA 5–8.
+* *CCWA's weighting rule matters little.* Effective number, raw counts and uniform weighting over holders give
   90.15 / 89.97 / 89.02 on MNIST and 76.51 / 76.45 / 76.33 on FashionMNIST (2 seeds for the alternatives, so these
   differences are not resolved). This is consistent with the damage coming from *non-holders'* decay.
 * *CSL.* It matters where the generator's labels are poor (MNIST: −2.5 without it) and not where they are decent
@@ -1568,7 +1568,7 @@ without a global tail.
 **Privacy.**
 * *DP on class counts (minimal variant).* Laplace noise at ε = 1 on every client's class histogram costs 0.2
   (FashionMNIST) and 1.3 points (MNIST). At ε = 0.1 the method is still 11–14 points above GeFL-F. This covers the
-  counts HWA uses, not the generator or the heads.
+  counts CCWA uses, not the generator or the heads.
 * *Memorisation.* Feature-space MND equals GeFL-F's.
 
 **Formal DP on every statistic the anchored method adds (E26; long tail, K = 10, 3 seeds; balanced accuracy).**
@@ -1600,8 +1600,8 @@ These ideas were tested on a reduced schedule first and dropped on the evidence.
 what the working method actually fixes.
 
 * **Prior-completing mixed batches.** These fill a client's missing classes with synthetic features, which works only
-  when tail synthetic features are faithful. Before HWA they are not; FMNIST went from 65.2 to 59.6 with LA.
-* **Lazy conditioning decay.** It removes the collapse from the client side, with no shared counts. With HWA present
+  when tail synthetic features are faithful. Before CCWA they are not; FMNIST went from 65.2 to 59.6 with LA.
+* **Lazy conditioning decay.** It removes the collapse from the client side, with no shared counts. With CCWA present
   it adds nothing (78.6 vs 79.1). It remains the fallback when even aggregated counts are disallowed.
 * **A federated Gaussian generator (exact aggregation of sufficient statistics).** It was competitive on MNIST
   (87.0 vs 87.9). It is worse in IID data and fails on SVHN (≈ 45 vs 62), where tail fidelity is 0.14: a single
@@ -1635,7 +1635,7 @@ what the working method actually fixes.
 
 The best FMNIST result of any GeFL variant in the paper is 84.28, from GeFL-F with the feature diffusion model
 DDPM-F. Our components do not depend on the generator:
-* HWA averages the class columns of DDPM-F's two context-embedding layers over holders.
+* CCWA averages the class columns of DDPM-F's two context-embedding layers over holders.
 * LA and CSL act on the heads.
 
 We ported the authors' DDPM-F unchanged: the ddpm16 ContextUnet, $n_T = 200$, a linear $\beta$ schedule from
@@ -1663,7 +1663,7 @@ epochs should help.
 |---|---|---|---|---|
 | GeFL-F (hard labels) | 82.96 | 83.20 | 83.18 | – |
 | + CSL | 83.31 | 83.90 | 84.14 | **84.37** (84.34 / 84.16 / 84.62) |
-| Ours (HWA + LA + CSL) | 83.21 | – | 84.12 | **84.34** (84.55 / 83.88 / 84.59; p = 0.002 vs GeFL-F) |
+| Ours (CCWA + LA + CSL) | 83.21 | – | 84.12 | **84.34** (84.55 / 83.88 / 84.59; p = 0.002 vs GeFL-F) |
 
 **The same budgets under the long tail** (FMNIST, IF = 100, Dir 0.5, 3 seeds, final balanced accuracy):
 
@@ -1674,7 +1674,7 @@ epochs should help.
 | Worst class | 20.36 | 29.38 | 32.11 | 32.79 |
 
 Under the long tail the larger budget also helps: +2.29 over $T_s = 1$, and +20.1 over GeFL-F. On MNIST under the
-long tail it does not (90.20 / 90.78 / 90.15). There, HWA has made
+long tail it does not (90.20 / 90.78 / 90.15). There, CCWA has made
 the tail features faithful and CSL has lowered their label bias. This is the synergy of §5.3, seen through the
 budget.
 
@@ -1715,7 +1715,7 @@ Our method keeps GeFL-F's FE and privacy model. The fair claims are therefore:
 | | MNIST LT | FMNIST LT | MNIST IID | FMNIST IID |
 |---|---|---|---|---|
 | GeFL-F | 75.25 | 58.47 | 96.01 | 82.76 |
-| minimal variant, CVAE + HWA + LA + CSL | 90.40 | 76.60 | 96.77 | 83.19 |
+| minimal variant, CVAE + CCWA + LA + CSL | 90.40 | 76.60 | 96.77 | 83.19 |
 | minimal variant, $T_s = 10$ | 90.15 | 79.23 | – | **84.34** |
 | PC-VAE + MC | 92.31 | 77.56 | – | 82.92 |
 | KME-Gen, server-only generator (1 seed) | 89.88 | 75.11 | – | 81.82 |
@@ -1766,17 +1766,17 @@ over an un-recalibrated baseline.
 
 **More clients (E22, MNIST long tail, K = 100, 3 seeds).**
 
-| | GeFL-F | CVAE + HWA + LA | FSG + LA | Ours-A, $T_s = 1$ | **Ours-A, $T_s = 10$** |
+| | GeFL-F | CVAE + CCWA + LA | FSG + LA | Ours-A, $T_s = 1$ | **Ours-A, $T_s = 10$** |
 |---|---|---|---|---|---|
 | balanced accuracy | 75.98 | 83.07 | 86.05 | 90.41 | **94.30** |
 | tail recall | 50.3 | 66.6 | 76.0 | 83.4 | **90.5** |
 
-* *Robust to K.* Ours-A loses only 0.5 points from K = 10 to K = 100, while the CVAE + HWA loses 4.7.
+* *Robust to K.* Ours-A loses only 0.5 points from K = 10 to K = 100, while the CVAE + CCWA loses 4.7.
 * *Margins.* +18.3 over GeFL-F ($p = 0.0004$) and +8.3 over the Gaussian generator ($p = 0.001$).
 * *Proposition 11 again.* The synthetic budget is worth +3.9 at K = 100 against +1.7 at K = 10: the optimal synthetic
   share $w^\star \propto 1/n_{\text{real}}$ grows as each client holds fewer real samples (about 60 here).
 
-**The hybrid generator where the anchor works (E29, same seeds as E25 / E22).** PCR adds HWA-aggregated class
+**The hybrid generator where the anchor works (E29, same seeds as E25 / E22).** PCR adds CCWA-aggregated class
 rows to the anchored decoder. Paired against Ours-A at $T_s = 10$, it changes nothing measurable:
 
 | | Ours-A | hybrid PCR | difference |
@@ -1787,7 +1787,7 @@ rows to the anchored decoder. Paired against Ours-A at $T_s = 10$, it changes no
 | FashionMNIST IID (`best_mean_acc`) | 83.96 | 84.11 | +0.15 ($p = 0.28$) |
 
 * *No cost.* The rows cost nothing where the anchor is informative. At K = 100 they do not bring back the CVAE's
-  degradation with the number of clients: HWA keeps them from collapsing, and the anchor carries the location.
+  degradation with the number of clients: CCWA keeps them from collapsing, and the anchor carries the location.
 * *Feature space.* The shared FE's feature space confirms the pixel-space ordering of class-mean separation. $F$ is
   0.29 (MNIST) and 0.53–0.60 (FashionMNIST), and nearest-class-mean accuracy is 81–82% and 68–69%. The E30 smoke run
   gives $F = 0.025$ and 11.5% on SVHN.
@@ -1799,8 +1799,8 @@ rows to the anchored decoder. Paired against Ours-A at $T_s = 10$, it changes no
 | | CIFAR-10 LT | SVHN LT | CIFAR-10 IID | SVHN IID |
 |---|---|---|---|---|
 | GeFL-F | 33.74 | 50.49 | 59.10 | 75.82 |
-| + HWA + LA | 40.73 | **62.45** | – | 75.64 |
-| minimal variant (CVAE + HWA + LA + CSL) / + CSL | 42.10 | – | 59.85 | **76.30** |
+| + CCWA + LA | 40.73 | **62.45** | – | 75.64 |
+| minimal variant (CVAE + CCWA + LA + CSL) / + CSL | 42.10 | – | 59.85 | **76.30** |
 | FSG + LA (Gaussian, exact statistics) | 44.17 | 44.23 | – | – |
 | Ours-A, $T_s = 1$ | **46.06** | 55.89 | 60.39 | 73.86 |
 | Ours-A, $T_s = 1$, + gated BBC | **48.71** | 57.19 | (off) | (off) |
@@ -1815,12 +1815,12 @@ paired.
 
 * *CIFAR-10: the anchored method wins in both regimes.* Under the long tail it is +12.3 over GeFL-F ($p = 0.001$),
   +4.0 over the minimal variant ($p = 0.017$) and +1.9 over FSG ($p = 0.11$). With BBC it is +4.54 over FSG. Its tail
-  fidelity after KH is 41%, against 23% for the CVAE + HWA. In IID it reaches 60.93 on the best round, but only +0.14
+  fidelity after KH is 41%, against 23% for the CVAE + CCWA. In IID it reaches 60.93 on the best round, but only +0.14
   over our GeFL-F at the final round, so we claim no IID gain on CIFAR-10.
 * *A registered prediction that failed.* Before these runs we predicted a tie or a small loss on CIFAR-10, because
   its class means are weak in pixel space (nearest-class-mean accuracy 27%). It won. What decides is the anchored
   generator's fidelity *relative to the CVAE's*, and on CIFAR-10 the CVAE's own fidelity is low.
-* *SVHN: the anchored generator fails.* It is −6.6 against + HWA + LA under the long tail and −2.0 against GeFL-F
+* *SVHN: the anchored generator fails.* It is −6.6 against + CCWA + LA under the long tail and −2.0 against GeFL-F
   in IID. This is Proposition 12: SVHN's anchors are $\sqrt{2F} \approx 0.1$–$0.16$ within-class spreads apart, and the
   synthetic classes are nearly indistinguishable (tail fidelity 24%).
 * *The synthetic budget on hard data.* On CIFAR-10 and SVHN, $T_s = 10$ raises the best-round metric in all four
@@ -1836,18 +1836,18 @@ paired.
 | SVHN, K = 10 | long tail | + gated BBC | IID (`best_mean_acc`) |
 |---|---|---|---|
 | GeFL-F | 50.49 | – | 75.82 |
-| + HWA + LA | 62.45 | – | 75.64 |
+| + CCWA + LA | 62.45 | – | 75.64 |
 | Ours-A (PC + MC + KH) | 55.76 | 57.27 | 74.38 |
 | Ours-A-S (PC + **MC-S** + KH) | 61.80 | 63.30 | 77.05 |
 | hybrid PCR + MC + KH | 60.86 | 62.08 | 76.06 |
 | hybrid PCR + MC-S + KH | 62.89 | 64.57 | **77.39** |
-| **rows (CVAE + HWA) + MC + KH, $T_s = 1$: the final method at $F < 0.05$** | **65.60** | **66.96** | 77.07 (final 75.89) |
+| **rows (CVAE + CCWA) + MC + KH, $T_s = 1$: the final method at $F < 0.05$** | **65.60** | **66.96** | 77.07 (final 75.89) |
 | paper: GeFL-F / best of all ten methods | – | – | 76.26 / 76.26 |
 
 * *MC-S works where Proposition 12 says the mean cannot.* Against Ours-A it adds +6.0 under the long tail (every seed,
   +4.5 to +7.0, $p = 0.016$) and +2.7 in IID ($p = 0.026$). The proxy and the QDA measurement predicted the
   direction.
-* *Rows are better still where means are uninformative.* The CVAE + HWA with MC + KH gives 65.60, ahead of the
+* *Rows are better still where means are uninformative.* The CVAE + CCWA with MC + KH gives 65.60, ahead of the
   hybrid with MC-S at 62.89 (Welch $p = 0.07$). The hybrid's anchor leaves its raw samples under-dispersed. On SVHN,
   MC + KH then lowers its tail fidelity (35 → 32%), while they raise the CVAE's (36 → 42%).
 * *IID.* 77.07 for the final method and 77.39 for the best variant on the best round, against a single published
@@ -1864,15 +1864,15 @@ against 56.82 for Ours-A at $T_s = 10$. VCT is therefore not part of the method.
 **Pending.**
 * A federated recalibration baseline for GeFL-F (B1 in `docs/review/action_plan.md`; needs re-runs, since no models
   were saved before the A12 code change).
-* K15: optimiser-level fixes of the collapse (decoupled decay, no decay) against HWA.
+* K15: optimiser-level fixes of the collapse (decoupled decay, no decay) against CCWA.
 * K14: component ablation with more seeds and the covariance correction on the class rows.
 * K12: the gated method, run end to end on all four datasets.
 * External long-tailed FL baselines on the same frozen extractor (FedLC / FedRoD-style losses, FedRS, CCVR, FedProto).
 
 ### B.12 Cost
 
-* *Minimal variant.* Summed over all stages, HWA + LA + CSL takes 373 s per run against GeFL-F's 366 s (+1.9%),
-  measured on MNIST under the long tail, averaged over 3 seeds. HWA adds $C$ numbers per client per round; CSL adds
+* *Minimal variant.* Summed over all stages, CCWA + LA + CSL takes 373 s per run against GeFL-F's 366 s (+1.9%),
+  measured on MNIST under the long tail, averaged over 3 seeds. CCWA adds $C$ numbers per client per round; CSL adds
   the per-round head or pool-prediction upload of §5.3 and one broadcast of soft labels.
 * *Ours-A.* End to end it is 2.2–2.8× slower than GeFL-F. The head stage (Stage III) is 5–14× slower, and kernel
   herding accounts for 83–88% of it.

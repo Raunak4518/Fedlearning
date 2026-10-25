@@ -89,7 +89,7 @@ weight decay, a client that lacks a class moves that class's conditioning row to
 while holders barely grow it. A count-only step ratio $\kappa_c$ predicts which rows collapse, retrospectively and
 prospectively (\cref{fig:kappa}). Decoupled decay or averaging each row over its holders removes the collapse.
 \item \textbf{The last layer is the largest loss and is recovered exactly} (\cref{sec:heads}). Per-client logit
-corrections (logit adjustment, FedLC, FedRS, balanced softmax) are reparametrisations of a single-client head; a
+corrections (logit adjustment, FedLC, FedRS, Balanced Softmax~\cite{ren2020bsm}) are reparametrisations of a single-client head; a
 readout from aggregated class statistics equals the centralised readout and recovers 7--20 points.
 \item \textbf{Synthetic data help the representation only if they carry their label} (\cref{sec:signal}).
 Label-independent synthetic data penalise the spread of the logits; the gain of the synthetic phase changes sign with
@@ -202,7 +202,7 @@ counts and the number of local steps, both known before training.
 (\cref{eq:kappa}); dashed: $\kappa_c=1$. (a)~All 900 logged rows of GeFL-F runs (MNIST, FashionMNIST at $K=10,50,100$;
 CIFAR-10; CIFAR-100): all 352 rows with $\kappa_c<1$ end at $\le0.153$ of their initial norm; Spearman 0.94.
 (b)~Prediction fixed before the runs: all 16 rows with $\kappa_c<1$ collapse under flat averaging (largest norm 0.04),
-none under holder-weighted averaging (smallest 1.25).}
+none under class-count weighted averaging (smallest 1.25).}
 \label{fig:kappa}
 \end{figure}
 
@@ -219,7 +219,7 @@ centralised training collapses as well (\cref{sec:recsys}).
 \subsection{Fixes: the optimiser or the aggregation}
 
 If the coupled decay on non-holders causes the collapse, any fix that removes it should restore the rows.
-\emph{Holder-weighted aggregation} (HWA) averages each row only over the clients that hold the class, with weights
+\emph{Class-count weighted averaging} (CCWA) averages each row only over the clients that hold the class, with weights
 $E(n_{kc})=(1-\beta^{n_{kc}})/(1-\beta)$~\cite{cui2019}, $\beta=0.999$:
 $r_c\leftarrow\sum_kE(n_{kc})r_{k,c}/\sum_kE(n_{kc})$; it needs only two sums, so it runs under secure
 aggregation~\cite{bonawitz2017}. It removes the $\bar D_c$ term of \cref{thm:contraction} and, without decay, also the
@@ -239,16 +239,16 @@ $K$ & 10 & 50 & 100 & 10 & 50 & 100\\
 GeFL-F (coupled decay) & 79.2 & 81.4 & 79.5 & 65.2 & 66.5 & 66.6\\
 + AdamW (decoupled decay) & 86.4 & 84.7 & 81.6 & 75.9 & 74.0 & 71.8\\
 + no decay on class rows only & 86.8 & 84.4 & 81.8 & 75.9 & 74.5 & 71.9\\
-+ HWA (coupled decay kept) & \pos{87.9} & \pos{86.5} & \pos{83.1} & 76.0 & \pos{75.5} & \pos{73.3}\\
++ CCWA (coupled decay kept) & \pos{87.9} & \pos{86.5} & \pos{83.1} & 76.0 & \pos{75.5} & \pos{73.3}\\
 \midrule
-HWA $-$ best optimiser fix & $+1.1$ & $+1.8$ & $+1.3$ & $-0.1$ & $+0.9$ & $+1.4$\\
+CCWA $-$ best optimiser fix & $+1.1$ & $+1.8$ & $+1.3$ & $-0.1$ & $+0.9$ & $+1.4$\\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \Cref{tab:fixes}: removing the coupled decay recovers 2--11 points; removing it only on the class rows is as good as
-removing it globally, so the decay \emph{on the rows} is the cause. HWA adds 1.3--1.8 points at $K=50,100$ on MNIST,
-the regime where the dilution of a rare row's rate is largest (the HWA/flat rate ratio of MNIST's rarest class is
+removing it globally, so the decay \emph{on the rows} is the cause. CCWA adds 1.3--1.8 points at $K=50,100$ on MNIST,
+the regime where the dilution of a rare row's rate is largest (the CCWA/flat rate ratio of MNIST's rarest class is
 1.15, 2.28 and 3.14 at $K=10,50,100$).
 
 % ---------------------------------------------------------------------------------------------------------------------
@@ -259,7 +259,7 @@ the regime where the dilution of a rare row's rate is largest (the HWA/flat rate
 \begin{proposition}\label{prop:reparam}
 Let a head have a free last-layer bias $b$, trained by SGD without decay on $b$, and let $a_k\in\R^C$ be a client
 constant: logit adjustment $a_k=\tau\log\pi_k$~\cite{menon2021logit}, FedLC's calibration~\cite{zhang2022fedlc} or
-balanced softmax. (1)~Training with $\ell(f+a_k,y)$ from $(\theta_0,b_0)$ produces exactly the trajectory of training
+Balanced Softmax. (1)~Training with $\ell(f+a_k,y)$ from $(\theta_0,b_0)$ produces exactly the trajectory of training
 with $\ell(f,y)$ from $(\theta_0,b_0+a_k)$; every parameter except $b$ is identical at every step. (2)~FedRS~\cite{li2021fedrs},
 which scales absent-class logits by $\alpha$, is plain cross-entropy in rescaled variables $\tilde w_c=\alpha w_c$,
 $\tilde b_c=\alpha b_c$ with the learning rate on those rows multiplied by $\alpha^2$; the body follows the same trajectory.
@@ -353,7 +353,7 @@ it is the minimum-displacement map with these moments (\cref{prop:mc}); after th
 matches them only approximately. (iii)~\emph{Gate.} A mean anchor cannot separate
 classes whose means are close (\cref{prop:w1}); the server computes the separation
 $F=\overline{\|m_c-\bar m\|^2}/\overline{V_c}$ from the same sums and, if $F<0.05$, uses the original generator with
-HWA instead. Measured $F$ is 0.005--0.013 on SVHN, 0.054--0.080 on CIFAR-10 and $\ge0.18$ elsewhere.
+CCWA instead. Measured $F$ is 0.005--0.013 on SVHN, 0.054--0.080 on CIFAR-10 and $\ge0.18$ elsewhere.
 
 \paragraph{Heads and readout.} Heads use logit adjustment with the client's own prior and \emph{consensus soft labels}
 (CSL) on synthetic features, $t(\tilde h)=\frac12e_y+\frac12\frac1G\sum_g\mathrm{softmax}\,h_g(\tilde h)$, the
@@ -361,7 +361,7 @@ averaged prediction of all architectures' heads on that feature~\cite{menon2021d
 architecture's last layer is replaced by \ER. \emph{Optional:} kernel herding toward the exact class mean
 embedding adds only $+0.1$ to $+0.4$ points with \ER\ at about $6\times$ the head-stage cost (\cref{app:ablation}); it
 is not part of the method, but the fresh-seed runs below include it. The \emph{minimal variant} for an existing deployment is the original
-generator with HWA (or decoupled decay), LA, CSL and \ER.
+generator with CCWA (or decoupled decay), LA, CSL and \ER.
 
 % ---------------------------------------------------------------------------------------------------------------------
 \section{Experiments}\label{sec:experiments}
@@ -408,7 +408,7 @@ readouts use only an architecture's own clients and lose 4--26 points against th
 \centering\small
 \caption{Main comparison on fresh seeds 3--5, every method's readout (and our $T_s$) selected on validation data.
 Ours minus baseline, test balanced accuracy, paired over seeds; brackets: 95\% CI; bold: Holm-adjusted $p<0.05$ over
-nine baselines. The four real-data baselines with LA, FedLC, FedRS and balanced softmax coincide
+nine baselines. The four real-data baselines with LA, FedLC, FedRS and Balanced Softmax coincide
 (\cref{prop:reparam}); we show two.}
 \label{tab:fair}
 \setlength{\tabcolsep}{4pt}
@@ -419,10 +419,10 @@ nine baselines. The four real-data baselines with LA, FedLC, FedRS and balanced 
 Ours (test accuracy) & 95.6 & 82.1 & 65.6 & 53.1 & 18.7\\
 \midrule
 $-$ GeFL-F & \pos{+3.4} {\scriptsize[3.2, 3.6]} & $+1.0$ {\scriptsize[$-$0.0, 2.1]} & $+1.5$ {\scriptsize[0.6, 2.5]} & \pos{+2.4} {\scriptsize[1.8, 3.0]} & \pos{+4.0} {\scriptsize[2.6, 5.4]}\\
-$-$ GeFL-F, AdamW + LA & \pos{+2.0} {\scriptsize[1.9, 2.2]} & $+0.5$ {\scriptsize[$-$0.2, 1.2]} & $+1.5$ {\scriptsize[0.4, 2.6]} & $+1.5$ {\scriptsize[0.8, 2.2]} & \pos{+3.0} {\scriptsize[2.3, 3.7]}\\
-$-$ real-data heads + LA & \pos{+4.7} & \pos{+2.6} & \pos{+11.3} & $+1.5$ & \pos{+1.6} {\scriptsize[0.7, 2.6]}\\
-$-$ real-data heads + FedRS & \pos{+4.7} & \pos{+2.6} & \pos{+11.2} & $+1.6$ & \pos{+1.8}\\
-$-$ Gaussian generator + LA & \pos{+2.9} {\scriptsize[1.7, 4.1]} & \pos{+1.3} {\scriptsize[1.3, 1.4]} & \pos{+12.4} & $+0.5$ {\scriptsize[$-$1.1, 2.1]} & \pos{+1.6} {\scriptsize[0.4, 2.8]}\\
+$-$ GeFL-F + LA & \pos{+2.0} {\scriptsize[1.9, 2.2]} & $+0.5$ {\scriptsize[$-$0.2, 1.2]} & $+1.5$ {\scriptsize[0.4, 2.6]} & $+1.5$ {\scriptsize[0.8, 2.2]} & \pos{+3.0} {\scriptsize[2.3, 3.7]}\\
+$-$ Balanced Softmax~\cite{ren2020bsm} & \pos{+4.7} & \pos{+2.6} & \pos{+11.3} & $+1.5$ & \pos{+1.6} {\scriptsize[0.7, 2.6]}\\
+$-$ FedRS & \pos{+4.7} & \pos{+2.6} & \pos{+11.2} & $+1.6$ & \pos{+1.8}\\
+$-$ GeFL-F w/ Gaussian generator + LA & \pos{+2.9} {\scriptsize[1.7, 4.1]} & \pos{+1.3} {\scriptsize[1.3, 1.4]} & \pos{+12.4} & $+0.5$ {\scriptsize[$-$1.1, 2.1]} & \pos{+1.6} {\scriptsize[0.4, 2.8]}\\
 $-$ FedDF & \pos{+1.9} {\scriptsize[1.4, 2.5]} & $+0.3$ {\scriptsize[$-$0.6, 1.2]} & $+0.5$ {\scriptsize[$-$1.0, 2.0]} & $+2.3$ {\scriptsize[0.9, 3.7]} & \pos{+3.5} {\scriptsize[2.5, 4.5]}\\
 $-$ FedDF + LA & \pos{+2.0} {\scriptsize[1.2, 2.8]} & $+0.3$ {\scriptsize[$-$0.4, 1.0]} & $-0.3$ {\scriptsize[$-$1.6, 1.0]} & $+1.7$ {\scriptsize[0.4, 3.0]} & \pos{+3.5} {\scriptsize[2.2, 4.9]}\\
 \midrule
@@ -432,7 +432,7 @@ margin over the strongest & \pos{+1.9} & $+0.3$ & $-0.3$ & $+0.5$ & \pos{+1.6}\\
 \end{table}
 
 Baselines (\cref{tab:fair}): GeFL-F; GeFL-F with decoupled decay and LA; heads trained on real data only with LA,
-FedLC, FedRS or balanced softmax; a Gaussian generator built from the same exact statistics, with LA (CCVR-style
+FedLC, FedRS or Balanced Softmax; a Gaussian generator built from the same exact statistics, with LA (CCVR-style
 virtual features during training); and server-side ensemble distillation (FedDF~\cite{lin2020feddf}) on generated
 features, with and without LA. Each gets its own validation-selected readout. \textbf{Ours is not ahead of every
 baseline:} the margin over the strongest is $-0.3$ to $+1.9$ points, significant on MNIST and CIFAR-100 only. Our
@@ -486,8 +486,8 @@ architecture. Right: ours minus the decay-fixed GeFL-F under other imbalance set
 $K$ & 50 & 100 & 50\\
 \midrule
 GeFL-F & 58.0 & 58.8 & --\\
-AdamW + LA & 60.3 & 59.9 & 45.1\\
-HWA + LA & 60.3 & 60.8 & 45.2\\
+GeFL-F + LA & 60.3 & 59.9 & 45.1\\
+GeFL-F + CCWA + LA & 60.3 & 60.8 & 45.2\\
 Ours & \pos{61.8} & \pos{61.0} & \pos{46.1}\\
 \bottomrule
 \end{tabular}\hfill
@@ -503,7 +503,7 @@ random rare classes & $+0.6$ / $+1.1$\\
 \end{tabular}
 \end{table}
 
-\Cref{tab:robust}. With several clients per architecture, HWA's advantage over decoupled decay is $+0.9$ with \ER\ on
+\Cref{tab:robust}. With several clients per architecture, CCWA's advantage over decoupled decay is $+0.9$ with \ER\ on
 SVHN at $K=100$ but about zero on CIFAR-10 at $K=50$ ($+0.1$, CI $[-0.2,0.4]$); ours is $+1.0$ ($[0.2,1.8]$), and every
 method loses 6.5--7 points to $K=10$. Under other imbalance settings and with rare classes drawn at random, ours stays
 ahead of both baselines in all eight cells, with a larger margin under stronger label skew (more absent classes leave
@@ -528,7 +528,7 @@ final norm $\le0.15$ of initial.}
 \midrule
 Adam + coupled L2, FedAvg & 85.0\% / 83.4\% & 1.094 / 1.064 & 0.859 / 0.908\\
 AdamW, FedAvg & 0\% / 0\% & 1.036 / 0.992 & 0.904 / 0.907\\
-Adam + L2, HWA & 23.3\% / 8.7\% & 1.042 / \pos{0.967} & \pos{0.857} / \pos{0.894}\\
+Adam + L2, CCWA & 23.3\% / 8.7\% & 1.042 / \pos{0.967} & \pos{0.857} / \pos{0.894}\\
 SGD + L2, FedAvg & 0\% / 0\% & 1.160 / 1.144 & 0.967 / 1.010\\
 centralised Adam + coupled L2 & 78.0\% & 1.099 & 0.888\\
 \bottomrule
@@ -557,7 +557,7 @@ the exact readout during training did not help our method (\cref{app:negative}).
 generator against the client ensemble (FedGen~\cite{zhu2021fedgen}, FedFTG~\cite{zhang2022fedftg},
 DENSE~\cite{zhang2022dense}), share statistics (FedVTC~\cite{niu2026fedvtc}, Felo/Velo~\cite{chan2025}), or train the
 generator itself by FedAvg (GeFL~\cite{kang2025gefl}). FedGen and FedFTG weight teacher \emph{losses} by label counts;
-HWA weights the \emph{parameters} of a client-trained generator, and our contribution is the mechanism behind it.
+CCWA weights the \emph{parameters} of a client-trained generator, and our contribution is the mechanism behind it.
 
 \paragraph{Federated learning under label skew and long tails.} Classifier re-calibration from federated statistics
 (CCVR~\cite{luo2021ccvr}, CReFF~\cite{shang2022creff}, Fed3R~\cite{fani2024fed3r}, FedNCM~\cite{legate2023fedncm}) and
@@ -592,6 +592,7 @@ exact description and a direct fix; what remains is largely the cost of the long
 \bibitem[Kang et~al.(2025)]{kang2025gefl} H.~Kang, S.~Cha, and J.~Kang. GeFL: Model-agnostic federated learning with generative models. \emph{IEEE Transactions on Mobile Computing}, 2025. arXiv:2412.18460.
 \bibitem[McMahan et~al.(2017)]{mcmahan2017} H.~B. McMahan, E.~Moore, D.~Ramage, S.~Hampson, and B.~Ag\"uera y~Arcas. Communication-efficient learning of deep networks from decentralized data. In \emph{AISTATS}, 2017.
 \bibitem[Li and Wang(2019)]{li2019fedmd} D.~Li and J.~Wang. FedMD: Heterogenous federated learning via model distillation. NeurIPS Workshop on Federated Learning, 2019.
+\bibitem[Ren et~al.(2020)]{ren2020bsm} J.~Ren, C.~Yu, S.~Sheng, X.~Ma, H.~Zhao, S.~Yi, and H.~Li. Balanced meta-softmax for long-tailed visual recognition. In \emph{NeurIPS}, 2020.
 \bibitem[Lin et~al.(2020)]{lin2020feddf} T.~Lin, L.~Kong, S.~U. Stich, and M.~Jaggi. Ensemble distillation for robust model fusion in federated learning. In \emph{NeurIPS}, 2020.
 \bibitem[He et~al.(2020)]{he2020fedgkt} C.~He, M.~Annavaram, and S.~Avestimehr. Group knowledge transfer: Federated learning of large CNNs at the edge. In \emph{NeurIPS}, 2020.
 \bibitem[Liang et~al.(2019)]{liang2019lg} P.~P. Liang, T.~Liu, L.~Ziyin, N.~B. Allen, R.~P. Auerbach, D.~Brent, R.~Salakhutdinov, and L.-P. Morency. Think locally, act globally: Federated learning with local and global representations. NeurIPS Workshop on Federated Learning, 2019.
@@ -686,7 +687,7 @@ $r$ to $M_{kc}r+(I-M_{kc})\bar t_{kc}$, and flat FedAvg converges to
 \[r^*=\Big(\sum\nolimits_{H_c}(I-M_{kc})\Big)^{-1}\sum\nolimits_{H_c}(I-M_{kc})\bar t_{kc}\]
 at a rate diluted by $m_c/K$. With saturated local training ($M_{kc}\to0$) its mean squared error is
 $V_c=\frac{n_c}{m_c^2}\sum_{k\in H_c}1/n_{kc}\ge1$ times that of the pooled estimate, with equality iff all holders
-have equal counts; HWA with weights $E(n_{kc})$ gives $V_c\approx1$.
+have equal counts; CCWA with weights $E(n_{kc})$ gives $V_c\approx1$.
 \end{proposition}
 \emph{Proof.} Non-holders contribute the identity map and drop out of the fixed-point equation; the rest is the
 fixed-point formula for quadratic clients and the variance of independent unbiased local means (\cref{lem:labelshift}).
@@ -730,7 +731,7 @@ $t$-intervals over seeds.
 
 \paragraph{The balanced setting.} With IID clients ours is within $+0.1$ to $+1.6$ points of GeFL-F with \ER\ (MNIST
 97.4 vs 96.9, FashionMNIST 84.8 vs 84.5, CIFAR-10 61.6 vs 61.4, SVHN 77.3 vs 76.2, CIFAR-100 21.4 vs 19.8); the gain is
-significant on SVHN and CIFAR-100 only. Holder-weighted averaging equals FedAvg when all clients have equal counts.
+significant on SVHN and CIFAR-100 only. Class-count weighted averaging equals FedAvg when all clients have equal counts.
 
 \section{Ablation and mechanism controls}\label{app:ablation}
 
