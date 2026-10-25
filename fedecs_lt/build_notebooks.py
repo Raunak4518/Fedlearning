@@ -265,6 +265,19 @@ def all_notebooks():
     return nbs
 
 
+def priority(name):
+    """Run order: 0 NB00 (done), 1 Track 1 on the tier-1 datasets, 2 Track 2 at imbalance ratio 100, 3 Track 1 on the
+    tier-2 datasets, 4 Track 2 at ratios 50 and 10 and the long runs."""
+    if name.startswith("NB00"):
+        return 0
+    if name.startswith("NB10"):
+        return 1 if any(f"NB10_main_{d}" in name and not name.startswith(f"NB10_main_{d}mnist")
+                        for d in TIER1) else 3
+    if name.startswith("NB20") and "_IF100_" in name:
+        return 2
+    return 4
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     nbs = all_notebooks()
@@ -290,10 +303,13 @@ def main():
             "", "Expected hours are estimates from NB00's measured run times (fedecs_lt/plan_time.py); a notebook "
             "starts no new run after 11 h and always saves what has finished.", "",
             f"**{len(nbs)} notebooks, about {sum(nb['hours'] for nb in nbs.values()):.0f} session-hours in total.**", "",
-            "| Notebook | What it runs | Runs | Expected hours | Send back |", "|---|---|---|---|---|"]
-    for n, nb in nbs.items():
-        rows.append(f"| {n}.ipynb | {nb['what']} | {len(nb['runs'])} | {nb['hours']:.1f} | `{n}__summary.zip`, "
-                    f"`{n}__report.pdf` |")
+            "## Run order",
+            "Priority 1 first (the paper's main tables), then 2, 3, 4. One notebook per account at a time; any free "
+            "account takes the next notebook of the lowest priority number still open.", "",
+            "| Priority | Notebook | What it runs | Runs | Expected hours | Send back |", "|---|---|---|---|---|---|"]
+    for n, nb in sorted(nbs.items(), key=lambda kv: (priority(kv[0]), kv[0])):
+        rows.append(f"| {priority(n)} | {n}.ipynb | {nb['what']} | {len(nb['runs'])} | {nb['hours']:.1f} | "
+                    f"`{n}__summary.zip`, `{n}__report.pdf` |")
     open(os.path.join(OUT, "START_HERE.md"), "w").write("\n".join(rows) + "\n")
 
 
