@@ -921,20 +921,18 @@ def f27(E, S, out):
             if d is None:
                 continue
             for k in d.files:
-                if k.startswith("embed_"):
+                if k.startswith("embed_") and "y" in d.files:
                     H, y = d[k].astype(np.float64), d["y"]
-                    C = int(y.max()) + 1
-                    mu_g = H.mean(0)
-                    mus = np.stack([H[y == c].mean(0) for c in range(C) if (y == c).any()])
-                    Sw = np.mean([np.cov(H[y == c].T) if (y == c).sum() > 1 else 0 for c in range(C)], 0)
-                    Sb = np.cov((mus - mu_g).T)
-                    nc1 = float(np.trace(Sw @ np.linalg.pinv(Sb)) / len(mus))
-                    vals.append(nc1)
+                    v = rp.nc1(H, y, int(y.max()) + 1)
+                    if v is not None:
+                        vals.append(v)
         if vals:
             rows.append([m, float(np.mean(vals)), float(np.std(vals, ddof=1)) if len(vals) > 1 else 0.0])
     return _bars(E, S, out, 27, rows, "NC1 (within / between)", "neural_collapse_nc1",
-                 "Neural-collapse statistic NC1 = tr(S_{W} S_{B}^{+})/C of the test-set embeddings (lower = tighter, better "
-                 "separated classes), mean over architectures and seeds.")
+                 "Neural-collapse statistic NC1 = tr(S_{W} S_{B}^{+})/C (Papyan et al., PNAS 2020) of the test-set "
+                 "embeddings, with S_{W} the within-class and S_{B} the between-class covariance (pseudo-inverse over "
+                 "its C - 1 non-zero directions); lower = tighter, better separated classes; mean over architectures "
+                 "and seeds.")
 
 
 # ---------------------------------------------------------------- D: generator
@@ -978,7 +976,7 @@ def f29(E, S, out):
     if not rows:
         return []
     ax.axhline(1.0, color="#999999", linewidth=0.6, linestyle=":")
-    ax.set_xlabel("Class")
+    ax.set_xlabel("Class (ordered from most to least frequent)")
     ax.set_ylabel("Generated / real spread")
     ax.legend()
     p = ps.save(f, out, "fig_29_spread_ratio", rows, ["method", "class", "ratio"])
@@ -1031,7 +1029,7 @@ def f32(E, S, out):
     if not rows:
         return []
     ax.axhline(1.0, color="#999999", linewidth=0.6, linestyle=":")
-    ax.set_xlabel("Class")
+    ax.set_xlabel("Class (ordered from most to least frequent)")
     ax.set_ylabel("Spread scale $s_c$")
     p = ps.save(f, out, "fig_32_mc_scales", rows, ["method", "class", "scale"])
     return [(p, cap.simple(32, E, S, "Moment-correction scale s_{c} = (V_{c} / G_{c})^{1/2} per class, with V_{c} the exact "
@@ -1604,9 +1602,9 @@ def f58(E, S, out):
     for m in sorted({r[0] for r in rows}):
         rr = [r for r in rows if r[0] == m]
         st = ps.style(m)
-        ax.plot([r[1] for r in rr], [r[2] for r in rr], label=f"{m}: clients holding the class", **st)
+        ax.plot([r[1] for r in rr], [r[2] for r in rr], label=f"{m}: clients holding the class", **dict(st, linestyle="--"))
         ax.plot([r[1] for r in rr], [r[3] for r in rr], label=f"{m}: clients lacking the class", **dict(st, linestyle=":"))
-        ax.plot([r[1] for r in rr], [r[4] for r in rr], label=f"{m}: aggregated generator", **dict(st, linestyle="--"))
+        ax.plot([r[1] for r in rr], [r[4] for r in rr], label=f"{m}: aggregated generator", **dict(st, linestyle="-", linewidth=1.6))
     ax.set_xlabel("Round")
     ax.set_ylabel("Norm of the tail-class rows")
     ax.legend()
@@ -1799,6 +1797,7 @@ def f79(E, S, out):
     if not mats:
         return []
     f, axes = ps.figure("page", 3.0, ncols=len(mats))
+    f.subplots_adjust(wspace=0.55)   # the second panel's row labels clear the first panel
     axes = list(np.ravel(axes)) if len(mats) > 1 else [axes]
     rows = []
     for ax, (m, M, archs) in zip(axes, mats):

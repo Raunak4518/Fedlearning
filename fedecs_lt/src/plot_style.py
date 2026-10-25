@@ -10,6 +10,8 @@ import csv
 import os
 import zlib
 
+import numpy as np
+
 import matplotlib
 
 matplotlib.use("Agg")
@@ -142,8 +144,15 @@ def points_under(ax, leg, r):
     from matplotlib.collections import PathCollection
     lb = leg.get_window_extent(r)
     n = 0
-    xys = [ln.get_transform().transform(ln.get_xydata()) for ln in ax.get_lines()
-           if ln.get_visible() and len(ln.get_xydata())]
+    xys = []
+    for ln in ax.get_lines():
+        if not ln.get_visible() or not len(ln.get_xydata()):
+            continue
+        xy = ln.get_transform().transform(ln.get_xydata())
+        if ln.get_linestyle() not in ("None", "none", "") and len(xy) > 1:   # the segments too, not only the vertices
+            t = np.linspace(0, 1, 25)[:, None]
+            xy = np.concatenate([a + t * (b - a) for a, b in zip(xy[:-1], xy[1:])])
+        xys.append(xy)
     xys += [c.get_offset_transform().transform(c.get_offsets()) for c in ax.collections
             if isinstance(c, PathCollection) and c.get_visible() and len(c.get_offsets())]
     for xy in xys:
@@ -165,6 +174,12 @@ def place_legends(fig):
         too_wide = leg.get_window_extent(r).width > 0.98 * fig.get_figwidth() * fig.dpi
         if len(labels) <= 6 and not bars and not too_wide and not points_under(ax, leg, r):
             continue
+        if len(labels) <= 6 and not bars and not too_wide:   # first the free place inside the axes, if there is one
+            leg.remove()
+            leg = ax.legend(handles, labels, loc="best", frameon=False, markerscale=leg.markerscale)
+            fig.canvas.draw()
+            if not points_under(ax, leg, r):
+                continue
         kw = dict(frameon=False, borderaxespad=0.0, handlelength=2.2, columnspacing=1.2,
                   markerscale=leg.markerscale)
         leg.remove()
@@ -194,6 +209,39 @@ def _inter(a, b):
     return w * h if w > 0 and h > 0 else 0.0
 
 
+def _text_polygon(t, bb, r):
+    """Corners (pixels) of the rotated rectangle a text occupies: its unrotated size, rotated by its angle about the
+    centre of its (axis-aligned) window box."""
+    import numpy as np
+    ang = t.get_rotation()
+    if ang % 180 == 0:
+        return np.array([[bb.x0, bb.y0], [bb.x1, bb.y0], [bb.x1, bb.y1], [bb.x0, bb.y1]])
+    t.set_rotation(0)
+    flat = t.get_window_extent(r)
+    t.set_rotation(ang)
+    w, h = flat.width, flat.height
+    c = np.array([(bb.x0 + bb.x1) / 2, (bb.y0 + bb.y1) / 2])
+    a = np.radians(ang)
+    R = np.array([[np.cos(a), -np.sin(a)], [np.sin(a), np.cos(a)]])
+    corners = np.array([[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]])
+    return corners @ R.T + c
+
+
+def _polys_overlap(P, Q, shrink=0.9):
+    """Separating-axis test of two convex quadrilaterals, each shrunk about its centre (so touching is no overlap)."""
+    import numpy as np
+    P = (P - P.mean(0)) * shrink + P.mean(0)
+    Q = (Q - Q.mean(0)) * shrink + Q.mean(0)
+    for poly in (P, Q):
+        for i in range(len(poly)):
+            e = poly[(i + 1) % len(poly)] - poly[i]
+            n = np.array([-e[1], e[0]])
+            a, b = P @ n, Q @ n
+            if a.max() < b.min() or b.max() < a.min():
+                return False
+    return True
+
+
 def layout_problems(fig):
     """What a reader would see as broken, measured on the drawn figure: (1) two pieces of text that overlap (more than
     10% of the smaller one's box); (2) text that runs into another panel's plotting area or a colour bar; (3) a legend
@@ -220,11 +268,12 @@ def layout_problems(fig):
                 continue
             if bb.width > 0 and bb.height > 0:
                 texts.append((t, bb))
+    polys = [_text_polygon(t, bb, r) for t, bb in texts]
     out = []
     for i in range(len(texts)):
         for j in range(i + 1, len(texts)):
             (ta, a), (tb, b) = texts[i], texts[j]
-            if _inter(a, b) > 0.10 * min(a.width * a.height, b.width * b.height):
+            if _inter(a, b) > 0 and _polys_overlap(polys[i], polys[j]):
                 out.append(f"text '{ta.get_text()[:30]}' overlaps '{tb.get_text()[:30]}'")
     axes_boxes = [(ax, ax.patch.get_window_extent(r)) for ax in fig.axes if ax.get_visible()]
     for t, bb in texts:        # text of one panel inside another panel's plotting area (or a colour bar)

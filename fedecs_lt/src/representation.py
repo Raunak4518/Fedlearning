@@ -21,6 +21,29 @@ def class_means(H, y, C):
     return np.stack([H[y == c].mean(0) for c in present]), present
 
 
+def nc1(H, y, C, tol=1e-8):
+    """NC1 = tr(S_W S_B^+) / C, with S_B^+ the pseudo-inverse over the between-class directions whose eigenvalue is
+    above tol x the largest (S_B has rank at most C - 1; inverting its numerically zero eigenvalues, as a plain
+    pinv of a covariance in many dimensions does, gives meaningless or even negative values). Always >= 0."""
+    H = np.asarray(H, dtype=np.float64)
+    mus, present = class_means(H, y, C)
+    mg = H.mean(0)
+    B = (mus - mg) / np.sqrt(len(mus))             # S_B = B^T B
+    U, sv, _ = np.linalg.svd(B.T, full_matrices=False)
+    lam = sv ** 2
+    keep = lam > tol * lam.max() if len(lam) and lam.max() > 0 else np.zeros(len(lam), bool)
+    if not keep.any():
+        return None
+    U, lam = U[:, keep], lam[keep]
+    tot = 0.0
+    for c in present:
+        X = H[y == c] - mus[present.index(c)]
+        if len(X) > 1:
+            P = X @ U                                 # within-class scatter along the between-class directions
+            tot += ((P ** 2).sum(0) / len(X) / lam).sum() * (len(X) / len(H))
+    return float(tot / len(present))
+
+
 def nc2(H, y, C):
     mus, _ = class_means(H.astype(np.float64), y, C)
     M = mus - mus.mean(0)

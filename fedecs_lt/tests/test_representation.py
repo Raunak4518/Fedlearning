@@ -60,3 +60,22 @@ def test_holm():
     # Holm (1979): sorted p (0.01, 0.02, 0.04) -> 3 x 0.01, max(0.03, 2 x 0.02), max(0.04, 0.04)
     assert np.allclose(rp.holm([0.04, 0.01, 0.02]), [0.04, 0.03, 0.04])
     assert rp.holm([0.6, 0.9]) == [1.0, 1.0]
+
+
+def test_nc1_nonnegative_and_zero_at_collapse():
+    C, d = 5, 64
+    M = simplex(C, d)
+    y = np.repeat(np.arange(C), 40)
+    assert rp.nc1(M[y] + 1.0, y, C) < 1e-12
+    rs = np.random.RandomState(4)
+    H = M[y] + 0.3 * rs.randn(len(y), d)
+    v = rp.nc1(H, y, C)
+    assert v > 0
+    # against the direct formula with an eigen-truncated pseudo-inverse
+    mus = np.stack([H[y == c].mean(0) for c in range(C)])
+    Sb = np.cov((mus - H.mean(0)).T, bias=True)
+    Sw = sum(np.cov((H[y == c] - mus[c]).T, bias=True) * (y == c).mean() for c in range(C))
+    w, V = np.linalg.eigh(Sb)
+    k = w > 1e-8 * w.max()
+    ref = np.trace(Sw @ (V[:, k] / w[k]) @ V[:, k].T) / C
+    assert abs(v - ref) < 1e-8 * max(1.0, ref)
