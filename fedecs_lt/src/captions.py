@@ -178,7 +178,7 @@ NA = {
     52: "privacy figure: made from the differential-privacy experiment",
     53: "privacy figure: made from the membership-inference experiment",
     54: "privacy figure: made from the differential-privacy experiment",
-    55: "the pipeline diagram is drawn once for the paper", 57: "no generator copies were evaluated",
+    55: "the method diagram is drawn once for the paper", 57: "no generator copies were evaluated",
     56: "made for FedECS-LT and GeFL-F when several clients share a head architecture: either neither method is "
         "part of this experiment, or every architecture has a single client (10 clients, 10 architectures), so "
         "aggregating a head leaves it unchanged",
@@ -203,3 +203,19 @@ NA = {
 
 def not_applicable(num):
     return NA.get(num, "the data this figure needs is not produced by this experiment")
+
+
+# Words and patterns a caption in the paper must not contain (internal names, file names, run ids, raw keys)
+LINT_BANNED = [r"\bsuite\b", r"\bTrack\b", r"\bnotebook", r"\bcache", r"\bpipeline\b", r"\bholders?\b",
+               r"\bER\b", r"\(LongTailLib\)", r"\|(IF|a\d|K\d|s\d|p\d)", r"\bfinal_", r"\ber_", r"\bval_", r"_(?!\{)",
+               r"\bOurs?\b", r"\bours\b", r"\bTODO\b", r"\bnan\b"]
+
+
+def lint(text, figure=True):
+    """Problems of a caption (figure or table): banned internal words; for figures, the setting and the seeds
+    must be stated. Not-applicable reasons are checked with figure=False."""
+    import re as _re
+    out = [f"contains '{m.group(0)}'" for pat in LINT_BANNED for m in [_re.search(pat, text)] if m]
+    if figure and not (_re.search(r"\bclients\b", text) and _re.search(r"\bseeds?\b", text)):
+        out.append("does not state the setting and the seeds")
+    return out

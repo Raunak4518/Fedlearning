@@ -63,6 +63,6 @@ with zipfile.ZipFile(os.path.join(W, name + "__results.zip")) as z:
     info = json.loads(z.read(next(n for n in z.namelist() if n.endswith("report_info.json"))))
 print("report:", info)
 assert "report_error" not in info, info.get("report_error")
-for key in ("failures", "audit_problems", "figure_errors", "table_errors"):
+for key in ("failures", "audit_problems", "figure_errors", "table_errors", "layout_problems", "caption_problems"):
     assert info.get(key, 0) == 0, f"{key}: {info.get(key)}"
 print("NOTEBOOK CPU TEST PASSED")

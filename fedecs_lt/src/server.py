@@ -707,6 +707,7 @@ def run_local(S, R, T, res, mon, t0):
     res["local_per_client"] = {k: log_view(v) for k, v in per_client.items()}
     res["time_s"] = time.time() - t0
     save_run(R, res, None, None, None, None, None, None, None, None)
+    mon.log("run_end", time_s=res["time_s"])
     mon.close()
     return res
 

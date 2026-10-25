@@ -113,7 +113,7 @@ def enforce(fig):
     from matplotlib.ticker import AutoLocator, MaxNLocator
     for ax in fig.axes:   # rounds are whole numbers
         if ax.get_xlabel() == "Round" and isinstance(ax.xaxis.get_major_locator(), AutoLocator):
-            ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+            ax.xaxis.set_major_locator(MaxNLocator(integer=True, min_n_ticks=1))   # also with one round
     place_legends(fig)
     fit_width(fig)
     return n
@@ -137,6 +137,20 @@ def fit_width(fig, tol=0.01):
 WIDTH_PROBLEMS = []   # (figure name, saved width in inches, nominal width) of every figure wider than it should be
 
 
+def points_under(ax, leg, r):
+    """Plotted points (line vertices, scatter points) of an axes that its legend covers."""
+    from matplotlib.collections import PathCollection
+    lb = leg.get_window_extent(r)
+    n = 0
+    xys = [ln.get_transform().transform(ln.get_xydata()) for ln in ax.get_lines()
+           if ln.get_visible() and len(ln.get_xydata())]
+    xys += [c.get_offset_transform().transform(c.get_offsets()) for c in ax.collections
+            if isinstance(c, PathCollection) and c.get_visible() and len(c.get_offsets())]
+    for xy in xys:
+        n += int(((xy[:, 0] > lb.x0) & (xy[:, 0] < lb.x1) & (xy[:, 1] > lb.y0) & (xy[:, 1] < lb.y1)).sum())
+    return n
+
+
 def place_legends(fig):
     """Legends never cover data: one with more than 6 entries goes below the axes (under the tick and axis labels)
     with as many columns as fit the figure's width; a bar chart's short legend goes in one row above the axes."""
@@ -149,7 +163,7 @@ def place_legends(fig):
         handles, labels = leg.legend_handles, [t.get_text() for t in leg.texts]
         bars = any(isinstance(c, BarContainer) for c in ax.containers)
         too_wide = leg.get_window_extent(r).width > 0.98 * fig.get_figwidth() * fig.dpi
-        if len(labels) <= 6 and not bars and not too_wide:
+        if len(labels) <= 6 and not bars and not too_wide and not points_under(ax, leg, r):
             continue
         kw = dict(frameon=False, borderaxespad=0.0, handlelength=2.2, columnspacing=1.2,
                   markerscale=leg.markerscale)
@@ -171,6 +185,67 @@ def place_legends(fig):
             new.remove()
 
 
+LAYOUT_PROBLEMS = []   # (figure name, problem) found by layout_problems on every saved figure
+
+
+def _inter(a, b):
+    w = min(a.x1, b.x1) - max(a.x0, b.x0)
+    h = min(a.y1, b.y1) - max(a.y0, b.y0)
+    return w * h if w > 0 and h > 0 else 0.0
+
+
+def layout_problems(fig):
+    """What a reader would see as broken, measured on the drawn figure: (1) two pieces of text that overlap (more than
+    10% of the smaller one's box); (2) text that runs into another panel's plotting area or a colour bar; (3) a legend
+    placed inside the axes that covers plotted points. Returns a list of problem strings (empty = clean)."""
+    from matplotlib.text import Text
+    fig.canvas.draw()
+    r = fig.canvas.get_renderer()
+    # tick labels exist for ticks outside the view limits too; only the drawn ones count
+    all_ticklabels, drawn = set(), set()
+    for ax in fig.axes:
+        for axis in (ax.xaxis, ax.yaxis):
+            for tk in axis.get_major_ticks() + axis.get_minor_ticks():
+                all_ticklabels.update((id(tk.label1), id(tk.label2)))
+            for tk in axis._update_ticks():
+                drawn.update(id(lb) for lb in (tk.label1, tk.label2) if lb.get_visible())
+    texts = []
+    for t in fig.findobj(Text):
+        if id(t) in all_ticklabels and id(t) not in drawn:
+            continue
+        if t.get_visible() and t.get_text().strip() and t.get_alpha() != 0:
+            try:
+                bb = t.get_window_extent(r)
+            except Exception:
+                continue
+            if bb.width > 0 and bb.height > 0:
+                texts.append((t, bb))
+    out = []
+    for i in range(len(texts)):
+        for j in range(i + 1, len(texts)):
+            (ta, a), (tb, b) = texts[i], texts[j]
+            if _inter(a, b) > 0.10 * min(a.width * a.height, b.width * b.height):
+                out.append(f"text '{ta.get_text()[:30]}' overlaps '{tb.get_text()[:30]}'")
+    axes_boxes = [(ax, ax.patch.get_window_extent(r)) for ax in fig.axes if ax.get_visible()]
+    for t, bb in texts:        # text of one panel inside another panel's plotting area (or a colour bar)
+        own = t.axes
+        if own is None:
+            continue
+        if any(ax is not own and _inter(bb, box) > 0.10 * bb.width * bb.height for ax, box in axes_boxes):
+            out.append(f"text '{t.get_text()[:30]}' runs into another panel")
+    for ax in fig.axes:
+        leg = ax.get_legend()
+        if leg is None:
+            continue
+        lb = leg.get_window_extent(r)
+        if _inter(lb, ax.patch.get_window_extent(r)) < 0.5 * lb.width * lb.height:
+            continue          # legend outside the axes
+        inside = points_under(ax, leg, r)
+        if inside:
+            out.append(f"legend covers {inside} plotted points")
+    return sorted(set(out))
+
+
 def save(fig, out_dir, name, data_rows=None, header=None, raster=False):
     """Save PDF (vector; 600 dpi when raster), PNG preview and the plotted data as CSV. Returns the PDF path."""
     os.makedirs(out_dir, exist_ok=True)
@@ -182,6 +257,7 @@ def save(fig, out_dir, name, data_rows=None, header=None, raster=False):
     width = fig.get_tightbbox(fig.canvas.get_renderer()).width   # inches, as saved with bbox_inches="tight"
     if width > nominal + 0.02:
         WIDTH_PROBLEMS.append((name, round(width, 2), nominal))
+    LAYOUT_PROBLEMS.extend((name, p) for p in layout_problems(fig))
     fig.savefig(base + ".pdf", dpi=600 if raster else None, metadata={"Creator": None, "Producer": None,
                                                                       "CreationDate": None})
     fig.savefig(base + ".png", dpi=200)

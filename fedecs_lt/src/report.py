@@ -14,6 +14,7 @@ import re
 
 import numpy as np
 
+import plot_style as ps
 import plots
 import captions as cap
 from captions import proto_note, setting_slug, setting_text
@@ -80,6 +81,16 @@ def method_ref(m):
     return (CITE.get(base, "see the experiment description"), "see the method's source field")
 
 
+def roman(n):
+    """IEEE table numbers."""
+    out = ""
+    for v, r in ((1000, "M"), (900, "CM"), (500, "D"), (400, "CD"), (100, "C"), (90, "XC"), (50, "L"), (40, "XL"),
+                 (10, "X"), (9, "IX"), (5, "V"), (4, "IV"), (1, "I")):
+        while n >= v:
+            out, n = out + r, n - v
+    return out
+
+
 def sub_super(text):
     """Captions write subscripts and superscripts as _{...} and ^{...} (escaped text in, reportlab markup out)."""
     return re.sub(r"\^\{([^}]*)\}", r"<super>\1</super>", re.sub(r"_\{([^}]*)\}", r"<sub>\1</sub>", text))
@@ -134,14 +145,14 @@ def build(res_dir, title, out_pdf, fig_dir):
 
     tab_no = [0]
     table_errors = []
+    caption_problems = []
 
     def tcap(text):
         tab_no[0] += 1
-        roman = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI",
-                 "XVII", "XVIII", "XIX", "XX", "XXI", "XXII", "XXIII", "XXIV", "XXV", "XXVI", "XXVII", "XXVIII",
-                 "XXIX", "XXX"]
-        n = roman[tab_no[0] - 1] if tab_no[0] <= len(roman) else str(tab_no[0])
-        return Paragraph(f"<b>TABLE {n}</b><br/>{escape(text)}", ParagraphStyle("tc", parent=capst, alignment=1))
+        n = roman(tab_no[0])
+        caption_problems.extend(f"Table {n}: {p_}" for p_ in cap.lint(text, figure=False))
+        return Paragraph(f"<b>TABLE {n}</b><br/>{sub_super(escape(text))}", ParagraphStyle("tc", parent=capst,
+                                                                                          alignment=1))
 
     def metric_table(S, keys, caption):
         rows, cells = [], []
@@ -374,17 +385,28 @@ def build(res_dir, title, out_pdf, fig_dir):
         shared = DATASETS.get(S[0], {}).get("track") == 2      # Track 2: one model shared by all clients
         trained = "model as trained" if shared else "heads as trained"
         story += metric_table(S, MAIN, one(f"Main metrics (%, test set, {trained}; mean ± standard deviation over "
-                                           "seeds; shaded = best). " + st))
+                                           "seeds; shaded = best). Bal. acc.: mean of the class recalls; Macro-F1 "
+                                           "and Precision: means over the classes (precision 0 for a class that is "
+                                           "never predicted); G-mean: geometric mean of the class recalls, each "
+                                           "floored at 1%; Tail rec.: mean recall of the rarest 40% of the classes; "
+                                           "Worst rec.: lowest class recall; AUC-PR: macro average precision. " + st))
         story += metric_table(S, READOUT, ("The same model" if shared else "The same heads") + " with the exact "
                               "class-balanced readout (last layer recomputed from secure sums of every client's "
                               "embeddings). " + st)
-        story += metric_table(S, SECOND, f"Further metrics (%, test set, {trained}). " + st)
+        story += metric_table(S, SECOND, f"Further metrics (%, test set, {trained}). Top-5: share of the test images "
+                                         "whose class is among the five most probable; AUC-ROC: one class against the "
+                                         "rest, macro average; Head rec. and Med. rec.: mean recall of the most "
+                                         "frequent 30% and of the next 30% of the classes; Recall SD: standard "
+                                         "deviation of the class recalls. " + st)
         if not shared:   # one shared model: no architectures, every client evaluates the same model
             story += metric_table(S, CLIENTS, f"Fairness across clients (%, test set, {trained}): balanced accuracy of "
                                   "the weakest head architecture, and the accuracy re-weighted to each architecture's "
                                   "own clients' class mix (own-mix accuracy; mean, standard deviation and minimum over "
                                   "the architectures, or over the clients' own models). " + st)
-        story += metric_table(S, CALIB, "Calibration (ECE and class-wise ECE in %, NLL in nats, Brier score)."
+        story += metric_table(S, CALIB, "Calibration (ECE and class-wise ECE in %, NLL in nats, Brier score). ECE: 15 "
+                              "equal-width bins of the highest probability; class-wise ECE: the same for p(c|x) of "
+                              "every class, averaged (Kull et al., NeurIPS 2019); NLL with probabilities floored at "
+                              "10^{-6}; Brier score summed over the classes (0 to 2)."
                               + proto_note([m for m in E.methods if E.of(m, S)]) + " " + st)
         story += metric_table(S, VAL, "Balanced accuracy on the validation set (images no client holds), used to select "
                                       "settings without the test set. " + st)
@@ -457,11 +479,14 @@ def build(res_dir, title, out_pdf, fig_dir):
         story.append(KeepTogether([img, Spacer(1, 3), Paragraph(f"<b>Fig. {i}.</b> {sub_super(escape(caption))}", capst),
                                    Spacer(1, 12)]))
         included.add(os.path.abspath(pdf))
+        caption_problems.extend(f"Fig. {i} (catalogue {num}): {p_}" for p_ in cap.lint(caption))
     story.append(PageBreak())
 
     # ---------------------------------------------------------------- appendix
     story.append(Paragraph("Appendix A. Figures not applicable to this experiment", h1))
     rows = [[n, g, reason, setting_slug(S)] for n, g, reason, S in na]
+    caption_problems.extend(f"not-applicable reason of figure {n}: {p_}" for n, g, reason, S in na
+                            if not str(reason).startswith("error:") for p_ in cap.lint(str(reason), figure=False))
     if rows:
         story += [table(rows, ["Catalogue no.", "Group", "Reason", "Setting"],
                         [0.9 * inch, 0.6 * inch, 4.0 * inch, 1.5 * inch]), Spacer(1, 8)]
@@ -496,6 +521,12 @@ def build(res_dir, title, out_pdf, fig_dir):
         canvas.setFont("Times-Roman", 8)
         canvas.drawRightString(letter[0] - 0.75 * inch, 0.5 * inch, f"{title} - page {doc.page}")
         canvas.restoreState()
+    layout = [f"{n}: {p_}" for n, p_ in ps.LAYOUT_PROBLEMS]
+    if layout or caption_problems:   # presentation checks: on the cover, and listed in an appendix
+        story.insert(cover_at, P(f"Presentation checks: {len(layout)} figure-layout and {len(caption_problems)} "
+                                 "caption problems; Appendix G lists them."))
+        story.append(Paragraph("Appendix G. Presentation checks", h1))
+        story += [table([[escape(t)] for t in (layout + caption_problems)[:300]], ["Problem"], [7.0 * inch])]
     if table_errors:   # on the cover, and listed in an appendix
         story.insert(cover_at, P(f"Table errors: {len(table_errors)} tables could not be computed; Appendix F lists "
                                  "them."))
@@ -506,7 +537,8 @@ def build(res_dir, title, out_pdf, fig_dir):
     doc.build(story, onFirstPage=page, onLaterPages=page)
     return dict(figures=len(figs), not_applicable=len(na), runs=len(E.runs), failures=len(lost),
                 figure_errors=sum(1 for _, _, reason, _ in na if str(reason).startswith("error:")),
-                table_errors=len(table_errors))
+                table_errors=len(table_errors), layout_problems=len(ps.LAYOUT_PROBLEMS),
+                caption_problems=len(caption_problems))
 
 
 def main():

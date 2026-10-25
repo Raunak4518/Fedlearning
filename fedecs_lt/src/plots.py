@@ -1101,7 +1101,7 @@ def f34(E, S, out):
     for m in sorted({r[0] for r in rows}):
         rr = [r for r in rows if r[0] == m]
         st = ps.style(m)
-        ax.plot([r[1] for r in rr], [r[2] for r in rr], label=f"{m}: clients holding the class", **st)
+        ax.plot([r[1] for r in rr], [r[2] for r in rr], label=f"{m}: clients holding the class (growth)", **st)
         ax.plot([r[1] for r in rr], [r[3] for r in rr], label=f"{m}: clients lacking the class (shrinkage)", **dict(st, linestyle=":"))
     ax.set_xlabel("Round")
     ax.set_ylabel("Change of the row norm per round")
@@ -1332,7 +1332,7 @@ def f44(E, S, out):
     keys = [("final_bal", "Bal."), ("final_acc", "Acc."), ("final_f1", "F1"), ("final_precision", "Prec."),
             ("final_mcc", "MCC"), ("final_kappa", "Kappa"), ("final_gmean", "G-mean"), ("final_tail", "Tail"),
             ("final_worst", "Worst"), ("final_auc_pr", "AUC-PR"), ("final_auc_roc", "AUC-ROC"),
-            ("er_bal", "Bal. acc., exact readout")]
+            ("er_bal", "Bal. acc. (readout)")]
     M = np.array([[metric(E, m, k, S)[0] * 100 for k, _ in keys] for m in E.methods])
     if M.size == 0 or np.all(np.isnan(M)):
         return []
@@ -1352,7 +1352,8 @@ def f44(E, S, out):
     p = ps.save(f, out, "fig_44_metric_heatmap", [[m] + list(r) for m, r in zip(E.methods, M)],
                 ["method"] + [n for _, n in keys])
     return [(p, cap.simple(44, E, S, "Every main metric (%, test set, mean over seeds) of every method; colours are "
-                                     "standardised per metric (red = better than the column mean)."))]
+                                     "standardised per metric (red = better than the column mean); Bal. acc. "
+                                     "(readout): balanced accuracy with the exact class-balanced readout."))]
 
 
 @fig(45, "F")
@@ -1769,17 +1770,17 @@ def f78(E, S, out):
             ax.bar(i, r[2], 0.7, yerr=r[3], color=st["color"], edgecolor="black", linewidth=0.4,
                    hatch="///" if r[0] == OURS else None, error_kw=dict(lw=0.6))
         ax.set_xticks(np.arange(len(rr)))
-        ax.set_xticklabels([r[0] for r in rr], rotation=35, ha="right")
+        ax.set_xticklabels([r[0] for r in rr], rotation=45, ha="right", rotation_mode="anchor")
         ax.set_ylabel(name)
-    ps.panel_labels(axes, y=-0.58)
+    ps.panel_labels(axes, y=-0.62)
     p = ps.save(f, out, "fig_78_neural_collapse_nc2_nc3", rows, ["method", "statistic", "mean", "sd"])
-    return [(p, cap.simple(78, E, S, "Neural collapse of the test-set embeddings and last layers (lower = closer to "
-                                     "collapse in (a)-(c)): (a) NC2 equinorm, the coefficient of variation of the "
+    return [(p, cap.simple(78, E, S, "Neural collapse (Papyan et al., PNAS 2020) of the test-set embeddings and last "
+                                     "layers (lower = closer to collapse in (a)-(c)): (a) NC2 equinorm, the coefficient of variation of the "
                                      "centred class-mean norms; (b) NC2 equiangularity, the standard deviation of their "
                                      "pairwise cosines; (c) NC3 self-duality, the squared distance between the "
                                      "normalised classifier and the normalised class means; (d) mean pairwise angle "
-                                     "between the classifier vectors of the tail classes (minority collapse: small "
-                                     "angles); mean over architectures and seeds."))]
+                                     "between the classifier vectors of the tail classes (minority collapse, Fang et "
+                                     "al., PNAS 2021: small angles); mean over architectures and seeds."))]
 
 
 @fig(79, "C")
@@ -1811,7 +1812,7 @@ def f79(E, S, out):
     if len(mats) > 1:
         ps.panel_labels(axes, y=-0.45)
     p = ps.save(f, out, "fig_79_cka_architectures", rows, ["method", "arch_a", "arch_b", "cka"])
-    return [(p, cap.simple(79, E, S, "Linear centred kernel alignment (CKA) between the test-set embeddings of every "
+    return [(p, cap.simple(79, E, S, "Linear centred kernel alignment (CKA; Kornblith et al., ICML 2019) between the test-set embeddings of every "
                                      "pair of head architectures (same 2,000 test images; 1 = the same representation "
                                      "up to rotation and scale): " + " and ".join(
                                          f"({chr(97 + i)}) {cap.mname(m)}" for i, (m, _, _) in enumerate(mats))
@@ -1855,7 +1856,7 @@ def _gen_class_fig(E, S, out, num, fn, ylabel, name, text):
 @fig(80, "D")
 def f80(E, S, out):
     return _gen_class_fig(E, S, out, 80, rp.mmd_rbf, "MMD$^2$", "per_class_mmd",
-                          "Per-class squared maximum mean discrepancy between the generated features and the real "
+                          "Per-class squared maximum mean discrepancy (MMD; Gretton et al., JMLR 2012) between the generated features and the real "
                           "validation features of the class (Gaussian kernel, bandwidth = median distance; at most 300 "
                           "of each; 0 = same distribution); methods with a generator, mean over seeds.")
 
@@ -1893,6 +1894,7 @@ def make_all(res_dir, out_dir):
     figures = [(number, group, pdf path, caption)] and not_applicable = [(number, group, reason)]."""
     E = Exp(res_dir)
     figs, na = [], []
+    ps.LAYOUT_PROBLEMS.clear()
     for S in E.settings:
         sub = os.path.join(out_dir, cap.setting_slug(S))
         for num, group, fn in sorted(FIGS):

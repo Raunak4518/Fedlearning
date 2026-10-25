@@ -322,9 +322,13 @@ def run(algo, ds, IF, seed, lt_dir, out_dir, rounds=200, label=None, data_root=N
     # suite's per-round logs (event "round_eval", round = rounds of training completed)
     per = json.load(open(tmp + ".perclass.json")) if os.path.exists(tmp + ".perclass.json") else []
     with open(os.path.join(out_dir, "logs", safe + ".jsonl"), "w") as f:
-        f.write(json.dumps(dict(t=time.time(), event="run_start", run_id=rid, label=label, dataset=ds_key)) + "\n")
+        start = {k: rec[k] for k in ("run_id", "label", "dataset", "IF", "alpha", "K", "seed", "pfrac", "tail_perm",
+                                     "framework", "method", "rounds", "class_order", "class_names",
+                                     "test_class_counts") if k in rec}   # the same configuration as every run_start
+        f.write(json.dumps(dict(t=time.time(), event="run_start", **start)) + "\n")
         for e in per:
             f.write(json.dumps(dict(t=time.time(), event="round_eval", round=e["round"], post=e["post"])) + "\n")
+        f.write(json.dumps(dict(t=time.time(), event="run_end", time_s=rec["time_s"])) + "\n")
     rec["evaluations_logged"] = len(per)
     np.savez_compressed(os.path.join(out_dir, "predictions", safe + ".npz"), y_full=y, probs_0=probs.astype(np.float16),
                         **({"embed_0": d["embed"].astype(np.float16), "y": y[:len(d["embed"])]}
