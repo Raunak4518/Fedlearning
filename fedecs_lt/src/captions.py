@@ -51,8 +51,25 @@ def one_seed(text, seeds):
 # Names as printed in reports and figures. Inside the suite the baselines of the one-shared-model setting carry the
 # suffix " (LongTailLib)" (it selects their code, and pairs them with earlier runs); the reports print the method's
 # name only, and the methods table names the code each method ran in.
-DISPLAY = {"FedECS-LT (extractor 200 rounds)": "FedECS-LT (T_FE = 200)"}
+DISPLAY = {"FedECS-LT (extractor 200 rounds)": "FedECS-LT (200 extractor rounds)"}
 LT_SUFFIX = " (LongTailLib)"
+
+
+# Messages of the federation, as named in the communication figure and table
+MESSAGES = {
+    "train.stage1": "Extractor training (Stage I)", "train.gen": "Generator training (Stage II)",
+    "train.head": "Head training (Stage III)", "train.htfl": "Training rounds (method's own exchange)",
+    "train.local": "Local training", "query.features": "Extractor broadcast", "query.heads": "Head broadcast",
+    "query.load_gen": "Generator broadcast", "secsum.stats": "Secure sums: class statistics",
+    "secsum.rows": "Secure sums: generator class rows", "secsum.consensus": "Secure sums: consensus soft labels",
+    "secsum.readout": "Secure sums: exact readout", "sums.stats": "Sums: class statistics",
+    "sums.gram": "Sums: class second moments", "sums.rows": "Sums: generator class rows",
+    "sums.consensus": "Sums: consensus soft labels", "sums.readout": "Sums: exact readout",
+}
+
+
+def message_name(t):
+    return MESSAGES.get(t, t)
 
 
 def display(label):
@@ -152,7 +169,7 @@ NA = {
     11: "no saved confusion matrices for FedECS-LT or GeFL-F",
     19: "FedECS-LT is not part of this experiment", 20: "GeFL-F is not part of this experiment",
     22: "no generator in this experiment", 23: "no generator in this experiment",
-    26: "made from the saved models (models.zip) by the repository script, not in the notebook",
+    26: "made from the saved models (models.zip) after the experiment",
     30: "no class-row generator in this experiment", 33: "no class-row generator in this experiment",
     34: "no class-row generator in this experiment", 35: "no class-row generator in this experiment",
     36: "no class-row generator in this experiment", 45: "ablation figure: made from the ablation experiment",
@@ -169,8 +186,8 @@ NA = {
         "aggregating a head leaves it unchanged",
     58: "no class-row generator in this experiment", 60: "local-only training is not part of this experiment",
     69: "the exact readout is computed only for FedECS-LT and the GeFL-F family of methods",
-    71: "a figure of the one-shared-model setting (Track 2)", 72: "a figure of the one-shared-model setting (Track 2)",
-    73: "a figure of the one-shared-model setting (Track 2)",
+    71: "made for the one-shared-model setting only", 72: "made for the one-shared-model setting only",
+    73: "made for the one-shared-model setting only",
     70: "FedECS-LT and GeFL-F are not part of this experiment (their per-round, per-class metrics are in the logs)",
 }
 

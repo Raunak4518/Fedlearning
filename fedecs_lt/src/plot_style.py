@@ -54,7 +54,7 @@ MARKERS = ["o", "s", "^", "D", "v", "P", "X", "<", ">", "h", "*", "p", "d", "8",
 DASHES = ["-", "--", "-.", ":", (0, (5, 1)), (0, (3, 1, 1, 1)), (0, (1, 1)), (0, (5, 2, 1, 2))]
 OURS = "FedECS-LT"
 # Order of the methods in tables and legends: the main comparison, the ablations, then the one-shared-model baselines
-ORDER = ["FedECS-LT", "FedECS-LT (T_FE = 200)", "GeFL-F", "Balanced Softmax", "FedLC", "FedRS", "FedDF", "Local",
+ORDER = ["FedECS-LT", "FedECS-LT (200 extractor rounds)", "GeFL-F", "Balanced Softmax", "FedLC", "FedRS", "FedDF", "Local",
          "FedProto", "FedTGP", "FedGen", "FedGH", "LG-FedAvg", "FedMRL",
          "GeFL-F w/o generator", "GeFL-F + LA", "GeFL-F w/ Gaussian generator + LA", "FedDF + LA",
          "FedAvg", "FedProx", "MOON", "CCVR", "CReFF", "FedETF", "Fed-GraB", "FedLoGe", "FedYoYo", "RUCR", "CLIP2FL",
@@ -66,7 +66,7 @@ STYLE_INDEX = {m: i for i, m in enumerate(["FedECS-LT", "GeFL-F", "Balanced Soft
                                            "Local", "FedProto", "FedTGP", "FedGen", "FedGH", "LG-FedAvg", "FedMRL",
                                            "GeFL-F w/o generator", "GeFL-F + LA",
                                            "GeFL-F w/ Gaussian generator + LA", "FedDF + LA",
-                                           "FedECS-LT (T_FE = 200)"])}
+                                           "FedECS-LT (200 extractor rounds)"])}
 STYLE_INDEX.update({"FedAvg": 2, "FedProx": 4, "MOON": 5, "CCVR": 6, "CReFF": 7, "FedETF": 9, "Fed-GraB": 10,
                     "FedLoGe": 11, "FedYoYo": 12, "RUCR": 13, "CLIP2FL": 14, "FedNH": 15, "FedVLS": 16})
 

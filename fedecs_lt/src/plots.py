@@ -703,8 +703,8 @@ def _class_legend(ax, C, sources=False):
     handles = [Line2D([], [], marker="o", linestyle="", color=cmap(c), markersize=4, label=str(c))
                for c in range(C)] if C <= 10 else []
     if sources:
-        handles += [Line2D([], [], marker="o", linestyle="", color="0.45", markersize=4, label="real"),
-                    Line2D([], [], marker="x", linestyle="", color="0.45", markersize=4, label="generated")]
+        handles += [Line2D([], [], marker="o", linestyle="", color="0.45", markersize=4, label="Real"),
+                    Line2D([], [], marker="x", linestyle="", color="0.45", markersize=4, label="Generated")]
     y0, y1 = ax.get_ylim()
     ax.set_ylim(y0, y1 + 0.35 * (y1 - y0))
     leg = ax.legend(handles=handles, loc="upper right", ncol=min(5, len(handles)), frameon=True, framealpha=0.9,
@@ -905,7 +905,7 @@ def f27(E, S, out):
         if vals:
             rows.append([m, float(np.mean(vals)), float(np.std(vals, ddof=1)) if len(vals) > 1 else 0.0])
     return _bars(E, S, out, 27, rows, "NC1 (within / between)", "neural_collapse_nc1",
-                 "Neural-collapse statistic NC1 = tr(S_W S_B^+)/C of the test-set embeddings (lower = tighter, better "
+                 "Neural-collapse statistic NC1 = tr(S_{W} S_{B}^{+})/C of the test-set embeddings (lower = tighter, better "
                  "separated classes), mean over architectures and seeds.")
 
 
@@ -1004,10 +1004,12 @@ def f32(E, S, out):
         return []
     ax.axhline(1.0, color="#999999", linewidth=0.6, linestyle=":")
     ax.set_xlabel("Class")
-    ax.set_ylabel("Spread scale s_c")
+    ax.set_ylabel("Spread scale $s_c$")
     p = ps.save(f, out, "fig_32_mc_scales", rows, ["method", "class", "scale"])
-    return [(p, cap.simple(32, E, S, "Moment-correction scale s_c = sqrt(V_c / V~_c) per class: the factor by which "
-                                     "the generator's within-class spread is stretched to the exact spread."))]
+    return [(p, cap.simple(32, E, S, "Moment-correction scale s_{c} = (V_{c} / G_{c})^{1/2} per class, with V_{c} the exact "
+                                     "within-class variance (from secure sums) and G_{c} that of the generated features: "
+                                     "the factor by which the generator's within-class spread is stretched to the exact "
+                                     "spread."))]
 
 
 # ---------------------------------------------------------------- E: mechanism
@@ -1071,10 +1073,10 @@ def f34(E, S, out):
     for m in sorted({r[0] for r in rows}):
         rr = [r for r in rows if r[0] == m]
         st = ps.style(m)
-        ax.plot([r[1] for r in rr], [r[2] for r in rr], label=f"{m}: holders' gain", **st)
-        ax.plot([r[1] for r in rr], [r[3] for r in rr], label=f"{m}: non-holders' shrink", **dict(st, linestyle=":"))
+        ax.plot([r[1] for r in rr], [r[2] for r in rr], label=f"{m}: clients holding the class", **st)
+        ax.plot([r[1] for r in rr], [r[3] for r in rr], label=f"{m}: clients lacking the class (shrinkage)", **dict(st, linestyle=":"))
     ax.set_xlabel("Round")
-    ax.set_ylabel("Row-norm change per round")
+    ax.set_ylabel("Change of the row norm per round")
     ax.legend()
     p = ps.save(f, out, "fig_34_holder_gain_vs_shrink", rows, ["method", "round", "holder_gain", "nonholder_shrink"])
     return [(p, cap.simple(34, E, S, "Mean change of a class row's norm in one round of local training: growth on "
@@ -1124,7 +1126,7 @@ def f37(E, S, out):
         return []
     f, ax = ps.figure("page", 2.5)
     x = np.arange(len(rows))
-    ax.bar(x - 0.18, [r[1] for r in rows], 0.36, yerr=[r[3] for r in rows], label="Heads as trained",
+    ax.bar(x - 0.18, [r[1] for r in rows], 0.36, yerr=[r[3] for r in rows], label="As trained",
            color="#BBBBBB", edgecolor="black", linewidth=0.4, error_kw=dict(lw=0.6))
     ax.bar(x + 0.18, [r[2] for r in rows], 0.36, yerr=[r[4] for r in rows], label="Exact readout", color="#333333",
            edgecolor="black", linewidth=0.4, hatch="///", error_kw=dict(lw=0.6))
@@ -1302,7 +1304,7 @@ def f44(E, S, out):
     keys = [("final_bal", "Bal."), ("final_acc", "Acc."), ("final_f1", "F1"), ("final_precision", "Prec."),
             ("final_mcc", "MCC"), ("final_kappa", "Kappa"), ("final_gmean", "G-mean"), ("final_tail", "Tail"),
             ("final_worst", "Worst"), ("final_auc_pr", "AUC-PR"), ("final_auc_roc", "AUC-ROC"),
-            ("er_bal", "Bal. (ER)")]
+            ("er_bal", "Bal. acc., exact readout")]
     M = np.array([[metric(E, m, k, S)[0] * 100 for k, _ in keys] for m in E.methods])
     if M.size == 0 or np.all(np.isnan(M)):
         return []
@@ -1342,7 +1344,7 @@ def f47(E, S, out):
     for m in E.methods:
         for r in E.of(m, S)[:1]:
             for t, b in (r.get("bytes") or {}).items():
-                rows.append([m, t, (b["down"] + b["up"]) / 2 ** 20 / r["K"]])
+                rows.append([m, cap.message_name(t), (b["down"] + b["up"]) / 2 ** 20 / r["K"]])
     if not rows:
         return []
     types = sorted({r[1] for r in rows})
@@ -1351,7 +1353,8 @@ def f47(E, S, out):
     bottom = np.zeros(len(ms_))
     for i, t in enumerate(types):
         v = np.array([sum(r[2] for r in rows if r[0] == m and r[1] == t) for m in ms_])
-        ax.bar(np.arange(len(ms_)), v, 0.7, bottom=bottom, label=t, color=ps.PALETTE[i % len(ps.PALETTE)],
+        ax.bar(np.arange(len(ms_)), v, 0.7, bottom=bottom, label=cap.message_name(t),
+               color=ps.PALETTE[i % len(ps.PALETTE)],
                hatch=["", "///", "...", "xx", "\\\\"][i % 5], edgecolor="black", linewidth=0.3)
         bottom += v
     ax.set_xticks(np.arange(len(ms_)))
@@ -1385,7 +1388,7 @@ def f48(E, S, out):
     ax.legend(ncol=3)
     p = ps.save(f, out, "fig_48_time_per_stage", rows, ["method", "stage", "seconds"])
     return [(p, cap.simple(48, E, S, "Wall-clock time per stage on one GPU (simulation of all clients), mean over "
-                                     "seeds; shared stages loaded from cache report the time of their first run."))]
+                                     "seeds; stages shared by several methods are trained once per seed and report the time of that training."))]
 
 
 @fig(49, "G")
@@ -1510,7 +1513,7 @@ def f56(E, S, out):
         _round_ticks(ax, rounds)
         ax.set_xlabel("Round")
         ax.set_ylabel("Class")
-        f.colorbar(im, ax=ax, fraction=0.046, pad=0.04).set_label("Recall after - before (points)")
+        f.colorbar(im, ax=ax, fraction=0.046, pad=0.04).set_label("Recall change by aggregation (points)")
         name = "ours" if m == OURS else "geflf"
         p = ps.save(f, out, f"fig_56_aggregation_effect_{name}", rows, ["round", "class", "effect"])
         res.append((p, cap.simple(56, E, S, f"Aggregation effect per class for {cap.mname(m)}: recall of the aggregated "
@@ -1537,8 +1540,8 @@ def f57(E, S, out):
     for m in sorted({r[0] for r in rows}):
         rr = [r for r in rows if r[0] == m]
         st = ps.style(m)
-        ax.plot([r[1] for r in rr], [r[2] for r in rr], label=f"{m}: client copies", **dict(st, linestyle=":"))
-        ax.plot([r[1] for r in rr], [r[3] for r in rr], label=f"{m}: aggregate", **st)
+        ax.plot([r[1] for r in rr], [r[2] for r in rr], label=f"{m}: clients' copies (before aggregation)", **dict(st, linestyle=":"))
+        ax.plot([r[1] for r in rr], [r[3] for r in rr], label=f"{m}: aggregated generator", **st)
     ax.set_xlabel("Round")
     ax.set_ylabel("Tail-class fidelity (%)")
     ax.legend()
@@ -1572,11 +1575,11 @@ def f58(E, S, out):
     for m in sorted({r[0] for r in rows}):
         rr = [r for r in rows if r[0] == m]
         st = ps.style(m)
-        ax.plot([r[1] for r in rr], [r[2] for r in rr], label=f"{m}: holders' copies", **st)
-        ax.plot([r[1] for r in rr], [r[3] for r in rr], label=f"{m}: non-holders' copies", **dict(st, linestyle=":"))
-        ax.plot([r[1] for r in rr], [r[4] for r in rr], label=f"{m}: aggregate", **dict(st, linestyle="--"))
+        ax.plot([r[1] for r in rr], [r[2] for r in rr], label=f"{m}: clients holding the class", **st)
+        ax.plot([r[1] for r in rr], [r[3] for r in rr], label=f"{m}: clients lacking the class", **dict(st, linestyle=":"))
+        ax.plot([r[1] for r in rr], [r[4] for r in rr], label=f"{m}: aggregated generator", **dict(st, linestyle="--"))
     ax.set_xlabel("Round")
-    ax.set_ylabel("Tail class-row norm")
+    ax.set_ylabel("Norm of the tail-class rows")
     ax.legend()
     p = ps.save(f, out, "fig_58_row_norm_holders_nonholders", rows,
                 ["method", "round", "holders", "non_holders", "aggregate"])
@@ -1633,7 +1636,7 @@ def f60(E, S, out):
         return []
     ax.axhline(0, color="#999999", linewidth=0.6, linestyle=":")
     ax.set_xlabel("Class (ordered from most to least frequent)")
-    ax.set_ylabel("Recall gain over local (points)")
+    ax.set_ylabel("Recall gain over Local (points)")
     ax.legend()
     p = ps.save(f, out, "fig_60_federated_vs_local", rows, ["method", "class", "gain"])
     return [(p, cap.simple(60, E, S, "Per-class benefit of federation: recall of each federated method minus the "

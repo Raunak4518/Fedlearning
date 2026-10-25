@@ -10,6 +10,7 @@ import glob
 import json
 import os
 import platform
+import re
 
 import numpy as np
 
@@ -23,11 +24,11 @@ MAIN = [("final_bal", "Bal. acc."), ("final_f1", "Macro-F1"), ("final_precision"
         ("final_auc_pr", "AUC-PR")]
 SECOND = [("final_acc", "Accuracy"), ("final_kappa", "Kappa"), ("final_top5", "Top-5"), ("final_auc_roc", "AUC-ROC"),
           ("final_head", "Head rec."), ("final_medium", "Med. rec."), ("final_rec_std", "Recall SD"),
-          ("final_worst_arch", "Worst arch."), ("final_local", "Own-mix acc.")]
+          ("final_worst_arch", "Worst-arch. bal."), ("final_local", "Own-mix acc.")]
 CALIB = [("final_ece", "ECE"), ("final_cw_ece", "Class-wise ECE"), ("final_nll", "NLL"), ("final_brier", "Brier")]
 READOUT = [("er_bal", "Bal. acc."), ("er_f1", "Macro-F1"), ("er_tail", "Tail rec."), ("er_worst", "Worst rec."),
            ("er_mcc", "MCC"), ("er_gmean", "G-mean")]
-VAL = [("val_final_bal", "Val. bal. acc."), ("val_er_bal", "Val. bal. acc. (ER)")]
+VAL = [("val_final_bal", "Val. bal. acc."), ("val_er_bal", "Val. bal. acc., exact readout")]
 SYSTEM = [("comm_mb_per_client", "Comm./client (MB)"), ("time_s", "Time (s)"), ("fe_time_s", "Stage I (s)"),
           ("gen_time_s", "Stage II (s)"), ("gpu_peak_mb", "Peak GPU (MB)")]
 NOT_PCT = {"final_nll", "final_brier", "comm_mb_per_client", "time_s", "fe_time_s", "gen_time_s", "gpu_peak_mb",
@@ -35,24 +36,24 @@ NOT_PCT = {"final_nll", "final_brier", "comm_mb_per_client", "time_s", "fe_time_
 
 
 REFS = {
-    "FedECS-LT": ("This work", "This suite (Flower)"),
+    "FedECS-LT": ("This work", "Our implementation (Flower)"),
     "GeFL-F": ("Kang et al., IEEE TMC 2025", "Re-implementation of the authors' Algorithm 3, checked against the "
                                              "earlier experiments"),
     "GeFL-F + LA": ("Ablation: GeFL-F with logit adjustment (Menon et al., ICLR 2021) and decoupled weight decay "
-                    "(Loshchilov and Hutter, ICLR 2019)", "This suite"),
+                    "(Loshchilov and Hutter, ICLR 2019)", "Our implementation"),
     "GeFL-F w/o generator": ("Ablation: GeFL-F without its generator (heads trained on real features only)",
-                             "This suite"),
+                             "Our implementation"),
     "Balanced Softmax": ("Ren et al., NeurIPS 2020 (each client's head trained with its own class prior; equal to "
-                         "logit adjustment, Menon et al., ICLR 2021, with tau = 1)", "This suite (loss only)"),
+                         "logit adjustment, Menon et al., ICLR 2021, with tau = 1)", "Our implementation (loss only)"),
     "FedLC": ("Zhang et al., ICML 2022", "Re-implemented from the paper (loss only)"),
     "FedRS": ("Li and Zhan, KDD 2021", "Re-implemented from the paper (loss only)"),
     "GeFL-F w/ Gaussian generator + LA": ("Ablation: GeFL-F with its generator replaced by class Gaussians from the "
-                                          "exact class statistics, with logit adjustment", "This suite"),
+                                          "exact class statistics, with logit adjustment", "Our implementation"),
     "FedDF": ("Lin et al., NeurIPS 2020", "Re-implementation (server ensemble distillation on generated features)"),
     "FedDF + LA": ("Ablation: FedDF (Lin et al., NeurIPS 2020) with logit adjustment", "Re-implementation"),
-    "Local": ("Lower bound: each client trains its own model alone, without federation", "This suite"),
-    "FedECS-LT (T_FE = 200)": ("This work, with the feature extractor trained for 200 rounds (diagnosis run)",
-                               "This suite (Flower)"),
+    "Local": ("Lower bound: each client trains its own model alone, without federation", "Our implementation"),
+    "FedECS-LT (200 extractor rounds)": ("This work, with the feature extractor trained for 200 rounds (diagnosis run)",
+                               "Our implementation (Flower)"),
 }
 
 
@@ -72,9 +73,14 @@ def method_ref(m):
     if m in REFS:
         return REFS[m]
     if m.startswith("FedECS-LT"):
-        return ("This work (ablation / variant)", "This suite (Flower)")
+        return ("This work (ablation / variant)", "Our implementation (Flower)")
     base = m.split(" (")[0]
     return (CITE.get(base, "see the experiment description"), "see the method's source field")
+
+
+def sub_super(text):
+    """Captions write subscripts and superscripts as _{...} and ^{...} (escaped text in, reportlab markup out)."""
+    return re.sub(r"\^\{([^}]*)\}", r"<super>\1</super>", re.sub(r"_\{([^}]*)\}", r"<sub>\1</sub>", text))
 
 
 def fmt(mu, sd, key, n=2):
@@ -265,8 +271,8 @@ def build(res_dir, title, out_pdf, fig_dir):
                               "embeddings). " + st)
         second = [kv for kv in SECOND if not (shared and kv[0] in ("final_worst_arch", "final_local"))]
         story += metric_table(S, second, f"Further metrics (%, test set, {trained})."
-                              + ("" if shared else " Own-mix accuracy: accuracy re-weighted to each architecture's own "
-                                 "clients' class mix.") + " " + st)
+                              + ("" if shared else " Worst-arch. bal.: balanced accuracy of the weakest head architecture. Own-mix accuracy: "
+                                 "accuracy re-weighted to each architecture's own clients' class mix.") + " " + st)
         story += metric_table(S, CALIB, "Calibration (ECE and class-wise ECE in %, NLL in nats, Brier score)."
                               + proto_note([m for m in E.methods if E.of(m, S)]) + " " + st)
         story += metric_table(S, VAL, "Balanced accuracy on the validation set (images no client holds), used to select "
@@ -327,7 +333,7 @@ def build(res_dir, title, out_pdf, fig_dir):
             w, h = im.size
         width_in = min(7.0, w / 200.0)
         img = Image(png, width=width_in * inch, height=width_in * inch * h / w)
-        story.append(KeepTogether([img, Spacer(1, 3), Paragraph(f"<b>Fig. {i}.</b> {escape(caption)}", capst),
+        story.append(KeepTogether([img, Spacer(1, 3), Paragraph(f"<b>Fig. {i}.</b> {sub_super(escape(caption))}", capst),
                                    Spacer(1, 12)]))
         included.add(os.path.abspath(pdf))
     story.append(PageBreak())
