@@ -208,7 +208,23 @@ torch.max, torch.Tensor.max = _max, _tmax
 lib_acc = res[0] if isinstance(res, tuple) else res
 n_test = len(srv.global_testloader.dataset)
 logits = torch.cat(REC)[-n_test:] if REC else None
-hist = {k: [float(x) for x in getattr(srv, k)] for k in dir(srv) if k.startswith("rs_") and isinstance(getattr(srv, k), list)}
+def _num_list(v):
+    """The library's per-round history lists (rs_*) that hold numbers; some methods (Fed-GraB) also keep lists of
+    dicts there, which are skipped (the per-class metrics above cover every evaluation)."""
+    out = []
+    for x in v:
+        if torch.is_tensor(x) and x.numel() == 1:
+            x = x.item()
+        if not isinstance(x, (int, float, np.integer, np.floating)) or isinstance(x, bool):
+            return None
+        out.append(float(x))
+    return out
+hist = {}
+for k in dir(srv):
+    if k.startswith("rs_") and isinstance(getattr(srv, k), list):
+        _l = _num_list(getattr(srv, k))
+        if _l is not None:
+            hist[k] = _l
 emb = None
 try:
     srv.global_model.eval()
