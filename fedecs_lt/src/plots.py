@@ -1169,9 +1169,14 @@ def f39(E, S, out):
     ax.set_yticklabels([r[0] for r in rows])
     ax.set_xlabel("Difference in balanced accuracy (points)")
     p = ps.save(f, out, "fig_39_forest", rows, ["baseline", "mean_diff", "ci_low", "ci_high", "n_seeds"])
+    if max(r[4] for r in rows) == 1:   # one seed: a difference on the same split, no interval
+        return [(p, cap.simple(39, E, S, "Difference in balanced accuracy, FedECS-LT minus each baseline, on the same "
+                                         "client split (one seed, so no confidence interval); right of the dotted line "
+                                         "FedECS-LT is better."))]
     return [(p, cap.simple(39, E, S, "Paired difference in balanced accuracy, FedECS-LT minus each baseline, over the "
-                                     "same seeds and splits; points are means, bars 95% t confidence intervals; right of "
-                                     "the dotted line FedECS-LT is better."))]
+                                     "same seeds and splits; points are means, bars 95% t confidence intervals (none "
+                                     "for a baseline with one common seed); right of the dotted line FedECS-LT is "
+                                     "better."))]
 
 
 @fig(40, "F")

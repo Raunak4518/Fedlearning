@@ -14,8 +14,9 @@ import platform
 import numpy as np
 
 import plots
+import captions as cap
 from captions import proto_note, setting_slug, setting_text
-from settings import CITE
+from settings import CITE, DATASETS
 
 MAIN = [("final_bal", "Bal. acc."), ("final_f1", "Macro-F1"), ("final_precision", "Precision"), ("final_mcc", "MCC"),
         ("final_gmean", "G-mean"), ("final_tail", "Tail rec."), ("final_worst", "Worst rec."),
@@ -72,14 +73,16 @@ def method_ref(m):
     return (CITE.get(base, "see the experiment description"), "see the method's source field")
 
 
-def fmt(mu, sd, key):
+def fmt(mu, sd, key, n=2):
+    """mean ± SD of n values; the SD is shown only for two or more (one run has no spread)."""
     if np.isnan(mu):
         return "-"
+    spread = n > 1 and not np.isnan(sd)
     if key in NOT_PCT:
         if abs(mu) >= 1000:   # times in seconds, bytes: whole numbers, no exponent
-            return f"{mu:,.0f}" if sd == 0 or np.isnan(sd) else f"{mu:,.0f} ± {sd:,.0f}"
-        return f"{mu:.3g}" if sd == 0 or np.isnan(sd) else f"{mu:.3g} ± {sd:.2g}"
-    return f"{100 * mu:.1f} ± {100 * sd:.1f}"
+            return f"{mu:,.0f} ± {sd:,.0f}" if spread and sd > 0 else f"{mu:,.0f}"
+        return f"{mu:.3g} ± {sd:.2g}" if spread and sd > 0 else f"{mu:.3g}"
+    return f"{100 * mu:.1f} ± {100 * sd:.1f}" if spread else f"{100 * mu:.1f}"
 
 
 def build(res_dir, title, out_pdf, fig_dir):
@@ -135,7 +138,7 @@ def build(res_dir, title, out_pdf, fig_dir):
             for k, _ in keys:
                 mu, sd, n = plots.metric(E, m, k, S)
                 used_keys.add(k)
-                r.append(fmt(mu, sd, k))
+                r.append(fmt(mu, sd, k, n))
                 vals.append(mu)
             if all(np.isnan(v) for v in vals):
                 continue
@@ -246,12 +249,19 @@ def build(res_dir, title, out_pdf, fig_dir):
                            "held by all clients together, test images. " + st), Spacer(1, 3),
                       table(rows, ["Class", "Original label", "Name", "Training images", "Test images"],
                             [0.6 * inch, 1.0 * inch, 3.4 * inch, 1.0 * inch, 1.0 * inch]), Spacer(1, 10)]
-        story += metric_table(S, MAIN, "Main metrics (%, test set, heads as trained; mean ± standard deviation over "
-                                       "seeds; shaded = best). " + st)
-        story += metric_table(S, READOUT, "The same heads with the exact class-balanced readout (last layer recomputed "
-                                          "from secure sums of every client's embeddings). " + st)
-        story += metric_table(S, SECOND, "Further metrics (%, test set, heads as trained). Own-mix accuracy: accuracy "
-                                         "re-weighted to each architecture's own clients' class mix. " + st)
+        seeds = sorted({r['seed'] for r in E.runs if plots.setting_key(r) == S})
+        one = lambda t: cap.one_seed(t, seeds)  # noqa: E731
+        shared = DATASETS.get(S[0], {}).get("track") == 2      # Track 2: one model shared by all clients
+        trained = "model as trained" if shared else "heads as trained"
+        story += metric_table(S, MAIN, one(f"Main metrics (%, test set, {trained}; mean ± standard deviation over "
+                                           "seeds; shaded = best). " + st))
+        story += metric_table(S, READOUT, ("The same model" if shared else "The same heads") + " with the exact "
+                              "class-balanced readout (last layer recomputed from secure sums of every client's "
+                              "embeddings). " + st)
+        second = [kv for kv in SECOND if not (shared and kv[0] in ("final_worst_arch", "final_local"))]
+        story += metric_table(S, second, f"Further metrics (%, test set, {trained})."
+                              + ("" if shared else " Own-mix accuracy: accuracy re-weighted to each architecture's own "
+                                 "clients' class mix.") + " " + st)
         story += metric_table(S, CALIB, "Calibration (ECE and class-wise ECE in %, NLL in nats, Brier score)."
                               + proto_note([m for m in E.methods if E.of(m, S)]) + " " + st)
         story += metric_table(S, VAL, "Balanced accuracy on the validation set (images no client holds), used to select "
@@ -262,10 +272,10 @@ def build(res_dir, title, out_pdf, fig_dir):
         rows = []
         for m in E.methods:
             for r in sorted(E.of(m, S), key=lambda r: r["seed"]):
-                rows.append([m, r["seed"], fmt(r.get("final_bal", np.nan) or np.nan, 0, "final_bal"),
-                             fmt(r.get("er_bal", np.nan) or np.nan, 0, "er_bal"),
-                             fmt(r.get("final_tail", np.nan) or np.nan, 0, "final_tail"),
-                             fmt(r.get("final_f1", np.nan) or np.nan, 0, "final_f1"), f"{r.get('time_s', 0):.0f}"])
+                rows.append([m, r["seed"], fmt(r.get("final_bal", np.nan) or np.nan, 0, "final_bal", 1),
+                             fmt(r.get("er_bal", np.nan) or np.nan, 0, "er_bal", 1),
+                             fmt(r.get("final_tail", np.nan) or np.nan, 0, "final_tail", 1),
+                             fmt(r.get("final_f1", np.nan) or np.nan, 0, "final_f1", 1), f"{r.get('time_s', 0):.0f}"])
         if rows:
             story += [tcap("Every run (one row per method and seed): balanced accuracy as trained and with the exact "
                            "readout, tail recall, macro-F1 (%), time (s). " + st), Spacer(1, 3),
@@ -293,8 +303,8 @@ def build(res_dir, title, out_pdf, fig_dir):
                         for m, mu in recs]
                 part = "" if C <= 20 else f" Classes {cols[0]}-{cols[-1]} of {C}."
                 note = proto_note([m for m, _ in recs]) if key in ("final_ece_c", "final_nll_c", "final_brier_c") else ""
-                story += [tcap(f"Per-class {name} (test set, mean over seeds); class 0 is the most frequent.{part}{note} "
-                               + st), Spacer(1, 3),
+                story += [tcap(one(f"Per-class {name} (test set, mean over seeds); class 0 is the most frequent."
+                                   f"{part}{note} " + st)), Spacer(1, 3),
                           table(rows, ["Method"] + [str(c) for c in cols],
                                 [1.55 * inch] + [(7.0 - 1.55) * inch / len(cols)] * len(cols)), Spacer(1, 10)]
     story.append(PageBreak())

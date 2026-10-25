@@ -1,7 +1,49 @@
 """Formal figure captions (IEEE style), built from the experiment's settings. A caption says what is plotted, on
 which data and setting, over which seeds, and what the error bars mean; it never names notebooks, run numbers or
 internal file names (those are listed in the report's appendix)."""
+import re
+
 from settings import CITE, DATASETS
+
+# With one seed there is no spread over seeds: these phrases are rewritten (in this order) in every caption
+ONE_SEED = [
+    (r"; mean ± standard deviation over seeds", ""),
+    (r"[,;] mean over seeds \(band: one standard deviation\)", ""),
+    (r"[,;] mean over seeds[,;] (error bars|the shaded band is) one standard deviation", ""),
+    (r"mean over them and over seeds", "mean over them"),
+    (r"(averaged|mean) over architectures and seeds", r"\1 over architectures"),
+    (r", summed over seeds", ""),
+    (r" \(all seeds\)", ""),
+    (r" \(mean over seeds\)", ""),
+    (r"[,;] mean over seeds", ""),
+]
+
+
+# Track 2 has one model shared by all clients (one architecture): the stage figures' wording for it
+TRACK2_WORDS = [
+    (r"the aggregated heads", "the aggregated head"),
+    (r"the architecture heads", "its head"),
+    (r"the clients' heads", "the clients' copies of the head"),
+    (r"of the heads as trained", "of the head as trained"),
+    (r"[,;] (averaged|mean) over architectures", ""),
+]
+
+
+def track2_words(text, S):
+    if DATASETS.get(S[0], {}).get("track") != 2:
+        return text
+    for pat, rep in TRACK2_WORDS:
+        text = re.sub(pat, rep, text)
+    return text
+
+
+def one_seed(text, seeds):
+    """The caption text for the number of seeds it covers (unchanged for two or more)."""
+    if seeds is None or len(seeds) != 1:
+        return text
+    for pat, rep in ONE_SEED:
+        text = re.sub(pat, rep, text)
+    return text
 
 
 def mname(m):
@@ -43,15 +85,17 @@ def _seeds(E, S):
 
 
 def simple(num, E, S, text):
-    return f"{text} {setting_text(S, _seeds(E, S))}"
+    seeds = _seeds(E, S)
+    return track2_words(one_seed(f"{text} {setting_text(S, seeds)}", seeds), S)
 
 
 def curve(num, E, S, what, split="Test-set"):
     """split: "Test-set" for evaluated quantities; None for training-time quantities (losses, drift), whose text
     starts with its own capital."""
     head = f"{split} {what}" if split else what
-    return (f"{head}, per evaluation round (every 5 rounds), mean over seeds; the shaded band is one standard "
-            f"deviation. {setting_text(S, _seeds(E, S))}")
+    seeds = _seeds(E, S)
+    return track2_words(one_seed(f"{head}, per evaluation round (every 5 rounds), mean over seeds; the shaded band is "
+                                 f"one standard deviation. {setting_text(S, seeds)}", seeds), S)
 
 
 PROTOTYPE_METHODS = ("FedProto", "FedTGP")
@@ -73,8 +117,9 @@ def proto_note(methods):
 def per_class(num, E, S, what, note=""):
     shared = DATASETS.get(S[0], {}).get("track") == 2
     model = "the global model, mean over seeds" if shared else "the clients' models as trained, mean over them and over seeds"
-    return (f"Per-class {what} on the test set after training ({model}); classes are ordered from the most to the least frequent in the federation's training "
-            f"data.{note} {setting_text(S, _seeds(E, S))}")
+    seeds = _seeds(E, S)
+    return one_seed(f"Per-class {what} on the test set after training ({model}); classes are ordered from the most to "
+                    f"the least frequent in the federation's training data.{note} {setting_text(S, seeds)}", seeds)
 
 
 def setting_slug(S):
@@ -101,12 +146,12 @@ NA = {
     53: "privacy figure: made from the membership-inference experiment",
     54: "privacy figure: made from the differential-privacy experiment",
     55: "the pipeline diagram is drawn once for the paper", 57: "no generator copies were evaluated",
-    56: "every head architecture has a single client here (10 clients, 10 architectures), so aggregating a head "
-        "leaves it unchanged; the figure is made for the 50- and 100-client federations (or FedECS-LT and GeFL-F "
-        "are not part of this experiment)",
-    59: "every head architecture has a single client here (10 clients, 10 architectures), so aggregating a head "
-        "leaves it unchanged; the figure is made for the 50- and 100-client federations (or FedECS-LT and GeFL-F "
-        "are not part of this experiment)",
+    56: "made for FedECS-LT and GeFL-F when several clients share a head architecture: either neither method is "
+        "part of this experiment, or every architecture has a single client (10 clients, 10 architectures), so "
+        "aggregating a head leaves it unchanged",
+    59: "made for FedECS-LT and GeFL-F when several clients share a head architecture: either neither method is "
+        "part of this experiment, or every architecture has a single client (10 clients, 10 architectures), so "
+        "aggregating a head leaves it unchanged",
     58: "no class-row generator in this experiment", 60: "local-only training is not part of this experiment",
     69: "the exact readout is computed only for FedECS-LT and the GeFL-F family of methods",
     71: "a figure of the one-shared-model setting (Track 2)", 72: "a figure of the one-shared-model setting (Track 2)",
