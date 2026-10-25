@@ -527,6 +527,7 @@ def run_pipeline(grid, context, R):
     T = dict(T_FE=spec["T_FE"], T_KA=spec["T_KA"], T_TN=spec["T_TN"])
     T.update(R.get("rounds") or {})
     res = dict(class_order=S.fed.class_order, class_names=S.fed.class_names,
+               test_class_counts=np.bincount(S.fed.y_te.cpu().numpy(), minlength=S.C).tolist(),
                run_id=R["run_id"], label=R["label"], dataset=R["ds"], IF=R["IF"], alpha=R["alpha"], K=R["K"],
                seed=R["seed"], pfrac=R.get("pfrac", 1.0), tail_perm=R.get("tail_perm", False), method=m,
                n_train=S.N, min_client=int(min(S.fed.sizes)), client_counts=S.fed.counts.astype(int).tolist(),

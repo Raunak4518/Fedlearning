@@ -64,6 +64,7 @@ def run_htfl(grid, context, R):
     T.update(R.get("rounds") or {})
     hp = dict(HP, **METHOD_HP[meth], epochs=5)
     res = dict(class_order=S.fed.class_order, class_names=S.fed.class_names,
+               test_class_counts=np.bincount(S.fed.y_te.cpu().numpy(), minlength=S.C).tolist(),
                run_id=R["run_id"], label=R["label"], dataset=R["ds"], IF=R["IF"], alpha=R["alpha"], K=R["K"],
                seed=R["seed"], pfrac=R.get("pfrac", 1.0), tail_perm=R.get("tail_perm", False), method=R["method"],
                n_train=S.N, min_client=int(min(S.fed.sizes)), client_counts=S.fed.counts.astype(int).tolist(),

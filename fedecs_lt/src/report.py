@@ -176,7 +176,7 @@ def build(res_dir, title, out_pdf, fig_dir):
     aud = None
     if os.path.exists(os.path.join(res_dir, "audit.json")):
         aud = json.load(open(os.path.join(res_dir, "audit.json")))
-        story += [P("<b>Logging audit:</b> " + (
+        story += [P("Logging audit: " + (
             f"every run has every metric for every class on every evaluation ({aud['checked']['runs']} runs, "
             f"{aud['checked']['round_evaluations']} per-round evaluations checked)." if aud["n_problems"] == 0 else
             f"{aud['n_problems']} problems found; see the appendix 'Logging audit'.")), Spacer(1, 6)]
@@ -237,8 +237,7 @@ def build(res_dir, title, out_pdf, fig_dir):
         if r0 is not None:
             C = len(r0["class_order"])
             ntr = np.array(r0.get("client_counts") or [[0] * C]).sum(0)
-            cm = r0.get("final_confusion")
-            nte = np.array(cm).sum(1) if cm else [None] * C
+            nte = r0.get("test_class_counts") or [None] * C   # images of each class in the test set
             names = r0.get("class_names") or [None] * C
             rows = [[str(c), str(o), escape(names[c] or "-"), str(int(ntr[c])), "-" if nte[c] is None else str(int(nte[c]))]
                     for c, o in enumerate(r0["class_order"])]

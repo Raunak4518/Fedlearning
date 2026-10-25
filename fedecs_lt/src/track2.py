@@ -277,6 +277,7 @@ def run(algo, ds, IF, seed, lt_dir, out_dir, rounds=200, label=None, data_root=N
                            source="LongTailLib (FedLTLib benchmark), authors' code unchanged, downloaded at run time"),
                client_counts=np.load(os.path.join(root, "suite_split.npz"))["counts"].tolist(),
                class_order=list(range(C)), class_names=CLASS_NAMES.get(ds),
+               test_class_counts=np.bincount(y, minlength=C).tolist(),
                library_accuracy=lib_acc, accuracy_check=abs(m["acc"] - lib_acc) < 1e-6 if lib_acc == lib_acc else None,
                time_s=time.time() - t0, rounds=dict(T=rounds))
     if "gpu_peak_mb" in d.files and d["gpu_peak_mb"][0] > 0:   # the library's process (a fresh one per run)
