@@ -1747,21 +1747,32 @@ def _collapse(E, m, S):
 
 @fig(78, "C")
 def f78(E, S, out):
-    keys = [("nc2_equinorm", "NC2 equinorm"), ("nc2_equiangle", "NC2 equiangularity"),
-            ("nc3", "NC3 self-duality"), ("minority_angle", "Tail classifier angle (deg)")]
+    keys = [("nc2_equinorm", "NC2 equinorm", "NC2 equinorm, the coefficient of variation of the centred class-mean "
+             "norms"),
+            ("nc2_equiangle", "NC2 equiangularity", "NC2 equiangularity, the standard deviation of their pairwise "
+             "cosines"),
+            ("nc3", "NC3 self-duality", "NC3 self-duality, the squared distance between the normalised classifier "
+             "and the normalised class means"),
+            ("minority_angle", "Tail classifier angle (deg)", "mean pairwise angle between the classifier vectors of "
+             "the tail classes (minority collapse, Fang et al., PNAS 2021: small angles)")]
     rows = []
     for m in E.methods:
         vals = _collapse(E, m, S)
-        for k, _ in keys:
+        for k, _, _ in keys:
             v = [x[k] for x in vals if x.get(k) is not None]
             if v:
                 rows.append([m, k, float(np.mean(v)), float(np.std(v, ddof=1)) if len(v) > 1 else 0.0])
+    keys = [kk for kk in keys if any(r[1] == kk[0] for r in rows)]   # only the statistics with data get a panel
     if not rows:
         return []
-    f, axes = ps.figure("page", 5.8, ncols=2, nrows=2)
+    nrows = (len(keys) + 1) // 2
+    f, axes = ps.figure("page", 2.9 * nrows, ncols=2, nrows=nrows)
     f.subplots_adjust(hspace=1.0, wspace=0.3)   # room for the rotated method names and the panel labels
     axes = list(np.ravel(axes))
-    for ax, (k, name) in zip(axes, keys):
+    for ax in axes[len(keys):]:
+        ax.set_visible(False)
+    axes = axes[:len(keys)]
+    for ax, (k, name, _) in zip(axes, keys):
         rr = [r for r in rows if r[1] == k]
         for i, r in enumerate(rr):
             st = ps.style(r[0])
@@ -1772,13 +1783,10 @@ def f78(E, S, out):
         ax.set_ylabel(name)
     ps.panel_labels(axes, y=-0.62)
     p = ps.save(f, out, "fig_78_neural_collapse_nc2_nc3", rows, ["method", "statistic", "mean", "sd"])
+    parts = "; ".join(f"({chr(97 + i)}) {text}" for i, (_, _, text) in enumerate(keys))
     return [(p, cap.simple(78, E, S, "Neural collapse (Papyan et al., PNAS 2020) of the test-set embeddings and last "
-                                     "layers (lower = closer to collapse in (a)-(c)): (a) NC2 equinorm, the coefficient of variation of the "
-                                     "centred class-mean norms; (b) NC2 equiangularity, the standard deviation of their "
-                                     "pairwise cosines; (c) NC3 self-duality, the squared distance between the "
-                                     "normalised classifier and the normalised class means; (d) mean pairwise angle "
-                                     "between the classifier vectors of the tail classes (minority collapse, Fang et "
-                                     "al., PNAS 2021: small angles); mean over architectures and seeds."))]
+                                     f"layers (NC2 and NC3: lower = closer to collapse): {parts}; mean over "
+                                     "architectures and seeds."))]
 
 
 @fig(79, "C")
