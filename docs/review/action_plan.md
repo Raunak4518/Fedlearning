@@ -581,8 +581,8 @@ Target: IEEE (IEEEtran template, journals and conferences). No other venue profi
   agreement, logit spread before / after the synthetic phase and retention (figures 74-82 and four report tables).
   Embedding maps follow the t-SNE literature (Wattenberg et al. 2016; Kobak and Berens 2019): tail classes
   emphasised, GeFL-F vs FedECS-LT side by side (Fig. 83), a perplexity check (Fig. 84), 10-NN accuracy of the
-  embeddings in captions and the representation table. UMAP (listed in section 15) is not added: it needs an extra
-  package compiled at run time on Kaggle, and t-SNE with PCA plus the perplexity check covers the same question.
+  embeddings in captions and the representation table, and UMAP of the same embeddings (Fig. 85; umap-learn,
+  BSD-3-Clause, installed at run time in the release that matches the image's scikit-learn, which is kept).
   Membership inference and DP stay in the privacy experiments (not built). A figure that fails to draw now fails
   the CPU test and is counted on the report's cover. The long-tail methods built for one shared model are
   compared in Track 2 only (user, 23 Oct).

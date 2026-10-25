@@ -200,6 +200,7 @@ NA = {
     82: "no variational generator in this experiment",
     83: "made when FedECS-LT and GeFL-F with saved test embeddings are both part of the experiment",
     84: "no saved test embeddings of FedECS-LT in this experiment",
+    85: "no saved test embeddings of FedECS-LT or GeFL-F in this experiment",
 }
 
 

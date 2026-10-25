@@ -2019,6 +2019,53 @@ def f84(E, S, out):
                                      "Tail classes (rarest 40%) drawn larger and opaque." + _colour_note(C)))]
 
 
+def _umap(X, seed=0):
+    """UMAP (McInnes, Healy and Melville, 2018) with its default 15 neighbours and minimum distance 0.1, on the same 50
+    principal components as the t-SNE maps; one thread so that the seed makes it reproducible."""
+    import umap
+    from sklearn.decomposition import PCA
+    X = X.astype(np.float32)
+    if X.shape[1] > 50:
+        X = PCA(50, random_state=seed).fit_transform(X)
+    return umap.UMAP(n_neighbors=15, min_dist=0.1, random_state=seed, n_jobs=1).fit_transform(X)
+
+
+@fig(85, "C")
+def f85(E, S, out):
+    """UMAP of the same embeddings as the t-SNE maps: GeFL-F and FedECS-LT side by side when both are in the
+    experiment, FedECS-LT alone otherwise."""
+    got = [(m, _embeddings(E, m, S)) for m in (REF, OURS) if m in E.methods]
+    got = [(m, e) for m, e in got if e is not None]
+    if not got:
+        return []
+    two = len(got) == 2
+    f, axes = ps.figure("page" if two else "column", 3.4 if two else 3.3, ncols=len(got))
+    axes = list(np.ravel(axes)) if two else [axes]
+    if two:
+        f.subplots_adjust(wspace=0.08)
+    rows = []
+    C = int(max(e[1].max() for _, e in got)) + 1
+    for i, (ax, (m, (H, y, names))) in enumerate(zip(axes, got)):
+        Z = _umap(H)
+        _scatter_classes(ax, Z, y, C, emphasise_tail=True)
+        ax.set_xlabel("UMAP 1")
+        if i == 0:
+            ax.set_ylabel("UMAP 2")
+        rows += [[m, float(a), float(b), int(c)] for (a, b), c in zip(Z, y)]
+    _class_legend(axes[-1], C, names=got[-1][1][2])
+    if two:
+        ps.panel_labels(axes, y=-0.1)
+    p = ps.save(f, out, "fig_85_umap", rows, ["method", "umap1", "umap2", "class"], raster=True)
+    who = " and ".join(f"({chr(97 + i)}) {cap.mname(m)}" for i, (m, _) in enumerate(got)) if two else cap.mname(got[0][0])
+    return [(p, cap.simple(85, E, S, f"UMAP (McInnes, Healy and Melville, 2018; 15 neighbours, minimum distance 0.1, on "
+                                     "the same 50 principal components) of the test-set embeddings of the first head "
+                                     f"architecture of {who} (same 2,000 test images as the t-SNE maps, first seed), "
+                                     "coloured by true class (numbered from the most to the least frequent; the tail "
+                                     "classes, the rarest 40%, drawn larger and opaque). UMAP keeps more of the "
+                                     "arrangement of the clusters than t-SNE, but distances between clusters remain "
+                                     "qualitative." + _colour_note(C)))]
+
+
 def _arch(K):
     blk = max(K // 10, 1)
     return [min(k // blk, 9) for k in range(K)]

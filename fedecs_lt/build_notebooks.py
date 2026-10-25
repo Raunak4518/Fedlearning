@@ -156,7 +156,16 @@ def notebook(name, nb):
     if any(r["label"].endswith("(LongTailLib)") for r in runs):   # what the authors' LongTailLib code imports
         extra = " h5py tqdm calmsize ftfy regex \"git+https://github.com/openai/CLIP.git@d05afc436d78f1c48dc0dbf8e5980a9d471f35f6\""
     cells.append(code(f"# Packages (fixed versions)\n!pip install -q \"{FLWR}\" \"{REPORTLAB}\"{extra} 2>&1 | tail -2\n"
-                      "import flwr, ray; print('Flower', flwr.__version__, 'Ray', ray.__version__)"))
+                      "import flwr, ray; print('Flower', flwr.__version__, 'Ray', ray.__version__)\n"
+                      "# UMAP (umap-learn, BSD-3-Clause, downloaded at run time) for the embedding maps: the release that\n"
+                      "# matches this image's scikit-learn (0.5.9.post2 needs >= 1.6; 0.5.7 needs < 1.8), which is kept\n"
+                      "import subprocess, sys, sklearn\n"
+                      "_v = tuple(int(x) for x in sklearn.__version__.split('.')[:2])\n"
+                      "_u = 'umap-learn==0.5.9.post2' if _v >= (1, 6) else 'umap-learn==0.5.7'\n"
+                      "subprocess.run([sys.executable, '-m', 'pip', 'install', '-q', _u, "
+                      "f'scikit-learn=={sklearn.__version__}'], check=False)\n"
+                      "try:\n    import umap; print('UMAP', umap.__version__, 'scikit-learn', sklearn.__version__)\n"
+                      "except Exception as e:\n    print('UMAP not available (its figure will be listed as an error):', e)"))
     cells.append(md("## Helper scripts\nThe cells below write the suite's code to disk (hidden; nothing to change)."))
     cells.append(code("import os\nos.makedirs('/kaggle/working/fedecs_lt', exist_ok=True)"))
     for f in sorted(glob.glob(os.path.join(SRC, "*.py"))):
