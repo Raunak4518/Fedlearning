@@ -19,7 +19,8 @@ FedECS-LT (Exact Class Statistics for Long-Tailed federated learning) and every 
 - `tests/`: `python -m pytest fedecs_lt/tests -q` (partitions, networks, formulas and every client training step
   against `experiments/core.py`; metrics against scikit-learn); `run_notebook_on_cpu.py` runs a notebook end to end on
   CPU from the notebook file itself.
-- `build_notebooks.py` writes `notebooks/*.ipynb` and `notebooks/START_HERE.md`. Notebooks are generated; edit `src/`
+- `build_notebooks.py` writes `notebooks/<priority folder>/*.ipynb` (folders `0_` to `4_`, in run order) and
+  `notebooks/START_HERE.md`. Notebooks are generated; edit `src/`
   or the builder, then rebuild.
 - `results/<notebook>/`: returned results (`<name>__results.zip` unpacked; the report PDF next to it).
 

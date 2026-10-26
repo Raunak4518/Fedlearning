@@ -307,16 +307,33 @@ def priority(name):
     return 4
 
 
+# one folder per priority (user, 26 Oct 2026), named so that the folders sort in run order
+FOLDERS = {0: "0_acceptance_done",
+           1: "1_main_comparison_mnist_fmnist_svhn_cifar10_cifar100",
+           2: "2_one_shared_model_IF100_and_ablations",
+           3: "3_main_comparison_other_datasets",
+           4: "4_one_shared_model_IF50_IF10_and_long_runs"}
+
+
+def folder(name):
+    return FOLDERS[priority(name)]
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     nbs = all_notebooks()
-    if not sys.argv[1:]:   # a full build: remove notebooks that are no longer in the plan (e.g. now split in parts)
-        for f in glob.glob(os.path.join(OUT, "*.ipynb")):
-            if os.path.basename(f)[:-6] not in nbs:
+    if not sys.argv[1:]:   # a full build: remove notebooks no longer in the plan or in another priority's folder
+        for f in glob.glob(os.path.join(OUT, "**", "*.ipynb"), recursive=True):
+            n = os.path.basename(f)[:-6]
+            if n not in nbs or os.path.dirname(f) != os.path.join(OUT, folder(n)):
                 os.remove(f)
+        for d in glob.glob(os.path.join(OUT, "*", "")):
+            if not os.listdir(d):
+                os.rmdir(d)
     sel = [n for n in nbs if not sys.argv[1:] or any(n.startswith(a) for a in sys.argv[1:])]
     for n in sel:
-        path = os.path.join(OUT, n + ".ipynb")
+        os.makedirs(os.path.join(OUT, folder(n)), exist_ok=True)
+        path = os.path.join(OUT, folder(n), n + ".ipynb")
         json.dump(notebook(n, nbs[n]), open(path, "w"), indent=1)
         print("wrote", path, len(nbs[n]["runs"]), "runs")
     rows = ["# Kaggle notebooks of the FedECS-LT suite: one per person and session", "",
@@ -334,12 +351,19 @@ def main():
             f"**{len(nbs) - 1} notebooks to run, about "
             f"{sum(nb['hours'] for n, nb in nbs.items() if not n.startswith('NB00')):.0f} session-hours in total.**", "",
             "## Run order",
-            "Priority 1 first (the paper's main tables), then 2, 3, 4. One notebook per account at a time; any free "
-            "account takes the next notebook of the lowest priority number still open.", "",
-            "| Priority | Notebook | What it runs | Runs | Expected hours | Send back |", "|---|---|---|---|---|---|"]
-    for n, nb in sorted(nbs.items(), key=lambda kv: (priority(kv[0]), kv[0])):
-        rows.append(f"| {priority(n)} | {n}.ipynb | {nb['what']} | {len(nb['runs'])} | {nb['hours']:.1f} | "
-                    f"`{n}__summary.zip`, `{n}__report.pdf` |")
+            "The notebooks are in one folder per priority. Folder 1 first (the paper's main tables), then 2, 3, 4; "
+            "folder 0 is done. Any free account takes the next notebook from the lowest-numbered folder still open.",
+            ""]
+    for p in sorted(FOLDERS):
+        group = sorted(n for n in nbs if priority(n) == p)
+        rows += [f"### Priority {p}: [`{FOLDERS[p]}/`]({FOLDERS[p]}/) ({len(group)} notebooks, about "
+                 f"{sum(nbs[n]['hours'] for n in group):.0f} session-hours)", "",
+                 "| Notebook | What it runs | Runs | Expected hours | Send back |", "|---|---|---|---|---|"]
+        for n in group:
+            nb = nbs[n]
+            rows.append(f"| [{n}.ipynb]({FOLDERS[p]}/{n}.ipynb) | {nb['what']} | {len(nb['runs'])} | "
+                        f"{nb['hours']:.1f} | `{n}__summary.zip`, `{n}__report.pdf` |")
+        rows.append("")
     open(os.path.join(OUT, "START_HERE.md"), "w").write("\n".join(rows) + "\n")
 
 

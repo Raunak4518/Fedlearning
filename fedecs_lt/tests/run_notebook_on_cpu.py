@@ -3,7 +3,7 @@ scripts are written from its %%writefile cells, its run list is shrunk (2 rounds
 under /kaggle/working and /tmp/fedecs are moved to a test folder, the GPU / Internet / pip cells are skipped.
 Checks that the run cell, the acceptance cell and the packing cell complete and that the three output files exist.
 
-    python fedecs_lt/tests/run_notebook_on_cpu.py fedecs_lt/notebooks/NB00_acceptance.ipynb TEST_DIR [SEEDS] [LABELS]
+    python fedecs_lt/tests/run_notebook_on_cpu.py fedecs_lt/notebooks/0_acceptance_done/NB00_acceptance.ipynb TEST_DIR [SEEDS] [LABELS]
 
 SEEDS (e.g. "3") and LABELS ("FedECS-LT;FedProto") keep only those runs, so that a notebook with 51 runs can be tested
 in about an hour.
