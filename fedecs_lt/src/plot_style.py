@@ -158,6 +158,19 @@ def fit_width(fig, tol=0.01):
 WIDTH_PROBLEMS = []   # (figure name, saved width in inches, nominal width) of every figure wider than it should be
 
 
+def log_axis(ax, values, axis="x"):
+    """A logarithmic axis when the positive values span at least a factor of 10, else a linear one: on a narrower log
+    axis matplotlib labels the minor ticks (1.3e2, 1.35e2, ...), which then overlap. Minor ticks are never labelled.
+    Returns True when the axis is logarithmic (the caption says so only then)."""
+    from matplotlib.ticker import NullFormatter
+    v = np.asarray([x for x in values if x is not None and np.isfinite(x) and x > 0], dtype=float)
+    if len(v) == 0 or v.max() < 10 * v.min():
+        return False
+    (ax.set_xscale if axis == "x" else ax.set_yscale)("log")
+    getattr(ax, axis + "axis").set_minor_formatter(NullFormatter())
+    return True
+
+
 def points_under(ax, leg, r):
     """Plotted points (line vertices, scatter points) of an axes that its legend covers."""
     from matplotlib.collections import PathCollection

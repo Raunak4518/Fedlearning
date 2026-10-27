@@ -508,13 +508,14 @@ def f10(E, S, out):
         rows += [[m, int(a), float(b)] for a, b in zip(n, rec)]
     if not rows:
         return []
-    ax.set_xscale("log")
+    logx = ps.log_axis(ax, [r[1] for r in rows])
     ax.set_xlabel("Training images of the class (federation)")
     ax.set_ylabel("Recall (%)")
     ax.legend(ncol=2)
     p = ps.save(f, out, "fig_10_recall_vs_class_size", rows, ["method", "class_size", "recall"])
     return [(p, cap.simple(10, E, S, "Per-class recall against the number of training images of the class in the "
-                                     "federation (logarithmic axis); each point is one class, mean over seeds."))]
+                                     "federation" + (" (logarithmic axis)" if logx else "") + "; each point is one class, mean over "
+                                     "seeds."))]
 
 
 @fig(11, "B")
@@ -1348,13 +1349,13 @@ def f41(E, S, out):
 @fig(42, "F")
 def f42(E, S, out):
     return _pareto(E, S, out, 42, "comm_mb_per_client", "Communication per client (MB)", "accuracy_vs_communication",
-                   "communication per client over the whole training (logarithmic axis)", logx=True)
+                   "communication per client over the whole training", logx=True)
 
 
 @fig(43, "F")
 def f43(E, S, out):
     return _pareto(E, S, out, 43, "time_s", "Wall-clock time per run (s)", "accuracy_vs_time",
-                   "wall-clock time of one run on one GPU (logarithmic axis)", logx=True)
+                   "wall-clock time of one run on one GPU", logx=True)
 
 
 def _pareto(E, S, out, num, key, xlabel, name, what, logx=False):
@@ -1370,12 +1371,13 @@ def _pareto(E, S, out, num, key, xlabel, name, what, logx=False):
     if not rows:
         return []
     if logx:
-        ax.set_xscale("log")
+        logx = ps.log_axis(ax, [r[1] for r in rows])
     ax.set_xlabel(xlabel)
     ax.set_ylabel("Balanced accuracy (%)")
     ax.legend(ncol=2)
     p = ps.save(f, out, f"fig_{num:02d}_{name}", rows, ["method", "x", "balanced_accuracy"])
-    return [(p, cap.simple(num, E, S, f"Balanced accuracy against {what}; mean over seeds. Up and left is better."))]
+    return [(p, cap.simple(num, E, S, f"Balanced accuracy against {what}" + (" (logarithmic axis)" if logx else "")
+                                      + "; mean over seeds. Up and left is better."))]
 
 
 @fig(44, "F")
@@ -1541,7 +1543,7 @@ def f52(E, S, out):
     f, ax = ps.figure("column", 2.3)
     eps = sorted({r[1] for r in rows})
     ax.plot(eps, [np.mean([r[2] for r in rows if r[1] == e]) * 100 for e in eps], **ps.style(OURS))
-    ax.set_xscale("log")
+    ps.log_axis(ax, eps)
     ax.set_xlabel("Privacy budget epsilon")
     ax.set_ylabel("Balanced accuracy (%)")
     p = ps.save(f, out, "fig_52_accuracy_vs_epsilon", rows, ["method", "epsilon", "bal"])
