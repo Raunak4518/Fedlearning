@@ -74,9 +74,13 @@ shows how to join them. Here is the map.
 | `NB30_ablation_cifar10` + `NB10_main_cifar10_part1of3` (folders 2 and 1) | GeFL-F w/o generator, GeFL-F + LA, GeFL-F w/ Gaussian generator + LA, FedDF + LA, paired with FedECS-LT and GeFL-F on the same splits and seeds | **ablation table** (`app:ablation`, and one line in the main text) |
 | `NB30_ablation_cifar100` + `NB10_main_cifar100_part1of2` | the same on CIFAR-100-LT | ablation table, second column |
 
-A notebook whose name ends in `_rerun` (for example `NB10_main_emnist_rerun`) holds the runs that did not finish in
-the notebook of the same name. Same settings and seeds, so the same client splits. **Always merge it with that
-notebook.** The builder makes one automatically when a returned notebook misses runs.
+Folder 5 holds reruns of runs that failed in returned notebooks. Same settings and seeds, so the same client splits.
+**Always merge a rerun with the notebook it completes.** The builder makes reruns automatically from what is missing
+in `fedecs_lt/results/`:
+- `NB10_main_emnist_rerun_7bfd7d` holds the missing runs of `NB10_main_emnist`.
+- `NB20_track2_rerun_<id>` holds the missing one-shared-model runs of several notebooks together; its description
+  names them.
+- The id after `_rerun_` changes whenever the content changes, so a later rerun never overwrites returned results.
 
 Part 1 of every split Track-1 notebook holds FedECS-LT, GeFL-F, Balanced Softmax, FedLC, FedRS, FedDF and Local.
 The later parts hold FedProto, FedTGP, FedGen, FedGH, LG-FedAvg and FedMRL. The ablations need part 1 only.

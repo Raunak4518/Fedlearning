@@ -296,47 +296,76 @@ def all_notebooks():
 
 
 def rerun_notebooks(nbs):
-    """Notebooks of the runs that did not come back (user, 27 Oct 2026): for every notebook whose results are in
-    results/<notebook>/ but miss some runs, `<notebook>_rerun` holds only those runs (same settings and seeds, so the
-    same splits; merge_results.py joins both). One run per GPU: the failures were out of memory (EMNIST: host memory
-    with four runs at once; CIFAR-100, one shared model, ratio 10: GPU memory with two runs on one GPU). A notebook
-    from which nothing came back (GTSRB part 1: the download failed) is simply run again."""
+    """Notebooks of the runs that did not come back (user, 27 Oct 2026). A run counts as done when it is in the
+    runs.jsonl of any folder in results/ (NB00 excluded: an earlier code version). For every returned notebook that
+    misses runs, those runs (same settings and seeds, so the same client splits) go into rerun notebooks, one run per
+    GPU (the failures were out of memory): a main-setting notebook's runs into `<notebook>_rerun_<id>`, the
+    one-shared-model runs of all notebooks together into `NB20_track2_rerun_<id>`. The id is derived from the runs, so
+    a later rerun of what is still missing gets a new name and never overwrites returned results. A notebook from
+    which nothing came back (GTSRB part 1: the download failed) is run again as it is. merge_results.py joins a
+    rerun's results with its notebook's."""
     import plan_time
     sys.path.insert(0, SRC)
     from runner import run_id
-    out = {}
+    from settings import DATASETS
+    done = set()
+    for f in glob.glob(os.path.join(HERE, "results", "NB*", "runs.jsonl")):
+        if not os.path.basename(os.path.dirname(f)).startswith("NB00"):
+            done |= {json.loads(line)["run_id"] for line in open(f) if line.strip()}
+    missing = {}
     for name, nb in nbs.items():
-        p = os.path.join(HERE, "results", name, "runs.jsonl")
-        if name.startswith("NB00") or not os.path.exists(p):
+        if name.startswith("NB00") or not os.path.exists(os.path.join(HERE, "results", name, "runs.jsonl")):
             continue
-        done = {json.loads(line)["run_id"] for f in [p] + glob.glob(os.path.join(HERE, "results", name + "_rerun*",
-                                                                             "runs.jsonl"))
-                for line in open(f) if line.strip()}   # a rerun that came back counts too
-        missing = [r for r in nb["runs"] if run_id(r) not in done]
-        if not missing or len(missing) == len(nb["runs"]):
-            continue
-        chunks = [[]]
-        for r in missing:   # in queue order, as many runs per notebook as fit the session budget
-            if chunks[-1] and plan_time.hours(chunks[-1] + [r], per_gpu=1) > plan_time.BUDGET_H:
-                chunks.append([])
-            chunks[-1].append(r)
-        for i, runs in enumerate(chunks, 1):
-            tag = f"_rerun{i}of{len(chunks)}" if len(chunks) > 1 else "_rerun"
-            out[name + tag] = dict(
-                nb, title=f"{nb['title']}: runs that did not finish",
-                what=(f"The {len(missing)} runs" if len(missing) > 1 else "The run") + f" of {name} that did not "
-                     "finish there, one run per GPU"
-                     + (f"; part {i} of {len(chunks)}, {len(runs)} runs" if len(chunks) > 1 else "")
-                     + ". Merge with that notebook's results.",
+        miss = [r for r in nb["runs"] if run_id(r) not in done]
+        if miss and len(miss) < len(nb["runs"]):
+            missing[name] = miss
+
+    def chunks(runs):     # in queue order, as many runs per notebook as fit one session
+        out = [[]]
+        for r in runs:
+            if out[-1] and plan_time.hours(out[-1] + [r], per_gpu=1) > plan_time.BUDGET_H:
+                out.append([])
+            out[-1].append(r)
+        return out
+
+    def tag(runs):
+        return hashlib.sha1("|".join(sorted(run_id(r) for r in runs)).encode()).hexdigest()[:6]
+
+    def shared(r):
+        return DATASETS[r["ds"]].get("track") == 2
+    out = {}
+    for name, miss in missing.items():
+        miss = [r for r in miss if not shared(r)]
+        parts = chunks(miss) if miss else []
+        for i, runs in enumerate(parts, 1):
+            out[f"{name}_rerun_{tag(runs)}"] = dict(
+                nbs[name], title=f"{nbs[name]['title']}: runs that did not finish",
+                what=(f"{len(runs)} runs" if len(runs) > 1 else "The run") + f" of {name} that did not finish there"
+                     + (f" (part {i} of {len(parts)})" if len(parts) > 1 else "") + ", one run per GPU. Merge with "
+                     "that notebook's results.",
                 runs=runs, per_gpu=1, hours=plan_time.hours(runs, per_gpu=1))
+    t2 = [(name, r) for name, miss in missing.items() for r in miss if shared(r)]
+    for runs in (chunks([r for _, r in t2]) if t2 else []):
+        ids = {run_id(r) for r in runs}
+        srcs = sorted({name for name, r in t2 if run_id(r) in ids})
+        what = "; ".join(f"{r['label']}, {DATASETS[r['ds']]['name']}-LT ratio {round(1 / r['IF'])}, seed {r['seed']}"
+                         for r in runs)
+        name = f"NB20_track2_rerun_{tag(runs)}"
+        out[name] = dict(title="One shared model (FedLTLib protocol): runs that did not finish",
+                         what=f"Runs that did not finish in {', '.join(srcs)}: {what}. One run per GPU. Merge each "
+                              "with its notebook's results.",
+                         runs=runs, acceptance=False, per_gpu=1, group=name, hours=plan_time.hours(runs, per_gpu=1))
     return out
 
 
 def priority(name):
     """Run order: 0 NB00 (done), 1 Track 1 on the tier-1 datasets, 2 Track 2 at imbalance ratio 100 and the ablations,
-    3 Track 1 on the tier-2 datasets, 4 Track 2 at ratios 50 and 10 and the long runs."""
+    3 Track 1 on the tier-2 datasets, 4 Track 2 at ratios 50 and 10 and the long runs; 5 reruns of failed runs (any
+    time: they complete experiments whose other runs came back)."""
     if name.startswith("NB00"):
         return 0
+    if "_rerun" in name:
+        return 5
     if name.startswith("NB10"):
         return 1 if any(f"NB10_main_{d}" in name and not name.startswith(f"NB10_main_{d}mnist")
                         for d in TIER1) else 3
@@ -350,7 +379,8 @@ FOLDERS = {0: "0_acceptance_done",
            1: "1_main_comparison_mnist_fmnist_svhn_cifar10_cifar100",
            2: "2_one_shared_model_IF100_and_ablations",
            3: "3_main_comparison_other_datasets",
-           4: "4_one_shared_model_IF050_IF010_and_long_runs"}
+           4: "4_one_shared_model_IF050_IF010_and_long_runs",
+           5: "5_reruns_of_failed_runs"}
 
 
 def folder(name):
@@ -392,7 +422,9 @@ def main():
             f"{sum(nb['hours'] for n, nb in nbs.items() if not n.startswith('NB00')):.0f} session-hours in total.**", "",
             "## Run order",
             "The notebooks are in one folder per priority. Folder 1 first (the paper's main tables), then 2, 3, 4; "
-            "folder 0 is done. Any free account takes the next notebook from the lowest-numbered folder still open.",
+            "folder 0 is done. Any free account takes the next notebook from the lowest-numbered folder still open. "
+            "Folder 5 holds reruns of runs that failed in returned notebooks: run them whenever an account is free "
+            "(they complete experiments whose other runs came back).",
             ""]
     for p in sorted(FOLDERS):
         group = sorted(n for n in nbs if priority(n) == p)

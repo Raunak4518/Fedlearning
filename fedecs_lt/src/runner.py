@@ -138,11 +138,56 @@ def failed_ids(out_dir):
     return out
 
 
+def needs_whole_gpu(R):
+    """FedECS-LT with one shared model keeps 32,768-dimensional features of every image on the GPU: about 13 GB of a
+    T4's 14.6 GB (Kaggle, 27 Oct 2026), so it ran out of memory next to any other run."""
+    from settings import DATASETS
+    return R["label"].startswith("FedECS-LT") and DATASETS.get(R["ds"], {}).get("track") == 2
+
+
+class GpuShare:
+    """The GPU of this worker (CUDA_VISIBLE_DEVICES): runs that need all of it take it exclusively, the others share
+    it. A run waiting for exclusive use keeps new shared runs from starting there, so it is not starved. Only the
+    scheduling changes, never a run's computation."""
+
+    def __init__(self, work_dir, alone):
+        dev = os.environ.get("CUDA_VISIBLE_DEVICES", "cpu")
+        self.path = os.path.join(work_dir, f"gpu_{dev}.lock")
+        self.want = f"{self.path}.want.{os.getpid()}"   # one per waiting run
+        self.alone = alone
+
+    def __enter__(self):
+        import fcntl
+        os.makedirs(os.path.dirname(self.path), exist_ok=True)
+        self.f = open(self.path, "a")
+        if self.alone:
+            open(self.want, "a").close()
+            print("waiting for the whole GPU", flush=True)
+            fcntl.flock(self.f, fcntl.LOCK_EX)
+        else:
+            import glob
+            while glob.glob(self.path + ".want.*"):
+                time.sleep(5)
+            fcntl.flock(self.f, fcntl.LOCK_SH)
+        return self
+
+    def __exit__(self, *exc):
+        import fcntl
+        if self.alone:
+            try:
+                os.remove(self.want)
+            except FileNotFoundError:
+                pass
+        fcntl.flock(self.f, fcntl.LOCK_UN)
+        self.f.close()
+
+
 def execute(R, attempt=0):
     t0 = time.time()
     print(("retry " if attempt else "") + "start", R["run_id"], flush=True)
     try:
-        res = run_one(R)
+        with GpuShare(os.path.dirname(os.path.abspath(R["out_dir"])), needs_whole_gpu(R)):
+            res = run_one(R)
         print(f"done {R['run_id']}  bal={res.get('final_bal', float('nan')):.4f}  "
               f"er_bal={(res.get('er_bal') or float('nan')):.4f}  {time.time() - t0:.0f}s", flush=True)
     except Exception as e:  # record the failure, release this process's stage locks, continue with the next run

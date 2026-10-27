@@ -21,3 +21,11 @@ Download again with `python fedecs_lt/fetch_kaggle.py --all`.
 | NB10_main_pathmnist_part2of3 | https://www.kaggle.com/code/mrudulmittal/notebookca1ec0a7ff |
 | NB10_main_pathmnist_part3of3 | https://www.kaggle.com/code/mrudulmittal/notebooka12c147e83 |
 | NB20_track2_cifar100_IF010_s3_part1of3 | https://www.kaggle.com/code/raunakhehe/notebookd755185574 |
+| NB20_track2_cifar100_IF100_s4_part1of2 | https://www.kaggle.com/code/niteshninama/notebookafdf2e562b |
+| NB20_track2_cifar100_IF100_s4_part2of2 | https://www.kaggle.com/code/niteshninama/notebookd7aee26fac |
+| NB20_track2_cifar10_IF010_s3_part1of3 | https://www.kaggle.com/code/mehuljindal124/notebooked5a524eb0 |
+| NB20_track2_cifar10_IF010_s3_part2of3 | https://www.kaggle.com/code/mehuljindal124/notebook38a79944bf |
+| NB20_track2_cifar10_IF100_s3_part1of2 | https://www.kaggle.com/code/niteshninama/notebook19a6ece019 |
+| NB20_track2_cifar10_IF100_s3_part2of2 | https://www.kaggle.com/code/niteshninama/notebookb8201f1437 |
+| NB20_track2_cifar10_IF100_s4_part1of2 | https://www.kaggle.com/code/mehuljindal124/notebookff78d03dc2 |
+| NB20_track2_cifar10_IF100_s4_part2of2 | https://www.kaggle.com/code/mehuljindal124/notebook273f266c73 |
