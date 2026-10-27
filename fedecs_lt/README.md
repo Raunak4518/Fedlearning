@@ -22,6 +22,7 @@ FedECS-LT (Exact Class Statistics for Long-Tailed federated learning) and every 
 - `build_notebooks.py` writes `notebooks/<priority folder>/*.ipynb` (folders `0_` to `4_`, in run order) and
   `notebooks/START_HERE.md`. Notebooks are generated; edit `src/`
   or the builder, then rebuild.
+- `fetch_kaggle.py` downloads finished notebooks' outputs from Kaggle into `results/<notebook>/` (with a summary.md).
 - `merge_results.py` joins several notebooks' results (parts, seeds, ablation + reference) into one report;
   `paper_tables.py` writes the paper's numbers as LaTeX / CSV. How to use them for the paper: `PAPER_GUIDE.md`.
 - `results/<notebook>/`: returned results (`<name>__results.zip` unpacked; the report PDF next to it).

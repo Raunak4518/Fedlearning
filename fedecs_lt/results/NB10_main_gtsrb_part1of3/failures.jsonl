@@ -1,0 +1,42 @@
+{"run_id": "FedECS-LT|gtsrb|IFNone|a0.5|K10|s3", "attempt": 1, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 206.4605107307434}
+{"run_id": "GeFL-F|gtsrb|IFNone|a0.5|K10|s3", "attempt": 1, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 341.66925573349}
+{"run_id": "Balanced Softmax|gtsrb|IFNone|a0.5|K10|s3", "attempt": 1, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 476.80223178863525}
+{"run_id": "FedLC|gtsrb|IFNone|a0.5|K10|s3", "attempt": 1, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 612.5793504714966}
+{"run_id": "FedRS|gtsrb|IFNone|a0.5|K10|s3", "attempt": 1, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.7375679016113}
+{"run_id": "FedDF|gtsrb|IFNone|a0.5|K10|s3", "attempt": 1, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 541.0406546592712}
+{"run_id": "Local|gtsrb|IFNone|a0.5|K10|s3", "attempt": 1, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.701818227768}
+{"run_id": "FedECS-LT|gtsrb|IFNone|a0.5|K10|s4", "attempt": 1, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 539.7908244132996}
+{"run_id": "GeFL-F|gtsrb|IFNone|a0.5|K10|s4", "attempt": 1, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.5966885089874}
+{"run_id": "Balanced Softmax|gtsrb|IFNone|a0.5|K10|s4", "attempt": 1, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.2046637535095}
+{"run_id": "FedLC|gtsrb|IFNone|a0.5|K10|s4", "attempt": 1, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.5482003688812}
+{"run_id": "FedRS|gtsrb|IFNone|a0.5|K10|s4", "attempt": 1, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.7093896865845}
+{"run_id": "FedDF|gtsrb|IFNone|a0.5|K10|s4", "attempt": 1, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.6220548152924}
+{"run_id": "Local|gtsrb|IFNone|a0.5|K10|s4", "attempt": 1, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.5497114658356}
+{"run_id": "FedECS-LT|gtsrb|IFNone|a0.5|K10|s5", "attempt": 1, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.6473190784454}
+{"run_id": "GeFL-F|gtsrb|IFNone|a0.5|K10|s5", "attempt": 1, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.5960533618927}
+{"run_id": "Balanced Softmax|gtsrb|IFNone|a0.5|K10|s5", "attempt": 1, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.8736317157745}
+{"run_id": "FedLC|gtsrb|IFNone|a0.5|K10|s5", "attempt": 1, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.7902021408081}
+{"run_id": "FedRS|gtsrb|IFNone|a0.5|K10|s5", "attempt": 1, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 541.1689608097076}
+{"run_id": "FedDF|gtsrb|IFNone|a0.5|K10|s5", "attempt": 1, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.9015321731567}
+{"run_id": "Local|gtsrb|IFNone|a0.5|K10|s5", "attempt": 1, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.9758636951447}
+{"run_id": "FedECS-LT|gtsrb|IFNone|a0.5|K10|s3", "attempt": 2, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.539377450943}
+{"run_id": "GeFL-F|gtsrb|IFNone|a0.5|K10|s3", "attempt": 2, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.8927357196808}
+{"run_id": "Balanced Softmax|gtsrb|IFNone|a0.5|K10|s3", "attempt": 2, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 541.0771946907043}
+{"run_id": "FedLC|gtsrb|IFNone|a0.5|K10|s3", "attempt": 2, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.8030333518982}
+{"run_id": "FedRS|gtsrb|IFNone|a0.5|K10|s3", "attempt": 2, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 541.6459007263184}
+{"run_id": "FedDF|gtsrb|IFNone|a0.5|K10|s3", "attempt": 2, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.6512739658356}
+{"run_id": "Local|gtsrb|IFNone|a0.5|K10|s3", "attempt": 2, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.7729179859161}
+{"run_id": "FedECS-LT|gtsrb|IFNone|a0.5|K10|s4", "attempt": 2, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.5411593914032}
+{"run_id": "GeFL-F|gtsrb|IFNone|a0.5|K10|s4", "attempt": 2, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.3212327957153}
+{"run_id": "Balanced Softmax|gtsrb|IFNone|a0.5|K10|s4", "attempt": 2, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.4870245456696}
+{"run_id": "FedLC|gtsrb|IFNone|a0.5|K10|s4", "attempt": 2, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.5251002311707}
+{"run_id": "FedRS|gtsrb|IFNone|a0.5|K10|s4", "attempt": 2, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.5732910633087}
+{"run_id": "FedDF|gtsrb|IFNone|a0.5|K10|s4", "attempt": 2, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.6375358104706}
+{"run_id": "Local|gtsrb|IFNone|a0.5|K10|s4", "attempt": 2, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.7295491695404}
+{"run_id": "FedECS-LT|gtsrb|IFNone|a0.5|K10|s5", "attempt": 2, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 541.0661237239838}
+{"run_id": "GeFL-F|gtsrb|IFNone|a0.5|K10|s5", "attempt": 2, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.9345345497131}
+{"run_id": "Balanced Softmax|gtsrb|IFNone|a0.5|K10|s5", "attempt": 2, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.3855352401733}
+{"run_id": "FedLC|gtsrb|IFNone|a0.5|K10|s5", "attempt": 2, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.5779929161072}
+{"run_id": "FedRS|gtsrb|IFNone|a0.5|K10|s5", "attempt": 2, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.6161658763885}
+{"run_id": "FedDF|gtsrb|IFNone|a0.5|K10|s5", "attempt": 2, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.4837849140167}
+{"run_id": "Local|gtsrb|IFNone|a0.5|K10|s5", "attempt": 2, "error": "URLError(TimeoutError(110, 'Connection timed out'))", "time_s": 540.7709527015686}

@@ -24,12 +24,13 @@ Every notebook writes four files to its Kaggle *Output* tab (`NAME` = the notebo
 
 | File | Size | Keep where | Contains |
 |---|---|---|---|
-| `NAME__report.pdf` | a few MB | repository: `fedecs_lt/results/NAME/` | every table and figure of that notebook, with captions; the cover says whether anything failed |
-| `NAME__summary.zip` | a few MB | repository: `fedecs_lt/results/NAME/` | every number and log as text (`runs.jsonl`, `runs.csv`, per-round logs, figure data as CSV); enough for **every table** |
+| `NAME__report.pdf` | 1-8 MB | Kaggle (and your Drive) | every table and figure of that notebook, with captions; the cover says whether anything failed |
+| `NAME__summary.zip` | 2-60 MB | Kaggle; its small files in the repository (below) | every number and log as text (`runs.jsonl`, `runs.csv`, per-round logs, figure data as CSV); `runs.jsonl` alone is enough for **every table** |
 | `NAME__results.zip` | large | Google Drive | the summary plus predictions and embeddings; needed to **redraw figures** (confusion matrices, t-SNE, UMAP, calibration) |
 | `NAME__models.zip` | large | Google Drive | trained weights; only needed if a reviewer asks for a new analysis |
 
-Do not commit the two large zips (GitHub refuses files over 100 MB). Name the Drive folder after the notebook too.
+Do not commit the zips or the PDFs (together several hundred MB). Kaggle keeps every output as long as the notebook
+exists, and `fetch_kaggle.py` (below) downloads it again at any time.
 
 ### First check of every returned notebook (2 minutes)
 
@@ -41,9 +42,18 @@ Open `NAME__report.pdf`. Its cover must show:
 2. **Logging audit: 0 problems**, **figure errors: 0**, **table errors: 0**.
 3. The number of runs equals the "Runs" column of `START_HERE.md`.
 
-Then copy `NAME__report.pdf` and `NAME__summary.zip` into `fedecs_lt/results/NAME/`. Add a short `summary.md`
-there, like `fedecs_lt/results/NB00_acceptance/summary.md`: the date, the Kaggle account, "all runs finished" or
-what is missing. Commit.
+Then file it in the repository with one command (the notebook must be public, or shared, on Kaggle):
+
+```
+python fedecs_lt/fetch_kaggle.py https://www.kaggle.com/code/ACCOUNT/NOTEBOOK-SLUG
+```
+
+It writes `fedecs_lt/results/NAME/`: `runs.jsonl`, `runs.csv`, `failures.jsonl`, `audit.json`,
+`report_info.json`, `code_version.txt` and a `summary.md` (runs finished against the plan, failed runs grouped by
+cause). It adds the Kaggle link to `fedecs_lt/results/KAGGLE_SOURCES.md`, and puts the report and the zips in
+`fedecs_lt/results/_downloads/` (not committed). `python fedecs_lt/fetch_kaggle.py --all` downloads every recorded
+notebook again; add `--results` to also get the large `NAME__results.zip`, which figures need. Commit the new
+folder. Every command in section 3 accepts these folders instead of the zips.
 
 ---
 
@@ -107,7 +117,7 @@ python -m pytest fedecs_lt/tests/test_paper_tables.py -q     # must print "1 pas
 
 Python 3.10 or newer. PyTorch is not needed for tables or reports.
 
-### Tables (fast, from the small summary zips)
+### Tables (fast, from the folders in `fedecs_lt/results/`)
 
 One command per paper table. It joins the inputs and writes `OUT_DIR/tables/`. `ALL.md` there shows every table
 readably. Each table also comes as `.tex` (paste into the paper) and `.csv` (open in Excel). `--no-report` skips
@@ -117,14 +127,14 @@ Main comparison, folder 1, all five datasets in **one** call. The paper's table 
 
 ```
 python fedecs_lt/merge_results.py --no-report paper_build/main_tier1 "Main comparison" \
-  fedecs_lt/results/NB10_main_mnist/NB10_main_mnist__summary.zip \
-  fedecs_lt/results/NB10_main_fmnist/NB10_main_fmnist__summary.zip \
-  fedecs_lt/results/NB10_main_svhn/NB10_main_svhn__summary.zip \
-  fedecs_lt/results/NB10_main_cifar10_part1of3/NB10_main_cifar10_part1of3__summary.zip \
-  fedecs_lt/results/NB10_main_cifar10_part2of3/NB10_main_cifar10_part2of3__summary.zip \
-  fedecs_lt/results/NB10_main_cifar10_part3of3/NB10_main_cifar10_part3of3__summary.zip \
-  fedecs_lt/results/NB10_main_cifar100_part1of2/NB10_main_cifar100_part1of2__summary.zip \
-  fedecs_lt/results/NB10_main_cifar100_part2of2/NB10_main_cifar100_part2of2__summary.zip
+  fedecs_lt/results/NB10_main_mnist \
+  fedecs_lt/results/NB10_main_fmnist \
+  fedecs_lt/results/NB10_main_svhn \
+  fedecs_lt/results/NB10_main_cifar10_part1of3 \
+  fedecs_lt/results/NB10_main_cifar10_part2of3 \
+  fedecs_lt/results/NB10_main_cifar10_part3of3 \
+  fedecs_lt/results/NB10_main_cifar100_part1of2 \
+  fedecs_lt/results/NB10_main_cifar100_part2of2
 ```
 
 (On Windows write the command on one line without the `\`.) In `paper_build/main_tier1/tables/` you then find:
@@ -140,7 +150,7 @@ python fedecs_lt/merge_results.py --no-report paper_build/main_tier1 "Main compa
 
 The same for the other tables. Only the inputs change:
 
-| Paper table | Inputs (`*__summary.zip`) |
+| Paper table | Inputs (folders in `fedecs_lt/results/`) |
 |---|---|
 | Natural-imbalance comparison | the 13 notebooks of folder 3 |
 | Ablation | `NB30_ablation_cifar10`, `NB10_main_cifar10_part1of3`, `NB30_ablation_cifar100`, `NB10_main_cifar100_part1of2` |
