@@ -229,7 +229,7 @@ def track2_notebook(ds_key, IF, seed):
     import settings
     spec = settings.DATASETS[ds_key]
     ratio = int(round(1 / IF))
-    name = f"NB20_track2_{spec['raw']}_IF{ratio}_s{seed}"
+    name = f"NB20_track2_{spec['raw']}_IF{ratio:03d}_s{seed}"   # IF100 / IF050 / IF010: not confused at a glance
     title = (f"One shared model (FedLTLib protocol): {spec['name']}-LT, imbalance ratio {ratio}, 20 clients, "
              f"40% per round, seed {seed}")
     runs = [run("FedECS-LT", ds_key, seed, IF=IF, K=20, pfrac=0.4)]
@@ -312,7 +312,7 @@ FOLDERS = {0: "0_acceptance_done",
            1: "1_main_comparison_mnist_fmnist_svhn_cifar10_cifar100",
            2: "2_one_shared_model_IF100_and_ablations",
            3: "3_main_comparison_other_datasets",
-           4: "4_one_shared_model_IF50_IF10_and_long_runs"}
+           4: "4_one_shared_model_IF050_IF010_and_long_runs"}
 
 
 def folder(name):
