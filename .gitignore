@@ -26,3 +26,10 @@ models/
 experiments/models/
 experiments/data/
 fedecs_lt/results/_downloads/
+# LaTeX build files of docs/papers (the PDFs are kept)
+docs/papers/*/*.aux
+docs/papers/*/*.log
+docs/papers/*/*.bbl
+docs/papers/*/*.blg
+docs/papers/*/*.out
+docs/papers/*/*.spl

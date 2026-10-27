@@ -84,6 +84,45 @@ def ablation_notebook(ds, seeds=SEEDS):
                                         "client splits and seeds).", hours=None, acceptance=False, runs=runs)
 
 
+def components_notebook(ds, seeds=SEEDS):
+    """Component ablation of FedECS-LT (paper, Table "Components of FedECS-LT"): one component changed at a time.
+    The full FedECS-LT, the reference, comes from the main notebook of this dataset (same splits and seeds)."""
+    sys.path.insert(0, SRC)
+    import runner
+    import settings
+    spec = settings.DATASETS[ds]
+    name = f"NB31_components_{ds}"
+    title = f"Components of FedECS-LT on {spec['name']}-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5"
+    runs = [run(m, ds, s) for s in seeds for m in runner.COMPONENTS]
+    return name, dict(title=title, what=f"{title}: FedECS-LT with one component changed at a time (class rows with "
+                                        "CCWA or flat averaging instead of the gate, without moment correction, "
+                                        "without consensus soft labels, without logit adjustment, one synthetic "
+                                        "epoch); seeds 3-5. The full FedECS-LT comes from the main notebook of this "
+                                        "dataset (same client splits and seeds).", hours=None, acceptance=False,
+                      runs=runs)
+
+
+# robustness sweeps (paper, Table "Robustness"): CIFAR-10-LT, FedECS-LT, GeFL-F and the two strongest other methods
+# of the main comparison on CIFAR-10-LT and CIFAR-100-LT when the sweeps were built (27 Oct 2026: FedDF, Balanced
+# Softmax), one setting changed at a time from the main setting (imbalance ratio 100, Dirichlet 0.5, 10 clients)
+SWEEP_METHODS = ["FedECS-LT", "GeFL-F", "FedDF", "Balanced Softmax"]
+SWEEPS = [("a0.1", dict(alpha=0.1)), ("a1.0", dict(alpha=1.0)), ("K50", dict(K=50)), ("K100", dict(K=100)),
+          ("IF050", dict(IF=0.02)), ("IF010", dict(IF=0.1))]
+
+
+def sweep_notebook(tag, change, ds="cifar10", seeds=SEEDS):
+    sys.path.insert(0, SRC)
+    import settings
+    spec = settings.DATASETS[ds]
+    name = f"NB40_sweep_{ds}_{tag}"
+    what = {"alpha": f"Dirichlet alpha = {change.get('alpha')}", "K": f"{change.get('K')} clients",
+            "IF": f"imbalance ratio {round(1 / change['IF']) if 'IF' in change else ''}"}[next(iter(change))]
+    title = f"Robustness on {spec['name']}-LT: {what} (otherwise the main setting)"
+    runs = [run(m, ds, s, **change) for s in seeds for m in SWEEP_METHODS]
+    return name, dict(title=title, what=f"{title}: {', '.join(SWEEP_METHODS)}; seeds 3-5.", hours=None,
+                      acceptance=False, runs=runs)
+
+
 # ---------------------------------------------------------------- cells
 def md(text):
     return dict(cell_type="markdown", metadata={}, source=text.splitlines(True))
@@ -274,6 +313,12 @@ def all_notebooks():
     for ds in ABLATION_DATASETS:
         name, nb = ablation_notebook(ds)
         nbs.update(_parts(name, nb, plan_time.split_track1(nb["runs"], list(ABLATIONS), [], SEEDS)))
+        name, nb = components_notebook(ds)
+        labels = list(dict.fromkeys(r["label"] for r in nb["runs"]))
+        nbs.update(_parts(name, nb, plan_time.split_track1(nb["runs"], labels, [], SEEDS)))
+    for tag, change in SWEEPS:
+        name, nb = sweep_notebook(tag, change)
+        nbs.update(_parts(name, nb, plan_time.split_track1(nb["runs"], SWEEP_METHODS, [], SEEDS)))
     long_runs = []
     for ds_key in ("cifar10_t2", "cifar100_t2"):
         for IF in (0.1, 0.02, 0.01):
@@ -361,7 +406,8 @@ def rerun_notebooks(nbs):
 def priority(name):
     """Run order: 0 NB00 (done), 1 Track 1 on the tier-1 datasets, 2 Track 2 at imbalance ratio 100 and the ablations,
     3 Track 1 on the tier-2 datasets, 4 Track 2 at ratios 50 and 10 and the long runs; 5 reruns of failed runs (any
-    time: they complete experiments whose other runs came back)."""
+    time: they complete experiments whose other runs came back); 6 robustness sweeps. Ablations (NB30) and the
+    component ablation (NB31) are priority 2."""
     if name.startswith("NB00"):
         return 0
     if "_rerun" in name:
@@ -369,8 +415,10 @@ def priority(name):
     if name.startswith("NB10"):
         return 1 if any(f"NB10_main_{d}" in name and not name.startswith(f"NB10_main_{d}mnist")
                         for d in TIER1) else 3
-    if (name.startswith("NB20") and "_IF100_" in name) or name.startswith("NB30"):
+    if (name.startswith("NB20") and "_IF100_" in name) or name.startswith(("NB30", "NB31")):
         return 2
+    if name.startswith("NB40"):
+        return 6
     return 4
 
 
@@ -380,7 +428,8 @@ FOLDERS = {0: "0_acceptance_done",
            2: "2_one_shared_model_IF100_and_ablations",
            3: "3_main_comparison_other_datasets",
            4: "4_one_shared_model_IF050_IF010_and_long_runs",
-           5: "5_reruns_of_failed_runs"}
+           5: "5_reruns_of_failed_runs",
+           6: "6_robustness_sweeps"}
 
 
 def folder(name):
@@ -414,8 +463,8 @@ def main():
             "4. When the version shows a green tick: open it → **Output** → download the four files. Send back "
             "`NAME__summary.zip` and `NAME__report.pdf` (small); keep `NAME__results.zip` and `NAME__models.zip` "
             "(large: predictions and weights) on Google Drive.",
-            "", "When results come back: `fedecs_lt/PAPER_GUIDE.md` says where to keep them, which paper table each "
-            "notebook feeds and how to turn them into LaTeX.",
+            "", "When results come back: `docs/papers/GUIDE.md`, section 0 (file them with fetch_kaggle.py, fill the "
+            "paper with docs/papers/fill.py); section 4 says what each notebook gives the paper.",
             "", "Expected hours are estimates from NB00's measured run times (fedecs_lt/plan_time.py); a notebook "
             "starts no new run after 11 h and always saves what has finished.", "",
             f"**{len(nbs) - 1} notebooks to run, about "

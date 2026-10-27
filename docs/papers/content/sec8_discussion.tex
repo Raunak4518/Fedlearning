@@ -1,0 +1,27 @@
+\section{Discussion and limitations}\label{sec:discussion}
+
+\paragraph{What the gains consist of.} A large part of what any method of the GeFL-F family loses under a long tail is
+in its last layer, and an exact readout recovers it for every member of the family (\cref{tab:readout}).
+\claim{The difference between \ours and the strongest baseline is therefore smaller with the readout than without it;
+we report both, and the comparison with the readout is the one that measures the representation.}
+
+\paragraph{Limitations.}
+\begin{itemize}
+\item The extractor is small and frozen, as in GeFL-F; we did not study pre-trained or larger extractors.
+\item In the main setting each architecture has one client ($K=10$). Settings with several clients per
+architecture are covered only by \cref{tab:robust}.
+\item The released class statistics are exact federation-level sums. For classes with few samples they describe
+those samples closely, and the results here do not include formal differential privacy.
+\item \claim{At imbalance ratios 50 and 10 in the one-shared-model setting we ran one seed, so those columns carry no
+interval.}
+\item \ours costs more than GeFL-F (\cref{tab:cost}), mainly through the longer synthetic phase.
+\end{itemize}
+
+\section{Conclusion}\label{sec:conclusion}
+
+Generator-based model-heterogeneous federated learning loses rare classes in three places: the optimiser's treatment
+of clients that lack a class, a last layer fitted to one client's prior, and synthetic features that do not carry
+their label. Each has an exact description, and each can be repaired with class statistics that secure aggregation
+computes exactly. \claim{\ours, which applies these repairs together, improves balanced accuracy and in particular the
+recall of the rarest classes across \R{count/datasets} datasets and two protocols.} Its code, logs and every figure's
+data are public.

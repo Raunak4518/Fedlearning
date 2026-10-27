@@ -1,0 +1,94 @@
+% FedECS-LT, Elsevier single-column version (elsarticle). Target: Neural Networks (Elsevier); also fits
+% Knowledge-Based Systems, Information Sciences or Pattern Recognition (GUIDE.md, section 8).
+% The text is shared with ../ieee/main.tex: edit ../content/*.tex, never this file's copy of a section.
+% Build: ../build.sh elsevier  (or Overleaf: upload the whole docs/papers folder, main document elsevier/main.tex).
+\documentclass[preprint,12pt]{elsarticle}
+% For the submission: \documentclass[review,12pt]{elsarticle} (double spacing, line numbers below).
+
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{graphicx}
+\usepackage[export]{adjustbox}
+\usepackage{booktabs,multirow}
+\usepackage{xcolor,etoolbox,xspace,tikz}
+\usepackage{algorithm,algpseudocode}
+\usepackage{lineno}
+\usepackage[colorlinks,linkcolor=black,citecolor=black,urlcolor=black]{hyperref}
+\usepackage[capitalise,nameinlink]{cleveref}
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}[proposition]{Lemma}
+% single column: the "wide" floats are ordinary floats
+\newenvironment{widefigure}[1][t]{\begin{figure}[#1]}{\end{figure}}
+\newenvironment{widetable}[1][t]{\begin{table}[#1]}{\end{table}}
+
+\newcommand{\genpath}{../generated}
+\input{../content/macros.tex}
+\input{../content/declarations.tex}
+% \finalslotstrue   % uncomment for the submission build: any unfilled result slot becomes an error
+
+\journal{Neural Networks}
+
+\begin{document}
+% \linenumbers   % with the review option
+
+\begin{frontmatter}
+\title{FedECS-LT: Exact Class Statistics for Long-Tailed Federated Learning with Heterogeneous Client Models}
+
+% Authors: fill in. Mark the corresponding author with \corref{cor1}.
+\author[aff1]{[First Author]\corref{cor1}}
+\ead{[email]}
+\author[aff1]{[Second Author]}
+\cortext[cor1]{Corresponding author}
+\affiliation[aff1]{organization={[Department, Institute]},
+            city={[City]}, postcode={[Postcode]}, country={[Country]}}
+
+\begin{abstract}
+\input{../content/abstract.tex}
+\end{abstract}
+
+% Graphical abstract (optional at Neural Networks; submit as a separate file, at least 531 x 1328 pixels):
+% \begin{graphicalabstract} \slotfig{graphical_abstract}{wide}{graphical abstract} \end{graphicalabstract}
+
+% Highlights: submitted as a separate file (highlights.tex -> highlights.pdf), 3-5 bullets of at most 85 characters.
+
+\begin{keyword}
+federated learning \sep model heterogeneity \sep long-tailed learning \sep class imbalance \sep
+synthetic features \sep secure aggregation
+\end{keyword}
+\end{frontmatter}
+
+\input{../content/sec1_intro.tex}
+\input{../content/sec2_related.tex}
+\input{../content/sec3_setting.tex}
+\input{../content/sec4_analysis.tex}
+\input{../content/sec5_method.tex}
+\input{../content/sec6_setup.tex}
+\input{../content/sec7_results.tex}
+\input{../content/sec8_discussion.tex}
+
+\section*{CRediT authorship contribution statement}
+\CreditText
+
+\section*{Declaration of competing interest}
+\CompetingText
+
+\section*{Funding}
+\FundingText
+
+\section*{Data and code availability}\label{sec:availability}
+\AvailabilityText
+
+\section*{Declaration of generative AI and AI-assisted technologies in the writing process}
+\AIText
+
+\section*{Acknowledgments}
+\AckText
+
+\bibliographystyle{elsarticle-num}
+\bibliography{../content/refs}
+
+\appendix
+\input{../content/appendix.tex}
+
+\end{document}

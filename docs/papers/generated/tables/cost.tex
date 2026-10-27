@@ -1,0 +1,19 @@
+\begin{tabular}{lcccc}
+\toprule
+Method & Comm./client (MB) & Time (s) & MFLOPs/img & Train. GFLOPs/round\\
+\midrule
+FedECS-LT & 11,278 $\pm$ 113 & 7,910 $\pm$ 2,253 & \textbf{2.45} & 1,424 $\pm$ 112\\
+GeFL-F & 8,659 & 7,025 $\pm$ 446 & \textbf{2.45} & 579 $\pm$ 42\\
+Balanced Softmax & 60.8 & 542 $\pm$ 99 & \textbf{2.45} & \textbf{485 $\pm$ 34}\\
+FedLC & 60.8 & 501 $\pm$ 1.2e+02 & \textbf{2.45} & \textbf{485 $\pm$ 34}\\
+FedRS & 60.8 & \textbf{417 $\pm$ 1.3e+02} & \textbf{2.45} & \textbf{485 $\pm$ 34}\\
+FedDF & 8,659 & 5,050 $\pm$ 2,736 & \textbf{2.45} & 579 $\pm$ 42\\
+Local & - & 536 $\pm$ 98 & - & -\\
+FedProto & 18.8 & 4,025 $\pm$ 109 & 2.45 & 485 $\pm$ 34\\
+FedTGP & 18.8 & 4,121 $\pm$ 218 & 2.45 & 485 $\pm$ 34\\
+FedGen & 128 & 4,443 $\pm$ 1,033 & 2.45 & 485 $\pm$ 34\\
+FedGH & 18.8 & 3,149 $\pm$ 103 & 2.45 & 485 $\pm$ 34\\
+LG-FedAvg & 18.8 & 2,890 $\pm$ 212 & 2.45 & 485 $\pm$ 34\\
+FedMRL & \textbf{17.1} & 4,545 $\pm$ 804 & 3.84 & 871 $\pm$ 34\\
+\bottomrule
+\end{tabular}

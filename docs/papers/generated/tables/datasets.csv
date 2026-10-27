@@ -1,0 +1,9 @@
+Dataset,Classes,Training images,Test images,Largest / smallest class
+CIFAR-10-LT,10,"18,485","10,000",48
+CIFAR-100-LT,100,"10,926","10,000",96
+DermaMNIST,7,"6,231","2,005",75
+OrganAMNIST,11,"19,994","17,778",5
+BloodMNIST,8,"10,359","3,421",3
+PathMNIST,9,"19,997","7,180",2
+EMNIST (ByClass),62,"19,970","116,323",20
+FER-2013,7,"19,997","3,589",17

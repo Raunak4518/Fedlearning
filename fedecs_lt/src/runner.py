@@ -38,6 +38,20 @@ PIPELINE = {
 # Track 2 diagnosis (user, 24 Oct): FedECS-LT with its extractor trained for all 200 rounds of the baselines (the run
 # sets rounds T_FE = 200; generator and heads as FedECS-LT, so 300 rounds in total, reported as such)
 PIPELINE["FedECS-LT (extractor 200 rounds)"] = dict(PIPELINE["FedECS-LT"])
+# Component ablation (paper, Table "Components of FedECS-LT"; user, 27 Oct 2026): one component changed at a time,
+# everything else as FedECS-LT. The two generator variants replace the gate: class rows averaged by CCWA, or class
+# rows averaged flat (GeFL-F's generator), both with the exact statistics, moment correction and the same heads.
+_HEAD = PIPELINE["FedECS-LT"]["head"]
+COMPONENTS = {
+    "FedECS-LT w/ class rows (CCWA)": dict(gen=dict(type="cvae", opt="adam", wd=1e-3, agg="ccwa", beta=0.999)),
+    "FedECS-LT w/ class rows (flat averaging)": dict(gen=dict(type="cvae", opt="adam", wd=1e-3, agg="flat")),
+    "FedECS-LT w/o moment correction": dict(head=dict(_HEAD, mc=False)),
+    "FedECS-LT w/o consensus soft labels": dict(head=dict(_HEAD, csl=0.0)),
+    "FedECS-LT w/o logit adjustment": dict(head=dict(_HEAD, loss="ce")),
+    "FedECS-LT w/ one synthetic epoch": dict(head=dict(_HEAD, ts=1)),
+}
+for _name, _change in COMPONENTS.items():
+    PIPELINE[_name] = dict(PIPELINE["FedECS-LT"], **_change)
 
 
 def method_spec(label):

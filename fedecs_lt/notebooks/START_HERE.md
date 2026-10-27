@@ -8,11 +8,11 @@
 3. Top right: **Save Version** → **Save & Run All (Commit)** → **Save**. You can close the tab.
 4. When the version shows a green tick: open it → **Output** → download the four files. Send back `NAME__summary.zip` and `NAME__report.pdf` (small); keep `NAME__results.zip` and `NAME__models.zip` (large: predictions and weights) on Google Drive.
 
-When results come back: `fedecs_lt/PAPER_GUIDE.md` says where to keep them, which paper table each notebook feeds and how to turn them into LaTeX.
+When results come back: `docs/papers/GUIDE.md`, section 0 (file them with fetch_kaggle.py, fill the paper with docs/papers/fill.py); section 4 says what each notebook gives the paper.
 
 Expected hours are estimates from NB00's measured run times (fedecs_lt/plan_time.py); a notebook starts no new run after 11 h and always saves what has finished.
 
-**48 notebooks to run, about 330 session-hours in total.**
+**56 notebooks to run, about 371 session-hours in total.**
 
 ## Run order
 The notebooks are in one folder per priority. Folder 1 first (the paper's main tables), then 2, 3, 4; folder 0 is done. Any free account takes the next notebook from the lowest-numbered folder still open. Folder 5 holds reruns of runs that failed in returned notebooks: run them whenever an account is free (they complete experiments whose other runs came back).
@@ -36,7 +36,7 @@ The notebooks are in one folder per priority. Folder 1 first (the paper's main t
 | [NB10_main_mnist.ipynb](1_main_comparison_mnist_fmnist_svhn_cifar10_cifar100/NB10_main_mnist.ipynb) | Main comparison on MNIST-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5. | 39 | 3.5 | `NB10_main_mnist__summary.zip`, `NB10_main_mnist__report.pdf` |
 | [NB10_main_svhn.ipynb](1_main_comparison_mnist_fmnist_svhn_cifar10_cifar100/NB10_main_svhn.ipynb) | Main comparison on SVHN-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5. | 39 | 6.4 | `NB10_main_svhn__summary.zip`, `NB10_main_svhn__report.pdf` |
 
-### Priority 2: [`2_one_shared_model_IF100_and_ablations/`](2_one_shared_model_IF100_and_ablations/) (14 notebooks, about 95 session-hours)
+### Priority 2: [`2_one_shared_model_IF100_and_ablations/`](2_one_shared_model_IF100_and_ablations/) (16 notebooks, about 109 session-hours)
 
 | Notebook | What it runs | Runs | Expected hours | Send back |
 |---|---|---|---|---|
@@ -54,6 +54,8 @@ The notebooks are in one folder per priority. Folder 1 first (the paper's main t
 | [NB20_track2_cifar10_IF100_s5_part2of2.ipynb](2_one_shared_model_IF100_and_ablations/NB20_track2_cifar10_IF100_s5_part2of2.ipynb) | One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 5: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 2 of 2: MOON (LongTailLib), CReFF (LongTailLib), FedLoGe (LongTailLib), FedProx (LongTailLib), FedAvg (LongTailLib), FedETF (LongTailLib); seed 5. | 6 | 8.1 | `NB20_track2_cifar10_IF100_s5_part2of2__summary.zip`, `NB20_track2_cifar10_IF100_s5_part2of2__report.pdf` |
 | [NB30_ablation_cifar10.ipynb](2_one_shared_model_IF100_and_ablations/NB30_ablation_cifar10.ipynb) | Ablations on CIFAR-10-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: GeFL-F without its generator, with logit adjustment, with a Gaussian generator, and FedDF with logit adjustment; seeds 3-5. FedECS-LT and GeFL-F, the references, come from the main notebook of this dataset (same client splits and seeds). | 12 | 4.6 | `NB30_ablation_cifar10__summary.zip`, `NB30_ablation_cifar10__report.pdf` |
 | [NB30_ablation_cifar100.ipynb](2_one_shared_model_IF100_and_ablations/NB30_ablation_cifar100.ipynb) | Ablations on CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: GeFL-F without its generator, with logit adjustment, with a Gaussian generator, and FedDF with logit adjustment; seeds 3-5. FedECS-LT and GeFL-F, the references, come from the main notebook of this dataset (same client splits and seeds). | 12 | 3.0 | `NB30_ablation_cifar100__summary.zip`, `NB30_ablation_cifar100__report.pdf` |
+| [NB31_components_cifar10.ipynb](2_one_shared_model_IF100_and_ablations/NB31_components_cifar10.ipynb) | Components of FedECS-LT on CIFAR-10-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: FedECS-LT with one component changed at a time (class rows with CCWA or flat averaging instead of the gate, without moment correction, without consensus soft labels, without logit adjustment, one synthetic epoch); seeds 3-5. The full FedECS-LT comes from the main notebook of this dataset (same client splits and seeds). | 18 | 7.8 | `NB31_components_cifar10__summary.zip`, `NB31_components_cifar10__report.pdf` |
+| [NB31_components_cifar100.ipynb](2_one_shared_model_IF100_and_ablations/NB31_components_cifar100.ipynb) | Components of FedECS-LT on CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: FedECS-LT with one component changed at a time (class rows with CCWA or flat averaging instead of the gate, without moment correction, without consensus soft labels, without logit adjustment, one synthetic epoch); seeds 3-5. The full FedECS-LT comes from the main notebook of this dataset (same client splits and seeds). | 18 | 5.3 | `NB31_components_cifar100__summary.zip`, `NB31_components_cifar100__report.pdf` |
 
 ### Priority 3: [`3_main_comparison_other_datasets/`](3_main_comparison_other_datasets/) (13 notebooks, about 88 session-hours)
 
@@ -95,4 +97,15 @@ The notebooks are in one folder per priority. Folder 1 first (the paper's main t
 |---|---|---|---|---|
 | [NB10_main_emnist_rerun_7bfd7d.ipynb](5_reruns_of_failed_runs/NB10_main_emnist_rerun_7bfd7d.ipynb) | 26 runs of NB10_main_emnist that did not finish there, one run per GPU. Merge with that notebook's results. | 26 | 8.3 | `NB10_main_emnist_rerun_7bfd7d__summary.zip`, `NB10_main_emnist_rerun_7bfd7d__report.pdf` |
 | [NB20_track2_rerun_2120c8.ipynb](5_reruns_of_failed_runs/NB20_track2_rerun_2120c8.ipynb) | Runs that did not finish in NB20_track2_cifar100_IF010_s3_part1of3, NB20_track2_cifar10_IF010_s3_part2of3, NB20_track2_cifar10_IF100_s3_part1of2: FedECS-LT, CIFAR-10-LT ratio 10, seed 3; FedECS-LT (extractor 200 rounds), CIFAR-10-LT ratio 100, seed 3; FedECS-LT, CIFAR-100-LT ratio 10, seed 3. One run per GPU. Merge each with its notebook's results. | 3 | 5.0 | `NB20_track2_rerun_2120c8__summary.zip`, `NB20_track2_rerun_2120c8__report.pdf` |
+
+### Priority 6: [`6_robustness_sweeps/`](6_robustness_sweeps/) (6 notebooks, about 28 session-hours)
+
+| Notebook | What it runs | Runs | Expected hours | Send back |
+|---|---|---|---|---|
+| [NB40_sweep_cifar10_IF010.ipynb](6_robustness_sweeps/NB40_sweep_cifar10_IF010.ipynb) | Robustness on CIFAR-10-LT: imbalance ratio 10 (otherwise the main setting): FedECS-LT, GeFL-F, FedDF, Balanced Softmax; seeds 3-5. | 12 | 4.7 | `NB40_sweep_cifar10_IF010__summary.zip`, `NB40_sweep_cifar10_IF010__report.pdf` |
+| [NB40_sweep_cifar10_IF050.ipynb](6_robustness_sweeps/NB40_sweep_cifar10_IF050.ipynb) | Robustness on CIFAR-10-LT: imbalance ratio 50 (otherwise the main setting): FedECS-LT, GeFL-F, FedDF, Balanced Softmax; seeds 3-5. | 12 | 4.7 | `NB40_sweep_cifar10_IF050__summary.zip`, `NB40_sweep_cifar10_IF050__report.pdf` |
+| [NB40_sweep_cifar10_K100.ipynb](6_robustness_sweeps/NB40_sweep_cifar10_K100.ipynb) | Robustness on CIFAR-10-LT: 100 clients (otherwise the main setting): FedECS-LT, GeFL-F, FedDF, Balanced Softmax; seeds 3-5. | 12 | 4.7 | `NB40_sweep_cifar10_K100__summary.zip`, `NB40_sweep_cifar10_K100__report.pdf` |
+| [NB40_sweep_cifar10_K50.ipynb](6_robustness_sweeps/NB40_sweep_cifar10_K50.ipynb) | Robustness on CIFAR-10-LT: 50 clients (otherwise the main setting): FedECS-LT, GeFL-F, FedDF, Balanced Softmax; seeds 3-5. | 12 | 4.7 | `NB40_sweep_cifar10_K50__summary.zip`, `NB40_sweep_cifar10_K50__report.pdf` |
+| [NB40_sweep_cifar10_a0.1.ipynb](6_robustness_sweeps/NB40_sweep_cifar10_a0.1.ipynb) | Robustness on CIFAR-10-LT: Dirichlet alpha = 0.1 (otherwise the main setting): FedECS-LT, GeFL-F, FedDF, Balanced Softmax; seeds 3-5. | 12 | 4.7 | `NB40_sweep_cifar10_a0.1__summary.zip`, `NB40_sweep_cifar10_a0.1__report.pdf` |
+| [NB40_sweep_cifar10_a1.0.ipynb](6_robustness_sweeps/NB40_sweep_cifar10_a1.0.ipynb) | Robustness on CIFAR-10-LT: Dirichlet alpha = 1.0 (otherwise the main setting): FedECS-LT, GeFL-F, FedDF, Balanced Softmax; seeds 3-5. | 12 | 4.7 | `NB40_sweep_cifar10_a1.0__summary.zip`, `NB40_sweep_cifar10_a1.0__report.pdf` |
 

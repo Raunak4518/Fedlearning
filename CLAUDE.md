@@ -31,7 +31,10 @@ Read `docs/review/action_plan.md`. It is the agreed list of next steps, built fr
   Notebooks go out only after NB00_acceptance prints `ACCEPTANCE: PASS`.
 - `experiments/core.py` is the only pipeline. Experiments are `experiments/specs/<name>.py`. Standalone scripts are
   *built* (`python experiments/build.py`) and are not committed.
-- `docs/latex/paper.tex` is the submission paper (9 pages + appendix), written by hand from `docs/paper_draft.md`, which
+- `docs/papers/` is the FedECS-LT paper on the Flower results, one text (`content/*.tex`) in two versions (Elsevier
+  single column, IEEE two columns). Results enter only through slots that `docs/papers/fill.py` fills from
+  `fedecs_lt/results/`; never type a result into it. Workflow and every experiment: `docs/papers/GUIDE.md`.
+- `docs/latex/paper.tex` is the earlier analysis paper (9 pages + appendix), written by hand from `docs/paper_draft.md`, which
   stays the full working record. When results change, update the draft first, then the matching numbers in paper.tex.
   Figures: `python docs/latex/figures.py`; build: `pdflatex paper.tex` (three passes) in `docs/latex/`.
 - `docs/guide/how_our_method_works.html` is the user's beginner-friendly study guide (published as an artifact): every

@@ -1,0 +1,76 @@
+% FedECS-LT, IEEE two-column version (IEEEtran journal). Target: IEEE Transactions on Neural Networks and Learning
+% Systems (TNNLS; regular paper: 10 pages without charge, at most 15 with over-length charges; GUIDE.md, section 8).
+% The text is shared with ../elsevier/main.tex: edit ../content/*.tex, never a copy here.
+% Build: ../build.sh ieee  (or Overleaf: upload docs/papers, main document ieee/main.tex).
+\documentclass[journal]{IEEEtran}
+
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{graphicx}
+\usepackage[export]{adjustbox}
+\usepackage{booktabs,multirow}
+\usepackage{xcolor,etoolbox,xspace,tikz}
+\usepackage{algorithm,algpseudocode}
+\usepackage[hidelinks]{hyperref}
+\usepackage[capitalise,nameinlink]{cleveref}
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}[proposition]{Lemma}
+% two columns: "wide" floats span both columns (IEEE places them at the top of a page)
+\newenvironment{widefigure}[1][t]{\begin{figure*}[#1]}{\end{figure*}}
+\newenvironment{widetable}[1][t]{\begin{table*}[#1]}{\end{table*}}
+
+\newcommand{\genpath}{../generated}
+\input{../content/macros.tex}
+\input{../content/declarations.tex}
+% \finalslotstrue   % uncomment for the submission build: any unfilled result slot becomes an error
+
+\begin{document}
+
+\title{FedECS-LT: Exact Class Statistics for Long-Tailed Federated Learning with Heterogeneous Client Models}
+
+\author{[First~Author],~\IEEEmembership{[Student Member,~IEEE]},
+        [Second~Author]%
+\thanks{[First Author] and [Second Author] are with [Department, Institute, City, Country] (e-mail: [email]).}%
+\thanks{Manuscript received [date].}}
+
+\markboth{IEEE Transactions on Neural Networks and Learning Systems}%
+{[Surname] \MakeLowercase{\textit{et al.}}: FedECS-LT: Exact Class Statistics for Long-Tailed Federated Learning}
+
+\maketitle
+
+\begin{abstract}
+\input{../content/abstract.tex}
+\end{abstract}
+
+\begin{IEEEkeywords}
+Federated learning, model heterogeneity, long-tailed learning, class imbalance, synthetic features, secure
+aggregation.
+\end{IEEEkeywords}
+
+\input{../content/sec1_intro.tex}
+\input{../content/sec2_related.tex}
+\input{../content/sec3_setting.tex}
+\input{../content/sec4_analysis.tex}
+\input{../content/sec5_method.tex}
+\input{../content/sec6_setup.tex}
+\input{../content/sec7_results.tex}
+\input{../content/sec8_discussion.tex}
+
+\section*{Data and Code Availability}\label{sec:availability}
+\AvailabilityText
+
+\section*{Acknowledgment}
+\AckText\ \FundingText\ \AIText
+
+\bibliographystyle{IEEEtran}
+\bibliography{../content/refs}
+
+\appendices
+\input{../content/appendix.tex}
+
+% Biographies are required for the final version (photo 1 x 1.25 in, about 100 words each):
+% \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{photo1}}]{[First Author]}
+% [Biography.] \end{IEEEbiography}
+
+\end{document}

@@ -1,0 +1,16 @@
+% Abstract (Elsevier: at most 250 words; IEEE: 150-250 words, one paragraph, no citations). Numbers are slots.
+Federated learning across clients that run different model architectures and hold long-tailed, skewed label
+distributions loses most of its accuracy on rare classes. We study this loss in generator-based model-heterogeneous
+federated learning, where clients share a frozen feature extractor and a conditional feature generator trained by
+federated averaging, and each architecture trains its own head. We trace the loss to three places: Adam with coupled
+weight decay shrinks the generator's class-specific parameters on clients that lack a class; each head's last layer
+is fitted to one client's label prior; and synthetic features that do not carry their label penalise the spread of
+the logits. We propose FedECS-LT, which replaces each of these estimates by an exact class statistic computed
+under secure aggregation: a generator anchored to the exact class means, with class-count weighted averaging when the
+classes are poorly separated, moment correction of generated features, logit-adjusted heads trained on consensus
+soft labels, and a class-balanced readout computed from aggregated sums. On five long-tailed benchmarks with ten
+client architectures, FedECS-LT reaches \R{main/cifar10/FedECS-LT/bal} balanced accuracy on CIFAR-10-LT and
+\R{main/cifar100/FedECS-LT/bal} on CIFAR-100-LT, \claim{\R{main/cifar10/margin} and \R{main/cifar100/margin} points
+above the strongest of eleven published methods}. With one model shared by all clients it is compared against eleven
+methods, eight of them designed for long-tailed data, run in their authors' code. All experiments, including seven datasets with natural
+class imbalance, are run in Flower with three seeds, paired tests and a Holm correction.

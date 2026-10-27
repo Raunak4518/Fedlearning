@@ -1,0 +1,113 @@
+\section{Where generator-based heterogeneous FL loses rare classes}\label{sec:analysis}
+
+This section locates the three losses that \ours repairs. Each comes with a short exact statement (proofs in
+\cref{app:proofs}) and a measurement on the GeFL-F runs of \cref{sec:results}.
+
+\subsection{The generator: coupled decay shrinks rare classes' conditioning rows}\label{sec:analysis-gen}
+
+In one round, client $k$ starts from the global row $r_c$, runs local Adam steps and returns $r_{k,c}$. Let
+$\Delta_k=\|r_{k,c}\|-\|r_c\|$, let $\bar G_c$ be the mean of $\Delta_k$ over the holders $H_c$ and $\bar D_c$ the mean
+of $-\Delta_k$ over the other clients, and $p_c=m_c/K$.
+
+\begin{proposition}[contraction under flat averaging]\label{prop:contraction}
+Under $r_c^+=\frac1K\sum_k r_{k,c}$, $\|r_c^+\|\le\|r_c\|+p_c\bar G_c-(1-p_c)\bar D_c$, with equality if and only if
+all $r_{k,c}$ are parallel. The row contracts whenever $p_c<\bar D_c/(\bar G_c+\bar D_c)$.
+\end{proposition}
+
+The bound only describes the measured changes; the optimiser decides how large $\bar D_c$ is.
+
+\begin{lemma}[coupled decay under Adam]\label{lem:adam}
+On a client without class $c$, the gradient of the loss with coupled L2 regularisation $\lambda$ with respect to $r_c$
+is exactly $\lambda r_c$. Since Adam is invariant to a positive rescaling of the gradient sequence up to its
+$\epsilon$, each step of such a client moves every coordinate of $r_c$ toward zero by about the learning rate $\eta$,
+independently of $\lambda$, as long as $\lambda|r_{c,j}|\gg\epsilon$. With $\lambda=0$, or with decoupled weight
+decay~\cite{loshchilov2019adamw}, this shrinkage vanishes.
+\end{lemma}
+
+A holder's data gradient fits the row and need not increase its norm, so $\bar G_c\ll\bar D_c$ and rare classes' rows
+contract even when most clients hold the class; a threshold on $m_c$ alone cannot decide it. Counting Adam steps gives
+a predictor that uses only the class counts and the number of local steps $\tau_k$: with $f_{kc}$ the probability that
+a batch of client $k$ contains class $c$,
+\begin{equation}\label{eq:kappa}
+\kappa_c=\frac{\sum_{k\in H_c}\tau_k f_{kc}}{\sum_{k\notin H_c}\tau_k},
+\end{equation}
+and the row drifts toward zero in every coordinate when $\kappa_c<1$ (\cref{app:proofs}). Centrally the same decay is
+harmless, because Adam's second-moment estimate for $r_c$ is dominated by data gradients as long as the class appears
+more often than the estimate forgets.
+
+\claim{\Cref{fig:rows} shows the effect on GeFL-F: the conditioning rows of the rare classes shrink to a fraction of
+their initial norm while those of the frequent classes grow.} Two remedies follow. Decoupling the decay removes the
+shrinkage. Averaging each row over its holders only, with weights that grow with the holder's count (class-count
+weighted averaging, CCWA), removes the non-holders' term $\bar D_c$ from \cref{prop:contraction} and keeps coupled
+decay:
+\begin{equation}\label{eq:ccwa}
+r_c\leftarrow\frac{\sum_k E(n_{kc})\,r_{k,c}}{\sum_k E(n_{kc})},\qquad E(n)=\frac{1-\beta^n}{1-\beta},\quad
+\beta=0.999,
+\end{equation}
+where $E(n)$ is the effective number of samples~\cite{cui2019cb}: zero for a client without the class, about $n$ for
+small $n$, and bounded by $1/(1-\beta)$ so that one large client cannot dominate a class. Both sums in \cref{eq:ccwa}
+are computed by secure aggregation.
+
+\begin{figure}[t]
+\centering
+\slotfig{fig_rows}{col}{Fig.~30 of the CIFAR-10-LT report: L2 norm of each class's conditioning row of GeFL-F's
+generator after Stage II, classes by frequency (or Fig.~33: the same over the rounds).}
+\caption{Conditioning rows of GeFL-F's generator after Stage II, per class, ordered from the most to the least
+frequent class (CIFAR-10-LT, imbalance ratio 100, 10 clients, Dirichlet $\alpha=0.5$; mean over seeds 3--5).
+\claim{The rows of the rarest classes shrink while those of the frequent classes grow.}}
+\label{fig:rows}
+\end{figure}
+
+\subsection{The last layer: logit corrections are reparametrisations}\label{sec:analysis-head}
+
+\begin{proposition}[logit corrections are reparametrisations]\label{prop:reparam}
+Let a head have a free last-layer bias $b$, trained by SGD without decay on $b$, and let $a_k\in\Rset^C$ be a constant
+of client $k$, as in logit adjustment ($a_k=\tau\log\pi_k$)~\cite{menon2021la}, FedLC~\cite{zhang2022fedlc} or Balanced
+Softmax~\cite{ren2020bsm}. Training with the loss $\ell(f+a_k,y)$ from $(\theta_0,b_0)$ produces exactly the trajectory
+of training with $\ell(f,y)$ from $(\theta_0,b_0+a_k)$: every parameter except $b$ is the same at every step. FedRS,
+which scales the logits of absent classes by $\alpha$~\cite{li2021fedrs}, is cross-entropy in rescaled last-layer
+variables with a larger learning rate on those rows; the body follows the same trajectory.
+\end{proposition}
+
+So for a head trained on one client's real data these corrections can only change the readout, not the
+representation. The readout itself can be computed exactly.
+
+\begin{proposition}[partition invariance]\label{prop:invariance}
+An estimator that is a function of a sum $S=\sum_k\sum_{i\in D_k}T(x_i,y_i)$, with $T$ fixed in advance, takes the same
+value for every partition of the pooled data, and equals the centralised estimator.
+\end{proposition}
+
+The class-balanced linear discriminant used by \ours (\cref{sec:method-readout}) is such an estimator, and so are
+Fed3R~\cite{fani2024fed3r}, FedNCM~\cite{legate2023fedncm} and CCVR~\cite{luo2021ccvr} when computed over all clients.
+The last layer then stops being a source of loss relative to centralised training of the same bodies, and the
+accuracy with this readout measures the quality of the body. \claim{The readout alone raises GeFL-F's balanced
+accuracy by \R{main/cifar10/GeFL-F/gain_er} points on CIFAR-10-LT and \R{main/cifar100/GeFL-F/gain_er} on
+CIFAR-100-LT (\cref{tab:readout}).} A head trained on one client is an extreme case of minority
+collapse~\cite{fang2021minority}: for the classes the client lacks, the imbalance ratio is infinite.
+
+\subsection{The synthetic data: label-free features penalise the logits' spread}\label{sec:analysis-syn}
+
+\begin{proposition}[label-free synthetic data]\label{prop:variance}
+If the synthetic label $y$ is uniform on $\{1,\dots,C\}$ and independent of the generated feature, then for every logit
+vector $f$, $\E_y\,\ell(f,y)=\LSE(f)-\bar f=\log C+\KL(u\,\|\,\mathrm{softmax}f)
+=\log C+\frac1{2C}\sum_c(f_c-\bar f)^2+O(\|f-\bar f\|^3)$, where $\bar f$ is the mean logit and $u$ the uniform
+distribution.
+\end{proposition}
+
+When generated features carry little information about their label, the synthetic phase therefore pulls the logits
+together instead of teaching the classes a client lacks. Alternating it with the real phase decides what survives:
+for quadratic losses the round map converges to a point where the synthetic data decide exactly the directions that
+the client's real loss leaves free (\cref{app:proofs}), which are the directions of the absent classes. Logit
+adjustment keeps the real phase from pushing the absent classes' logits down without bound~\cite{soudry2018implicit}.
+\claim{\Cref{fig:spread} confirms both effects: the spread of the logits shrinks during GeFL-F's synthetic phase and
+much less during that of \ours.}
+
+\begin{figure}[t]
+\centering
+\slotfig{fig_spread}{col}{Fig.~75 of the CIFAR-10-LT report: logit spread before and after the synthetic phase, per
+round, GeFL-F and FedECS-LT (or Fig.~76: retention of the synthetic phase's change).}
+\caption{Standard deviation of the logits on generated features after the synthetic phase of head training,
+relative to before it, per round (CIFAR-10-LT, imbalance ratio 100, 10 clients; mean over architectures and seeds
+3--5). A value below one means that the synthetic phase pulled the logits together.}
+\label{fig:spread}
+\end{figure}

@@ -623,6 +623,11 @@ Target: IEEE (IEEEtran template, journals and conferences). No other venue profi
   - workers set `expandable_segments`.
   The builder puts every missing run of a returned notebook into folder 5 (`*_rerun_<id>`); the one-shared-model
   reruns are pooled into one notebook.
+- **Paper (27 Oct 2026):** `docs/papers/` (Elsevier and IEEE versions of one text, result slots filled by
+  `docs/papers/fill.py`; guide `docs/papers/GUIDE.md`). Added for its tables: the component ablation of FedECS-LT
+  (`NB31_components_cifar10/100`, folder 2; variants in `runner.COMPONENTS`) and robustness sweeps on CIFAR-10-LT
+  (`NB40_sweep_*`, folder 6: Dirichlet 0.1 / 1.0, K = 50 / 100, ratio 50 / 10; FedECS-LT, GeFL-F, FedDF, Balanced
+  Softmax).
 - **Not run:** FedNH and FedVLS (priority B). LongTailLib contains FedNH, so it can be added to Track 2 by one
   line in `fedecs_lt/build_notebooks.py` if the main results leave room.
 - **Licences:** MIT / Apache code pasted with credit; unlicensed or GPL code downloaded at run time, never stored here.

@@ -30,7 +30,11 @@ BUDGET_H = 9.5                    # a part's estimate must stay below this (no n
 SETUP_S = 25 * 60                 # packages, data, report and packing
 
 PIPE_GEN = {"FedECS-LT": "fedecs", "GeFL-F": "cvae", "FedDF": "cvae", "FedDF + LA": "cvae",
-            "GeFL-F + LA": "cvae_adamw"}
+            "GeFL-F + LA": "cvae_adamw",
+            # component ablation: four variants share FedECS-LT's generator, two train class-row generators
+            "FedECS-LT w/o moment correction": "fedecs", "FedECS-LT w/o consensus soft labels": "fedecs",
+            "FedECS-LT w/o logit adjustment": "fedecs", "FedECS-LT w/ one synthetic epoch": "fedecs",
+            "FedECS-LT w/ class rows (CCWA)": "rows_ccwa", "FedECS-LT w/ class rows (flat averaging)": "rows_flat"}
 HTFL_METHODS = tuple(HTFL_FACTOR)
 
 
@@ -77,6 +81,8 @@ def run_parts(r):
         return shared, _lin(HEAD_FEDECS, N * spec["T_TN"])
     if g:
         shared.append((("gen", g, ds, seed), _lin(GEN_CVAE, N * spec["T_KA"])))
+    if m.startswith("FedECS-LT"):   # variants keep FedECS-LT's head stage (consensus, readout, secure sums)
+        return shared, _lin(HEAD_FEDECS, N * spec["T_TN"])
     return shared, HEAD_FACTOR.get(m, 1.0) * _lin(HEAD, N * spec["T_TN"])
 
 
