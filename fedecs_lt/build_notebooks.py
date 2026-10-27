@@ -346,6 +346,8 @@ def main():
             "4. When the version shows a green tick: open it → **Output** → download the four files. Send back "
             "`NAME__summary.zip` and `NAME__report.pdf` (small); keep `NAME__results.zip` and `NAME__models.zip` "
             "(large: predictions and weights) on Google Drive.",
+            "", "When results come back: `fedecs_lt/PAPER_GUIDE.md` says where to keep them, which paper table each "
+            "notebook feeds and how to turn them into LaTeX.",
             "", "Expected hours are estimates from NB00's measured run times (fedecs_lt/plan_time.py); a notebook "
             "starts no new run after 11 h and always saves what has finished.", "",
             f"**{len(nbs) - 1} notebooks to run, about "

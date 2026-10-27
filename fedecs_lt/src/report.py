@@ -320,16 +320,23 @@ def build(res_dir, title, out_pdf, fig_dir):
         story += [P(f"Figure errors: {n_err} figures could not be drawn; Appendix A gives the error of each."),
                   Spacer(1, 6)]
     cover_at = len(story)   # table errors are known only after the tables: their note is inserted here
-    import torch
+    try:
+        import torch
+        tv, gpu = torch.__version__, torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU only"
+    except Exception:          # a merged report (merge_results.py) can be built on a computer without PyTorch
+        tv, gpu = "not installed", "CPU only"
     try:
         import flwr
         fv = flwr.__version__
     except Exception:
         fv = "unknown"
-    env = [["Python", platform.python_version()], ["PyTorch", torch.__version__], ["Flower", fv],
-           ["GPU", torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU only"],
+    env = [["Python", platform.python_version()], ["PyTorch", tv], ["Flower", fv], ["GPU", gpu],
            ["Code version", os.environ.get("FEDECS_CODE_VERSION", "see results/code_version.txt")]]
-    story += [tcap("Software and hardware."), Spacer(1, 3), table(env, ["Item", "Value"], [1.6 * inch, 5.4 * inch]),
+    merged = os.environ.get("FEDECS_MERGED")   # set by merge_results.py
+    env_cap = ("Software and hardware of the computer that joined the experiment's parts and drew this report; the "
+               "runs themselves ran on Kaggle GPUs (each part's own report gives its software and GPU)."
+               if merged else "Software and hardware.")
+    story += [tcap(env_cap), Spacer(1, 3), table(env, ["Item", "Value"], [1.6 * inch, 5.4 * inch]),
               Spacer(1, 8)]
     meth = []
     for m in E.methods:
