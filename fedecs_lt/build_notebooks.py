@@ -291,7 +291,45 @@ def all_notebooks():
         nbs[name] = dict(title="One shared model (FedLTLib protocol): runs too long to share a GPU",
                          what=f"Runs that need a GPU each to finish within one session: {what}.", runs=runs,
                          acceptance=False, per_gpu=1, group=name, hours=plan_time.hours(runs, per_gpu=1))
+    nbs.update(rerun_notebooks(nbs))
     return nbs
+
+
+def rerun_notebooks(nbs):
+    """Notebooks of the runs that did not come back (user, 27 Oct 2026): for every notebook whose results are in
+    results/<notebook>/ but miss some runs, `<notebook>_rerun` holds only those runs (same settings and seeds, so the
+    same splits; merge_results.py joins both). One run per GPU: the failures were out of memory (EMNIST: host memory
+    with four runs at once; CIFAR-100, one shared model, ratio 10: GPU memory with two runs on one GPU). A notebook
+    from which nothing came back (GTSRB part 1: the download failed) is simply run again."""
+    import plan_time
+    sys.path.insert(0, SRC)
+    from runner import run_id
+    out = {}
+    for name, nb in nbs.items():
+        p = os.path.join(HERE, "results", name, "runs.jsonl")
+        if name.startswith("NB00") or not os.path.exists(p):
+            continue
+        done = {json.loads(line)["run_id"] for f in [p] + glob.glob(os.path.join(HERE, "results", name + "_rerun*",
+                                                                             "runs.jsonl"))
+                for line in open(f) if line.strip()}   # a rerun that came back counts too
+        missing = [r for r in nb["runs"] if run_id(r) not in done]
+        if not missing or len(missing) == len(nb["runs"]):
+            continue
+        chunks = [[]]
+        for r in missing:   # in queue order, as many runs per notebook as fit the session budget
+            if chunks[-1] and plan_time.hours(chunks[-1] + [r], per_gpu=1) > plan_time.BUDGET_H:
+                chunks.append([])
+            chunks[-1].append(r)
+        for i, runs in enumerate(chunks, 1):
+            tag = f"_rerun{i}of{len(chunks)}" if len(chunks) > 1 else "_rerun"
+            out[name + tag] = dict(
+                nb, title=f"{nb['title']}: runs that did not finish",
+                what=(f"The {len(missing)} runs" if len(missing) > 1 else "The run") + f" of {name} that did not "
+                     "finish there, one run per GPU"
+                     + (f"; part {i} of {len(chunks)}, {len(runs)} runs" if len(chunks) > 1 else "")
+                     + ". Merge with that notebook's results.",
+                runs=runs, per_gpu=1, hours=plan_time.hours(runs, per_gpu=1))
+    return out
 
 
 def priority(name):

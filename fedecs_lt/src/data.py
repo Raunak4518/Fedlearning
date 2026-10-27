@@ -39,11 +39,17 @@ def _download(url, dst, tries=4):
     raise RuntimeError(f"could not download {url}")
 
 
-def _read_parquet_images(path, img_col, label_col, mode):
+def _read_parquet_images(path, img_col, label_col, mode, size=None):
+    """Images of a Hugging Face parquet file as uint8 (N, ch, H, W); size: resize every image to size x size (PIL's
+    default filter, as torchvision-based loading did) for datasets whose images differ in size."""
     import pyarrow.parquet as pq
     from PIL import Image
+
+    def img(b):
+        im = Image.open(io.BytesIO(b)).convert(mode)
+        return np.array(im.resize((size, size)) if size else im)
     t = pq.read_table(path).to_pydict()
-    x = np.stack([np.array(Image.open(io.BytesIO(im["bytes"])).convert(mode)) for im in t[img_col]])
+    x = np.stack([img(im["bytes"]) for im in t[img_col]])
     x = torch.from_numpy(x)
     x = x.unsqueeze(1) if mode == "L" else x.permute(0, 3, 1, 2)
     return x, torch.tensor(t[label_col])
@@ -111,15 +117,15 @@ def _raw_unlocked(name, root):
         return (conv(z["train_images"]), torch.from_numpy(z["train_labels"]).flatten().long(),
                 conv(z["test_images"]), torch.from_numpy(z["test_labels"]).flatten().long())
     if name == "gtsrb":
-        tr, te = tvd.GTSRB(root, split="train", download=True), tvd.GTSRB(root, split="test", download=True)
-
-        def conv(ds):
-            xs, ys = [], []
-            for img, y in ds:
-                xs.append(np.array(img.convert("RGB").resize((32, 32))))
-                ys.append(y)
-            return torch.from_numpy(np.stack(xs)).permute(0, 3, 1, 2), torch.tensor(ys)
-        return conv(tr) + conv(te)
+        # the official training (39,209) and test (12,630) images, from a Hugging Face copy: the original server
+        # (used by torchvision) timed out on Kaggle (27 Oct 2026); resized to 32 x 32 as before
+        base = HF + "bazyl/GTSRB/resolve/main/data/"
+        out = []
+        for split, fn in (("train", "train-00000-of-00001-dc762c064c221993.parquet"),
+                          ("test", "test-00000-of-00001-747a54d4a6461a97.parquet")):
+            p = _download(base + fn, os.path.join(root, "gtsrb_hf", f"{split}.parquet"))
+            out += list(_read_parquet_images(p, "Path", "ClassId", "RGB", size=32))
+        return tuple(out)
     if name == "emnist":
         base = HF + "Royc30ne/emnist-byclass/resolve/main/"
 

@@ -612,6 +612,14 @@ Target: IEEE (IEEEtran template, journals and conferences). No other venue profi
 - **Notebook split** by `fedecs_lt/plan_time.py` (run times fitted to NB00 within 5%; each part estimated <= 9.5 h):
   47 notebooks, ~326 session-hours (Track 1: 23, ~142 h; Track 2: 23, ~179 h). FedYoYo at ratio 10 (CIFAR-10/100)
   runs alone on a GPU (NB29; the speed-up of not sharing a GPU is assumed, 25%, and is measured there).
+- **First returns (27 Oct 2026), 17 notebooks** (`fedecs_lt/results/`, links in `KAGGLE_SOURCES.md`): three had failed
+  runs, now fixed. GTSRB part 1: all 21 failed because the download from the GTSRB server timed out; GTSRB now comes from
+  a Hugging Face copy of the official split (39,209 / 12,630 images), and parts 1-3 run again. EMNIST: 26 of 39 runs
+  missing, because four parallel runs exhausted the 30 GB of host memory; they run in `NB10_main_emnist_rerun`, one run
+  per GPU. One shared model, CIFAR-100, ratio 10: FedECS-LT ran out of GPU memory, because the previous round's
+  synthetic slice stayed in memory while the next was drawn; the slice is now freed first (same values) and the run
+  is in `..._rerun`, alone on a GPU. Workers set `expandable_segments` against fragmentation. The builder makes a
+  `_rerun` notebook from any returned notebook that misses runs.
 - **Not run:** FedNH and FedVLS (priority B). LongTailLib contains FedNH, so it can be added to Track 2 by one
   line in `fedecs_lt/build_notebooks.py` if the main results leave room.
 - **Licences:** MIT / Apache code pasted with credit; unlicensed or GPL code downloaded at run time, never stored here.

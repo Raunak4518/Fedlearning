@@ -186,6 +186,8 @@ def main():
         env = dict(os.environ)
         if args.gpus:
             env["CUDA_VISIBLE_DEVICES"] = str(w % args.gpus)
+        # less fragmentation of GPU memory when two runs share a GPU (allocation only; the computation is unchanged)
+        env.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
         cmd = [sys.executable, os.path.abspath(__file__), "--runs", args.runs, "--worker", str(w), "--n_workers", str(n)]
         log_dir = args.log_dir or os.path.dirname(args.runs)
         os.makedirs(log_dir, exist_ok=True)

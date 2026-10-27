@@ -287,6 +287,9 @@ def pool_slice(cfg, sm, o, n):
     cached, so a client's head step reuses what its consensus step needed."""
     key = (cfg["round"], cfg["pool_seed"], o, n)
     if sm["pool"].get("key") != key:
+        sm["pool"].clear()   # free the previous slice first: two slices at once ran a T4 out of memory (CIFAR-100,
+        if DEV == "cuda":    # one shared model, ratio 10; 27 Oct 2026). The values drawn are unchanged.
+            torch.cuda.empty_cache()
         L = pool_chunk_size(cfg, sm)
         xs, ys = [], []
         for j in range(o // L, (o + n - 1) // L + 1):
@@ -295,7 +298,6 @@ def pool_slice(cfg, sm, o, n):
             xs.append(px[a:b])
             ys.append(py[a:b])
             del px, py
-        sm["pool"].clear()
         sm["pool"].update(key=key, xy=(torch.cat(xs), torch.cat(ys)))
     return sm["pool"]["xy"]
 
