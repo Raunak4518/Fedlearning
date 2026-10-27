@@ -100,6 +100,31 @@ def panel_labels(axes, y=-0.32):
         t.set_gid("panel_label")
 
 
+def room_between_rows(fig, axes, ncols, gap_px=4, tries=12):
+    """Grows the space between rows of panels (and the figure with it) until everything a panel draws below itself,
+    rotated tick labels and its panel label included, ends above the next row (long method names otherwise run into
+    the panel below)."""
+    rows = [axes[i:i + ncols] for i in range(0, len(axes), ncols)]
+    if len(rows) < 2:
+        return
+    for _ in range(tries):
+        fig.canvas.draw()
+        _place_panel_labels(fig)
+        r = fig.canvas.get_renderer()
+        clash = False
+        for upper, lower in zip(rows, rows[1:]):
+            low = min(min(ax.get_tightbbox(r).y0 for ax in upper),
+                      min((t.get_window_extent(r).y0 for ax in upper for t in ax.texts
+                           if t.get_gid() == "panel_label" and t.get_visible()), default=float("inf")))
+            if low < max(ax.get_window_extent(r).y1 for ax in lower) + gap_px:
+                clash = True
+        if not clash:
+            return
+        h = fig.subplotpars.hspace
+        fig.set_figheight(fig.get_figheight() * 1.12)
+        fig.subplots_adjust(hspace=h * 1.25)
+
+
 def _place_panel_labels(fig):
     from matplotlib.text import Text
     r = fig.canvas.get_renderer()

@@ -1340,6 +1340,14 @@ def f41(E, S, out):
                 linewidth=st["linewidth"], label=m)
     ax.set_xticks(ang)
     ax.set_xticklabels([n for _, n in keys])
+    # radial scale from 0 with at most four labelled rings, labels between two spokes (narrow ranges of values
+    # otherwise give many rings whose labels overlap)
+    top = max(10.0, float(np.ceil(max(max(v) for v in vals.values()) * 100 / 10.0) * 10))
+    ax.set_ylim(0, top)
+    step = top / 4
+    ax.set_yticks([step * i for i in range(1, 5)])
+    ax.set_yticklabels([f"{step * i:.0f}" for i in range(1, 5)])
+    ax.set_rlabel_position(np.degrees(ang[1]) / 2)
     ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.08), ncol=2)
     p = ps.save(f, out, "fig_41_radar", [[m] + v for m, v in vals.items()], ["method"] + [n for _, n in keys])
     return [(p, cap.simple(41, E, S, "Main metrics (%, test set, mean over seeds) of FedECS-LT and the five other "
@@ -1840,6 +1848,7 @@ def f78(E, S, out):
         ax.set_xticklabels([r[0] for r in rr], rotation=45, ha="right", rotation_mode="anchor")
         ax.set_ylabel(name)
     ps.panel_labels(axes, y=-0.62)
+    ps.room_between_rows(f, axes, ncols=2)
     p = ps.save(f, out, "fig_78_neural_collapse_nc2_nc3", rows, ["method", "statistic", "mean", "sd"])
     parts = "; ".join(f"({chr(97 + i)}) {text}" for i, (_, _, text) in enumerate(keys))
     return [(p, cap.simple(78, E, S, "Neural collapse (Papyan et al., PNAS 2020) of the test-set embeddings and last "
