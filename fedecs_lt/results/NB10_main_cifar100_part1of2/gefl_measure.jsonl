@@ -1,0 +1,21 @@
+{"run_id": "FedECS-LT|cifar100|IF0.01|a0.5|K10|s3", "gefl_best_acc": 0.1494, "gefl_last_acc": 0.1443, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "GeFL-F|cifar100|IF0.01|a0.5|K10|s3", "gefl_best_acc": 0.0822, "gefl_last_acc": 0.0743, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Balanced Softmax|cifar100|IF0.01|a0.5|K10|s3", "gefl_best_acc": 0.0891, "gefl_last_acc": 0.0869, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedLC|cifar100|IF0.01|a0.5|K10|s3", "gefl_best_acc": 0.0832, "gefl_last_acc": 0.0824, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedRS|cifar100|IF0.01|a0.5|K10|s3", "gefl_best_acc": 0.0826, "gefl_last_acc": 0.0821, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedDF|cifar100|IF0.01|a0.5|K10|s3", "gefl_best_acc": 0.0944, "gefl_last_acc": 0.0912, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Local|cifar100|IF0.01|a0.5|K10|s3", "gefl_best_acc": 0.07074, "gefl_last_acc": 0.07074, "rounds": [], "models": 10, "source": "final (no rounds)"}
+{"run_id": "FedECS-LT|cifar100|IF0.01|a0.5|K10|s4", "gefl_best_acc": 0.1476, "gefl_last_acc": 0.137, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "GeFL-F|cifar100|IF0.01|a0.5|K10|s4", "gefl_best_acc": 0.0826, "gefl_last_acc": 0.075, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Balanced Softmax|cifar100|IF0.01|a0.5|K10|s4", "gefl_best_acc": 0.0903, "gefl_last_acc": 0.0887, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedLC|cifar100|IF0.01|a0.5|K10|s4", "gefl_best_acc": 0.0852, "gefl_last_acc": 0.0845, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedRS|cifar100|IF0.01|a0.5|K10|s4", "gefl_best_acc": 0.0842, "gefl_last_acc": 0.0836, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedDF|cifar100|IF0.01|a0.5|K10|s4", "gefl_best_acc": 0.0972, "gefl_last_acc": 0.0948, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Local|cifar100|IF0.01|a0.5|K10|s4", "gefl_best_acc": 0.08163000000000001, "gefl_last_acc": 0.08163000000000001, "rounds": [], "models": 10, "source": "final (no rounds)"}
+{"run_id": "FedECS-LT|cifar100|IF0.01|a0.5|K10|s5", "gefl_best_acc": 0.1578, "gefl_last_acc": 0.1479, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "GeFL-F|cifar100|IF0.01|a0.5|K10|s5", "gefl_best_acc": 0.0885, "gefl_last_acc": 0.0813, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Balanced Softmax|cifar100|IF0.01|a0.5|K10|s5", "gefl_best_acc": 0.0958, "gefl_last_acc": 0.0932, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedLC|cifar100|IF0.01|a0.5|K10|s5", "gefl_best_acc": 0.0893, "gefl_last_acc": 0.0884, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedRS|cifar100|IF0.01|a0.5|K10|s5", "gefl_best_acc": 0.0885, "gefl_last_acc": 0.0881, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedDF|cifar100|IF0.01|a0.5|K10|s5", "gefl_best_acc": 0.1038, "gefl_last_acc": 0.1005, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Local|cifar100|IF0.01|a0.5|K10|s5", "gefl_best_acc": 0.08612, "gefl_last_acc": 0.08612, "rounds": [], "models": 10, "source": "final (no rounds)"}

@@ -456,6 +456,8 @@ def stage_three(S, hs, feat_key, hd_sd, T_TN, sampler, sampler_key, gen_cfg, sec
             post = eval_heads(S, hd_sd, feat_key)["test"]
             rec["post"] = log_view(post["summary"])
             rec["post_pred_counts"] = np.array(post["summary"]["confusion"]).sum(0).tolist()
+            # each architecture's aggregated head (GeFL's measure: every model's best round, gefl_measure.py)
+            rec["post_arch"] = {g: dict(acc=m.get("acc"), bal=m.get("bal")) for g, m in post["per_arch"].items()}
         mon.log("stage3_round", **rec)
         history.append(rec)
     mon.stop("stage3")

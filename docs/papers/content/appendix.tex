@@ -76,6 +76,13 @@ implementation on MNIST-LT and CIFAR-10-LT with seed 3: the client splits were i
 every client training step matched weight for weight in unit tests, and the balanced accuracy of GeFL-F and \ours was
 within seed noise of the original runs (supplementary material).
 
+\paragraph{GeFL's own setting.} In GeFL's setting (balanced training data divided evenly among 10 clients,
+\R{repro/cifar10/GeFL-F/seeds} seeds, our earlier implementation), GeFL-F reaches \R{repro/cifar10/GeFL-F/final}\% on
+CIFAR-10 after the last round and \R{repro/cifar10/GeFL-F/best}\% with GeFL's measure, against
+\R{repro/cifar10/published}\% reported by GeFL~\cite{kang2025gefl}; \ours reaches \R{repro/cifar10/FedECS-LT/final}\% and
+\R{repro/cifar10/FedECS-LT/best}\%. On CIFAR-100, which GeFL does not report, GeFL-F reaches
+\R{repro/cifar100/GeFL-F/final}\% and \ours \R{repro/cifar100/FedECS-LT/final}\%.
+
 \paragraph{Evaluation.} Models are evaluated every five rounds on the test set before and after aggregation; the final
 model is the one after the last round (no selection on the test or the validation set). Methods with personal
 heads (LG-FedAvg, FedGH, FedGen and the other HtFLlib methods) are scored with each client's head after its last local
@@ -103,6 +110,17 @@ Method & Bal. acc. & Macro-F1 & Precision & MCC & G-mean & Tail rec. & Worst rec
 \slottab{main_cifar100_main}{\begin{tabular}{lcccccccc}\toprule
 Method & Bal. acc. & Macro-F1 & Precision & MCC & G-mean & Tail rec. & Worst rec. & AUC-PR\\\midrule
 \phrow{FedECS-LT}{8}\phrow{GeFL-F}{8}\phrow{[every other method]}{8}\bottomrule\end{tabular}}
+\end{widetable}
+
+\begin{widetable}[t]
+\centering\small
+\caption{GeFL's measure on the long-tailed benchmarks: each client model's best test accuracy (\%) at GeFL's
+evaluation rounds of the head stage (the first, every tenth and the last), averaged over the ten models, as in GeFL's
+code; mean $\pm$ standard deviation over seeds 3--5. The main tables report the last round instead.}
+\label{tab:app-gefl}
+\slottab{main_gefl}{\begin{tabular}{lccccc}\toprule
+Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
+\phrow{FedECS-LT}{5}\phrow{GeFL-F}{5}\phrow{[every other method]}{5}\bottomrule\end{tabular}}
 \end{widetable}
 
 \begin{widetable}[t]

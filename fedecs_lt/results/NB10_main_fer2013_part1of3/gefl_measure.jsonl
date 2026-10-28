@@ -1,0 +1,21 @@
+{"run_id": "FedLC|fer2013|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.2946, "gefl_last_acc": 0.2922, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Balanced Softmax|fer2013|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.302, "gefl_last_acc": 0.2991, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedRS|fer2013|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.2952, "gefl_last_acc": 0.2931, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Local|fer2013|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.2909445528002229, "gefl_last_acc": 0.2909445528002229, "rounds": [], "models": 10, "source": "final (no rounds)"}
+{"run_id": "GeFL-F|fer2013|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.3178, "gefl_last_acc": 0.316, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedDF|fer2013|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.3135, "gefl_last_acc": 0.31, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Balanced Softmax|fer2013|IFNone|a0.5|K10|s4", "gefl_best_acc": 0.2978, "gefl_last_acc": 0.2946, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedLC|fer2013|IFNone|a0.5|K10|s4", "gefl_best_acc": 0.2964, "gefl_last_acc": 0.2931, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedRS|fer2013|IFNone|a0.5|K10|s4", "gefl_best_acc": 0.2964, "gefl_last_acc": 0.2935, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedECS-LT|fer2013|IFNone|a0.5|K10|s4", "gefl_best_acc": 0.3525, "gefl_last_acc": 0.3409, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedECS-LT|fer2013|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.346, "gefl_last_acc": 0.3231, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedDF|fer2013|IFNone|a0.5|K10|s4", "gefl_best_acc": 0.3179, "gefl_last_acc": 0.3111, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "GeFL-F|fer2013|IFNone|a0.5|K10|s4", "gefl_best_acc": 0.3206, "gefl_last_acc": 0.3139, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Local|fer2013|IFNone|a0.5|K10|s4", "gefl_best_acc": 0.29027584285316244, "gefl_last_acc": 0.29027584285316244, "rounds": [], "models": 10, "source": "final (no rounds)"}
+{"run_id": "Balanced Softmax|fer2013|IFNone|a0.5|K10|s5", "gefl_best_acc": 0.2956, "gefl_last_acc": 0.2906, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedLC|fer2013|IFNone|a0.5|K10|s5", "gefl_best_acc": 0.2917, "gefl_last_acc": 0.2877, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedRS|fer2013|IFNone|a0.5|K10|s5", "gefl_best_acc": 0.2907, "gefl_last_acc": 0.2872, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Local|fer2013|IFNone|a0.5|K10|s5", "gefl_best_acc": 0.2819448314293675, "gefl_last_acc": 0.2819448314293675, "rounds": [], "models": 10, "source": "final (no rounds)"}
+{"run_id": "GeFL-F|fer2013|IFNone|a0.5|K10|s5", "gefl_best_acc": 0.3174, "gefl_last_acc": 0.3152, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedDF|fer2013|IFNone|a0.5|K10|s5", "gefl_best_acc": 0.3115, "gefl_last_acc": 0.3072, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedECS-LT|fer2013|IFNone|a0.5|K10|s5", "gefl_best_acc": 0.362, "gefl_last_acc": 0.3488, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}

@@ -171,6 +171,7 @@ def run_grouped(grid, context, R):
                 gv = cfg_of(S.ask("query.eval_groups", [(S.nid[0], pack(dict(base_cfg, round=r), srv=srv_all))],
                                   account=False)[0].content)["groups"]
                 views = [gv[str(S.arch[k])] for k in range(S.K) if str(S.arch[k]) in gv]
+                rec["post_arch"] = {g: dict(acc=v.get("acc"), bal=v.get("bal")) for g, v in gv.items()}
             rec["post"] = mean_view(views)
         mon.log("stage3_round", **rec)
         history.append(rec)

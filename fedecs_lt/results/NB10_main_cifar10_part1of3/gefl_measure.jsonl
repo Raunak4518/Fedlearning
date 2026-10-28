@@ -1,0 +1,21 @@
+{"run_id": "FedLC|cifar10|IF0.01|a0.5|K10|s3", "gefl_best_acc": 0.3344, "gefl_last_acc": 0.3323, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Balanced Softmax|cifar10|IF0.01|a0.5|K10|s3", "gefl_best_acc": 0.3717, "gefl_last_acc": 0.354, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedRS|cifar10|IF0.01|a0.5|K10|s3", "gefl_best_acc": 0.332, "gefl_last_acc": 0.3305, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Local|cifar10|IF0.01|a0.5|K10|s3", "gefl_best_acc": 0.31822000000000006, "gefl_last_acc": 0.31822000000000006, "rounds": [], "models": 10, "source": "final (no rounds)"}
+{"run_id": "GeFL-F|cifar10|IF0.01|a0.5|K10|s3", "gefl_best_acc": 0.3354, "gefl_last_acc": 0.3263, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedDF|cifar10|IF0.01|a0.5|K10|s3", "gefl_best_acc": 0.3436, "gefl_last_acc": 0.3389, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedECS-LT|cifar10|IF0.01|a0.5|K10|s4", "gefl_best_acc": 0.4805, "gefl_last_acc": 0.4334, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Balanced Softmax|cifar10|IF0.01|a0.5|K10|s4", "gefl_best_acc": 0.4039, "gefl_last_acc": 0.3767, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedLC|cifar10|IF0.01|a0.5|K10|s4", "gefl_best_acc": 0.36, "gefl_last_acc": 0.3539, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedRS|cifar10|IF0.01|a0.5|K10|s4", "gefl_best_acc": 0.3571, "gefl_last_acc": 0.3524, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Local|cifar10|IF0.01|a0.5|K10|s4", "gefl_best_acc": 0.32853, "gefl_last_acc": 0.32853, "rounds": [], "models": 10, "source": "final (no rounds)"}
+{"run_id": "FedECS-LT|cifar10|IF0.01|a0.5|K10|s3", "gefl_best_acc": 0.4339, "gefl_last_acc": 0.4056, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "GeFL-F|cifar10|IF0.01|a0.5|K10|s4", "gefl_best_acc": 0.361, "gefl_last_acc": 0.3504, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedDF|cifar10|IF0.01|a0.5|K10|s4", "gefl_best_acc": 0.3677, "gefl_last_acc": 0.3603, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Balanced Softmax|cifar10|IF0.01|a0.5|K10|s5", "gefl_best_acc": 0.3742, "gefl_last_acc": 0.3593, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedLC|cifar10|IF0.01|a0.5|K10|s5", "gefl_best_acc": 0.3444, "gefl_last_acc": 0.3415, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedRS|cifar10|IF0.01|a0.5|K10|s5", "gefl_best_acc": 0.3425, "gefl_last_acc": 0.3399, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedECS-LT|cifar10|IF0.01|a0.5|K10|s5", "gefl_best_acc": 0.4691, "gefl_last_acc": 0.4437, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Local|cifar10|IF0.01|a0.5|K10|s5", "gefl_best_acc": 0.31492999999999993, "gefl_last_acc": 0.31492999999999993, "rounds": [], "models": 10, "source": "final (no rounds)"}
+{"run_id": "GeFL-F|cifar10|IF0.01|a0.5|K10|s5", "gefl_best_acc": 0.3434, "gefl_last_acc": 0.333, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedDF|cifar10|IF0.01|a0.5|K10|s5", "gefl_best_acc": 0.3575, "gefl_last_acc": 0.3503, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}

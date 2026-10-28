@@ -50,7 +50,8 @@ METRICS = [("bal", "final_bal"), ("er_bal", "er_bal"), ("f1", "final_f1"), ("tai
            ("worst_arch", "final_worst_arch"), ("er_tail", "er_tail")]
 # tables across settings: (slot suffix, runs.jsonl key)
 ACROSS = [("bal", "final_bal"), ("er", "er_bal"), ("f1", "final_f1"), ("tail", "final_tail"),
-          ("worst", "final_worst"), ("ece", "final_ece"), ("worst_arch", "final_worst_arch")]
+          ("worst", "final_worst"), ("ece", "final_ece"), ("worst_arch", "final_worst_arch"),
+          ("gefl", "gefl_best_acc")]   # GeFL's measure: every model's best round (fedecs_lt/gefl_measure.py)
 LOWER = {"final_ece"}
 
 
@@ -98,12 +99,40 @@ def load_runs():
     for f in sorted(glob.glob(os.path.join(RESULTS, "*", "runs.jsonl"))):
         if os.path.basename(os.path.dirname(f)).startswith(("NB00", "_")):
             continue
+        gm = os.path.join(os.path.dirname(f), "gefl_measure.jsonl")   # GeFL's measure from the per-round logs
+        gefl = {o["run_id"]: o for o in map(json.loads, filter(str.strip, open(gm)))} if os.path.exists(gm) else {}
         for line in open(f):
             if line.strip():
                 r = correct_fedgrab(json.loads(line))
                 r["_folder"] = os.path.basename(os.path.dirname(f))
+                if r["run_id"] in gefl:
+                    r["gefl_best_acc"] = gefl[r["run_id"]]["gefl_best_acc"]
                 runs[r["run_id"]] = r
     return list(runs.values())
+
+
+def reproduction_numbers(nums):
+    """GeFL's own setting (balanced IID data, 10 clients) in the earlier implementation (experiments/core.py,
+    results K16_kaggle_recalibration__*_iid, seeds 0-2): GeFL-F and FedECS-LT at the last round and with GeFL's
+    measure, against GeFL-F's published CIFAR-10 accuracy (GeFL paper, Fig. 4, 10 clients; core.DATASETS)."""
+    root = os.path.join(ROOT, "experiments", "results")
+    sys.path.insert(0, os.path.join(ROOT, "experiments"))
+    try:
+        import core
+        nums["repro/cifar10/published"] = f"{core.DATASETS['cifar10']['paper']['cvae'][0]:.1f}"
+    except Exception:
+        pass
+    for ds in ("cifar10", "cifar100"):
+        f = os.path.join(root, f"K16_kaggle_recalibration__{ds}_iid", "runs.jsonl")
+        if not os.path.exists(f):
+            continue
+        rs = [json.loads(x) for x in open(f) if x.strip()]
+        for label, key in (("GeFL-F", "GeFL-F"), ("Ours (gated)", "FedECS-LT")):
+            sel = [r for r in rs if r["label"] == label]
+            if sel:
+                nums[f"repro/{ds}/{key}/final"] = f"{100 * np.mean([r['final_bal'] for r in sel]):.1f}"
+                nums[f"repro/{ds}/{key}/best"] = f"{100 * np.mean([r['best_mean_acc'] for r in sel]):.1f}"
+                nums[f"repro/{ds}/{key}/seeds"] = str(len(sel))
 
 
 def exp_of(runs, tmp, name):
@@ -565,6 +594,7 @@ def main():
             if E_by[g] is not None and g in ("main", "nat", "t2"):
                 fill_group(g, E_by[g], nums, made, status)
         fill_extras(E_by, nums, made)
+    reproduction_numbers(nums)
     if "--figures" in sys.argv:
         status.append("## Figures\n")
         fill_figures(made, status, nums)

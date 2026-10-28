@@ -1,0 +1,39 @@
+{"run_id": "Balanced Softmax|bloodmnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.7675, "gefl_last_acc": 0.7627, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedLC|bloodmnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.7384, "gefl_last_acc": 0.7352, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedRS|bloodmnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.7346, "gefl_last_acc": 0.7316, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Local|bloodmnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.7080678164279451, "gefl_last_acc": 0.7080678164279451, "rounds": [], "models": 10, "source": "final (no rounds)"}
+{"run_id": "FedDF|bloodmnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.8027, "gefl_last_acc": 0.7886, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "GeFL-F|bloodmnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.8148, "gefl_last_acc": 0.8077, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedProto|bloodmnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.7365, "gefl_last_acc": 0.6973, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedECS-LT|bloodmnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.8828, "gefl_last_acc": 0.8777, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedTGP|bloodmnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.7132, "gefl_last_acc": 0.6333, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedGH|bloodmnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.7341, "gefl_last_acc": 0.7267, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "LG-FedAvg|bloodmnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.7313, "gefl_last_acc": 0.7255, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedGen|bloodmnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.7231, "gefl_last_acc": 0.696, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Balanced Softmax|bloodmnist|IFNone|a0.5|K10|s4", "gefl_best_acc": 0.6819, "gefl_last_acc": 0.6802, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedLC|bloodmnist|IFNone|a0.5|K10|s4", "gefl_best_acc": 0.6542, "gefl_last_acc": 0.6532, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedRS|bloodmnist|IFNone|a0.5|K10|s4", "gefl_best_acc": 0.6503, "gefl_last_acc": 0.6491, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "GeFL-F|bloodmnist|IFNone|a0.5|K10|s4", "gefl_best_acc": 0.8167, "gefl_last_acc": 0.8109, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedDF|bloodmnist|IFNone|a0.5|K10|s4", "gefl_best_acc": 0.7986, "gefl_last_acc": 0.7836, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Local|bloodmnist|IFNone|a0.5|K10|s4", "gefl_best_acc": 0.6336451330020462, "gefl_last_acc": 0.6336451330020462, "rounds": [], "models": 10, "source": "final (no rounds)"}
+{"run_id": "FedMRL|bloodmnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.7411, "gefl_last_acc": 0.7391, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedECS-LT|bloodmnist|IFNone|a0.5|K10|s4", "gefl_best_acc": 0.8548, "gefl_last_acc": 0.852, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedProto|bloodmnist|IFNone|a0.5|K10|s4", "gefl_best_acc": 0.6666, "gefl_last_acc": 0.6378, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedTGP|bloodmnist|IFNone|a0.5|K10|s4", "gefl_best_acc": 0.6512, "gefl_last_acc": 0.5904, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedGH|bloodmnist|IFNone|a0.5|K10|s4", "gefl_best_acc": 0.6568, "gefl_last_acc": 0.6543, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedGen|bloodmnist|IFNone|a0.5|K10|s4", "gefl_best_acc": 0.6573, "gefl_last_acc": 0.6351, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "LG-FedAvg|bloodmnist|IFNone|a0.5|K10|s4", "gefl_best_acc": 0.6593, "gefl_last_acc": 0.6571, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Balanced Softmax|bloodmnist|IFNone|a0.5|K10|s5", "gefl_best_acc": 0.748, "gefl_last_acc": 0.7421, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedLC|bloodmnist|IFNone|a0.5|K10|s5", "gefl_best_acc": 0.719, "gefl_last_acc": 0.7139, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedRS|bloodmnist|IFNone|a0.5|K10|s5", "gefl_best_acc": 0.7155, "gefl_last_acc": 0.7104, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedMRL|bloodmnist|IFNone|a0.5|K10|s4", "gefl_best_acc": 0.6639, "gefl_last_acc": 0.6631, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedDF|bloodmnist|IFNone|a0.5|K10|s5", "gefl_best_acc": 0.825, "gefl_last_acc": 0.823, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "GeFL-F|bloodmnist|IFNone|a0.5|K10|s5", "gefl_best_acc": 0.8404, "gefl_last_acc": 0.8389, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Local|bloodmnist|IFNone|a0.5|K10|s5", "gefl_best_acc": 0.6738965214849459, "gefl_last_acc": 0.6738965214849459, "rounds": [], "models": 10, "source": "final (no rounds)"}
+{"run_id": "FedECS-LT|bloodmnist|IFNone|a0.5|K10|s5", "gefl_best_acc": 0.8737, "gefl_last_acc": 0.8716, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedGH|bloodmnist|IFNone|a0.5|K10|s5", "gefl_best_acc": 0.7139, "gefl_last_acc": 0.7103, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedProto|bloodmnist|IFNone|a0.5|K10|s5", "gefl_best_acc": 0.7382, "gefl_last_acc": 0.7303, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedTGP|bloodmnist|IFNone|a0.5|K10|s5", "gefl_best_acc": 0.701, "gefl_last_acc": 0.6634, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedGen|bloodmnist|IFNone|a0.5|K10|s5", "gefl_best_acc": 0.7141, "gefl_last_acc": 0.6997, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "LG-FedAvg|bloodmnist|IFNone|a0.5|K10|s5", "gefl_best_acc": 0.7139, "gefl_last_acc": 0.7116, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedMRL|bloodmnist|IFNone|a0.5|K10|s5", "gefl_best_acc": 0.7215, "gefl_last_acc": 0.7206, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}

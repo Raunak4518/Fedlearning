@@ -1,0 +1,13 @@
+{"run_id": "LG-FedAvg|emnist|IFNone|a0.5|K10|s5", "gefl_best_acc": 0.5306, "gefl_last_acc": 0.5199, "rounds": [1, 10, 20, 30, 40, 50], "models": 10, "source": "per-round logs"}
+{"run_id": "FedMRL|emnist|IFNone|a0.5|K10|s5", "gefl_best_acc": 0.5545, "gefl_last_acc": 0.5544, "rounds": [1, 10, 20, 30, 40, 50], "models": 10, "source": "per-round logs"}
+{"run_id": "GeFL-F|emnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.6613, "gefl_last_acc": 0.6589, "rounds": [1, 10, 20, 30, 40, 50], "models": 10, "source": "per-round logs"}
+{"run_id": "FedECS-LT|emnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.7317, "gefl_last_acc": 0.7251, "rounds": [1, 10, 20, 30, 40, 50], "models": 10, "source": "per-round logs"}
+{"run_id": "Balanced Softmax|emnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.5912, "gefl_last_acc": 0.5895, "rounds": [1, 10, 20, 30, 40, 50], "models": 10, "source": "per-round logs"}
+{"run_id": "FedLC|emnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.5712, "gefl_last_acc": 0.5699, "rounds": [1, 10, 20, 30, 40, 50], "models": 10, "source": "per-round logs"}
+{"run_id": "FedRS|emnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.5677, "gefl_last_acc": 0.5635, "rounds": [1, 10, 20, 30, 40, 50], "models": 10, "source": "per-round logs"}
+{"run_id": "Local|emnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.5639546779226807, "gefl_last_acc": 0.5639546779226807, "rounds": [], "models": 10, "source": "final (no rounds)"}
+{"run_id": "FedDF|emnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.6621, "gefl_last_acc": 0.6583, "rounds": [1, 10, 20, 30, 40, 50], "models": 10, "source": "per-round logs"}
+{"run_id": "FedProto|emnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.5646, "gefl_last_acc": 0.5019, "rounds": [1, 10, 20, 30, 40, 50], "models": 10, "source": "per-round logs"}
+{"run_id": "FedTGP|emnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.5711, "gefl_last_acc": 0.4204, "rounds": [1, 10, 20, 30, 40, 50], "models": 10, "source": "per-round logs"}
+{"run_id": "FedGen|emnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.5482, "gefl_last_acc": 0.4767, "rounds": [1, 10, 20, 30, 40, 50], "models": 10, "source": "per-round logs"}
+{"run_id": "FedGH|emnist|IFNone|a0.5|K10|s3", "gefl_best_acc": 0.5524, "gefl_last_acc": 0.5459, "rounds": [1, 10, 20, 30, 40, 50], "models": 10, "source": "per-round logs"}

@@ -142,6 +142,8 @@ def main():
     plan = planned_runs()
     for a in args:
         fetch(*ref_of(a), plan, results=results)
+    import gefl_measure   # GeFL's measure (every model's best round) from the per-round logs just downloaded
+    gefl_measure.main()
 
 
 if __name__ == "__main__":
