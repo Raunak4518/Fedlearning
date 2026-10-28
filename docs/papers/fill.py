@@ -39,6 +39,7 @@ import paper_tables as pt  # noqa: E402
 import plots  # noqa: E402
 import report  # noqa: E402
 from settings import DATASETS  # noqa: E402
+from baselines import GROUPED  # noqa: E402
 
 OURS = "FedECS-LT"
 DIAG = "FedECS-LT (200 extractor rounds)"
@@ -80,7 +81,16 @@ def group_of(r):
         return "comp"
     if lab in bn.TRACK1_MAIN:
         return "main" if ds in bn.TIER1 else "nat" if ds in bn.TIER2 else None
+    if (lab in GROUPED or lab in REFS) and ds in bn.TIER1:
+        return "main"   # GeFL's grouped baselines and the pooled-data reference (action plan section 24)
     return None
+
+
+def k50_setting(r):
+    """Fifty clients, five per architecture (GeFL's second setting): every method, otherwise the main setting."""
+    return (DATASETS.get(r["dataset"], {}).get("track") != 2 and r["K"] == 50 and r["alpha"] == 0.5
+            and r["IF"] == 0.01 and r.get("pfrac", 1.0) == 1.0 and not r.get("tail_perm")
+            and r["dataset"] in bn.TIER1)
 
 
 def correct_fedgrab(r):
@@ -113,6 +123,35 @@ def load_runs():
                         r["gefl_drop"] = r["gefl_best_acc"] - gefl[r["run_id"]]["gefl_last_acc"]
                 runs[r["run_id"]] = r
     return list(runs.values())
+
+
+def repeat_numbers(nums):
+    """Run-to-run variation: a notebook run a second time with the same run list (same splits, seeds and code apart
+    from scheduling; results/_repeats/), against the first run (the paper's): the standard deviation over runs of the
+    difference between the two runs of one configuration, and the largest such difference."""
+    for d in sorted(glob.glob(os.path.join(RESULTS, "_repeats", "*", "runs.jsonl"))):
+        name = os.path.basename(os.path.dirname(d)).split("__")[0]
+        first = os.path.join(RESULTS, name, "runs.jsonl")
+        if not os.path.exists(first):
+            continue
+        a = {r["run_id"]: r for r in map(json.loads, filter(str.strip, open(first)))}
+        b = {r["run_id"]: r for r in map(json.loads, filter(str.strip, open(d)))}
+        common = sorted(set(a) & set(b))
+        for key, short in (("final_bal", "bal"), ("er_bal", "er")):
+            diff = [(100 * (b[k][key] - a[k][key]), a[k]["label"]) for k in common
+                    if a[k].get(key) is not None and b[k].get(key) is not None]
+            if len(diff) < 2:
+                continue
+            v = np.array([x for x, _ in diff])
+            nums[f"repeat/{short}/sd"] = f"{v.std(ddof=1):.1f}"
+            i = int(np.argmax(np.abs(v)))
+            nums[f"repeat/{short}/max"] = f"{abs(v[i]):.1f}"
+            nums[f"repeat/{short}/max_method"] = tex(diff[i][1])
+            nums[f"repeat/{short}/n"] = str(len(v))
+        ds = a[common[0]]["dataset"] if common else None
+        if ds:
+            nums["repeat/dataset"] = tex(DATASETS[ds]["name"])
+        break   # one repeated notebook so far (BloodMNIST)
 
 
 def reproduction_numbers(nums):
@@ -197,7 +236,7 @@ def paired(E, S, key):
     ours = {r["seed"]: r for r in E.of(OURS, S)}
     rows = []
     for m in E.methods:
-        if m == OURS:
+        if m in (OURS, DIAG) or m in REFS:   # references and diagnostics are not in the test family
             continue
         other = {r["seed"]: r for r in E.of(m, S)}
         d = [100 * (ours[x][key] - other[x][key]) for x in sorted(set(ours) & set(other))
@@ -615,6 +654,8 @@ def main():
         g = group_of(r)
         if g:
             by.setdefault(g, []).append(r)
+        if k50_setting(r):   # also in `sweep` (the robustness table's K=50 column) for the sweep methods
+            by.setdefault("k50", []).append(r)
     # the ablation table also needs the references of the same datasets (same splits and seeds)
     if "abl" in by:
         ds = {r["dataset"] for r in by["abl"]}
@@ -629,12 +670,13 @@ def main():
               "(NB00 excluded). Slots not listed under 'filled' still show a red placeholder.", ""]
     E_by = {}
     with tempfile.TemporaryDirectory() as tmp:
-        for g in ("main", "nat", "t2", "abl", "comp", "sweep"):
+        for g in ("main", "nat", "t2", "abl", "comp", "sweep", "k50"):
             E_by[g] = exp_of(by[g], tmp, g) if by.get(g) else None
-            if E_by[g] is not None and g in ("main", "nat", "t2"):
+            if E_by[g] is not None and g in ("main", "nat", "t2", "k50"):
                 fill_group(g, E_by[g], nums, made, status)
         fill_extras(E_by, nums, made)
     reproduction_numbers(nums)
+    repeat_numbers(nums)
     if "--figures" in sys.argv:
         status.append("## Figures\n")
         fill_figures(made, status, nums)

@@ -67,8 +67,9 @@ Let a head have a free last-layer bias $b$, trained by SGD without decay on $b$,
 of client $k$, as in logit adjustment ($a_k=\tau\log\pi_k$)~\cite{menon2021la}, FedLC~\cite{zhang2022fedlc} or Balanced
 Softmax~\cite{ren2020bsm}. Training with the loss $\ell(f+a_k,y)$ from $(\theta_0,b_0)$ produces exactly the trajectory
 of training with $\ell(f,y)$ from $(\theta_0,b_0+a_k)$: every parameter except $b$ is the same at every step. FedRS,
-which scales the logits of absent classes by $\alpha$~\cite{li2021fedrs}, is cross-entropy in rescaled last-layer
-variables with a larger learning rate on those rows; the body follows the same trajectory.
+which scales the logits of absent classes by $\alpha\in(0,1]$~\cite{li2021fedrs}, is cross-entropy in the rescaled
+last-layer variables $\alpha w_c,\alpha b_c$ of those classes, trained with the smaller learning rate $\alpha^2\eta$:
+it changes the initialisation and the step size of the absent classes' rows, not what the client knows about them.
 \end{proposition}
 
 For a head trained on one client's real data, such a correction is therefore equivalent to a different
