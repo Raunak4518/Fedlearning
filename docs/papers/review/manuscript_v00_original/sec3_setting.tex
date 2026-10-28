@@ -1,0 +1,33 @@
+\section{Problem setting}\label{sec:setting}
+
+\paragraph{Clients and data.} There are $K$ clients and $C$ classes. Client $k$ holds a dataset $D_k$ with $n_{kc}$
+samples of class $c$; $n_k=\sum_c n_{kc}$, $n_c=\sum_k n_{kc}$ and $N=\sum_c n_c$. The global class sizes follow a
+long tail, $n_c\propto \rho^{-c/(C-1)}$ with imbalance ratio $\rho=n_0/n_{C-1}$, and each class is divided among
+the clients by a Dirichlet draw with concentration $\alpha$~\cite{hsu2019dirichlet}. $H_c=\{k: n_{kc}>0\}$ is the
+set of the $m_c=|H_c|$ clients that hold class $c$. Client $k$ trains a model of architecture $a(k)$, one of $G$
+architectures. The goal is a model per architecture with high \emph{balanced} accuracy, the mean recall over classes,
+on a test set in which every class is equally important.
+
+\paragraph{The pipeline of GeFL-F.} GeFL-F~\cite{kang2025gefl} trains in three stages.
+\begin{enumerate}
+\item \emph{Stage I.} A small feature extractor $\phi$ is trained together with the heads by FedAvg and then frozen.
+Every client maps its images to features $h=\phi(x)$.
+\item \emph{Stage II.} A conditional variational autoencoder~\cite{sohn2015cvae} $G(h\mid y)$ is trained on the
+features by FedAvg, with Adam and coupled weight decay. The label enters through a linear projection whose $c$-th
+column, the \emph{conditioning row} $r_c$, is the only class-specific parameter.
+\item \emph{Stage III.} In every round each client trains its head for $T_s$ epochs on generated features with
+uniformly drawn labels and then for $T_r$ epochs on its real features; heads of the same architecture are averaged.
+\end{enumerate}
+
+\paragraph{A client split is a pure label shift.} Within a class, the split assigns samples to clients uniformly at
+random. So for every client $k$ and class $c$ with $n_{kc}>0$, the client's class-$c$ samples are a uniformly random
+subset of all class-$c$ samples, and $P_k(x\mid y)=P(x\mid y)$; the same holds for the features $h=\phi(x)$, since
+$\phi$ is shared. Every client's data therefore point at the centralised target of any class-conditional quantity: a
+class mean, a class's conditioning row, a readout. Federation can make such a quantity noisier or slower to learn,
+but it can make it \emph{biased} only through (i)~the optimiser, (ii)~parameters coupled to a client's label prior,
+such as biases and last layers, and (iii)~what the synthetic data teach. \Cref{sec:analysis} locates each.
+
+\paragraph{Secure aggregation.} Secure aggregation~\cite{bonawitz2017secagg,bell2020secaggplus} lets the server learn
+the sum of the clients' vectors and nothing else about any single vector. A statistic that is a sum over clients of
+per-class quantities is therefore computed exactly, and equals its value on the pooled data, whatever the partition.
+\ours uses only such statistics.

@@ -1,0 +1,1901 @@
+  FedECS-LT: Exact Class Statistics for Long-Tailed
+
+Federated Learning with Heterogeneous Client Models
+
+
+                         [First Author]a,∗, [Second Author]a
+                  a [Department, Institute], [City], [Postcode], [Country]
+
+
+
+
+Abstract
+Federated learning across clients that run dierent model architectures and
+hold long-tailed, skewed label distributions loses most of its accuracy on rare
+classes. We study generator-based model-heterogeneous federated learning,
+where clients share a frozen extractor and a federated conditional feature
+generator, and each architecture trains its own head. We trace the loss to
+three places: Adam with coupled weight decay shrinks the generator's class-
+specic parameters on clients that lack a class; each head's last layer is tted
+to one client's label prior; and synthetic features that do not carry their la-
+bel penalise the spread of the logits. We propose FedECS-LT, which replaces
+each of these estimates by an exact class statistic computed under secure ag-
+gregation: a mean-anchored generator, class-count weighted averaging when
+classes are poorly separated, moment correction of generated features, logit-
+adjusted heads trained on consensus soft labels, and a class-balanced readout
+computed from aggregated sums. With ten client architectures, FedECS-LT
+reaches 42.8 ± 2.0 balanced accuracy on CIFAR-10-LT and 14.3 ± 0.6 on
+CIFAR-100-LT, +5.2 and +4.3 points above the strongest of eleven other
+methods (paired tests: signicant on CIFAR-100-LT, not on CIFAR-10-LT);
+when every method is given the same exact readout, the margins shrink to
++1.4 and +1.5 points and are not signicant. It also has the highest balanced
+accuracy on all six datasets with natural class imbalance. With one model
+shared by all clients, end-to-end long-tail methods are stronger. All methods
+share the same client splits.
+Keywords: federated learning, model heterogeneity, long-tailed learning,
+
+  ∗
+      Corresponding author
+      Email address: [email] ([First Author])
+class imbalance, synthetic features, secure aggregation
+
+
+1. Introduction
+    Federated learning (FL) trains a model on data that stay with their own-
+ers [1, 2]. Two properties of real deployments make it hard. The participants
+run dierent networks on dierent hardware, so their parameters cannot be
+averaged. Their label distributions dier and follow a long tail, so the rarest
+classes are held by few participants and in small numbers. Each property has
+its own line of work: model-heterogeneous FL [3, 4, 5, 6, 7, 8] lets clients with
+dierent architectures share knowledge through prototypes, logits, generators
+or shared sub-networks, and federated long-tailed learning [9, 10, 11, 12, 13]
+corrects the bias that a skewed, long-tailed label distribution induces in a
+single shared model. Little is known about the two together, although most
+deployments that have one also have the other.
+    We study generator-based model-heterogeneous FL, in the form of GeFL-
+F [8]. Its clients rst train a small feature extractor by federated averaging
+(FedAvg) and freeze it; they then train a conditional feature generator by
+FedAvg; nally every client trains a head of its own architecture on generated
+features and on its own real features. The generator is the only channel
+through which an architecture learns about classes its clients lack. GeFL-F
+was evaluated on balanced clients. Under long-tailed label skew we nd that
+it loses most of its accuracy on the rare classes, and we ask where.
+
+Where the rare classes are lost.. Because a client partition is a pure label
+shift, federation cannot bias class-conditional quantities by itself (Section 3);
+it can lose rare classes only through the optimiser, through parameters tied
+to a client's label prior, and through sample size. We locate three such losses
+(Section 4).
+  1. The generator. With Adam [14] and coupled weight decay, a client that
+     lacks a class moves the generator's class-specic conditioning parame-
+     ters toward zero at Adam's full step size, while the clients that hold the
+     class barely grow them. Flat averaging then shrinks the rare classes'
+     parameters round after round.
+  2. The last layer. Each head is trained on one client's real data, so its
+     last layer ts that client's label prior. Per-client logit corrections (logit
+     adjustment [15], FedLC [16], FedRS [17], Balanced Softmax [18]) are
+
+
+                                       2
+     exact reparametrisations of such a head: training with them is plain
+     training from a shifted initial bias, so they bring in no information
+     about the classes the client lacks.
+  3. The synthetic data. When generated features do not carry their label,
+     the synthetic phase of head training penalises the spread of the logits
+     instead of teaching the missing classes.
+
+Our method.. FedECS-LT (Exact Class Statistics for Long-Tailed FL) re-
+places each estimate that fails by a class statistic that secure aggregation [19,
+20] computes exactly: the per-class counts, sums and squared norms of the
+features over all clients. The generator is anchored to the exact class means
+and has no class-specic parameter for the decay to shrink; when the classes
+are too poorly separated for an anchor, a gate computed from the same
+statistics falls back to class-specic parameters averaged over their holders
+only (class-count weighted averaging). Generated features are rescaled to
+the exact class means and spreads. Heads are trained with logit adjustment
+and with consensus soft labels, the averaged prediction of all architectures
+on each generated feature. After training, every architecture's last layer is
+replaced by a class-balanced linear readout computed from aggregated sums
+of its embeddings. None of these statistics is new on its own: aggregated
+class statistics underlie classier calibration [21], closed-form federated clas-
+siers [22, 23] and prototype methods [3], and statistics-conditioned gener-
+ators have been proposed for heterogeneous clients [24]. What we add is
+the diagnosis of which parameters fail under a long tail and the use of exact
+statistics at exactly those places, including a readout per architecture that
+needs statistics pooled across architectures.
+
+Evaluation.. We re-implemented the pipeline and every comparison in the
+Flower framework [25], with the published methods taken from their authors'
+or library code (HtFLlib [26], LongTailLib/FedLTLib [27]). We evaluate in
+two protocols: the model-heterogeneous setting of GeFL-F (ten client archi-
+tectures; long-tailed CIFAR-10 and CIFAR-100 and, with natural class imbal-
+ance, DermaMNIST, OrganAMNIST, BloodMNIST, PathMNIST, EMNIST
+(ByClass) and FER-2013; eleven other methods) and the standard federated
+long-tailed protocol with one shared ResNet-8 (CIFAR-10 and CIFAR-100-
+LT at imbalance ratio 100; eleven other methods). Every result is the mean
+over three seeds with paired tests and a Holm correction, and every metric
+is logged per class.
+
+
+                                       3
+Contributions..
+  1. A long-tail evaluation of generator-based model-heterogeneous FL and
+     a stage-by-stage account of where it loses rare classes, with short exact
+     results checked against measurements (Section 4).
+  2. FedECS-LT, which uses exact, securely aggregated class statistics in
+     the generator, the heads and the readout (Section 5).
+  3. A comparison against twenty-one published methods on eight datasets
+     in two protocols, run on the same client splits, with paired statistics,
+     per-class metrics and the cost of every method (Section 7). With dif-
+     ferent client models, FedECS-LT has the highest balanced accuracy on
+     both long-tailed benchmarks and all six naturally imbalanced datasets;
+     most of its margin comes from the last layer, and with the same exact
+     readout for every method it remains +1.4 to +1.5 points ahead on the
+     CIFAR benchmarks, a dierence that is not signicant with three seeds.
+     With one shared model, end-to-end long-tail methods are stronger, and
+     we report where and by how much.
+The code, every log and every gure's data are released (Section 9).
+
+2. Related work
+Model-heterogeneous federated learning.. When clients run dierent architec-
+tures, their parameters cannot be averaged and knowledge is exchanged in
+another form. Distillation methods exchange predictions on public or syn-
+thetic inputs (FedMD [28], FedDF [29]). Prototype methods exchange class
+means of embeddings (FedProto [3]) or learn global prototypes on the server
+(FedTGP [4]). Other methods share a part of the network: the head (LG-
+FedAvg [30], FedGH [6]) or a small homogeneous model next to each client's
+own (FedMRL [7]). Generator-based methods train a generator against the
+ensemble of client heads on the server (FedGen [5], FedFTG [31]), train gen-
+erators from feature-distribution statistics that the clients send to the server
+(FedVTC [24], which targets generalisation to unseen data rather than long-
+tailed classes), or train a conditional generator on the clients by FedAvg
+(GeFL, GeFL-F [8]). HtFLlib [26] benchmarks these methods under la-
+bel skew but not under a long-tailed global distribution. FedECS-LT keeps
+GeFL-F's three-stage design and changes how its class-specic quantities are
+estimated.
+
+
+                                       4
+Federated learning under label skew and long tails.. With one shared model,
+the classier is the most biased part under label skew. Classier calibra-
+tion re-trains it on virtual features drawn from aggregated class statistics
+(CCVR [21]) or on federated features learned on the server (CReFF [9]);
+closed-form classiers are computed from aggregated sums (Fed3R [22], a
+ridge-regression classier, and FedNCM [23], nearest class means); our read-
+out is a class-balanced linear discriminant of the same kind, computed for
+each architecture's embeddings; FedETF xes the classier to a simplex
+equiangular tight frame [32]. Loss corrections use each client's label fre-
+quencies (FedLC [16], FedRS [17], FedRoD [33]), and long-tail methods
+re-balance gradients (Fed-GraB [10]), decouple a generic and a local head
+(FedLoGe [11]), combine prototype alignment with classier rectication
+(RUCR [13]) or distil between augmented views of local data (FedYoYo [12]).
+FedLTLib [27] benchmarks them in one protocol, which we follow for the one-
+shared-model setting. Class-specic weights are also known to degrade when
+clients lack classes (FedAwS [34], FedRS). These methods assume one archi-
+tecture; their readout ideas apply to each of our architectures only if the
+statistics are pooled across architectures, which FedECS-LT does.
+
+Long-tailed learning, optimisers and synthetic data.. FedECS-LT builds on
+logit adjustment [15], eective numbers of samples [35] and the decoupling
+of representation and classier [36]. The generator analysis rests on the
+dierence between coupled L2 regularisation and decoupled weight decay in
+Adam [37, 14]. Class-conditional generators can collapse on classes with little
+data even centrally [38], and synthetic training data help only as far as they
+carry their labels [39]. Generators matched to kernel mean embeddings of
+the data have been used for private data release [40].
+    Table 1 places the methods we compare against.
+
+3. Problem setting
+Clients and data.. There are K clients P
+                                       and C classes.P
+                                                     Client k holds a dataset
+Dk with nkc samples of class c; nk = c nkc , nc = k nkc and N = c nc .
+                                                                       P
+The global class sizes follow a long tail, nc ∝ ρ−c/(C−1) with imbalance ratio
+ρ = n0 /nC−1 , and each class is divided among the clients by a Dirichlet draw
+with concentration α [43]. Hc = {k : nkc > 0} is the set of the mc = |Hc |
+clients that hold class c. Client k trains a model of architecture a(k), one
+of G architectures. The goal is a model per architecture with high balanced
+
+
+                                      5
+Table 1: Methods in this study. Dierent models: clients may run dierent architectures.
+Long tail: designed for long-tailed or skewed label distributions. Synthetic: trains or uses
+synthetic data or features. Extra data: needs data that no client holds (a public or proxy
+set).
+ Method                                          Dierent models   Long tail   Synthetic   Extra data
+ FedAvg [1], FedProx [41], MOON [42]                                                        
+ FedLC [16], FedRS [17], Balanced Softmax [18]                       ✓                       
+ CCVR [21], CReFF [9]                                                ✓           ✓            
+ FedETF [32], Fed-GraB [10], FedLoGe [11]                            ✓                       
+ RUCR [13], FedYoYo [12]                                             ✓                       
+ FedProto [3], FedTGP [4]                              ✓                                     
+ LG-FedAvg [30], FedGH [6], FedMRL [7]                 ✓                                     
+ FedGen [5], GeFL-F [8]                                ✓                         ✓            
+ FedDF [29]                                            ✓                                     ✓
+ FedECS-LT (ours)                                      ✓              ✓           ✓            
+
+
+
+accuracy, the mean recall over classes, on a test set in which every class is
+equally important.
+
+The pipeline of GeFL-F.. GeFL-F [8] trains in three stages.
+   1. Stage I. A small feature extractor ϕ is trained together with the heads
+      by FedAvg and then frozen. Every client maps its images to features
+      h = ϕ(x).
+   2. Stage II. A conditional variational autoencoder [44] G(h | y) is trained
+      on the features by FedAvg, with Adam and coupled weight decay. The
+      label enters through a linear projection whose c-th column, the condi-
+      tioning row rc , is the only class-specic parameter.
+   3. Stage III. In every round each client trains its head for Ts epochs on
+      generated features with uniformly drawn labels and then for Tr epochs
+      on its real features; heads of the same architecture are averaged.
+
+A client split is a pure label shift.. Within a class, the split assigns samples to
+clients uniformly at random. So for every client k and class c with nkc > 0, the
+client's class-c samples are a uniformly random subset of all class-c samples,
+and Pk (x | y) = P (x | y); the same holds for the features h = ϕ(x), since
+ϕ is shared. Every client's data therefore point at the centralised target of
+any class-conditional quantity: a class mean, a class's conditioning row, a
+readout. Federation can make such a quantity noisier or slower to learn, but
+it can make it biased only through (i) the optimiser, (ii) parameters coupled
+
+
+                                                 6
+to a client's label prior, such as biases and last layers, and (iii) what the
+synthetic data teach. Section 4 locates each.
+
+Secure aggregation.. Secure aggregation [19, 20] lets the server learn the sum
+of the clients' vectors and nothing else about any single vector. A statistic
+that is a sum over clients of per-class quantities is therefore computed exactly,
+and equals its value on the pooled data, whatever the partition. FedECS-LT
+uses only such statistics.
+
+4. Where generator-based heterogeneous FL loses rare classes
+   This section locates the three losses that FedECS-LT repairs. Each comes
+with a short exact statement (proofs in Appendix A) and a measurement on
+the GeFL-F runs of Section 7.
+
+4.1. The generator: coupled decay shrinks rare classes' conditioning rows
+    In one round, client k starts from the global row rc , runs local Adam steps
+and returns rk,c . Let ∆k = ∥rk,c ∥ − ∥rc ∥, let Ḡc be the mean of ∆k over the
+holders Hc and D̄c the mean of −∆k over the other clients, and pc = mc /K .
+
+Proposition 1 (contraction under at averaging). Under rc+ = K1 k rk,c ,
+                                                                          P
+∥rc+ ∥ ≤ ∥rc ∥ + pc Ḡc − (1 − pc )D̄c , with equality if and only if all rk,c are
+parallel. The row contracts whenever pc < D̄c /(Ḡc + D̄c ).
+   The bound only describes the measured changes; the optimiser decides
+how large D̄c is.
+
+Lemma 2 (coupled decay under Adam). On a client without class c, the
+gradient of the loss with coupled L2 regularisation λ with respect to rc is
+exactly λrc . Since Adam is invariant to a positive rescaling of the gradient
+sequence up to its ϵ, each step of such a client moves every coordinate of
+rc toward zero by about the learning rate η , independently of λ, as long as
+λ|rc,j | ≫ ϵ. With λ = 0, or with decoupled weight decay [37], this shrinkage
+vanishes.
+    A holder's data gradient ts the row and need not increase its norm, so
+Ḡc ≪ D̄c and rare classes' rows contract even when most clients hold the
+class; a threshold on mc alone cannot decide it. Counting Adam steps gives
+
+
+
+                                        7
+a predictor that uses only the class counts and the number of local steps τk :
+with fkc the probability that a batch of client k contains class c,
+                                   P
+                                      k∈Hc τk fkc
+                             κc = P               ,                       (1)
+                                        / c τk
+                                       k∈H
+
+and the row drifts toward zero in every coordinate when κc < 1. This count of
+Adam steps is a heuristic, not a bound: it ignores the moments Adam carries
+between rounds (Appendix A). Centrally the same decay is harmless, because
+Adam's second-moment estimate for rc is dominated by data gradients as long
+as the class appears more often than the estimate forgets.
+    Figure 1 shows the eect on GeFL-F: after Stage II the conditioning rows
+of the rarest classes are several times shorter than those of the most frequent
+classes. Two remedies follow. Decoupling the decay removes the shrinkage.
+Averaging each row over its holders only, with weights that grow with the
+holder's count (class-count weighted averaging, CCWA), removes the non-
+holders' term D̄c from Proposition 1 and keeps coupled decay:
+
+                                                1 − βn
+                  P
+                     k E(nkc ) rk,c
+            rc ←    P               ,  E(n) =          , β = 0.999,         (2)
+                       k E(nkc )                 1−β
+
+where E(n) is the eective number of samples [35]: zero for a client without
+the class, about n for small n, and bounded by 1/(1 − β) so that one large
+client cannot dominate a class. Both sums in Eq. (2) are computed by secure
+aggregation.
+
+4.2. The last layer: logit corrections are reparametrisations
+Proposition 3 (logit corrections are reparametrisations). Let a head have a
+free last-layer bias b, trained by SGD without decay on b, and let ak ∈ RC be
+a constant of client k, as in logit adjustment (ak = τ log πk ) [15], FedLC [16]
+or Balanced Softmax [18]. Training with the loss ℓ(f + ak , y) from (θ0 , b0 )
+produces exactly the trajectory of training with ℓ(f, y) from (θ0 , b0 +ak ): every
+parameter except b is the same at every step. FedRS, which scales the logits of
+absent classes by α [17], is cross-entropy in rescaled last-layer variables with
+a larger learning rate on those rows; the body follows the same trajectory.
+   For a head trained on one client's real data, such a correction is therefore
+equivalent to a dierent initialisation of the last-layer bias. This does not
+mean the representation is the one plain training from the same bias would
+
+                                        8
+                                    7
+                                                                                     GeFL-F
+                                    6                                                FedDF
+
+                                    5
+
+
+                   Class-row norm
+                                    4
+
+                                    3
+
+                                    2
+
+                                    1
+
+
+                                        0        2            4           6           8
+                                            Class (ordered from most to least frequent)
+
+
+Figure 1: L2 norm of each class's conditioning row of GeFL-F's generator after Stage II,
+classes ordered from the most to the least frequent (CIFAR-10-LT, imbalance ratio 100,
+10 clients, Dirichlet α = 0.5; mean over seeds 35). FedDF uses the same generator.
+FedECS-LT's anchored generator has no class rows.
+
+
+learn: the logits, and hence the gradients reaching the body, dier along the
+way. What the proposition does show is that the correction adds no informa-
+tion about the classes the client lacks; its eect on the body is measured by
+removing logit adjustment from FedECS-LT with and without the readout
+below (Table 12). The readout itself can be computed exactly.
+Proposition 4 (partition invariance). An estimator that is a function of a
+sum S = k i∈Dk T (xi , yi ), with T xed in advance, takes the same value
+        P P
+for every partition of the pooled data, and equals the centralised estimator.
+    The class-balanced linear discriminant used by FedECS-LT (Section 5.4)
+is such an estimator, and so are Fed3R [22], FedNCM [23] and CCVR [21]
+when computed over all clients. The last layer then stops being a source of
+loss relative to the same readout computed centrally on the same bodies, and
+the accuracy with this readout compares the bodies. The readout alone raises
+GeFL-F's balanced accuracy by +16.6 points on CIFAR-10-LT and +7.2 on
+CIFAR-100-LT (Table 7). A head trained on one client is an extreme case of
+minority collapse [45]: for the classes the client lacks, the imbalance ratio is
+innite.
+
+4.3. The synthetic data: label-free features penalise the logits' spread
+Proposition 5 (label-free synthetic data). If the synthetic label y is uniform
+on {1, . . . , C} and independent of the generated feature, then for every logit
+
+                                                            9
+                                               −1.0
+
+                                               −1.5
+
+
+
+
+                  Change of the logit spread
+                                               −2.0
+
+                                               −2.5
+
+                                               −3.0
+
+                                               −3.5
+                                                                                      FedECS-LT
+                                               −4.0
+                                                                                      GeFL-F
+                                               −4.5                                   FedDF
+
+                                                      0   15   30    45     60   75      90
+                                                                      Round
+
+
+Figure 2: Change of the logit spread of the clients' heads on their own real features
+during the synthetic phase of each head-training round (after minus before; negative: the
+synthetic phase pulled the logits together), per round (CIFAR-10-LT, imbalance ratio 100,
+10 clients; mean over clients and seeds 35, band one standard deviation).
+
+
+vector   f , Ey ℓ(f, y) = LSE(f ) − f¯ = log C + KL(u ∥ softmaxf ) = log C +
+      c (fc − f ) + O(∥f − f ∥ ), where f is the mean logit and u the uniform
+ 1
+   P           ¯2           ¯3           ¯
+2C
+distribution.
+    When generated features carry little information about their label, the
+synthetic phase therefore pulls the logits together instead of teaching the
+classes a client lacks. Alternating it with the real phase decides what survives:
+in an illustrative model with quadratic losses (the heads are nonlinear and
+trained with cross-entropy) the round map converges to a point where the
+synthetic data decide exactly the directions that the client's real loss leaves
+free (Appendix A), which are the directions of the absent classes. Logit
+adjustment keeps the real phase from pushing the absent classes' logits down
+without bound [46]. Figure 2 shows the rst eect on the real pipeline: in
+every round on CIFAR-10-LT the synthetic phase reduces the spread of the
+heads' logits on the clients' real features, and it reduces it less for FedECS-LT
+than for GeFL-F.
+
+5. FedECS-LT
+   FedECS-LT keeps the three stages of GeFL-F and the frozen extractor,
+and changes how every class-specic quantity is obtained. Wherever the data
+decide a class's result, it uses a statistic that secure aggregation computes
+
+                                                                    10
+                   FIGURE PLACEHOLDER: fig_overview
+   Architecture diagram (draw it; GUIDE.md, section 6): clients with dierent head
+architectures; Stage I frozen extractor; the statistics release through secure aggregation;
+the server's gate F; the mean-anchored generator (or class rows with CCWA); moment
+ correction; Stage III heads with logit adjustment and consensus soft labels; the exact
+                       readout. Arrows labelled with what is sent.
+
+
+
+Figure 3: Overview of FedECS-LT. After the frozen extractor (Stage I), the clients release
+exact per-class statistics through secure aggregation. The server uses them to choose the
+generator (gate), to anchor it to the class means or to average its class rows over their
+holders, and to correct the moments of its samples (Stage II). Heads train on corrected
+synthetic features with consensus soft labels and on real features with logit adjustment
+(Stage III). Finally every architecture's last layer is replaced by a readout computed from
+aggregated sums.
+
+
+exactly instead of a parameter that FedAvg estimates. Algorithm 1 lists the
+pipeline and Fig. 3 shows it.
+
+5.1. Statistics release
+     After Stage I, client k computes,       for every class c, its count nkc , the
+                         (1)
+sum of its features Skc =         i∈Dkc hi and the sum of their squared norms
+                                P
+  (2)                                                                  (1)      (2)
+Skc = i∈Dkc ∥hi ∥ . Secure aggregation returns the totals nc , Sc and Sc ,
+                     2
+        P
+from which the server obtains the exact class means and spreads
+
+        µc = Sc(1) /nc ,     Vc = Sc(2) /nc − ∥µc ∥2 = E ∥h − µc ∥2 y = c .     (3)
+                                                                          
+
+
+These equal the values on the pooled data (Proposition 4) up to the quanti-
+sation of secure aggregation: each client's contribution is divided by a public
+bound and quantised to 30 bits with unbiased stochastic rounding, an er-
+ror of at most 1.5 × 10−8 of the bound per client and coordinate. We call
+the statistics exact in this sense. Each client uploads them once, C(d + 2)
+numbers for features of dimension d.
+
+5.2. Generator
+Separation gate.. A generator anchored to the class means can separate
+classes only as far as their means are apart (Proposition 7 in Appendix A).
+
+
+
+                                            11
+The server therefore computes the class separation
+                       1               2
+                         P
+                           c ∥µc − µ̄∥           1 X
+                  F =  C
+                          1
+                             P           ,  µ̄ =     µc ,                   (4)
+                          C    c V c             C c
+
+from the released statistics. If F ≥ F0 = 0.05 (a threshold xed during
+the method's development, before the runs reported here, and not swept)
+it uses the mean-anchored generator; otherwise it uses GeFL-F's generator
+with class rows averaged by CCWA (Eq. (2)). On our datasets F ranges from
+0.014 to 0.449; the gate chose class rows on CIFAR-10-LT with one shared
+model and FER-2013.
+
+Mean anchor.. The anchored generator models only the within-class residual
+around the exact mean,
+
+                                                                            (5)
+                                          
+               h̃ = ReLU µy + dec(z, Aµy ) ,       z ∼ N (0, I),
+
+where the class enters only through its mean and a projection A shared by
+all classes. The generator has no class-specic parameter, so Proposition 1
+has nothing to shrink. It is trained by FedAvg with Adam, as GeFL-F's
+generator.
+
+Moment correction.. After Stage II the server draws 500 samples per class
+from the generator, measures their mean mc and spread Ṽc , and corrects
+every later sample of class c to the exact moments,
+                                                    q                  
+                                                                           (6)
+                                    
+       h̃ ← ReLU µc + sc (h̃ − mc ) ,      sc = clip   Vc /Ṽc , 0.1, 10 .
+
+Without the nal ReLU and the clipping this is the map of least displacement
+that attains the exact mean and spread (Proposition 8 in Appendix A); with
+them, the corrected samples match these moments only approximately: after
+the correction the generated within-class spread is 0.73 to 0.98 times the exact
+one (median 0.86) over every class and run of the long-tailed benchmarks.
+The server sends (µc , mc , sc ) to the clients, which hold the generator and
+draw corrected samples themselves.
+
+5.3. Heads
+   Each round, client k trains its head for Ts = 10 epochs on corrected
+synthetic features and then for Tr = 5 epochs on its real features. The real
+
+                                      12
+phase uses logit adjustment with the client's own prior [15], ℓ(f + τ log π̂k , y)
+with τ = 1 and the add-one smoothed class frequencies π̂k of the client.
+The synthetic phase, whose labels are drawn uniformly over the classes, uses
+cross-entropy without adjustment, and its target is a consensus soft label
+                                    G
+                                 1 X
+                                                                              (7)
+                                                      
+          t(h̃) = (1 − β) ey + β       softmax fg (h̃) ,      β = 0.5,
+                                 G g=1
+where ey is the one-hot generated label and fg the current head of architecture
+g : the federation's averaged prediction on that feature [47]. Every client
+regenerates the same pool of synthetic features from a seed sent by the server
+and returns wk softmax(fa(k) (h̃)) with wk = 1/(G |{j : a(j) = a(k)}|); the
+secure sum over clients is the average in Eq. (7), so no client's prediction is
+revealed. Heads of the same architecture are averaged as in GeFL-F.
+
+5.4. Exact readout
+    After Stage III, the server broadcasts every architecture's body; each
+client computes, for everyParchitecture g , the per-class counts, the sums
+                                                                           P
+                                                                             e
+and the second moment       ee⊤ of the embeddings e of its real features, and
+secure aggregation sums them over all clients. With the class means νc and
+the pooled within-class covariance Σ shrunk to Σγ = (1 − γ)Σ + γ trdeΣ I ,
+γ = 0.1, the last layer of architecture g becomes the class-balanced linear
+discriminant
+                     wc = Σ−1γ νc ,    bc = − 21 νc⊤ Σ−1
+                                                      γ νc ,               (8)
+with bc = −104 for a class no client holds. By Proposition 4 it equals the
+same estimator computed centrally on the pooled embeddings of the same
+body (not a last layer trained centrally by SGD). It is the Bayes classier for
+equally likely classes when the embeddings of each class are Gaussian with a
+shared covariance; otherwise it is a statistics-based linear classier without an
+optimality guarantee. It needs one extra round and C(de + 1) + d2e numbers
+per architecture and client, and every client must run a forward pass (no
+training) of every architecture's body on its own features once; a client that
+cannot do so would be left out of the sums. We report every method both
+as trained and with this readout (exact readout, ER).
+
+5.5. Cost and privacy
+   Beyond GeFL-F, FedECS-LT sends the class statistics once, the moment
+correction once, one vector of C consensus probabilities per synthetic fea-
+ture per round, and the readout sums once. Table 14 reports the measured
+
+                                       13
+Algorithm 1 FedECS-LT (one run; all sums are computed by secure aggre-
+gation)
+ 1: Stage I: train extractor ϕ and heads by FedAvg; freeze ϕ; h = ϕ(x) on
+    every client
+                           (1)   (2)
+ 2: clients release nkc , Skc , Skc ; server forms µc , Vc (Eq. (3)) and F (Eq. (4))
+ 3: Stage II: if F ≥ F0 train the anchored generator (Eq. (5)) by FedAvg
+    else train GeFL-F's generator, class rows by CCWA (Eq. (2))
+ 4: server measures mc , Ṽc and sends the moment correction (µc , mc , sc )
+    (Eq. (6))
+ 5: for round t = 1, . . . , TTN do                                      ▷ Stage III
+ 6:     server sends heads and a pool seed; clients return the secure sum of
+    consensus predictions (Eq. (7))
+ 7:     each client: Ts epochs on corrected synthetic features with soft targets
+    t(h̃), then Tr epochs on real features with logit adjustment
+ 8:     server averages heads of the same architecture
+ 9: end for
+10: clients release embedding sums per architecture; server sets every last
+    layer by Eq. (8)
+
+
+communication and time of every method. The server learns only federation-
+level sums. These still describe rare classes held by few samples: a class mean
+over a handful of images reveals more about them than a mean over thou-
+sands. Formal dierential privacy for the released statistics is possible with
+the Gaussian mechanism but is not part of the results reported here, and it
+would not cover the FedAvg training of the generator and heads.
+
+6. Experimental setup
+6.1. Datasets and client splits
+Long-tailed benchmarks.. CIFAR-10 [48] and CIFAR-100 [48] are made long-
+tailed as in GeFL-F's code [8]: GeFL-F's fraction of the training set is divided
+over the classes by the prole of Section 3 with ρ = 100, and no class re-
+ceives more images than remain after the validation images are held out. On
+CIFAR-10-LT the prole asks for more than that for the largest classes, which
+are therefore capped, so the ratio between the largest and the smallest class
+is below 100 there (Table 2); we name every setting by its ρ. CIFAR-100-LT
+has 480 training images in its largest class and 5 in its smallest. The training
+
+                                        14
+Table 2: Datasets as used: classes, training images held by the clients, test images, and
+the ratio between the largest and the smallest class in the federation (natural imbalance:
+the dataset's own class sizes).
+ Dataset               Classes   Training images   Test images   Largest / smallest class
+ CIFAR-10-LT             10          18,485           10,000               48
+ CIFAR-100-LT            100         10,926          10,000                96
+ DermaMNIST               7          6,231            2,005                75
+ OrganAMNIST             11          19,994           17,778                5
+ BloodMNIST               8          10,359           3,421                 3
+ PathMNIST                9          19,997           7,180                2
+ EMNIST (ByClass)         62         19,970          116,323               20
+ FER-2013                 7          19,997            3,589               17
+
+
+images are split among K = 10 clients by a Dirichlet draw with α = 0.5 per
+class.
+
+Natural imbalance.. DermaMNIST [49], OrganAMNIST [49], BloodM-
+NIST [49], PathMNIST [49], EMNIST (ByClass) [50] and FER-2013 [51]
+keep their own class sizes, with training sets capped at 20,000 images, and
+are split the same way. Training images that no client holds (200 per class,
+20 per class on CIFAR-100, and at most a quarter of a class with natural im-
+balance) form a validation set. It trains the referee classier of the generator
+diagnostics and is never used to select a model or a hyperparameter: every
+result is that of the last round, on the ocial test set. Table 2 summarises
+the splits.
+
+6.2. Two protocols
+Main setting: dierent client models.. As in GeFL-F, the clients share a one-
+block convolutional feature extractor and each client has one of ten CNN head
+architectures of increasing depth and width (CNN-1 to CNN-10; K = 10, so
+one client per architecture). The rounds of the three stages are those of
+GeFL-F (e.g. 50, 200 and 100 on CIFAR-10). All methods of this setting
+share the same Stage-I extractor for a given dataset and seed.
+
+One shared model.. We follow the FedLTLib protocol [27]:               CIFAR-
+10-LT and CIFAR-100-LT with the standard long-tailed class prole
+nc = ⌊nmax ρ−c/(C−1) ⌋ at ρ ∈ {100, 50, 10}, with nmax the images per class left
+after 200 per class (20 on CIFAR-100) are held out for validation (rounding
+down gives the smallest CIFAR-100 class 4 images at ρ = 100), 20 clients,
+
+                                           15
+Table 3: Methods compared, their protocol and the origin of their code. HtFLlib [26]
+(Apache-2.0) methods are ported to Flower with their authors' hyperparameters, except
+that they train for the 5 local epochs of our head stage; LongTailLib [27] methods run in
+the authors' code, downloaded at a xed commit.
+Method                                Venue           Protocol           Code
+GeFL-F [8]                            IEEE TMC 2025   dierent models    re-implementation of the authors' algorithm
+Balanced Softmax [18]                 NeurIPS 2020    dierent models    loss on each client's head
+FedLC [16]                            ICML 2022       both               loss re-implemented / LongTailLib
+FedRS [17]                            KDD 2021        dierent models    loss re-implemented
+FedDF [29]                            NeurIPS 2020    dierent models    re-implementation (distillation on generated features)
+FedProto [3]                          AAAI 2022       dierent models    HtFLlib
+FedTGP [4]                            AAAI 2024       dierent models    HtFLlib
+FedGen [5]                            ICML 2021       dierent models    HtFLlib
+FedGH [6]                             ACM MM 2023     dierent models    HtFLlib
+LG-FedAvg [30]                        arXiv 2020      dierent models    HtFLlib
+FedMRL [7]                            NeurIPS 2024    dierent models    HtFLlib
+FedAvg [1], FedProx [41], MOON [42]                   one shared model   LongTailLib
+CCVR [21], CReFF [9], FedETF [32]                     one shared model   LongTailLib
+Fed-GraB [10], FedLoGe [11]                           one shared model   LongTailLib
+FedYoYo [12], RUCR [13]                               one shared model   LongTailLib
+Local                                                dierent models    each client alone
+FedECS-LT                             this work       both               ours (Flower)
+
+
+
+
+Dirichlet α = 0.5, 8 clients (40%) per round, one ResNet-8 [52], 200 rounds
+of 10 local epochs with batch size 32 and SGD (learning rate 0.1, momentum
+0.9, decay 0.99 per round). The baselines run in the authors' LongTailLib
+code, unchanged, on our splits. For FedECS-LT the ResNet-8 is split after
+its second stage into the frozen extractor and the head; the extractor is
+trained for 100 rounds and the head for 100 with 10 real epochs per round
+(the protocol's local epochs), so that FedECS-LT uses the baselines' 200
+rounds plus those of its generator, which we report separately. FedECS-LT
+averages the clients' models with equal weights, as in the main setting,
+whereas the benchmark's FedAvg weights them by their numbers of samples.
+
+6.3. Methods
+    Table 3 lists every method, its reference and the origin of its code. Meth-
+ods designed for one shared model are compared in the one-shared-model
+setting only. Local, in which each client trains alone, is a lower bound. Hy-
+perparameters are those of each method's paper; where the paper and the
+authors' code disagree we use the code.
+
+6.4. Metrics and statistics
+   The primary metric is balanced accuracy on the test set, with the heads
+as trained and with the exact readout. We also report macro-F1, macro
+precision, the multi-class Matthews correlation coecient (MCC) [53], the
+
+                                                          16
+geometric mean of the class recalls (each oored at 1%), the recall of the
+tail classes (the 40% least frequent) and of the worst class, macro AUC-PR,
+the expected calibration error with 15 bins (ECE) [54] and its class-wise
+form [55], and, for the main setting, the balanced accuracy of the weakest
+architecture and the accuracy on each client's own class mix. In the setting
+with dierent client models every metric is, as in GeFL [8], the mean over
+the ten client models (one per architecture), each evaluated on the whole
+test set; the geometric mean and the worst-class recall are computed for each
+model and then averaged, which makes them lower than the same metrics
+on the models' pooled predictions. GeFL's code reports each model's best
+test accuracy over the evaluated rounds; we report the model after the last
+round, which involves no selection on the test set, and give GeFL's measure
+in Table C.17. Every per-class metric is logged for every class at every
+evaluation. Cost is the measured communication per client, the wall-clock
+time on one GPU and the oating-point operations.
+    Every conguration is run with seeds 3, 4 and 5; a seed xes the split and
+the initialisations of every method, so runs with the same seed are paired.
+We report mean ± sample standard deviation over seeds; for dierences to
+FedECS-LT, the mean paired dierence with a 95% t interval, the paired
+t-test and Holm's correction [56] over the compared methods. Settings that
+were run with one seed say so and carry no interval.
+
+6.5. Implementation
+    FedECS-LT and every method of the main setting run in Flower 1.42 [25]
+(simulation with the Ray backend), one simulation per run; the one-shared-
+model baselines run in the authors' LongTailLib code on the same client
+splits and are evaluated on the same test set; all runs are on NVIDIA T4
+GPUs. All releases of FedECS-LT use Flower's SecAgg+ [20] with 30-bit
+quantisation, every vector divided by a public bound before quantisation.
+The Flower implementation reproduces the client splits of the original GeFL-
+F implementation exactly and its accuracy within seed noise (Appendix B).
+Table 4 lists the settings of FedECS-LT, which are the same on every dataset.
+
+7. Results
+7.1. Main comparison: dierent client models
+   Table 5 gives the balanced accuracy of every method on the long-tailed
+benchmarks (CIFAR-10 and CIFAR-100) with the heads as trained, and Ta-
+
+                                     17
+Table 4: Settings of FedECS-LT (all datasets; with one shared model, 10 real epochs per
+round, the protocol's local epochs).
+             Setting                                        Value
+             Separation gate threshold F0                   0.05
+             CCWA parameter β                               0.999
+             Moment correction: samples per class           500
+             Moment correction: range of sc                 [0.1, 10]
+             Synthetic / real epochs per round Ts / Tr      10 / 5
+             Logit adjustment τ                             1
+             Consensus soft-label weight β                  0.5
+             Readout shrinkage γ                            0.1
+             Generator optimiser, learning rate             Adam, 10−3
+             Generator weight decay (coupled L2)            10−3
+
+
+ble 6 the paired dierence of FedECS-LT to each method. FedECS-LT has the
+highest balanced accuracy on both benchmarks. Its margin over the strongest
+other method is +5.2 points on CIFAR-10-LT (over FedDF) and +4.3 on
+CIFAR-100-LT (over FedDF). With three seeds the dierence is signicant
+after Holm's correction on CIFAR-100-LT (p = 0.021 against FedDF) but not
+on CIFAR-10-LT (p = 0.066), although every seed favours FedECS-LT. On
+CIFAR-100-LT, 0.3 classes on average are recognised by none of the ten client
+models of FedECS-LT, against 12.3 for FedDF. Against GeFL-F, the method
+it extends, the dierence is +9.1 points [+4.8, +13.3] on CIFAR-10-LT and
++6.6 [+5.6, +7.6] on CIFAR-100-LT. The model-heterogeneous methods that
+exchange prototypes or shared sub-networks (FedProto, FedTGP, FedGH,
+LG-FedAvg, FedMRL) were designed for label skew without a global long
+tail; under the long tail their balanced accuracy is close to or below that
+of Local, because nothing in them gives an architecture information about
+the classes its clients lack. FedProto, FedTGP and FedGen are best in the
+rst rounds and lose 5.7 ± 1.0, 6.7 ± 0.7 and 5.3 ± 0.9 points of accuracy
+by the last round on CIFAR-10-LT (2.8 ± 0.5, 3.2 ± 0.3 and 3.1 ± 1.2 on
+CIFAR-100-LT); they are also the weakest on their clients' own class mixes,
+on which HtFLlib scores such personal models (Table C.18). FedECS-LT,
+too, is past its best round at the last one, by 3.4 ± 1.2 points on CIFAR-10-
+LT and 0.9 ± 0.3 on CIFAR-100-LT; Table C.17 gives every method's best
+round, as GeFL reports it. Balanced accuracy has a price on the clients' own
+class mixes: there FedECS-LT reaches 68.6 ± 1.9 on CIFAR-10-LT and 31.5
+
+                                          18
+Table 5: Balanced accuracy (%) on the test set, heads as trained; mean ± standard
+deviation over seeds 35. Long-tailed benchmarks (imbalance ratio 100), 10 clients with
+ten dierent head architectures, Dirichlet label split (α = 0.5). Best in each column in
+bold.
+                   Method                 CIFAR-10      CIFAR-100
+                   FedECS-LT             42.8 ± 2.0 14.3 ± 0.6
+                   GeFL-F                33.7 ± 1.2      7.7 ± 0.4
+                   Balanced Softmax      36.3 ± 1.2      9.0 ± 0.3
+                   FedLC                 34.3 ± 1.1      8.5 ± 0.3
+                   FedRS                 34.1 ± 1.1      8.5 ± 0.3
+                   FedDF                 37.5 ± 1.2      10.0 ± 0.5
+                   Local                 32.1 ± 0.7      7.9 ± 0.8
+                   FedProto              27.1 ± 0.8      4.8 ± 0.3
+                   FedTGP                25.3 ± 1.2      4.5 ± 0.6
+                   FedGen                26.9 ± 2.0      4.5 ± 1.3
+                   FedGH                 31.9 ± 1.1      6.5 ± 0.1
+                   LG-FedAvg             31.3 ± 0.8      6.3 ± 0.1
+                   FedMRL                33.7 ± 1.0      8.3 ± 0.2
+
+
+± 0.3 on CIFAR-100-LT, below Balanced Softmax, FedLC, FedRS, FedDF,
+Local and FedMRL on both (Table C.18).
+   Figure 4 shows the paired dierences on CIFAR-10-LT with their con-
+dence intervals.
+
+With the exact readout.. Most of GeFL-F's long-tail loss is in its last layer
+(Section 4.2). Table 7 therefore compares the methods of the GeFL-F family
+again with every last layer replaced by the same exact readout, so that the
+remaining dierences are those of the bodies. With the same readout the gap
+to every method shrinks: FedECS-LT remains +2.3 points ahead of GeFL-F
+on CIFAR-10-LT and +3.8 on CIFAR-100-LT, and +1.4 and +1.5 points
+ahead of the strongest other method (Balanced Softmax and FedRS). These
+remaining dierences are not signicant in the paired tests (Holm-corrected
+p = 0.37 and 0.058; uncorrected 95% intervals [-0.7, +3.6] and [+0.6, +2.4]
+points). Most of the margin as trained is therefore in the last layer, and three
+seeds do not show whether FedECS-LT also learns a better representation
+than the strongest other method.
+
+
+
+
+                                          19
+Table 6: Balanced accuracy of FedECS-LT minus each method (points), paired over seeds
+35, with the 95% t condence interval; bold where the paired t-test is signicant after
+Holm's correction over the methods (p < 0.05). Same setting as Table 5.
+       Method                       CIFAR-10                   CIFAR-100
+       GeFL-F                  +9.1 [+4.8, +13.3] +6.6 [+5.6, +7.6]
+       Balanced Softmax        +6.4 [+2.1, +10.8] +5.3 [+4.2, +6.5]
+       FedLC                   +8.5 [+4.7, +12.3] +5.8 [+4.6, +7.0]
+       FedRS                   +8.7 [+4.9, +12.4] +5.8 [+4.7, +7.0]
+       FedDF                    +5.2 [+1.2, +9.3] +4.3 [+2.7, +5.9]
+       Local                   +10.7 [+5.5, +15.9]+6.4 [+4.1, +8.6]
+       FedProto              +15.7 [+12.6, +18.7] +9.6 [+8.5, +10.6]
+       FedTGP                +17.5 [+14.1, +20.9] +9.8 [+8.8, +10.8]
+       FedGen                +15.9 [+13.3, +18.5] +9.8 [+5.8, +13.7]
+       FedGH                  +10.9 [+6.6, +15.2] +7.8 [+6.7, +8.9]
+       LG-FedAvg              +11.4 [+7.6, +15.3] +8.0 [+7.0, +9.1]
+       FedMRL                  +9.1 [+5.3, +12.8] +6.0 [+5.0, +7.0]
+7.2. Rare classes
+    Table 8 reports the recall of the tail classes, and Fig. 5 the recall of
+every class against its number of training images. The gain of FedECS-LT is
+concentrated in the tail: on CIFAR-100-LT its tail recall is 6.4 ± 0.3 against
+1.7 ± 0.1 for GeFL-F, and its worst-class recall 0.2 ± 0.2 against 0.0 ± 0.0.
+Figure 6 splits the recall into the head, medium and tail classes.
+
+7.3. Datasets with natural class imbalance
+    Table 9 repeats the comparison on six datasets whose class sizes are their
+own (DermaMNIST, OrganAMNIST, BloodMNIST, PathMNIST, EMNIST
+(ByClass) and FER-2013). FedECS-LT has the highest balanced accuracy
+as trained on all six, with margins of +3.4 (FER-2013) to +12.3 points (EM-
+NIST (ByClass), one seed) over the strongest other method. With the exact
+readout for every method the margins are below one point, and on BloodM-
+NIST FedDF is level with FedECS-LT. The separation gate chose the class-
+row generator on FER-2013, where the class means are too close for an
+anchor.
+
+7.4. One shared model
+   Table 10 gives the results in the FedLTLib protocol. Here end-to-end
+long-tail methods are stronger. At imbalance ratio 100, FedECS-LT reaches
+
+                                          20
+Table 7: Balanced accuracy (%) with every architecture's last layer replaced by the exact
+class-balanced readout (Section 5.4); mean ± standard deviation over seeds 35. Methods
+whose heads end in a linear layer; same setting as Table 5.
+                   Method                 CIFAR-10       CIFAR-100
+                   FedECS-LT             52.6 ± 1.3 18.7 ± 0.2
+                   GeFL-F                 50.3 ± 1.2     14.9 ± 0.2
+                   Balanced Softmax       51.2 ± 0.7     17.2 ± 0.3
+                   FedLC                  51.2 ± 0.7     17.2 ± 0.3
+                   FedRS                  51.1 ± 0.7     17.2 ± 0.3
+                   FedDF                  51.0 ± 1.2     15.8 ± 0.3
+
+
+61.3 ± 1.8 on CIFAR-10-LT and 34.1 on CIFAR-100-LT, about the level
+of FedAvg, while the strongest method, FedYoYo, is 16.8 and 8.9 points
+ahead of FedECS-LT on the seeds both have (3 and 4 on CIFAR-10-LT, 4
+on CIFAR-100-LT; Table 10 averages every seed of each method). With one
+shared model nothing prevents training the whole network end to end on real
+data, and the methods that do so with long-tail corrections learn a better
+representation than a frozen extractor trained for half of the rounds; the gen-
+erator, which is what lets clients with dierent models exchange knowledge,
+brings no advantage when the models can simply be averaged. Training the
+extractor of FedECS-LT for all 200 rounds changes its balanced accuracy on
+CIFAR-10-LT by [t2/cifar10-r100/fe200_di] points.
+
+Comparison with published numbers.. Our baselines run in the authors' code
+on our splits and report the model after the last round. Against FedYoYo's
+evaluation in the same protocol [12], which trains 300 rounds, most meth-
+ods are within about three points of the published values (e.g. FedAvg 58.2,
+CCVR 68.1, FedETF 68.3, FedYoYo 81.5 on CIFAR-10-LT). FedLTLib [27]
+reports the best round and gives higher values for every method. Two meth-
+ods are clearly below the published values in our runs: CReFF (70.5 in [12])
+and Fed-GraB (70.6). Both run in the benchmark's code with its common
+settings (learning rate 0.1, batch size 32, ten local epochs), which dier from
+those in the methods' own papers; we did not tune them and report them as
+obtained. Figure 7 shows the balanced accuracy over the rounds.
+
+
+
+
+                                           21
+                        GeFL-F
+
+                Balanced Softmax
+
+                         FedLC
+
+                          FedRS
+
+                         FedDF
+
+                           Local
+
+                        FedProto
+
+                        FedTGP
+
+                         FedGen
+
+                         FedGH
+
+                     LG-FedAvg
+
+                        FedMRL
+
+                                   0         5           10          15         20
+                                       Difference in balanced accuracy (points)
+
+
+Figure 4: Balanced accuracy of FedECS-LT minus that of each method on CIFAR-10-LT
+(points; mean of the paired dierences over seeds 35 with 95% t condence interval; right
+of the dotted line FedECS-LT is better). Imbalance ratio 100, 10 clients, Dirichlet α = 0.5.
+
+
+7.5. Ablations
+Variants of GeFL-F.. Table 11 isolates what each change to GeFL-F con-
+tributes, on CIFAR-10-LT and CIFAR-100-LT with the same splits and
+seeds: GeFL-F without its generator (heads on real features only), with
+logit adjustment and decoupled weight decay, with its generator replaced by
+class Gaussians from the exact class statistics, and FedDF with logit adjust-
+ment. Removing the coupled decay and adding logit adjustment recovers
+[abl/cifar10/GeFL-F + LA/gain] points of GeFL-F's decit on CIFAR-
+10-LT; FedECS-LT adds [abl/cifar10/rest] points on top.
+
+Components of FedECS-LT.. Table 12 removes one component of FedECS-
+LT at a time. [Write once the component ablation has been run (GUIDE.md,
+section 4, experiment E7): which components matter most, with and without
+the exact readout.]
+
+Robustness.. Table 13 varies the label skew, the number of clients and the
+imbalance ratio. [Write once the sweeps have been run (GUIDE.md, section
+
+                                              22
+Table 8: Recall of the tail classes (the 40% least frequent; %), heads as trained; mean ±
+standard deviation over seeds 35. Same setting as Table 5.
+                   Method                 CIFAR-10       CIFAR-100
+                   FedECS-LT             31.4 ± 2.7 6.4 ± 0.3
+                   GeFL-F                 13.9 ± 1.2      1.7 ± 0.1
+                   Balanced Softmax       20.0 ± 1.9      2.2 ± 0.1
+                   FedLC                  16.1 ± 1.4      1.7 ± 0.1
+                   FedRS                  15.7 ± 1.4      1.7 ± 0.1
+                   FedDF                  10.6 ± 1.0      0.8 ± 0.1
+                   Local                  14.0 ± 1.2      1.6 ± 0.2
+                   FedProto               10.7 ± 1.9      0.9 ± 0.0
+                   FedTGP                 10.8 ± 1.7      1.2 ± 0.5
+                   FedGen                  8.6 ± 1.1      0.7 ± 0.3
+                   FedGH                  13.3 ± 0.8      1.1 ± 0.1
+                   LG-FedAvg              13.3 ± 0.6      1.0 ± 0.0
+                   FedMRL                 14.9 ± 1.2      1.7 ± 0.1
+
+
+4, experiment E8).]
+
+7.6. Representations and generated features
+   Figure 8 shows the test embeddings of GeFL-F and FedECS-LT on the
+same images. The embeddings of FedECS-LT separate the classes better:
+the leave-one-out 10-nearest-neighbour accuracy of the embeddings, which
+does not depend on the map, is 30.9% for FedECS-LT and 26.0% for GeFL-
+F (rst architecture, mean over seeds 35). Cluster sizes and the distances
+between clusters in such maps carry no meaning [57]; only the grouping does.
+Figure 9 overlays real and generated features.
+
+7.7. Calibration, fairness across clients and cost
+   The expected calibration error of FedECS-LT is 37.8 ± 4.0 on CIFAR-10-
+LT against 48.0 ± 2.2 for GeFL-F and 35.9 ± 1.9 for FedDF, the strongest
+other method; the weakest architecture of FedECS-LT reaches 38.8 ± 1.9
+balanced accuracy (Appendix C). Table 14 reports the cost on CIFAR-10-
+LT. FedECS-LT takes 1.13 times the wall-clock time of GeFL-F and 1.30
+times its communication.
+
+
+
+
+                                           23
+                              60
+
+                              50
+
+                              40
+                 Recall (%)
+                              30
+
+                              20
+
+                              10
+
+                               0
+
+                                        101                         102
+                                         Training images of the class (federation)
+                                   FedECS-LT                  FedDF                  FedGen
+                                   GeFL-F                     Local                  FedGH
+                                   Balanced Softmax           FedProto               LG-FedAvg
+                                   FedLC                      FedTGP                 FedMRL
+                                   FedRS
+
+
+Figure 5: Recall of every class against its number of training images in the federation
+(CIFAR-100-LT, imbalance ratio 100, 10 clients; each point is one class, mean over seeds
+35).
+
+
+8. Discussion and limitations
+What the gains consist of.. A large part of what any method of the GeFL-
+F family loses under a long tail is in its last layer, and an exact readout
+recovers it for every member of the family (Table 7). The dierence between
+FedECS-LT and the strongest baseline is therefore smaller with the readout
+than without it; we report both, and the comparison with the readout is the
+one that measures the representation.
+
+Limitations..
+    The extractor is small and frozen, as in GeFL-F, and shared by all
+     clients, so the clients' architectures dier only in their heads; we did
+     not study pre-trained or larger extractors, or clients with dierent back-
+     bones.
+
+    The splits are pure label skew (Section 3); feature and concept shift
+     between clients are not tested.
+
+
+                                                         24
+                                                                                Head            Medium            Tail
+
+
+             70
+
+             60
+
+             50
+Recall (%)
+
+
+
+
+             40
+
+             30
+
+             20
+
+             10
+
+             0
+                                          -F          x                     S          F       l         o              en                           g
+                              -LT     FL            ma      dL
+                                                                 C
+                                                                       dR         dD         ca       rot       GP             dG
+                                                                                                                                    H
+                                                                                                                                                  Av       RL
+                         CS                      oft      Fe         Fe         Fe         Lo      dP        dT      dG      Fe                ed        dM
+                    dE              Ge         S                                                 Fe        Fe      Fe                      F           Fe
+                  Fe                       ce
+                                             d                                                                                      L   G-
+                                       lan
+                                    Ba
+
+
+Figure 6: Recall of the head (30% most frequent), medium and tail (40% least frequent)
+classes, per method (CIFAR-10-LT, imbalance ratio 100, 10 clients; mean ± one standard
+deviation over seeds 35).
+
+
+               Three seeds per setting give fragile intervals and paired tests; the tests
+                are reported with Holm's correction, and dierences of about a point
+                should be read with that in mind.
+
+               In the main setting each architecture has one client (K = 10); settings
+                with several clients per architecture are covered only by Table 13.
+
+               Secure aggregation hides each client's contribution from an honest-but-
+                curious server, but the released federation-level sums are not dieren-
+                tially private: for classes with few samples they describe those samples
+                closely. FedECS-LT should not be called privacy-preserving beyond
+                that protocol guarantee.
+
+               Some settings were run with fewer than three seeds; their tables say so
+                and carry no interval.
+
+               FedECS-LT costs more than GeFL-F (Table 14), mainly through
+                the longer synthetic phase, and we did not compare the methods at
+                matched computation or communication.
+
+               The gate threshold F0 and the other settings of Table 4 were xed
+                before these runs and not swept.
+
+                                                                                           25
+Table 9: Balanced accuracy (%), heads as trained, on datasets with natural class imbalance
+(training sets capped at 20,000 images); mean ± standard deviation over seeds 35 (a value
+without ± is from one seed). 10 clients with ten dierent head architectures, Dirichlet
+α = 0.5.
+Method             DermaMNIST    OrganAMNIST   BloodMNIST    PathMNIST    EMNIST (ByClass)   FER-2013
+FedECS-LT          36.8 ± 0.8     83.7 ± 2.5   84.2 ± 2.0 61.9 ± 3.2            62.1         30.9 ± 1.5
+GeFL-F              27.3 ± 0.3    76.9 ± 3.5    78.5 ± 2.2   55.2 ± 2.3         49.8         27.5 ± 0.2
+Balanced Softmax    28.6 ± 0.1    68.1 ± 4.8    69.9 ± 3.8   54.6 ± 2.2         45.6         26.6 ± 0.4
+FedLC               26.0 ± 0.7    63.9 ± 4.4    66.5 ± 3.9   51.9 ± 2.6         42.1         25.7 ± 0.2
+FedRS               26.0 ± 0.6    63.5 ± 4.4    66.0 ± 3.9   52.6 ± 1.4         41.4         25.7 ± 0.3
+FedDF               20.5 ± 1.4    64.7 ± 6.1    70.6 ± 7.5   48.2 ± 1.2         47.2         25.7 ± 0.3
+Local               25.3 ± 0.5    63.5 ± 4.2    63.6 ± 3.6   49.3 ± 3.4         41.4         25.2 ± 0.5
+FedProto            25.5 ± 1.5    58.6 ± 4.1    65.4 ± 4.5   54.0 ± 0.8         39.4         20.8 ± 0.5
+FedTGP              24.7 ± 1.0    50.7 ± 3.9    59.5 ± 2.4   49.8 ± 1.3         34.8         20.6 ± 0.7
+FedGen              26.0 ± 0.6    60.1 ± 5.1    64.1 ± 3.2   51.7 ± 0.5         32.2         24.4 ± 0.5
+FedGH               27.1 ± 0.2    61.8 ± 4.2    65.9 ± 3.6   53.8 ± 1.2         38.7         24.7 ± 0.4
+LG-FedAvg           26.8 ± 0.4    62.6 ± 4.3    65.9 ± 3.2   53.3 ± 1.2         38.5         24.7 ± 0.6
+FedMRL              27.1 ± 0.3    64.2 ± 4.3    67.2 ± 3.5   53.7 ± 1.0         42.1         25.9 ± 0.5
+
+
+
+
+     With one model shared by all clients, end-to-end long-tail methods
+      such as FedYoYo, FedLoGe and CCVR are clearly stronger (Table 10);
+      FedECS-LT is designed for clients with dierent models and has no
+      advantage when their models can be averaged.
+
+     The absolute accuracy of the main setting is low. GeFL's au-
+      thors note that GeFL-F is less eective on CIFAR-10 because of
+      the lower performance of its feature extractor and target networks
+      there [8]. In GeFL's own setting (a balanced training set divided
+      evenly among 10 clients) our earlier implementation of GeFL-F
+      reaches 56.8% on CIFAR-10 (59.3% with GeFL's best-round mea-
+      sure; GeFL reports 55.9%) but only 12.5% on CIFAR-100, so on
+      CIFAR-100 the level is set by the design and the data budget, and
+      on CIFAR-10 the long tail costs most of the dierence, and the same
+      extractor and heads trained on all the training data pooled reach
+      [main/cifar10/Centralised (pooled data)/bal] on CIFAR-10-LT
+      and [main/cifar100/Centralised (pooled data)/bal] on CIFAR-
+      100-LT ([main/cifar10/Centralised (pooled data)/er_bal] and
+      [main/cifar100/Centralised (pooled data)/er_bal] with the
+      exact readout), the ceiling of this design. These numbers are not
+      comparable with centralised long-tail results for ResNet-32 and larger
+      networks.
+
+
+
+                                                 26
+Table 10: Balanced accuracy (%) with one ResNet-8 shared by all clients (FedLTLib
+protocol: 20 clients, 40% per round, 200 rounds, Dirichlet α = 0.5); mean ± standard
+deviation over the seeds that came back (seeds 35; a value without ± is from one seed).
+Baselines in the authors' LongTailLib code on the same client splits, evaluated after the
+last round. Fed-GraB: accuracy of its own trained classier as logged by the library.
+                      Method           CIFAR-10      CIFAR-100
+                      FedECS-LT       61.3 ± 1.8         34.1
+                      FedLC           58.3 ± 1.9      32.8 ± 0.1
+                      FedAvg          61.0 ± 1.8      33.2 ± 0.3
+                      FedProx         54.4 ± 1.6      31.2 ± 0.4
+                      MOON            59.9 ± 1.9      33.4 ± 0.2
+                      CCVR            68.0 ± 1.2      35.8 ± 0.1
+                      CReFF           56.8 ± 2.3      28.1 ± 0.0
+                      FedETF          65.3 ± 4.3      32.8 ± 0.2
+                      Fed-GraB        49.4 ± 2.4      27.8 ± 0.1
+                      FedLoGe         66.7 ± 2.9         39.4
+                      FedYoYo         78.1 0.9 42.6 0.5
+                                           ±               ±
+                      RUCR            54.0 ± 1.6      32.9 ± 0.2
+
+
+9. Conclusion
+    Generator-based model-heterogeneous federated learning loses rare
+classes in three places: the optimiser's treatment of clients that lack a class,
+a last layer tted to one client's prior, and synthetic features that do not
+carry their label. Each can be described precisely, and each can be repaired
+with class statistics that secure aggregation computes up to its quantisa-
+tion. FedECS-LT, which applies these repairs together, improves balanced
+accuracy and in particular the recall of the rarest classes when clients have
+dierent models; with one model shared by all clients, end-to-end long-tail
+methods remain stronger. Its code, logs and every gure's data are public.
+
+CRediT authorship contribution statement
+   [Author 1]: Conceptualization, Methodology, Software, Investigation,
+Writing  original draft. [Author 2]: Supervision, Writing  review & editing.
+[Use the CRediT roles that apply to each author.]
+
+
+
+
+                                           27
+                        40
+Balanced accuracy (%)
+
+
+
+
+                        30
+
+
+
+                        20
+
+
+
+                        10
+
+
+
+                        0
+                             0         25    50        75       100       125   150        175        200
+                                                               Round
+                                 FedECS-LT   FedAvg         MOON       CReFF    Fed-GraB         FedYoYo
+                                 FedLC       FedProx        CCVR       FedETF   FedLoGe          RUCR
+
+
+Figure 7: Test balanced accuracy over the communication rounds with one shared ResNet-
+8 (CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round; mean over seeds 35).
+For FedECS-LT the rounds are those of the extractor and then of the head.
+
+
+Declaration of competing interest
+    The authors declare that they have no known competing nancial inter-
+ests or personal relationships that could have appeared to inuence the work
+reported in this paper.
+
+Funding
+    [Funding: name the grant and agency, or write: This research did not
+receive any specic grant from funding agencies in the public, commercial,
+or not-for-prot sectors.]
+
+Data and code availability
+    The code of FedECS-LT and of every compared method as run here,
+the notebooks, every run's logs and metrics and the data of every gure are
+available at [repository URL, e.g. a GitHub release with a DOI from Zenodo].
+All datasets used are public (Section 6.1).
+
+
+
+
+                                                              28
+Table 11: Variants of GeFL-F: balanced accuracy (%), heads as trained; mean ± standard
+deviation over seeds 35 (imbalance ratio 100, 10 clients, Dirichlet α = 0.5).
+     Method                                       CIFAR-10-LT            CIFAR-100-LT
+     FedECS-LT                                                                  
+     GeFL-F                                                                     
+     GeFL-F w/o generator                                                       
+     GeFL-F + LA                                                                
+     GeFL-F w/ Gaussian generator + LA                                          
+     FedDF                                                                      
+     FedDF + LA                                                                 
+                        Placeholder: table slot abl_bal (GUIDE.md)
+
+
+
+Table 12: Components of FedECS-LT: balanced accuracy (%) as trained and with the
+exact readout (ER) when one component is removed; mean ± standard deviation over
+seeds 35 (imbalance ratio 100, 10 clients).
+                                                  CIFAR-10-LT            CIFAR-100-LT
+   Variant                                       as trained ER           as trained ER
+   FedECS-LT (full)                                                               
+   w/o mean anchor (class rows, CCWA)                                             
+   w/o CCWA (at averaging)                                                       
+   w/o moment correction                                                          
+   w/o consensus soft labels                                                      
+   w/o logit adjustment                                                           
+   Ts = 1 instead of 10                                                           
+                     Placeholder: table slot abl_components (GUIDE.md)
+
+
+
+
+Declaration of generative AI and AI-assisted technologies in the
+writing process
+    During the preparation of this work the authors used [name of the tool]
+in order to [e.g. write and test parts of the experiment code, draft and edit
+passages of the text]. After using this tool, the authors reviewed and edited
+the content as needed and take full responsibility for the content of the pub-
+lication.
+
+
+
+
+                                            29
+Table 13: Balanced accuracy (%) of FedECS-LT and the strongest baselines under other
+settings (CIFAR-10-LT unless stated); mean ± standard deviation over seeds 35.
+                                     Dirichlet α      Clients K        Imbalance ratio
+          Method                     0.1    1.0       50 100           50      10
+          FedECS-LT                                                        
+          [strongest baseline 1]                                           
+          [strongest baseline 2]                                           
+          GeFL-F                                                           
+                           Placeholder: table slot robust (GUIDE.md)
+
+
+
+Table 14: Cost on CIFAR-10-LT (imbalance ratio 100, 10 clients): communication per
+client over the whole training, wall-clock time of one run on one T4 GPU, forward MFLOPs
+per image and training GFLOPs per round; mean over seeds 35.
+ Method             Comm./client (MB)      Time (s)       MFLOPs/img       Train. GFLOPs/round
+ FedECS-LT            11,278 ± 113       7,910 ± 2,253          2.45            1,424 ± 112
+ GeFL-F                   8,659           7,025 ± 446           2.45             579 ± 42
+ Balanced Softmax         60.8              542 ± 99            2.45            485 34±
+ FedLC                     60.8          501 ± 1.2e+02          2.45            485 34±
+ FedRS                     60.8          417 1.3e+02
+                                             ±                  2.45            485 34±
+ FedDF                    8,659          5,050 ± 2,736          2.45             579 ± 42
+ Local                      -               536 ± 98              -                   -
+ FedProto                  18.8           4,025 ± 109           2.45              485 ± 34
+ FedTGP                    18.8           4,121 ± 218           2.45              485 ± 34
+ FedGen                    128           4,443 ± 1,033          2.45             485 ± 34
+ FedGH                     18.8           3,149 ± 103           2.45              485 ± 34
+ LG-FedAvg                 18.8           2,890 ± 212           2.45              485 ± 34
+ FedMRL                   17.1            4,545 ± 804           3.84              871 ± 34
+
+
+
+Acknowledgments
+    [Acknowledgments: computing resources, colleagues who helped.                             Or
+delete.]
+
+References
+ [1] H. B. McMahan, E. Moore, D. Ramage, S. Hampson, B. Agüera y Arcas,
+     Communication-ecient learning of deep networks from decentralized
+     data, in: Proceedings of the 20th International Conference on Articial
+     Intelligence and Statistics (AISTATS), Vol. 54 of PMLR, 2017, pp. 1273
+     1282.
+
+
+                                              30
+                                                                     0 airplane     5 dog
+                                                                     1 automobile   6 frog
+                                                                     2 bird         7 horse
+                                                                     3 cat          8 ship
+                                                                     4 deer         9 truck
+t-SNE 2
+
+
+
+
+                     t-SNE 1                                     t-SNE 1
+                        (a)                                         (b)
+
+
+Figure 8: t-SNE [58] of the test embeddings of (a) GeFL-F and (b) FedECS-LT on the
+same 2,000 test images of CIFAR-10-LT (one architecture, seed 3; PCA to 50 dimensions,
+PCA initialisation, perplexity 30 [59]). Tail classes are drawn larger. Cluster sizes and
+distances between clusters are not interpretable.
+
+
+     [2] P. Kairouz, H. B. McMahan, et al., Advances and open problems in
+         federated learning, Foundations and Trends in Machine Learning 14 (1
+         2) (2021) 1210.
+
+     [3] Y. Tan, G. Long, L. Liu, T. Zhou, Q. Lu, J. Jiang, C. Zhang, FedProto:
+         Federated prototype learning across heterogeneous clients, in: Proceed-
+         ings of the AAAI Conference on Articial Intelligence, Vol. 36, 2022, pp.
+         84328440.
+
+     [4] J. Zhang, Y. Liu, Y. Hua, J. Cao, FedTGP: Trainable global proto-
+         types with adaptive-margin-enhanced contrastive learning for data and
+         model heterogeneity in federated learning, in: Proceedings of the AAAI
+         Conference on Articial Intelligence, Vol. 38, 2024.
+
+     [5] Z. Zhu, J. Hong, J. Zhou, Data-free knowledge distillation for hetero-
+         geneous federated learning, in: Proceedings of the 38th International
+         Conference on Machine Learning (ICML), Vol. 139 of PMLR, 2021.
+
+     [6] L. Yi, G. Wang, X. Liu, Z. Shi, H. Yu, FedGH: Heterogeneous federated
+
+
+                                           31
+                                             0 airplane     6 frog
+                                             1 automobile   7 horse
+                                             2 bird         8 ship
+                                             3 cat          9 truck
+                                             4 deer         Real
+                                             5 dog          Generated
+
+
+                    t-SNE 2
+
+
+
+
+                                           t-SNE 1
+
+
+Figure 9: Real validation features (circles) and features generated by FedECS-LT (crosses)
+on CIFAR-10-LT, embedded together by t-SNE (seed 3; same settings as Fig. 8). Cluster
+sizes and distances between clusters are not interpretable.
+
+
+     learning with generalized global header, in: Proceedings of the 31st
+     ACM International Conference on Multimedia (MM), 2023.
+
+ [7] L. Yi, H. Yu, C. Ren, G. Wang, X. Liu, X. Li, Federated model het-
+     erogeneous matryoshka representation learning, in: Advances in Neural
+     Information Processing Systems (NeurIPS), Vol. 37, 2024.
+
+ [8] H. Kang, S. Cha, J. Kang, GeFL: Model-agnostic federated learn-
+     ing with generative models, IEEE Transactions on Mobile Computin-
+     gArXiv:2412.18460 (2025).
+
+ [9] X. Shang, Y. Lu, G. Huang, H. Wang, Federated learning on heteroge-
+     neous and long-tailed data via classier re-training with federated fea-
+     tures, in: Proceedings of the 31st International Joint Conference on
+     Articial Intelligence (IJCAI), 2022.
+
+[10] Z. Xiao, Z. Chen, S. Liu, H. Wang, Y. Feng, J. Hao, J. T. Zhou, J. Wu,
+     H. H. Yang, Z. Liu, Fed-GraB: Federated long-tailed learning with self-
+     adjusting gradient balancer, in: Advances in Neural Information Pro-
+     cessing Systems (NeurIPS), Vol. 36, 2023.
+
+
+                                           32
+[11] Z. Xiao, Z. Chen, L. Liu, Y. Feng, J. Wu, W. Liu, J. T. Zhou, H. H. Yang,
+     Z. Liu, FedLoGe: Joint local and generic federated learning under long-
+     tailed data, in: International Conference on Learning Representations
+     (ICLR), 2024.
+
+[12] S. Yan, Z. Li, C. Wu, M. Pang, Y. Lu, Y. Yan, H. Wang, You are your
+     own best teacher: Achieving centralized-level performance in federated
+     learning under heterogeneous and long-tailed data, in: Proceedings of
+     the IEEE/CVF International Conference on Computer Vision (ICCV),
+     2025, pp. 27502759.
+
+[13] W. Huang, Y. Liu, M. Ye, J. Chen, B. Du, Federated learning with
+     long-tailed data via representation unication and classier rectication,
+     IEEE Transactions on Information Forensics and Security 19 (2024).
+
+[14] D. P. Kingma, J. Ba, Adam: A method for stochastic optimization, in:
+     International Conference on Learning Representations (ICLR), 2015.
+
+[15] A. K. Menon, S. Jayasumana, A. S. Rawat, H. Jain, A. Veit, S. Kumar,
+     Long-tail learning via logit adjustment, in: International Conference on
+     Learning Representations (ICLR), 2021.
+
+[16] J. Zhang, Z. Li, B. Li, J. Xu, S. Wu, S. Ding, C. Wu, Federated learning
+     with label distribution skew via logits calibration, in: Proceedings of the
+     39th International Conference on Machine Learning (ICML), Vol. 162
+     of PMLR, 2022.
+
+[17] X.-C. Li, D.-C. Zhan, FedRS: Federated learning with restricted softmax
+     for label distribution non-IID data, in: Proceedings of the 27th ACM
+     SIGKDD Conference on Knowledge Discovery and Data Mining (KDD),
+     2021.
+
+[18] J. Ren, C. Yu, S. Sheng, X. Ma, H. Zhao, S. Yi, H. Li, Balanced meta-
+     softmax for long-tailed visual recognition, in: Advances in Neural Infor-
+     mation Processing Systems (NeurIPS), Vol. 33, 2020, pp. 41754186.
+
+[19] K. Bonawitz, V. Ivanov, B. Kreuter, A. Marcedone, H. B. McMahan,
+     S. Patel, D. Ramage, A. Segal, K. Seth, Practical secure aggregation
+     for privacy-preserving machine learning, in: Proceedings of the ACM
+     SIGSAC Conference on Computer and Communications Security (CCS),
+     2017, pp. 11751191.
+
+                                      33
+[20] J. H. Bell, K. A. Bonawitz, A. Gascón, T. Lepoint, M. Raykova, Secure
+     single-server aggregation with (poly)logarithmic overhead, in: Proceed-
+     ings of the ACM SIGSAC Conference on Computer and Communica-
+     tions Security (CCS), 2020, pp. 12531269.
+
+[21] M. Luo, F. Chen, D. Hu, Y. Zhang, J. Liang, J. Feng, No fear of hetero-
+     geneity: Classier calibration for federated learning with non-IID data,
+     in: Advances in Neural Information Processing Systems (NeurIPS),
+     Vol. 34, 2021, pp. 59725984.
+
+[22] E. Fanì, R. Camoriano, B. Caputo, M. Ciccone, Accelerating heteroge-
+     neous federated learning with closed-form classiers, in: Proceedings of
+     the 41st International Conference on Machine Learning (ICML), Vol.
+     235 of PMLR, 2024.
+
+[23] G. Legate, N. Bernier, L. Page-Caccia, E. Oyallon, E. Belilovsky, Guid-
+     ing the last layer in federated learning with pre-trained models, in: Ad-
+     vances in Neural Information Processing Systems (NeurIPS), Vol. 36,
+     2023.
+
+[24] Z. Niu, H. Dong, A. K. Qin, Bridging generalization gap of heteroge-
+     neous federated clients using generative models, in: International Con-
+     ference on Learning Representations (ICLR), 2026.
+
+[25] D. J. Beutel, T. Topal, A. Mathur, X. Qiu, J. Fernandez-Marques,
+     Y. Gao, L. Sani, K. H. Li, T. Parcollet, P. P. B. de Gusmão, N. D.
+     Lane, Flower: A friendly federated learning research framework, arXiv
+     preprint arXiv:2007.14390 (2020).
+
+[26] J. Zhang, X. Wu, Y. Zhou, X. Sun, Q. Cai, Y. Liu, Y. Hua, Z. Zheng,
+     J. Cao, Q. Yang, HtFLlib: A comprehensive heterogeneous federated
+     learning library and benchmark, in: Proceedings of the 31st ACM
+     SIGKDD Conference on Knowledge Discovery and Data Mining (KDD),
+     2025.
+
+[27] C. Lin, J. Wang, FedLTLib: A comprehensive benchmark for federated
+     long-tail learning, arXiv preprint arXiv:2609.15625 (2026).
+
+[28] D. Li, J. Wang, FedMD: Heterogenous federated learning via model
+     distillation, arXiv preprint arXiv:1910.03581 (2019).
+
+
+                                     34
+[29] T. Lin, L. Kong, S. U. Stich, M. Jaggi, Ensemble distillation for robust
+     model fusion in federated learning, in: Advances in Neural Information
+     Processing Systems (NeurIPS), Vol. 33, 2020, pp. 23512363.
+
+[30] P. P. Liang, T. Liu, L. Ziyin, N. B. Allen, R. P. Auerbach, D. Brent,
+     R. Salakhutdinov, L.-P. Morency, Think locally, act globally: Fed-
+     erated learning with local and global representations, arXiv preprint
+     arXiv:2001.01523 (2020).
+
+[31] L. Zhang, L. Shen, L. Ding, D. Tao, L.-Y. Duan, Fine-tuning global
+     model via data-free knowledge distillation for non-IID federated learn-
+     ing, in: Proceedings of the IEEE/CVF Conference on Computer Vision
+     and Pattern Recognition (CVPR), 2022.
+
+[32] Z. Li, X. Shang, R. He, T. Lin, C. Wu, No fear of classier biases: Neural
+     collapse inspired federated learning with synthetic and xed classier, in:
+     Proceedings of the IEEE/CVF International Conference on Computer
+     Vision (ICCV), 2023.
+
+[33] H.-Y. Chen, W.-L. Chao, On bridging generic and personalized feder-
+     ated learning for image classication, in: International Conference on
+     Learning Representations (ICLR), 2022.
+
+[34] F. X. Yu, A. S. Rawat, A. K. Menon, S. Kumar, Federated learning with
+     only positive labels, in: Proceedings of the 37th International Conference
+     on Machine Learning (ICML), Vol. 119 of PMLR, 2020.
+
+[35] Y. Cui, M. Jia, T.-Y. Lin, Y. Song, S. Belongie, Class-balanced loss
+     based on eective number of samples, in: Proceedings of the IEEE/CVF
+     Conference on Computer Vision and Pattern Recognition (CVPR), 2019,
+     pp. 92689277.
+
+[36] B. Kang, S. Xie, M. Rohrbach, Z. Yan, A. Gordo, J. Feng, Y. Kalantidis,
+     Decoupling representation and classier for long-tailed recognition, in:
+     International Conference on Learning Representations (ICLR), 2020.
+
+[37] I. Loshchilov, F. Hutter, Decoupled weight decay regularization, in: In-
+     ternational Conference on Learning Representations (ICLR), 2019.
+
+
+
+
+                                      35
+[38] M. Shahbazi, M. Danelljan, D. P. Paudel, L. Van Gool, Collapse by
+     conditioning: Training class-conditional GANs with limited data, in:
+     International Conference on Learning Representations (ICLR), 2022.
+
+[39] S. Ravuri, O. Vinyals, Classication accuracy score for conditional gen-
+     erative models, in: Advances in Neural Information Processing Systems
+     (NeurIPS), Vol. 32, 2019.
+
+[40] F. Harder, K. Adamczewski, M. Park, DP-MERF: Dierentially private
+     mean embeddings with random features for practical privacy-preserving
+     data generation, in: Proceedings of the 24th International Conference
+     on Articial Intelligence and Statistics (AISTATS), Vol. 130 of PMLR,
+     2021.
+
+[41] T. Li, A. K. Sahu, M. Zaheer, M. Sanjabi, A. Talwalkar, V. Smith,
+     Federated optimization in heterogeneous networks, in: Proceedings of
+     Machine Learning and Systems (MLSys), Vol. 2, 2020, pp. 429450.
+
+[42] Q. Li, B. He, D. Song, Model-contrastive federated learning, in: Pro-
+     ceedings of the IEEE/CVF Conference on Computer Vision and Pattern
+     Recognition (CVPR), 2021, pp. 1071310722.
+
+[43] T.-M. H. Hsu, H. Qi, M. Brown, Measuring the eects of non-identical
+     data distribution for federated visual classication, arXiv preprint
+     arXiv:1909.06335 (2019).
+
+[44] K. Sohn, H. Lee, X. Yan, Learning structured output representation
+     using deep conditional generative models, in: Advances in Neural Infor-
+     mation Processing Systems (NeurIPS), Vol. 28, 2015.
+
+[45] C. Fang, H. He, Q. Long, W. J. Su, Exploring deep neural networks via
+     layer-peeled model: Minority collapse in imbalanced training, Proceed-
+     ings of the National Academy of Sciences 118 (43) (2021) e2103091118.
+
+[46] D. Soudry, E. Hoer, M. S. Nacson, S. Gunasekar, N. Srebro, The im-
+     plicit bias of gradient descent on separable data, Journal of Machine
+     Learning Research 19 (70) (2018) 157.
+
+[47] A. K. Menon, A. S. Rawat, S. Reddi, S. Kim, S. Kumar, A statistical
+     perspective on distillation, in: Proceedings of the 38th International
+     Conference on Machine Learning (ICML), Vol. 139 of PMLR, 2021.
+
+                                     36
+[48] A. Krizhevsky, Learning multiple layers of features from tiny images,
+     Tech. rep., University of Toronto (2009).
+
+[49] J. Yang, R. Shi, D. Wei, Z. Liu, L. Zhao, B. Ke, H. Pster, B. Ni,
+     MedMNIST v2  a large-scale lightweight benchmark for 2D and 3D
+     biomedical image classication, Scientic Data 10 (2023) 41.
+
+[50] G. Cohen, S. Afshar, J. Tapson, A. van Schaik, EMNIST: Extending
+     MNIST to handwritten letters, in: International Joint Conference on
+     Neural Networks (IJCNN), 2017, pp. 29212926.
+
+[51] I. J. Goodfellow, D. Erhan, P. L. Carrier, A. Courville, M. Mirza,
+     B. Hamner, W. Cukierski, Y. Tang, D. Thaler, D.-H. Lee, et al., Chal-
+     lenges in representation learning: A report on three machine learning
+     contests, in: International Conference on Neural Information Processing
+     (ICONIP), Vol. 8228 of Lecture Notes in Computer Science, 2013, pp.
+     117124.
+
+[52] K. He, X. Zhang, S. Ren, J. Sun, Deep residual learning for image recog-
+     nition, in: Proceedings of the IEEE Conference on Computer Vision and
+     Pattern Recognition (CVPR), 2016, pp. 770778.
+
+[53] J. Gorodkin, Comparing two K-category assignments by a K-category
+     correlation coecient, Computational Biology and Chemistry 28 (56)
+     (2004) 367374.
+
+[54] C. Guo, G. Pleiss, Y. Sun, K. Q. Weinberger, On calibration of modern
+     neural networks, in: Proceedings of the 34th International Conference
+     on Machine Learning (ICML), Vol. 70 of PMLR, 2017, pp. 13211330.
+
+[55] M. Kull, M. Perello Nieto, M. Kängsepp, T. Silva Filho, H. Song,
+     P. Flach, Beyond temperature scaling: Obtaining well-calibrated multi-
+     class probabilities with Dirichlet calibration, in: Advances in Neural
+     Information Processing Systems (NeurIPS), Vol. 32, 2019.
+
+[56] S. Holm, A simple sequentially rejective multiple test procedure, Scan-
+     dinavian Journal of Statistics 6 (2) (1979) 6570.
+
+[57] M. Wattenberg, F. Viégas, I. Johnson, How to use t-SNE eectively,
+     Distill (2016). doi:10.23915/distill.00002.
+
+
+                                     37
+[58] L. van der Maaten, G. Hinton, Visualizing data using t-SNE, Journal of
+     Machine Learning Research 9 (2008) 25792605.
+
+[59] D. Kobak, P. Berens, The art of using t-SNE for single-cell transcrip-
+     tomics, Nature Communications 10 (2019) 5416.
+
+[60] M. Gelbrich, On a formula for the L2 Wasserstein metric between
+     measures on Euclidean and Hilbert spaces, Mathematische Nachrichten
+     147 (1) (1990) 185203.
+
+Appendix A. Proofs
+PropositionP1.. By thePtriangle inequality, ∥ K1             ≤ K1 k ∥rk,c ∥ =
+                                                    P               P
+                                                        k rk,c ∥
+∥rc ∥ + K1    k∈Hc ∆k +       / c ∆k , and the two sums are mc Ḡc and −(K −
+                             k∈H
+mc )D̄c . Equality holds if and only if all vectors are non-negative multiples of
+one another.                                                                   □
+
+Lemma 2.. A non-holder's batches contain no sample of class c, so its data
+loss does not depend√on rc and the gradient of the regularised loss is λrc .
+Adam's update η m̂/( v̂ + ϵ) is unchanged when the whole gradient sequence
+is multiplied by a > 0, up to the ϵ term, so the step does not depend on
+λ while λ|rc,j | ≫ ϵ. A client keeps its Adam state across rounds while its
+parameters are reset to the global ones, so a single step can exceed η . □
+
+The√step ratio (Eq. (1)).. Per coordinate an Adam step is ηψ with ψ =
+m̂/ v̂ ∈ [−1, 1]. A non-holder sees a decay gradient of constant sign, so
+ψ = sign(rc,j ) on each of its τk steps. A holder moves the row only on the
+τk fkc steps whose batch contains   class
+                                       P c, with |ψ| ≤ 1. Under
+                                                             P at averaging
+the drift per round is ∆rc,j = K ψh k∈Hc τk fkc − sign(rc,j ) k∈H
+                                η
+                                                                / c τk , which
+                                                                      
+
+points toward zero for every coordinate and every holder direction when
+κc < 1. The approximation neglects momentum carried between sparse
+holder steps and the drift of v̂ .                                          □
+
+Proposition 3.. (1) f + ak = W u(h) + (b + ak ), and b 7→ b + ak is a translation
+with identity Jacobian, so the gradients agree at corresponding points; induct
+over the steps. (2) αfc = w̃c⊤ u + b̃c with w̃c = αwc , b̃c = αbc ; the gradient in
+w̃c is 1/α times that in wc , so a step of size η on wc is a step of ηα2 on w̃c ,
+and the body sees the same logits.                                               □
+
+
+
+                                        38
+Proposition 4.. Addition is associative and commutative. In particular the
+class-balanced linear discriminant of Eq. (8) is computed exactly by one
+round of secure aggregation.                                            □
+Proposition 5.. C1 c (LSE(f ) − fc ) = LSE(f ) − f¯ and KL(u∥softmaxf ) =
+                  P
+− log C + LSE(f ) − f¯; expanding LSE around constant logits gives the
+quadratic term.                                                         □
+Proposition 6 (alternation, quadratic losses). Let the synthetic and real
+losses be quadratic with Hessians Hs , Hr ⪰ 0 and minimisers θs , θr , and let
+Ps = (I − ηHs )Ss , Pr = (I − ηHr )Sr for Ss synthetic and Sr real steps per
+round. If ∥Pr Ps ∥ < 1, the rounds converge to θ⋆ = θr + Ω(θs − θr ) with
+Ω = (I − Pr Ps )−1 Pr (I − Ps ). For commuting Hessians the synthetic weight
+along eigendirection i is ωi = ρr,i (1 − ρs,i )/(1 − ρr,i ρs,i ) ≤ ρr,i , which equals
+one along directions the real loss leaves free.
+   Proof. One round is the ane map θ 7→ Pr Ps θ + Pr (I − Ps )θs + (I − Pr )θr ,
+a contraction when ∥Pr Ps ∥ < 1; its xed point has the stated form. With
+commuting Hessians all matrices are diagonal in a common eigenbasis.   □
+Proposition 7 (what a mean anchor can express). Let the class-c sampler be
+Xc = ReLU(µc + g(Z, Aµc )) with Z shared across classes and g L-Lipschitz
+in its second argument. Then W1 (Gc , Gc′ ) ≤ (1 + L∥A∥2 )∥µc − µc′ ∥.
+   Proof. Couple both classes through the same Z ; ReLU is 1-Lipschitz.
+                                                                     √ □
+   In units of the within-class spread, the class means are on average 2F
+apart; when F is small the anchored generator cannot separate the classes,
+which is why the gate of Section 5.2 falls back to class rows.
+Proposition 8 (least-displacement moment correction). Among all maps T
+with E T (X) = µc and E∥T (X)q− µc ∥2 = Vc , where X has mean mc and
+spread Ṽc , the map T ⋆ (x) = µc + Vc /Ṽc (x − mc ) minimises E∥T (X) − X∥2 .
+With exact covariances instead of spreads the minimiser is the linear map
+attaining the Gelbrich bound [60].
+   Proof. With Y = T (X), E∥Y −X∥2 = Vc +Ṽc +∥µc −mc ∥2 −2E⟨Y −µc , X−
+mc ⟩, and the CauchySchwarz inequality bounds  q       the last expectation by
+p
+  Vc Ṽc , with equality if and only if Y − µc = Vc /Ṽc (X − mc ). The deployed
+map adds a nal ReLU and clips the scale, so it matches the moments only
+approximately.                                                                □
+
+                                         39
+Appendix B. Experimental details
+Models.. The extractor, the ten head architectures (CNN-1 to CNN-10) and
+GeFL-F's conditional VAE follow GeFL-F [8]; heads are trained by SGD with
+learning rate 0.1. Rounds of the three stages: 20/100/50 on MNIST and
+Fashion-MNIST, 50/100/100 on SVHN and 50/200/100 on CIFAR-10 and
+CIFAR-100; with natural imbalance, 20/100/50 on OrganAMNIST and EM-
+NIST and 50/100/100 on DermaMNIST, BloodMNIST, PathMNIST, GT-
+SRB and FER-2013.
+
+Reproduction check.. Before the comparison, the Flower implementation was
+checked against the original implementation on MNIST-LT and CIFAR-10-
+LT with seed 3: the client splits were identical (every client's class counts),
+every client training step matched weight for weight in unit tests, and the
+balanced accuracy of GeFL-F and FedECS-LT was within seed noise of the
+original runs (supplementary material).
+
+GeFL's own setting.. In GeFL's setting (balanced training data divided
+evenly among 10 clients, 3 seeds, our earlier implementation), GeFL-F
+reaches 56.8% on CIFAR-10 after the last round and 59.3% with GeFL's
+measure, against 55.9% reported by GeFL [8]; FedECS-LT reaches 57.8%
+and 60.0%. On CIFAR-100, which GeFL does not report, GeFL-F reaches
+12.5% and FedECS-LT 18.0%.
+
+Evaluation.. Models are evaluated every ve rounds on the test set before
+and after aggregation; the nal model is the one after the last round (no
+selection on the test or the validation set). Methods with personal heads (LG-
+FedAvg, FedGH, FedGen and the other HtFLlib methods) are scored with
+each client's head after its last local training; HtFLlib scores LG-FedAvg,
+FedGH and FedGen right after the server's update instead. FedProto and
+FedTGP classify by the distance to class prototypes; their probabilities for
+the calibration metrics are a softmax of the negative distances.
+
+Appendix C. Further results
+    Per-dataset tables of every metric are generated from the same runs (Ta-
+bles C.15 and C.16).
+
+
+
+
+                                      40
+Table C.15: CIFAR-10-LT (imbalance ratio 100, 10 clients, Dirichlet α = 0.5): main
+metrics (%), heads as trained; mean ± standard deviation over seeds 35. Tail: 40% least
+frequent classes; G-mean with recalls oored at 1%.
+Method              Bal. acc.    Macro-F1     Precision       MCC          G-mean        Tail rec.   Worst rec.   AUC-PR
+FedECS-LT          42.8 ± 2.0 40.9 ± 2.3 47.9 ± 1.2 37.3 ± 2.0 37.5 ± 2.7 31.4 ± 2.7 22.5 ± 2.2 45.5 ± 2.4
+GeFL-F              33.7 ± 1.2   26.9 ± 1.4   38.3 ± 3.3    28.2 ± 1.4    15.7 ± 1.8    13.9 ± 1.2   4.8 ± 1.1    34.0 ± 2.2
+Balanced Softmax    36.3 ± 1.2   30.4 ± 1.2   39.5 ± 2.7    30.9 ± 1.3    19.1 ± 1.6    20.0 ± 1.9   9.8 ± 1.2    36.3 ± 2.0
+FedLC               34.3 ± 1.1   27.4 ± 0.9   40.2 ± 2.8    29.0 ± 1.2    15.2 ± 0.9    16.1 ± 1.4   6.2 ± 0.2    35.4 ± 1.8
+FedRS               34.1 ± 1.1   27.2 ± 0.9   40.3 ± 2.9    28.9 ± 1.2    15.0 ± 0.9    15.7 ± 1.4   6.0 ± 0.3    35.3 ± 1.8
+FedDF               37.5 ± 1.2   30.6 ± 1.4   43.7 ± 5.1    32.1 ± 1.3    18.3 ± 1.9    10.6 ± 1.0   1.6 ± 0.8    41.5 ± 1.9
+Local               32.1 ± 0.7   25.0 ± 0.7   37.5 ± 2.3    26.8 ± 0.8    13.3 ± 0.6    14.0 ± 1.2   5.0 ± 0.7    33.9 ± 1.5
+FedProto            27.1 ± 0.8   21.0 ± 0.4   27.6 ± 0.8    20.4 ± 0.8    12.3 ± 0.5    10.7 ± 1.9   3.8 ± 3.4    26.3 ± 0.6
+FedTGP              25.3 ± 1.2   18.5 ± 1.3   26.1 ± 1.2    19.1 ± 1.0    9.9 ± 1.0     10.8 ± 1.7   4.5 ± 4.3    26.9 ± 0.6
+FedGen              26.9 ± 2.0   19.7 ± 1.7   27.3 ± 1.7    20.5 ± 2.2    10.0 ± 1.2    8.6 ± 1.1    2.3 ± 0.3    22.4 ± 2.0
+FedGH               31.9 ± 1.1   24.6 ± 1.0   35.7 ± 3.4    26.4 ± 1.3    12.8 ± 0.7    13.3 ± 0.8   3.5 ± 0.3    31.6 ± 1.7
+LG-FedAvg           31.3 ± 0.8   24.4 ± 0.5   33.7 ± 1.1    25.6 ± 0.8    13.3 ± 0.4    13.3 ± 0.6   4.3 ± 0.5    29.7 ± 0.6
+FedMRL              33.7 ± 1.0   26.7 ± 0.9   38.6 ± 3.7    28.3 ± 1.1    14.9 ± 1.0    14.9 ± 1.2   5.1 ± 1.0    32.7 ± 1.5
+
+
+
+
+                   Table C.16: CIFAR-100-LT: main metrics (%), as Table C.15.
+Method               Bal. acc.    Macro-F1      Precision        MCC        G-mean       Tail rec.   Worst rec.   AUC-PR
+FedECS-LT           14.3 ± 0.6 12.6 ± 0.5 15.7 ± 0.6 13.5 ± 0.6 7.9 ± 0.4 6.4 ± 0.3 0.2 ± 0.2 11.1 ± 0.5
+GeFL-F              7.7 ± 0.4     4.7 ± 0.3     6.0 ± 0.4     6.9 ± 0.4     2.9 ± 0.1    1.7 ± 0.1   0.0 ± 0.0    4.4 ± 0.2
+Balanced Softmax     9.0 ± 0.3    5.8 ± 0.3     7.3 ± 0.4     8.2 ± 0.3     3.3 ± 0.1    2.2 ± 0.1   0.0 ± 0.0    5.1 ± 0.3
+FedLC               8.5 ± 0.3     5.3 ± 0.2     7.7 ± 0.5     7.8 ± 0.3     3.0 ± 0.1    1.7 ± 0.1   0.0 ± 0.0    5.0 ± 0.3
+FedRS               8.5 ± 0.3     5.3 ± 0.2     7.9 ± 0.5     7.7 ± 0.3     2.9 ± 0.1    1.7 ± 0.1   0.0 ± 0.0    5.0 ± 0.3
+FedDF               10.0 ± 0.5    6.1 ± 0.3     9.7 ± 0.9     9.3 ± 0.5     3.3 ± 0.1    0.8 ± 0.1   0.0 ± 0.0    7.0 ± 0.4
+Local               7.9 ± 0.8     4.9 ± 0.6     7.3 ± 0.7     7.2 ± 0.8     2.8 ± 0.2    1.6 ± 0.2   0.0 ± 0.0    4.8 ± 0.5
+FedProto            4.8 ± 0.3     3.0 ± 0.1     3.9 ± 0.3     3.9 ± 0.3     2.2 ± 0.1    0.9 ± 0.0   0.0 ± 0.0    2.9 ± 0.1
+FedTGP              4.5 ± 0.6     2.4 ± 0.4     3.4 ± 0.5     3.7 ± 0.6     1.9 ± 0.2    1.2 ± 0.5   0.0 ± 0.0    2.8 ± 0.6
+FedGen              4.5 ± 1.3     2.6 ± 0.9     3.1 ± 0.8     3.7 ± 1.2     2.0 ± 0.3    0.7 ± 0.3   0.0 ± 0.0    2.2 ± 0.6
+FedGH               6.5 ± 0.1     3.9 ± 0.2     5.0 ± 0.5     5.7 ± 0.1     2.5 ± 0.1    1.1 ± 0.1   0.0 ± 0.0    3.5 ± 0.1
+LG-FedAvg           6.3 ± 0.1     3.7 ± 0.1     4.8 ± 0.2     5.4 ± 0.1     2.4 ± 0.0    1.0 ± 0.0   0.0 ± 0.0    3.3 ± 0.1
+FedMRL               8.3 ± 0.2    5.0 ± 0.2     6.9 ± 0.1     7.5 ± 0.2     2.9 ± 0.1    1.7 ± 0.1   0.0 ± 0.0    4.4 ± 0.1
+
+
+
+
+                                                            41
+Table C.17: GeFL's measure on the long-tailed benchmarks: each client model's best test
+accuracy (%) at GeFL's evaluation rounds of the head stage (the rst, every tenth and
+the last), averaged over the ten models, as in GeFL's code; mean ± standard deviation
+over seeds 35. The main tables report the last round instead.
+                   Method                  CIFAR-10      CIFAR-100
+                   FedECS-LT              46.1 ± 2.4 15.2 ± 0.5
+                   GeFL-F                 34.7 ± 1.3       8.4 ± 0.4
+                   Balanced Softmax       38.3 ± 1.8       9.2 ± 0.4
+                   FedLC                  34.6 ± 1.3       8.6 ± 0.3
+                   FedRS                  34.4 ± 1.3       8.5 ± 0.3
+                   FedDF                  35.6 ± 1.2       9.8 ± 0.5
+                   Local                  32.1 ± 0.7       7.9 ± 0.8
+                   FedProto               32.8 ± 1.3       7.6 ± 0.3
+                   FedTGP                 32.3 ± 1.4       7.6 ± 0.2
+                   FedGen                 32.1 ± 1.3       7.7 ± 0.2
+                   FedGH                  33.3 ± 1.4       7.8 ± 0.2
+                   LG-FedAvg              33.0 ± 1.3       7.7 ± 0.2
+                   FedMRL                 33.9 ± 1.1       8.3 ± 0.2
+
+
+
+Table C.18: Accuracy (%) on each client's own class mix (the test accuracy re-weighted
+to the class frequencies of the model's own clients), heads as trained, on the long-tailed
+benchmarks; mean ± standard deviation over seeds 35.
+                   Method                  CIFAR-10      CIFAR-100
+                   FedECS-LT              68.6 ± 1.9      31.5 ± 0.3
+                   GeFL-F                 73.0 ± 2.3      31.1 ± 0.6
+                   Balanced Softmax       72.8 ± 2.3      33.1 ± 0.7
+                   FedLC                  74.2 ± 2.1      34.7 ± 0.7
+                   FedRS                  74.2 2.1 34.8 0.8
+                                               ±               ±
+                   FedDF                  71.5 ± 2.2      32.9 ± 1.1
+                   Local                  72.7 ± 2.6      32.3 ± 2.4
+                   FedProto               61.3 ± 1.1      17.0 ± 1.3
+                   FedTGP                 62.7 ± 3.4      21.1 ± 1.3
+                   FedGen                 67.0 ± 2.7      22.0 ± 4.2
+                   FedGH                  72.6 ± 2.3      29.4 ± 0.8
+                   LG-FedAvg              71.0 ± 2.2      28.0 ± 0.4
+                   FedMRL                 73.5 ± 2.2      33.7 ± 0.7
+
+
+
+                                           42
+Table C.19: Calibration on the long-tailed benchmarks: expected calibration error (%, 15
+bins; lower is better), heads as trained; mean ± standard deviation over seeds 35.
+                   Method                 CIFAR-10     CIFAR-100
+                   FedECS-LT              37.8 ± 4.0   41.4 ± 0.9
+                   GeFL-F                 48.0 ± 2.2   42.4 ± 0.7
+                   Balanced Softmax       55.2 ± 0.9   74.3 ± 0.4
+                   FedLC                  58.1 ± 0.8   75.8 ± 0.4
+                   FedRS                  58.3 ± 0.8   76.0 ± 0.5
+                   FedDF                  35.9 ± 1.9   31.8 ± 1.2
+                   Local                  53.2 ± 3.8   69.0 ± 3.4
+                   FedProto               17.1 ± 0.8    3.8 0.3
+                                                            ±
+                   FedTGP                 8.8 2.9
+                                              ±        25.8 ± 13.3
+                   FedGen                 67.3 ± 1.7   73.9 ± 13.9
+                   FedGH                  57.3 ± 0.8   71.2 ± 0.3
+                   LG-FedAvg              61.0 ± 0.3   77.2 ± 0.2
+                   FedMRL                 60.2 ± 0.9   77.5 ± 0.5
+
+Table C.20: Fairness across clients on the long-tailed benchmarks: balanced accuracy (%)
+of the weakest head architecture, heads as trained; mean ± standard deviation over seeds
+35.
+                   Method                 CIFAR-10      CIFAR-100
+                   FedECS-LT             38.8 ± 1.9 11.7 ± 0.9
+                   GeFL-F                27.5 ± 2.4      6.0 ± 0.8
+                   Balanced Softmax      30.4 ± 0.9      7.1 ± 1.1
+                   FedLC                 28.1 ± 1.1      6.8 ± 0.9
+                   FedRS                 27.8 ± 1.1      6.8 ± 0.8
+                   FedDF                 32.2 ± 2.8      8.4 ± 1.5
+                   Local                 25.5 ± 2.6      5.1 ± 1.5
+                   FedProto              18.7 ± 3.3      3.5 ± 0.2
+                   FedTGP                16.8 ± 1.9      1.7 ± 0.7
+                   FedGen                20.5 ± 1.6      3.1 ± 1.8
+                   FedGH                 25.6 ± 2.2      5.2 ± 0.5
+                   LG-FedAvg             25.3 ± 1.1      4.9 ± 0.5
+                   FedMRL                27.4 ± 0.9      7.1 ± 0.3
+
+
+
+
+                                          43
+

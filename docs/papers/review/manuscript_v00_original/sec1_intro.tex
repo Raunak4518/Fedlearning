@@ -1,0 +1,74 @@
+\section{Introduction}\label{sec:intro}
+
+Federated learning (FL) trains a model on data that stay with their owners~\cite{mcmahan2017fedavg,kairouz2021advances}.
+Two properties of real deployments make it hard. The participants run different networks on different hardware, so
+their parameters cannot be averaged. Their label distributions differ and follow a long tail, so the rarest classes
+are held by few participants and in small numbers. Each property has its own line of work: model-heterogeneous
+FL~\cite{tan2022fedproto,zhang2024fedtgp,zhu2021fedgen,yi2023fedgh,yi2024fedmrl,kang2025gefl} lets clients with
+different architectures share knowledge through prototypes, logits, generators or shared sub-networks, and
+federated long-tailed learning~\cite{shang2022creff,xiao2023fedgrab,xiao2024fedloge,yan2025fedyoyo,huang2024rucr}
+corrects the bias that a skewed, long-tailed label distribution induces in a single shared model. Little is known
+about the two together, although most deployments that have one also have the other.
+
+We study generator-based model-heterogeneous FL, in the form of GeFL-F~\cite{kang2025gefl}. Its clients first train a
+small feature extractor by federated averaging (FedAvg) and freeze it; they then train a conditional feature generator
+by FedAvg; finally every client trains a head of its own architecture on generated features and on its own real
+features. The generator is the only channel through which an architecture learns about classes its clients lack.
+GeFL-F was evaluated on balanced clients. Under long-tailed label skew we find that it loses most of its accuracy on
+the rare classes, and we ask where.
+
+\paragraph{Where the rare classes are lost.} Because a client partition is a pure label shift, federation cannot
+bias class-conditional quantities by itself (\cref{sec:setting}); it can lose rare classes only through the optimiser,
+through parameters tied to a client's label prior, and through sample size. We locate three such losses
+(\cref{sec:analysis}).
+\begin{enumerate}
+\item \emph{The generator.} With Adam~\cite{kingma2015adam} and coupled weight decay, a client that lacks a class moves
+the generator's class-specific conditioning parameters toward zero at Adam's full step size, while the clients that
+hold the class barely grow them. Flat averaging then shrinks the rare classes' parameters round after round.
+\item \emph{The last layer.} Each head is trained on one client's real data, so its last layer fits that client's
+label prior. Per-client logit corrections (logit adjustment~\cite{menon2021la}, FedLC~\cite{zhang2022fedlc},
+FedRS~\cite{li2021fedrs}, Balanced Softmax~\cite{ren2020bsm}) are exact reparametrisations of such a head: training
+with them is plain training from a shifted initial bias, so they bring in no information about the classes the client
+lacks.
+\item \emph{The synthetic data.} When generated features do not carry their label, the synthetic phase of head
+training penalises the spread of the logits instead of teaching the missing classes.
+\end{enumerate}
+
+\paragraph{Our method.} \ours (Exact Class Statistics for Long-Tailed FL) replaces each estimate that fails by a class
+statistic that secure aggregation~\cite{bonawitz2017secagg,bell2020secaggplus} computes exactly: the per-class
+counts, sums and squared norms of the features over all clients. The generator is anchored to the exact class means
+and has no class-specific parameter for the decay to shrink; when the classes are too poorly separated for an anchor,
+a gate computed from the same statistics falls back to class-specific parameters averaged over their holders only
+(class-count weighted averaging). Generated features are rescaled to the exact class means and spreads. Heads are
+trained with logit adjustment and with consensus soft labels, the averaged prediction of all architectures on each
+generated feature. After training, every architecture's last layer is replaced by a class-balanced linear readout
+computed from aggregated sums of its embeddings. None of these statistics is new on its own: aggregated class
+statistics underlie classifier calibration~\cite{luo2021ccvr}, closed-form federated
+classifiers~\cite{fani2024fed3r,legate2023fedncm} and prototype methods~\cite{tan2022fedproto}, and statistics-conditioned
+generators have been proposed for heterogeneous clients~\cite{niu2026fedvtc}. What we add is the diagnosis of
+\emph{which} parameters fail under a long tail and the use of exact statistics at exactly those places, including a
+readout per architecture that needs statistics pooled across architectures.
+
+\paragraph{Evaluation.} We re-implemented the pipeline and every comparison in the Flower framework~\cite{beutel2020flower},
+with the published methods taken from their authors' or library code (HtFLlib~\cite{zhang2025htfllib},
+LongTailLib/FedLTLib~\cite{lin2026fedltlib}). We evaluate in two protocols: the model-heterogeneous setting of
+GeFL-F (ten client architectures; long-tailed \R{main/datasets} and, with natural class imbalance,
+\R{nat/datasets}; \R{main/nbaselines_w} other methods) and the standard federated long-tailed protocol with one
+shared ResNet-8 (\R{t2/datasets}-LT at imbalance ratio \R{t2/ratios}; \R{t2/nbaselines_w} other methods). Every
+result is the mean over three seeds with paired tests and a Holm correction, and every metric is logged per class.
+
+\paragraph{Contributions.}
+\begin{enumerate}
+\item A long-tail evaluation of generator-based model-heterogeneous FL and a stage-by-stage account of where it loses
+rare classes, with short exact results checked against measurements (\cref{sec:analysis}).
+\item \ours, which uses exact, securely aggregated class statistics in the generator, the heads and the readout
+(\cref{sec:method}).
+\item A comparison against \R{count/methods_w} published methods on \R{count/datasets_w} datasets in two protocols,
+run on the same client splits, with paired statistics, per-class metrics and the cost of every
+method (\cref{sec:results}). \claim{With different client models, \ours has the highest balanced accuracy on
+\R{main/nbest_of} long-tailed benchmarks and \R{nat/nbest_of} naturally imbalanced datasets; most of its margin comes from the last layer, and with the same exact readout for every method
+it remains \R{main/cifar10/er_margin} to \R{main/cifar100/er_margin} points ahead on the CIFAR benchmarks, a
+difference that is not significant with three seeds. With one
+shared model, end-to-end long-tail methods are stronger, and we report where and by how much.}
+\end{enumerate}
+The code, every log and every figure's data are released (\cref{sec:availability}).

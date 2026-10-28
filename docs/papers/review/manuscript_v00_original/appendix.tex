@@ -1,0 +1,152 @@
+\section{Proofs}\label{app:proofs}
+
+\paragraph{\Cref{prop:contraction}.} By the triangle inequality,
+$\|\frac1K\sum_k r_{k,c}\|\le\frac1K\sum_k\|r_{k,c}\|=\|r_c\|+\frac1K\big(\sum_{k\in H_c}\Delta_k+\sum_{k\notin
+H_c}\Delta_k\big)$, and the two sums are $m_c\bar G_c$ and $-(K-m_c)\bar D_c$. Equality holds if and only if all vectors
+are non-negative multiples of one another. \hfill$\square$
+
+\paragraph{\Cref{lem:adam}.} A non-holder's batches contain no sample of class $c$, so its data loss does not depend on
+$r_c$ and the gradient of the regularised loss is $\lambda r_c$. Adam's update $\eta\hat m/(\sqrt{\hat v}+\epsilon)$ is
+unchanged when the whole gradient sequence is multiplied by $a>0$, up to the $\epsilon$ term, so the step does not
+depend on $\lambda$ while $\lambda|r_{c,j}|\gg\epsilon$. A client keeps its Adam state across rounds while its
+parameters are reset to the global ones, so a single step can exceed $\eta$. \hfill$\square$
+
+\paragraph{The step ratio (\cref{eq:kappa}).} Per coordinate an Adam step is $\eta\psi$ with $\psi=\hat m/\sqrt{\hat
+v}\in[-1,1]$. A non-holder sees a decay gradient of constant sign, so $\psi=\mathrm{sign}(r_{c,j})$ on each of its
+$\tau_k$ steps. A holder moves the row only on the $\tau_kf_{kc}$ steps whose batch contains class $c$, with
+$|\psi|\le1$. Under flat averaging the drift per round is
+$\Delta r_{c,j}=\frac{\eta}{K}\big[\psi_h\sum_{k\in H_c}\tau_kf_{kc}-\mathrm{sign}(r_{c,j})\sum_{k\notin H_c}\tau_k\big]$,
+which points toward zero for every coordinate and every holder direction when $\kappa_c<1$. The approximation neglects
+momentum carried between sparse holder steps and the drift of $\hat v$. \hfill$\square$
+
+\paragraph{\Cref{prop:reparam}.} (1)~$f+a_k=Wu(h)+(b+a_k)$, and $b\mapsto b+a_k$ is a translation with identity
+Jacobian, so the gradients agree at corresponding points; induct over the steps. (2)~$\alpha f_c=\tilde w_c^\top
+u+\tilde b_c$ with $\tilde w_c=\alpha w_c$, $\tilde b_c=\alpha b_c$; the gradient in $\tilde w_c$ is $1/\alpha$ times
+that in $w_c$, so a step of size $\eta$ on $w_c$ is a step of $\eta\alpha^2$ on $\tilde w_c$, and the body sees the
+same logits. \hfill$\square$
+
+\paragraph{\Cref{prop:invariance}.} Addition is associative and commutative. In particular the class-balanced linear
+discriminant of \cref{eq:er} is computed exactly by one round of secure aggregation. \hfill$\square$
+
+\paragraph{\Cref{prop:variance}.} $\frac1C\sum_c(\LSE(f)-f_c)=\LSE(f)-\bar f$ and
+$\KL(u\|\mathrm{softmax}f)=-\log C+\LSE(f)-\bar f$; expanding $\LSE$ around constant logits gives the quadratic term.
+\hfill$\square$
+
+\begin{proposition}[alternation, quadratic losses]\label{prop:alternation}
+Let the synthetic and real losses be quadratic with Hessians $H_s,H_r\succeq0$ and minimisers $\theta_s,\theta_r$, and
+let $P_s=(I-\eta H_s)^{S_s}$, $P_r=(I-\eta H_r)^{S_r}$ for $S_s$ synthetic and $S_r$ real steps per round. If
+$\|P_rP_s\|<1$, the rounds converge to $\theta^\star=\theta_r+\Omega(\theta_s-\theta_r)$ with
+$\Omega=(I-P_rP_s)^{-1}P_r(I-P_s)$. For commuting Hessians the synthetic weight along eigendirection $i$ is
+$\omega_i=\rho_{r,i}(1-\rho_{s,i})/(1-\rho_{r,i}\rho_{s,i})\le\rho_{r,i}$, which equals one along directions the real loss
+leaves free.
+\end{proposition}
+\emph{Proof.} One round is the affine map $\theta\mapsto P_rP_s\theta+P_r(I-P_s)\theta_s+(I-P_r)\theta_r$, a contraction
+when $\|P_rP_s\|<1$; its fixed point has the stated form. With commuting Hessians all matrices are diagonal in a common
+eigenbasis. \hfill$\square$
+
+\begin{proposition}[what a mean anchor can express]\label{prop:w1}
+Let the class-$c$ sampler be $X_c=\mathrm{ReLU}(\mu_c+g(Z,A\mu_c))$ with $Z$ shared across classes and $g$
+$L$-Lipschitz in its second argument. Then $W_1(G_c,G_{c'})\le(1+L\|A\|_2)\|\mu_c-\mu_{c'}\|$.
+\end{proposition}
+\emph{Proof.} Couple both classes through the same $Z$; ReLU is 1-Lipschitz. \hfill$\square$
+
+In units of the within-class spread, the class means are on average $\sqrt{2F}$ apart; when $F$ is small the anchored
+generator cannot separate the classes, which is why the gate of \cref{sec:method-gen} falls back to class rows.
+
+\begin{proposition}[least-displacement moment correction]\label{prop:mc}
+Among all maps $T$ with $\E\,T(X)=\mu_c$ and $\E\|T(X)-\mu_c\|^2=V_c$, where $X$ has mean $m_c$ and spread $\tilde V_c$,
+the map $T^\star(x)=\mu_c+\sqrt{V_c/\tilde V_c}\,(x-m_c)$ minimises $\E\|T(X)-X\|^2$. With exact covariances instead of
+spreads the minimiser is the linear map attaining the Gelbrich bound~\cite{gelbrich1990}.
+\end{proposition}
+\emph{Proof.} With $Y=T(X)$, $\E\|Y-X\|^2=V_c+\tilde V_c+\|\mu_c-m_c\|^2-2\E\langle Y-\mu_c,X-m_c\rangle$, and the
+Cauchy--Schwarz inequality bounds the last expectation by $\sqrt{V_c\tilde V_c}$, with equality if and only if
+$Y-\mu_c=\sqrt{V_c/\tilde V_c}(X-m_c)$. The deployed map adds a final ReLU and clips the scale, so it matches the
+moments only approximately. \hfill$\square$
+
+\section{Experimental details}\label{app:protocol}
+
+\paragraph{Models.} The extractor, the ten head architectures (CNN-1 to CNN-10) and GeFL-F's conditional VAE follow
+GeFL-F~\cite{kang2025gefl}; heads are trained by SGD with learning rate 0.1. Rounds of the three stages: 20/100/50 on
+MNIST and Fashion-MNIST, 50/100/100 on SVHN and 50/200/100 on CIFAR-10 and CIFAR-100; with natural imbalance,
+20/100/50 on OrganAMNIST and EMNIST and 50/100/100 on DermaMNIST, BloodMNIST, PathMNIST\whennum{nat/gtsrb/FedECS-LT/bal}{,
+GTSRB} and FER-2013.
+
+\paragraph{Reproduction check.} Before the comparison, the Flower implementation was checked against the original
+implementation on MNIST-LT and CIFAR-10-LT with seed 3: the client splits were identical (every client's class counts),
+every client training step matched weight for weight in unit tests, and the balanced accuracy of GeFL-F and \ours was
+within seed noise of the original runs (supplementary material).
+
+\paragraph{GeFL's own setting.} In GeFL's setting (balanced training data divided evenly among 10 clients,
+\R{repro/cifar10/GeFL-F/seeds} seeds, our earlier implementation), GeFL-F reaches \R{repro/cifar10/GeFL-F/final}\% on
+CIFAR-10 after the last round and \R{repro/cifar10/GeFL-F/best}\% with GeFL's measure, against
+\R{repro/cifar10/published}\% reported by GeFL~\cite{kang2025gefl}; \ours reaches \R{repro/cifar10/FedECS-LT/final}\% and
+\R{repro/cifar10/FedECS-LT/best}\%. On CIFAR-100, which GeFL does not report, GeFL-F reaches
+\R{repro/cifar100/GeFL-F/final}\% and \ours \R{repro/cifar100/FedECS-LT/final}\%.
+
+\paragraph{Evaluation.} Models are evaluated every five rounds on the test set before and after aggregation; the final
+model is the one after the last round (no selection on the test or the validation set). Methods with personal
+heads (LG-FedAvg, FedGH, FedGen and the other HtFLlib methods) are scored with each client's head after its last local
+training; HtFLlib scores LG-FedAvg, FedGH and FedGen right after the server's update instead. FedProto and FedTGP classify by the distance to
+class prototypes; their probabilities for the calibration metrics are a softmax of the negative distances.
+
+\section{Further results}\label{app:more}
+
+Per-dataset tables of every metric are generated from the same runs (\cref{tab:app-cifar10,tab:app-cifar100}).
+
+\begin{widetable}[t]
+\centering\small
+\caption{CIFAR-10-LT (imbalance ratio 100, 10 clients, Dirichlet $\alpha=0.5$): main metrics (\%), heads as trained;
+mean $\pm$ standard deviation over seeds 3--5. Tail: 40\% least frequent classes; G-mean with recalls floored at 1\%.}
+\label{tab:app-cifar10}
+\slottab{main_cifar10_main}{\begin{tabular}{lcccccccc}\toprule
+Method & Bal. acc. & Macro-F1 & Precision & MCC & G-mean & Tail rec. & Worst rec. & AUC-PR\\\midrule
+\phrow{FedECS-LT}{8}\phrow{GeFL-F}{8}\phrow{[every other method]}{8}\bottomrule\end{tabular}}
+\end{widetable}
+
+\begin{widetable}[t]
+\centering\small
+\caption{CIFAR-100-LT: main metrics (\%), as \cref{tab:app-cifar10}.}
+\label{tab:app-cifar100}
+\slottab{main_cifar100_main}{\begin{tabular}{lcccccccc}\toprule
+Method & Bal. acc. & Macro-F1 & Precision & MCC & G-mean & Tail rec. & Worst rec. & AUC-PR\\\midrule
+\phrow{FedECS-LT}{8}\phrow{GeFL-F}{8}\phrow{[every other method]}{8}\bottomrule\end{tabular}}
+\end{widetable}
+
+\begin{widetable}[t]
+\centering\small
+\caption{GeFL's measure on the long-tailed benchmarks: each client model's best test accuracy (\%) at GeFL's
+evaluation rounds of the head stage (the first, every tenth and the last), averaged over the ten models, as in GeFL's
+code; mean $\pm$ standard deviation over seeds 3--5. The main tables report the last round instead.}
+\label{tab:app-gefl}
+\slottab{main_gefl}{\begin{tabular}{lccccc}\toprule
+Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
+\phrow{FedECS-LT}{5}\phrow{GeFL-F}{5}\phrow{[every other method]}{5}\bottomrule\end{tabular}}
+\end{widetable}
+
+\begin{widetable}[t]
+\centering\small
+\caption{Accuracy (\%) on each client's own class mix (the test accuracy re-weighted to the class frequencies of the
+model's own clients), heads as trained, on the long-tailed benchmarks; mean $\pm$ standard deviation over seeds 3--5.}
+\label{tab:app-local}
+\slottab{main_local}{\begin{tabular}{lccccc}\toprule
+Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
+\phrow{FedECS-LT}{5}\phrow{GeFL-F}{5}\phrow{[every other method]}{5}\bottomrule\end{tabular}}
+\end{widetable}
+
+\begin{widetable}[t]
+\centering\small
+\caption{Calibration on the long-tailed benchmarks: expected calibration error (\%, 15 bins; lower is better), heads
+as trained; mean $\pm$ standard deviation over seeds 3--5.}
+\label{tab:app-calib}
+\slottab{main_ece}{\begin{tabular}{lccccc}\toprule
+Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
+\phrow{FedECS-LT}{5}\phrow{GeFL-F}{5}\phrow{[every other method]}{5}\bottomrule\end{tabular}}
+
+\vspace{6pt}
+\caption{Fairness across clients on the long-tailed benchmarks: balanced accuracy (\%) of the weakest head
+architecture, heads as trained; mean $\pm$ standard deviation over seeds 3--5.}
+\label{tab:app-worstarch}
+\slottab{main_worst_arch}{\begin{tabular}{lccccc}\toprule
+Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
+\phrow{FedECS-LT}{5}\phrow{GeFL-F}{5}\phrow{[every other method]}{5}\bottomrule\end{tabular}}
+\end{widetable}
