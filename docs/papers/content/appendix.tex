@@ -125,6 +125,16 @@ Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
 
 \begin{widetable}[t]
 \centering\small
+\caption{Accuracy (\%) on each client's own class mix (the test accuracy re-weighted to the class frequencies of the
+model's own clients), heads as trained, on the long-tailed benchmarks; mean $\pm$ standard deviation over seeds 3--5.}
+\label{tab:app-local}
+\slottab{main_local}{\begin{tabular}{lccccc}\toprule
+Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
+\phrow{FedECS-LT}{5}\phrow{GeFL-F}{5}\phrow{[every other method]}{5}\bottomrule\end{tabular}}
+\end{widetable}
+
+\begin{widetable}[t]
+\centering\small
 \caption{Calibration on the long-tailed benchmarks: expected calibration error (\%, 15 bins; lower is better), heads
 as trained; mean $\pm$ standard deviation over seeds 3--5.}
 \label{tab:app-calib}

@@ -42,8 +42,8 @@ F=\frac{\frac1C\sum_c\|\mu_c-\bar\mu\|^2}{\frac1C\sum_c V_c},\qquad \bar\mu=\fra
 \end{equation}
 from the released statistics. If $F\ge F_0=0.05$ (a threshold fixed during the method's development, before the runs reported here, and not
 swept) it uses the mean-anchored generator; otherwise it uses GeFL-F's
-generator with class rows averaged by CCWA (\cref{eq:ccwa}). \claim{On our datasets $F$ ranges from \R{gate/F/min}
-to \R{gate/F/max}; the gate chose class rows on \R{gate/rows}.}
+generator with class rows averaged by CCWA (\cref{eq:ccwa}). \claim{On our datasets $F$ ranges from \R{gate/F/min_all}
+to \R{gate/F/max_all}; the gate chose class rows on \R{gate/rows_all}.}
 
 \paragraph{Mean anchor.} The anchored generator models only the within-class residual around the exact mean,
 \begin{equation}\label{eq:anchor}

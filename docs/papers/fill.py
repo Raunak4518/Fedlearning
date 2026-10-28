@@ -47,11 +47,13 @@ REFS = {"Centralised (pooled data)"}
 # number slots per method: (short name in the key, runs.jsonl key)
 METRICS = [("bal", "final_bal"), ("er_bal", "er_bal"), ("f1", "final_f1"), ("tail", "final_tail"),
            ("worst", "final_worst"), ("mcc", "final_mcc"), ("gmean", "final_gmean"), ("ece", "final_ece"),
-           ("worst_arch", "final_worst_arch"), ("er_tail", "er_tail")]
+           ("worst_arch", "final_worst_arch"), ("er_tail", "er_tail"), ("local", "final_local"),
+           ("gefl", "gefl_best_acc"), ("gefl_drop", "gefl_drop")]
 # tables across settings: (slot suffix, runs.jsonl key)
 ACROSS = [("bal", "final_bal"), ("er", "er_bal"), ("f1", "final_f1"), ("tail", "final_tail"),
           ("worst", "final_worst"), ("ece", "final_ece"), ("worst_arch", "final_worst_arch"),
-          ("gefl", "gefl_best_acc")]   # GeFL's measure: every model's best round (fedecs_lt/gefl_measure.py)
+          ("gefl", "gefl_best_acc"),   # GeFL's measure: every model's best round (fedecs_lt/gefl_measure.py)
+          ("local", "final_local")]   # accuracy on each model's own clients' class mix
 LOWER = {"final_ece"}
 
 
@@ -107,6 +109,8 @@ def load_runs():
                 r["_folder"] = os.path.basename(os.path.dirname(f))
                 if r["run_id"] in gefl:
                     r["gefl_best_acc"] = gefl[r["run_id"]]["gefl_best_acc"]
+                    if gefl[r["run_id"]].get("gefl_last_acc") is not None:   # lost after the best round
+                        r["gefl_drop"] = r["gefl_best_acc"] - gefl[r["run_id"]]["gefl_last_acc"]
                 runs[r["run_id"]] = r
     return list(runs.values())
 
@@ -327,6 +331,9 @@ def fill_group(g, E, nums, made, status):
             nums[f"{g}/{s}/margin"] = signed(others[st][0])
             if f"{g}/{s}/{st}/nzero" in nums:
                 nums[f"{g}/{s}/strongest_nzero"] = nums[f"{g}/{s}/{st}/nzero"]
+            for short, _ in METRICS:   # every metric of the strongest other method
+                if f"{g}/{s}/{st}/{short}" in nums:
+                    nums[f"{g}/{s}/strongest/{short}"] = nums[f"{g}/{s}/{st}/{short}"]
             nums[f"{g}/{s}/margin_seeds"] = and_list([str(x) for x in others[st][1]])
             pt_ = paired(E, S, "final_bal").get(st)   # paired over seeds, Holm-corrected over all methods
             if pt_:
@@ -340,6 +347,31 @@ def fill_group(g, E, nums, made, status):
             if pt_:
                 nums[f"{g}/{s}/er_strongest_p"] = f"{pt_[4]:.2g}"
                 nums[f"{g}/{s}/er_strongest_ci"] = f"[{pt_[1] - pt_[2]:+.1f}, {pt_[1] + pt_[2]:+.1f}]"
+    mg = {S: matched(E, S, "final_bal") for S in settings}
+    mg = {S: min(v[0] for m, v in d.items() if m != "Local") for S, d in mg.items() if any(m != "Local" for m in d)}
+    if mg:   # range of the margin over the strongest other method across the settings, with each end's dataset
+        for end, S in (("lo", min(mg, key=mg.get)), ("hi", max(mg, key=mg.get))):
+            n = len(E.of(OURS, S))
+            nums[f"{g}/margin_{end}"] = signed(mg[S])
+            nums[f"{g}/margin_{end}_ds"] = tex(pt.column_name(S, settings)) + (", one seed" if n == 1 else "")
+    if g == "t2":   # the strongest method at imbalance ratio 100 on both datasets, in one phrase
+        pair = [S for S in settings if round(1 / S[1]) == 100]
+        st = {S: min(((m, v) for m, v in matched(E, S, "final_bal").items() if m != "Local"),
+                     key=lambda x: x[1][0], default=None) for S in pair}
+        if len(pair) == 2 and all(st.values()):
+            (m1, (d1, _)), (m2, (d2, _)) = st[pair[0]], st[pair[1]]
+            who = f"the strongest method, {m1}, is" if m1 == m2 else f"the strongest methods, {m1} and {m2}, are"
+            side = lambda d: "behind" if d >= 0 else "ahead of"   # d = ours minus theirs
+            gap = (f"{abs(d1):.1f} and {abs(d2):.1f} points {side(d1)}" if side(d1) == side(d2) else
+                   f"{abs(d1):.1f} points {side(d1)} \\ours on {tex(pt.column_name(pair[0], settings))} and "
+                   f"{abs(d2):.1f} points {side(d2)}")
+            nums["t2/r100/strongest_phrase"] = tex(who) + " " + gap
+    above = None   # methods above FedECS-LT on their clients' own class mixes in every setting (common seeds)
+    for S in settings:
+        d = {m for m, (v, _) in matched(E, S, "final_local").items() if v < 0}
+        above = d if above is None else above & d
+    if above is not None:
+        nums[f"{g}/local_above"] = tex(and_list([m for m in E.methods if m in above])) if above else "no method"
     sr = [x for r in E.runs if r["label"] == OURS for x in (r.get("spread_ratio") or [])]
     if sr:   # generated over exact within-class spread after the moment correction, every class and run
         nums[f"{g}/mc_spread_lo"], nums[f"{g}/mc_spread_med"], nums[f"{g}/mc_spread_hi"] = (
@@ -385,6 +417,14 @@ def fill_extras(E_by, nums, made):
         nums["gate/F/min"], nums["gate/F/max"] = f"{min(F):.3f}", f"{max(F):.3f}"
         rows_ds = sorted({DATASETS[r["dataset"]]["name"] for r in T1 if r.get("gate_branch") == "rows"})
         nums["gate/rows"] = tex(", ".join(rows_ds)) if rows_ds else "none of them"
+    T = [r for r in ours_runs if r.get("class_sep_F") is not None]
+    if T:   # both tracks (the shared ResNet-8 features of track 2 are a different feature space)
+        F = [r["class_sep_F"] for r in T]
+        nums["gate/F/min_all"], nums["gate/F/max_all"] = f"{min(F):.3f}", f"{max(F):.3f}"
+        name = lambda r: DATASETS[r["dataset"]]["name"] + (
+            "-LT with one shared model" if DATASETS[r["dataset"]].get("track") == 2 else "")
+        rows_all = sorted({name(r) for r in T if r.get("gate_branch") == "rows"})
+        nums["gate/rows_all"] = tex(and_list(rows_all)) if rows_all else "none of them"
     labels = {r["label"] for E in allE for r in E.runs}
     published = labels - {OURS, DIAG, "Local"} - REFS - set(bn.ABLATIONS) - {"FedDF + LA"}
     nums["count/methods"] = str(len(published))

@@ -106,7 +106,7 @@ in an illustrative model with quadratic losses (the heads are nonlinear and trai
 converges to a point where the synthetic data decide exactly the directions that
 the client's real loss leaves free (\cref{app:proofs}), which are the directions of the absent classes. Logit
 adjustment keeps the real phase from pushing the absent classes' logits down without bound~\cite{soudry2018implicit}.
-\whenfig{fig_spread}{\claim{\Cref{fig:spread} shows the first effect on the real pipeline: in every round the
+\whenfig{fig_spread}{\claim{\Cref{fig:spread} shows the first effect on the real pipeline: in every round on CIFAR-10-LT the
 synthetic phase reduces the spread of the heads' logits on the clients' real features, and it reduces it less for
 \ours than for GeFL-F.}}
 
