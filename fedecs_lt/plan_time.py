@@ -89,7 +89,38 @@ def run_parts(r):
 ALONE_SPEEDUP = 0.75   # assumed (not measured): a run alone on its GPU takes 75% of its time when sharing it
 
 
-def simulate(runs, workers=WORKERS, alone=False):
+def _measured():
+    """Measured run times (s) of the one-shared-model runs that came back, by (dataset, IF, method): mean over the
+    returned runs (two runs per GPU). Used where the image-count model above is far off (CIFAR-100: CReFF, FedLoGe,
+    Fed-GraB and FedYoYo cost grows with the classes, not only the images; FedLoGe took 11.4 h, planned 3.8 h)."""
+    import glob
+    import json
+    import os
+    out = {}
+    for f in glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), "results", "NB20_*", "runs.jsonl")):
+        for line in open(f):
+            if line.strip():
+                r = json.loads(line)
+                if r.get("time_s"):
+                    out.setdefault((r["dataset"], round(1 / r["IF"]), r["label"]), []).append(r["time_s"])
+    return {k: sum(v) / len(v) for k, v in out.items()}
+
+
+MEASURED = _measured()
+
+
+def calibrated_seconds(r):
+    """A one-shared-model run's time: measured if this (dataset, IF, method) came back; else the model's estimate
+    times the measured/estimated ratio of the same method on the same dataset at another IF (or 1)."""
+    m, ds, IF = r["label"], r["ds"], round(1 / r["IF"])
+    est = run_parts(r)[1]
+    if (ds, IF, m) in MEASURED:
+        return MEASURED[(ds, IF, m)]
+    ratios = [t / run_parts(dict(r, IF=1 / i))[1] for (d, i, mm), t in MEASURED.items() if d == ds and mm == m]
+    return est * (sum(ratios) / len(ratios) if ratios else 1.0)
+
+
+def simulate(runs, workers=WORKERS, alone=False, calibrated=False):
     """Wall-clock seconds of a run list on `workers` workers sharing cached stages (list scheduling in queue order)."""
     free = [0.0] * workers
     done_at = {}           # shared stage -> time it is available
@@ -97,6 +128,8 @@ def simulate(runs, workers=WORKERS, alone=False):
         w = min(range(workers), key=lambda i: free[i])
         t = free[w]
         shared, own = run_parts(r)
+        if calibrated and r["ds"].endswith("_t2"):
+            own = calibrated_seconds(r)
         if alone:
             shared, own = [(k, c * ALONE_SPEEDUP) for k, c in shared], own * ALONE_SPEEDUP
         for key, cost in shared:
@@ -109,8 +142,10 @@ def simulate(runs, workers=WORKERS, alone=False):
     return max(free) + SETUP_S
 
 
-def hours(runs, per_gpu=2):
-    return simulate(runs, workers=2 * per_gpu, alone=per_gpu == 1) / 3600.0
+def hours(runs, per_gpu=2, calibrated=False):
+    """Estimated session hours. The notebooks were split with the uncalibrated model (calibrated=False keeps their
+    split unchanged); the run sheet and the reruns use measured times where they exist (calibrated=True)."""
+    return simulate(runs, workers=2 * per_gpu, alone=per_gpu == 1, calibrated=calibrated) / 3600.0
 
 
 def split_track1(runs, methods_pipe, methods_htfl, seeds):

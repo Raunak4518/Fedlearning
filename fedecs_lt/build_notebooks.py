@@ -366,9 +366,11 @@ def rerun_notebooks(nbs):
             missing[name] = miss
 
     def chunks(runs):     # in queue order, as many runs per notebook as fit one session
+        # longest first, so that a long run (FedLoGe on CIFAR-100: 11 h when sharing a GPU) starts at once
+        runs = sorted(runs, key=lambda r: -plan_time.hours([r], per_gpu=1, calibrated=True))
         out = [[]]
         for r in runs:
-            if out[-1] and plan_time.hours(out[-1] + [r], per_gpu=1) > plan_time.BUDGET_H:
+            if out[-1] and plan_time.hours(out[-1] + [r], per_gpu=1, calibrated=True) > plan_time.BUDGET_H:
                 out.append([])
             out[-1].append(r)
         return out
@@ -388,7 +390,7 @@ def rerun_notebooks(nbs):
                 what=(f"{len(runs)} runs" if len(runs) > 1 else "The run") + f" of {name} that did not finish there"
                      + (f" (part {i} of {len(parts)})" if len(parts) > 1 else "") + ", one run per GPU. Merge with "
                      "that notebook's results.",
-                runs=runs, per_gpu=1, hours=plan_time.hours(runs, per_gpu=1))
+                runs=runs, per_gpu=1, hours=plan_time.hours(runs, per_gpu=1, calibrated=True))
     t2 = [(name, r) for name, miss in missing.items() for r in miss if shared(r)]
     for runs in (chunks([r for _, r in t2]) if t2 else []):
         ids = {run_id(r) for r in runs}
@@ -399,7 +401,8 @@ def rerun_notebooks(nbs):
         out[name] = dict(title="One shared model (FedLTLib protocol): runs that did not finish",
                          what=f"Runs that did not finish in {', '.join(srcs)}: {what}. One run per GPU. Merge each "
                               "with its notebook's results.",
-                         runs=runs, acceptance=False, per_gpu=1, group=name, hours=plan_time.hours(runs, per_gpu=1))
+                         runs=runs, acceptance=False, per_gpu=1, group=name,
+                         hours=plan_time.hours(runs, per_gpu=1, calibrated=True))
     return out
 
 

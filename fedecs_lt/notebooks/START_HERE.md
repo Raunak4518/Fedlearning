@@ -12,7 +12,7 @@ When results come back: `docs/papers/GUIDE.md`, section 0 (file them with fetch_
 
 Expected hours are estimates from NB00's measured run times (fedecs_lt/plan_time.py); a notebook starts no new run after 11 h and always saves what has finished.
 
-**56 notebooks to run, about 371 session-hours in total.**
+**57 notebooks to run, about 378 session-hours in total.**
 
 ## Run order
 The notebooks are in one folder per priority. Folder 1 first (the paper's main tables), then 2, 3, 4; folder 0 is done. Any free account takes the next notebook from the lowest-numbered folder still open. Folder 5 holds reruns of runs that failed in returned notebooks: run them whenever an account is free (they complete experiments whose other runs came back).
@@ -91,12 +91,13 @@ The notebooks are in one folder per priority. Folder 1 first (the paper's main t
 | [NB20_track2_cifar10_IF050_s3_part2of2.ipynb](4_one_shared_model_IF050_IF010_and_long_runs/NB20_track2_cifar10_IF050_s3_part2of2.ipynb) | One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 50, 20 clients, 40% per round, seed 3: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 2 of 2: MOON (LongTailLib), CReFF (LongTailLib), FedLoGe (LongTailLib), FedProx (LongTailLib), FedAvg (LongTailLib), FedETF (LongTailLib); seed 3. | 6 | 9.1 | `NB20_track2_cifar10_IF050_s3_part2of2__summary.zip`, `NB20_track2_cifar10_IF050_s3_part2of2__report.pdf` |
 | [NB29_track2_long_runs_1.ipynb](4_one_shared_model_IF050_IF010_and_long_runs/NB29_track2_long_runs_1.ipynb) | Runs that need a GPU each to finish within one session: FedYoYo (LongTailLib) on CIFAR-10-LT, imbalance ratio 10, seed 3; FedYoYo (LongTailLib) on CIFAR-100-LT, imbalance ratio 10, seed 3. | 2 | 8.7 | `NB29_track2_long_runs_1__summary.zip`, `NB29_track2_long_runs_1__report.pdf` |
 
-### Priority 5: [`5_reruns_of_failed_runs/`](5_reruns_of_failed_runs/) (2 notebooks, about 13 session-hours)
+### Priority 5: [`5_reruns_of_failed_runs/`](5_reruns_of_failed_runs/) (3 notebooks, about 20 session-hours)
 
 | Notebook | What it runs | Runs | Expected hours | Send back |
 |---|---|---|---|---|
-| [NB10_main_emnist_rerun_7bfd7d.ipynb](5_reruns_of_failed_runs/NB10_main_emnist_rerun_7bfd7d.ipynb) | 26 runs of NB10_main_emnist that did not finish there, one run per GPU. Merge with that notebook's results. | 26 | 8.3 | `NB10_main_emnist_rerun_7bfd7d__summary.zip`, `NB10_main_emnist_rerun_7bfd7d__report.pdf` |
-| [NB20_track2_rerun_2120c8.ipynb](5_reruns_of_failed_runs/NB20_track2_rerun_2120c8.ipynb) | Runs that did not finish in NB20_track2_cifar100_IF010_s3_part1of3, NB20_track2_cifar10_IF010_s3_part2of3, NB20_track2_cifar10_IF100_s3_part1of2: FedECS-LT, CIFAR-10-LT ratio 10, seed 3; FedECS-LT (extractor 200 rounds), CIFAR-10-LT ratio 100, seed 3; FedECS-LT, CIFAR-100-LT ratio 10, seed 3. One run per GPU. Merge each with its notebook's results. | 3 | 5.0 | `NB20_track2_rerun_2120c8__summary.zip`, `NB20_track2_rerun_2120c8__report.pdf` |
+| [NB10_main_emnist_rerun_7bfd7d.ipynb](5_reruns_of_failed_runs/NB10_main_emnist_rerun_7bfd7d.ipynb) | 26 runs of NB10_main_emnist that did not finish there, one run per GPU. Merge with that notebook's results. | 26 | 7.8 | `NB10_main_emnist_rerun_7bfd7d__summary.zip`, `NB10_main_emnist_rerun_7bfd7d__report.pdf` |
+| [NB20_track2_rerun_2a90fa.ipynb](5_reruns_of_failed_runs/NB20_track2_rerun_2a90fa.ipynb) | Runs that did not finish in NB20_track2_cifar100_IF100_s3_part1of2, NB20_track2_cifar10_IF100_s3_part1of2: FedECS-LT, CIFAR-100-LT ratio 100, seed 3; FedECS-LT (extractor 200 rounds), CIFAR-10-LT ratio 100, seed 3. One run per GPU. Merge each with its notebook's results. | 2 | 3.0 | `NB20_track2_rerun_2a90fa__summary.zip`, `NB20_track2_rerun_2a90fa__report.pdf` |
+| [NB20_track2_rerun_f2bb89.ipynb](5_reruns_of_failed_runs/NB20_track2_rerun_f2bb89.ipynb) | Runs that did not finish in NB20_track2_cifar100_IF010_s3_part1of3, NB20_track2_cifar100_IF100_s3_part2of2, NB20_track2_cifar10_IF010_s3_part2of3: FedLoGe (LongTailLib), CIFAR-100-LT ratio 100, seed 3; FedECS-LT, CIFAR-100-LT ratio 10, seed 3; FedECS-LT, CIFAR-10-LT ratio 10, seed 3. One run per GPU. Merge each with its notebook's results. | 3 | 9.0 | `NB20_track2_rerun_f2bb89__summary.zip`, `NB20_track2_rerun_f2bb89__report.pdf` |
 
 ### Priority 6: [`6_robustness_sweeps/`](6_robustness_sweeps/) (6 notebooks, about 28 session-hours)
 
