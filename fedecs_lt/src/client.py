@@ -206,8 +206,12 @@ def load_gen(msg, context):
     F_ = feats_of(cfg, fed)
     k = ("sampler", cfg["sampler_key"])
     if k not in STATE:
-        for old in [x for x in STATE if x[0] == "sampler"]:
+        # Stage II is over: its every-client Adam states and local generator copies are never used again; they held
+        # about 5.5 GB of a T4 through Stage III (CIFAR-100, one shared model, 20 clients)
+        for old in [x for x in STATE if x[0] in ("sampler", "gen")]:
             del STATE[old]
+        if DEV == "cuda":
+            torch.cuda.empty_cache()
         shape = tuple(F_["te"].shape[1:])
         spec = spec_of(cfg)
         if cfg["gen"]["type"] == "gauss":
@@ -291,14 +295,18 @@ def pool_slice(cfg, sm, o, n):
         if DEV == "cuda":    # one shared model, ratio 10; 27 Oct 2026). The values drawn are unchanged.
             torch.cuda.empty_cache()
         L = pool_chunk_size(cfg, sm)
-        xs, ys = [], []
+        xs = ys = None   # the slice is written chunk by chunk into one tensor, so at most one chunk is alive at a time
         for j in range(o // L, (o + n - 1) // L + 1):
             px, py = pool_chunk(cfg, sm, j)
             a, b = max(o, j * L) - j * L, min(o + n, (j + 1) * L) - j * L
-            xs.append(px[a:b])
-            ys.append(py[a:b])
+            if xs is None:
+                xs = torch.empty((n,) + tuple(px.shape[1:]), dtype=px.dtype, device=px.device)
+                ys = torch.empty((n,), dtype=py.dtype, device=py.device)
+            s = j * L + a - o
+            xs[s:s + b - a] = px[a:b]
+            ys[s:s + b - a] = py[a:b]
             del px, py
-        sm["pool"].update(key=key, xy=(torch.cat(xs), torch.cat(ys)))
+        sm["pool"].update(key=key, xy=(xs, ys))
     return sm["pool"]["xy"]
 
 
@@ -522,7 +530,7 @@ def eval_heads(msg, context):
         for g in groups:
             heads[g].fc.weight.data.copy_(lw[f"{g}|W"])
             heads[g].fc.bias.data.copy_(lw[f"{g}|b"])
-    out = {}
+    out, probs = {}, {}
     for split in cfg.get("splits", ["test"]):
         X, y = (F_["te"], fed.y_te) if split == "test" else (F_["val"], fed.y_val)
         priors = arch_priors(fed.counts, fed.arch, groups)
@@ -531,13 +539,15 @@ def eval_heads(msg, context):
                                         embed=cfg.get("embed", False) and split == "test")
         res = dict(summary=summ, per_arch={str(g): {kk: v for kk, v in m.items() if kk != "probs"} for g, m in per.items()})
         if cfg.get("probs") and split == "test":
-            res["probs"] = {str(g): m["probs"].tolist() for g, m in per.items()}
+            # float16 arrays (the precision save_run stores) instead of JSON lists of floats: EMNIST's 116,323 x 62
+            # x 10 values took several GB of host memory per evaluation (Ray killed the process, Kaggle, 26 Oct 2026)
+            probs = {str(g): torch.from_numpy(m["probs"]).half() for g, m in per.items()}
         if emb:
             sub = np.random.RandomState(0).choice(len(y), min(2000, len(y)), replace=False)
             res["embed"] = {str(g): e[sub].tolist() for g, e in emb.items()}
             res["embed_y"] = fed.y_te.cpu().numpy()[sub].tolist()
         out[split] = res
-    return reply(msg, out)
+    return reply(msg, out, probs=probs) if probs else reply(msg, out)
 
 
 @app.evaluate("stage1")

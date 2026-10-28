@@ -145,6 +145,29 @@ def code_version():
     return f"{commit} / sources sha256 {h.hexdigest()[:16]}"
 
 
+def queue_order(runs):
+    """Runs that reuse the generator another run of the queue trains (FedDF reuses GeFL-F's: same setting, seed and
+    generator, one cache entry) go after every other run, keeping their order. Placed right after it, FedDF started
+    while GeFL-F was still training and held a worker idle until the generator was saved (5,686 s and 5,821 s in
+    NB10_main_cifar10_part1of3, Kaggle, 26 Oct 2026). Only the schedule changes, never a run's computation."""
+    sys.path.insert(0, SRC)
+    from runner import method_spec
+
+    def gen_of(r):
+        spec = method_spec(r["label"])
+        if spec.get("pipeline") != "gefl" or not spec.get("gen"):
+            return None
+        return json.dumps([r["ds"], r["seed"], r["IF"], r["alpha"], r["K"], r.get("pfrac", 1.0),
+                           r.get("tail_perm", False), spec["gen"], bool(spec.get("stats"))], sort_keys=True)
+    seen, first, later = set(), [], []
+    for r in runs:
+        g = gen_of(r)
+        (later if g is not None and g in seen else first).append(r)
+        if g is not None:
+            seen.add(g)
+    return first + later
+
+
 def notebook(name, nb):
     work = "/tmp/fedecs/work"
     runs = []
@@ -155,6 +178,7 @@ def notebook(name, nb):
     # runs ordered by (dataset, seed); the 4 workers (2 per GPU) take them from this queue in order; runs that share a
     # cached stage wait for whichever worker trains it first (lock files), so no stage is trained twice
     runs.sort(key=lambda r: (r["ds"], r["seed"]))
+    runs = queue_order(runs)
     n_runs = len(runs)
     cells = [md(
         f"# {nb['title']}\n\n"
@@ -163,7 +187,9 @@ def notebook(name, nb):
         f"(Kaggle's limit is 12 h; no new run starts after 11 h, and finished runs are always saved).\n\n"
         "## Before you start (once)\n"
         "1. Right panel → **Settings** → **Accelerator** → **GPU T4 x2**.\n"
-        "2. **Settings** → **Internet** → **On**.\n\n"
+        "2. **Settings** → **Internet** → **On**.\n"
+        "3. Do not edit any cell (above all the run cell's `--gpus 2 --per_gpu 2`: one edited copy ran on one worker of "
+        "four and took 9.9 h).\n\n"
         "## How to run\n"
         "**Save Version** → **Save & Run All (Commit)** → **Save**. You can close the tab.\n\n"
         "## What to send back\n"
@@ -461,7 +487,7 @@ def main():
             "notebook can be run now.", "",
             "## For each person (5 minutes)",
             "1. Kaggle → **Create** → **New Notebook** → **File** → **Import Notebook** → upload your `.ipynb`.",
-            "2. Right panel → **Settings**: **Accelerator = GPU T4 x2**, **Internet = On**.",
+            "2. Right panel → **Settings**: **Accelerator = GPU T4 x2**, **Internet = On**. Do not edit any cell.",
             "3. Top right: **Save Version** → **Save & Run All (Commit)** → **Save**. You can close the tab.",
             "4. When the version shows a green tick: open it → **Output** → download the four files. Send back "
             "`NAME__summary.zip` and `NAME__report.pdf` (small); keep `NAME__results.zip` and `NAME__models.zip` "

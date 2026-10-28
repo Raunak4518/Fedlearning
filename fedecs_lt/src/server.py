@@ -114,7 +114,11 @@ def eval_heads(S, hd_sd, feat_key, splits=("test",), probs=False, embed=False, l
         named["lastlayer"] = lastlayer
     rec = pack(S.base(fe_key=feat_key, splits=list(splits), probs=probs, embed=embed), **named)
     rep = S.ask("evaluate.heads", [(S.nid[0], rec)], account=False)
-    return cfg_of(rep[0].content)
+    out = cfg_of(rep[0].content)
+    pr = arrays_of(rep[0].content, "probs")
+    if pr is not None:
+        out["test"]["probs"] = {g: v.numpy() for g, v in pr.items()}
+    return out
 
 
 def flat(prefix, summ):

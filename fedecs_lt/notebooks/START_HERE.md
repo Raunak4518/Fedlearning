@@ -4,7 +4,7 @@
 
 ## For each person (5 minutes)
 1. Kaggle → **Create** → **New Notebook** → **File** → **Import Notebook** → upload your `.ipynb`.
-2. Right panel → **Settings**: **Accelerator = GPU T4 x2**, **Internet = On**.
+2. Right panel → **Settings**: **Accelerator = GPU T4 x2**, **Internet = On**. Do not edit any cell.
 3. Top right: **Save Version** → **Save & Run All (Commit)** → **Save**. You can close the tab.
 4. When the version shows a green tick: open it → **Output** → download the four files. Send back `NAME__summary.zip` and `NAME__report.pdf` (small); keep `NAME__results.zip` and `NAME__models.zip` (large: predictions and weights) on Google Drive.
 

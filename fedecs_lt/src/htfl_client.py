@@ -222,6 +222,7 @@ def htfl_eval(msg, context):
     out = {}
     prior = fed.counts[k] / max(fed.counts[k].sum(), 1)     # own-mix accuracy: the client's own class mix
     m = class_metrics(logits, fed.y_te, fed.C, prior=prior, keep_probs=cfg.get("probs", False))
+    pr = m.pop("probs", None)   # sent as a float16 array (the precision saved), not as a JSON list
     out["test"] = {kk: (v.tolist() if hasattr(v, "tolist") else v) for kk, v in m.items()}
     lv = predict(cfg, st, F_["val"], srv)
     lv = torch.where(torch.isfinite(lv), lv, torch.full_like(lv, -1e9))
@@ -237,4 +238,6 @@ def htfl_eval(msg, context):
     weights = {f"model.{n}": v for n, v in st["model"].state_dict().items()}
     if "proj" in st:
         weights.update({f"proj.{n}": v for n, v in st["proj"].state_dict().items()})
+    if pr is not None:
+        return reply(msg, out, model=weights, probs=dict(p=torch.from_numpy(pr).half()))
     return reply(msg, out, model=weights)

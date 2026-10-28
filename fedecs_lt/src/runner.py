@@ -159,6 +159,18 @@ def needs_whole_gpu(R):
     return R["label"].startswith("FedECS-LT") and DATASETS.get(R["ds"], {}).get("track") == 2
 
 
+def _alive(pid):
+    """A waiting run's process still exists (a process killed outright leaves its .want file behind, which would
+    otherwise block every shared run on that GPU until the deadline)."""
+    try:
+        os.kill(int(pid), 0)
+        return True
+    except PermissionError:
+        return True
+    except (ValueError, ProcessLookupError):
+        return False
+
+
 class GpuShare:
     """The GPU of this worker (CUDA_VISIBLE_DEVICES): runs that need all of it take it exclusively, the others share
     it. A run waiting for exclusive use keeps new shared runs from starting there, so it is not starved. Only the
@@ -180,7 +192,10 @@ class GpuShare:
             fcntl.flock(self.f, fcntl.LOCK_EX)
         else:
             import glob
-            while glob.glob(self.path + ".want.*"):
+            while True:
+                waiting = [w for w in glob.glob(self.path + ".want.*") if _alive(w.rsplit(".", 1)[-1])]
+                if not waiting:
+                    break
                 time.sleep(5)
             fcntl.flock(self.f, fcntl.LOCK_SH)
         return self
@@ -218,6 +233,14 @@ def execute(R, attempt=0):
                     os.remove(lk)
             except OSError:
                 pass
+    import gc   # the server side of every run lives in this worker process: free its memory before the next run
+    gc.collect()
+    try:
+        import torch
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+    except Exception:
+        pass
     if os.environ.get("FEDECS_PACK_OUT"):   # protect finished work against a timeout
         try:
             import pack
@@ -238,6 +261,18 @@ def main():
     if args.worker is not None:
         return worker_main(args)
     n = max(1, args.gpus * args.per_gpu) if args.gpus else max(1, args.per_gpu)
+    # a hand-edited run cell ('--gpus 1 --per_gpu 1' in NB10_main_cifar100_part1of2, Kaggle, 26 Oct 2026) ran every
+    # run one after another on one of the two GPUs: say how many workers start, and warn when GPUs stay unused
+    try:
+        import torch
+        found = torch.cuda.device_count()
+    except Exception:
+        found = 0
+    print(f"runner: {n} worker(s) on {args.gpus or 'no'} GPU(s), {args.per_gpu} run(s) per GPU; GPUs found: {found}",
+          flush=True)
+    if found > args.gpus:
+        print(f"WARNING: {found - args.gpus} GPU(s) will stay idle: the run cell asks for --gpus {args.gpus}. "
+              "Use the notebook as downloaded from the repository (never edit its run cell).", flush=True)
     # a new start of the queue: claims of an earlier, interrupted start are void (finished runs are skipped anyway)
     shutil.rmtree(os.path.join(os.path.dirname(os.path.abspath(args.runs)), "claims"), ignore_errors=True)
     procs, threads = [], []

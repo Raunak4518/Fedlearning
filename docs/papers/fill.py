@@ -176,6 +176,27 @@ def paired(E, S, key):
     return {r[0]: (r[1], r[2], r[3], r[4], a) for r, a in zip(rows, adj)}
 
 
+def matched(E, S, key, exclude=()):
+    """FedECS-LT minus each method on `key` (points), averaged over the seeds both have: {method: (difference,
+    seeds)}. Means over different seed sets are not comparable (some methods came back with fewer seeds), so every
+    best / strongest / margin statement uses this."""
+    ours = {r["seed"]: r.get(key) for r in E.of(OURS, S)}
+    out = {}
+    for m in E.methods:
+        if m in (OURS, DIAG) or m in exclude:
+            continue
+        other = {r["seed"]: r.get(key) for r in E.of(m, S)}
+        common = [x for x in sorted(set(ours) & set(other)) if ours[x] is not None and other[x] is not None]
+        if common:
+            out[m] = (100 * float(np.mean([ours[x] - other[x] for x in common])), common)
+    return out
+
+
+def ours_best(E, S):
+    d = matched(E, S, "final_bal")
+    return bool(d) and min(v for v, _ in d.values()) >= -1e-9
+
+
 def mean_of(E, m, key, S):
     return plots.metric(E, m, key, S)[0]
 
@@ -235,7 +256,11 @@ def fill_group(g, E, nums, made, status):
         seeds = sorted({r["seed"] for r in rs})
         ms = sorted({r["label"] for r in rs})
         status.append(f"- {cap.setting_text(S).rstrip('.')}: {len(ms)} methods, seeds {seeds}"
-                      + ("" if len(seeds) >= 3 or (g == "t2" and S[1] != 0.01) else "  **(fewer than 3 seeds)**"))
+                      + ("" if len(seeds) >= 3 else "  **(fewer than 3 seeds)**"))
+        per = {m: sorted({r["seed"] for r in rs if r["label"] == m}) for m in ms}
+        short = {m: x for m, x in per.items() if x != seeds}
+        if short:   # comparisons use each method's seeds in common with FedECS-LT (matched)
+            status.append("  - methods with fewer seeds: " + "; ".join(f"{m} {x}" for m, x in sorted(short.items())))
     status.append("")
     for S in settings:
         s = sid(S)
@@ -253,21 +278,23 @@ def fill_group(g, E, nums, made, status):
                 nums[f"{g}/{s}/{pre}diff/{m}"] = signed(d)
                 nums[f"{g}/{s}/{pre}ci/{m}"] = f"[{d - half:+.1f}, {d + half:+.1f}]"
                 nums[f"{g}/{s}/{pre}p/{m}"] = f"{ph:.3g}"
+        d = matched(E, S, "final_bal")   # FedECS-LT minus each method over common seeds
         means = {m: mean_of(E, m, "final_bal", S) for m in E.methods if m not in (DIAG,)}
         means = {m: v for m, v in means.items() if not np.isnan(v)}
-        if means:
+        if d:
+            nums[f"{g}/{s}/best"] = tex(OURS if ours_best(E, S) else min(d, key=lambda m: d[m][0]))
+        elif means:
             nums[f"{g}/{s}/best"] = tex(max(means, key=means.get))
-        others = {m: v for m, v in means.items() if m not in (OURS, "Local")}
-        if OURS in means and others:
-            st = max(others, key=others.get)
+        others = {m: v for m, v in d.items() if m != "Local"}
+        if others:
+            st = min(others, key=lambda m: others[m][0])
             nums[f"{g}/{s}/strongest"] = tex(st)
-            nums[f"{g}/{s}/margin"] = signed(100 * (means[OURS] - others[st]))
-        ers = {m: mean_of(E, m, "er_bal", S) for m in E.methods if m not in (DIAG, "Local")}
-        ers = {m: v for m, v in ers.items() if not np.isnan(v)}
-        if OURS in ers and len(ers) > 1:   # the same comparison with every last layer replaced by the exact readout
-            st = max((m for m in ers if m != OURS), key=ers.get)
+            nums[f"{g}/{s}/margin"] = signed(others[st][0])
+        ers = matched(E, S, "er_bal", exclude=("Local",))
+        if ers:   # the same comparison with every last layer replaced by the exact readout
+            st = min(ers, key=lambda m: ers[m][0])
             nums[f"{g}/{s}/er_strongest"] = tex(st)
-            nums[f"{g}/{s}/er_margin"] = signed(100 * (ers[OURS] - ers[st]))
+            nums[f"{g}/{s}/er_margin"] = signed(ers[st][0])
     with_ours = [S for S in settings if not np.isnan(mean_of(E, OURS, "final_bal", S))]
     nums[f"{g}/nsettings"] = str(len(with_ours))
     nums[f"{g}/nsettings_w"] = word(len(with_ours))
@@ -281,10 +308,7 @@ def fill_group(g, E, nums, made, status):
     if g == "t2":
         ratios = sorted({int(round(1 / S[1])) for S in settings}, reverse=True)
         nums["t2/ratios"] = and_list([str(x) for x in ratios])
-    nums[f"{g}/nbest"] = str(sum(
-        1 for S in with_ours
-        if mean_of(E, OURS, "final_bal", S) >= max(mean_of(E, m, "final_bal", S) for m in E.methods
-                                                   if m != DIAG and not np.isnan(mean_of(E, m, "final_bal", S)))))
+    nums[f"{g}/nbest"] = str(sum(1 for S in with_ours if ours_best(E, S)))
     # tables
     for suffix, key in ACROSS:
         h, rows, bold = across_table(E, settings, key, [m for m in E.methods if m != DIAG], key in LOWER)

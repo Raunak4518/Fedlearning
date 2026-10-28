@@ -151,10 +151,13 @@ def _raw_unlocked(name, root):
     raise ValueError(f"unknown dataset {name}")
 
 
-def load_dataset(name, root, device="cpu"):
+def load_dataset(name, root, device="cpu", lazy=False):
     """Whole dataset as preprocessed tensors: x (N, ch, 32, 32) float, y (N,) long. Raw images are cached once as
     uint8 tensors in root (safe tensors-only file). Preprocessing as experiments/core.py: /255, 28 -> 32 bilinear
-    (antialias) for small images, then the dataset's normalisation."""
+    (antialias) for small images, then the dataset's normalisation.
+    lazy=True: the training images stay uint8 and data["prep"] preprocesses the ones selected. Preprocessing is per
+    image, so the values are the same; it avoids a float copy of the whole training set in every process (EMNIST:
+    697,932 images, 2.9 GB per copy, of which 20,000 are used; the host ran out of memory, Kaggle, 26 Oct 2026)."""
     raw = DATASETS[name].get("raw", name)
     cache = os.path.join(root, f"_fedecs_tensors_{raw}.pt")
     with _DatasetLock(root, raw):   # the cache is built by one process; the others wait and then read it
@@ -181,6 +184,8 @@ def load_dataset(name, root, device="cpu"):
             s = torch.tensor(spec["norm"][1]).view(1, -1, 1, 1)
             x.sub_(m).div_(s)
         return x
+    if lazy:
+        return dict(xtr=d["xtr"], ytr=d["ytr"], xte=prep(d["xte"]).to(device), yte=d["yte"].to(device), prep=prep)
     return dict(xtr=prep(d["xtr"]), ytr=d["ytr"], xte=prep(d["xte"]).to(device), yte=d["yte"].to(device))
 
 
@@ -301,7 +306,8 @@ class Federation:
     def __init__(self, ds, root, IF, alpha, K, seed, device, tail_perm=False, frac_scale=1.0, clients=True):
         spec = DATASETS[ds]
         self.ds, self.C, self.K, self.seed, self.device = ds, spec["C"], K, seed, device
-        data = load_dataset(ds, root, device)
+        data = load_dataset(ds, root, device, lazy=True)
+        prep = data.pop("prep")
         to_new = np.arange(self.C)              # original label -> label used here
         if spec["imbalance"] == "natural":
             perm = natural_order(data["ytr"], self.C)
@@ -331,9 +337,10 @@ class Federation:
             part = make_partition(data["ytr"], self.C, K, frac, IF, alpha, seed)
         self.counts, self.class_counts = part["counts"], part["class_counts"]
         # the server process keeps no client data (clients=False): only sizes and, for logging, the class counts
-        self.x = [data["xtr"][p].to(device) for p in part["parts"]] if clients else None
+        self.x = [prep(data["xtr"][p]).to(device) for p in part["parts"]] if clients else None
         self.y = [data["ytr"][p].to(device) for p in part["parts"]] if clients else None
-        self.x_val, self.y_val = data["xtr"][part["heldout"]].to(device), data["ytr"][part["heldout"]].to(device)
+        self.x_val = prep(data["xtr"][part["heldout"]]).to(device)
+        self.y_val = data["ytr"][part["heldout"]].to(device)
         self.x_te, self.y_te = data["xte"].to(device), data["yte"].to(device)
         self.sizes = [len(p) for p in part["parts"]]
         self.arch = [0] * K if spec.get("single_arch") else assign_arch(K)

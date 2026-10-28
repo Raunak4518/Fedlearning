@@ -2,13 +2,18 @@
 
 \subsection{Datasets and client splits}\label{sec:setup-data}
 
-\paragraph{Long-tailed benchmarks.} \R{main/datasets_cite} are made long-tailed with imbalance ratio $\rho=100$ and
-split among $K=10$ clients by a Dirichlet draw with $\alpha=0.5$ per class, with GeFL-F's data
-fractions~\cite{kang2025gefl} (CIFAR-100-LT then has 480 training images in its largest class and 5 in its
-smallest).
+\paragraph{Long-tailed benchmarks.} \R{main/datasets_cite} are made long-tailed as in GeFL-F's
+code~\cite{kang2025gefl}: GeFL-F's fraction of the training set is divided over the classes by the profile of
+\cref{sec:setting} with $\rho=100$, and no class receives more images than remain after the validation images are
+held out. On CIFAR-10-LT the profile asks for more than that for the largest classes, which are therefore capped, so
+the ratio between the largest and the smallest class is below 100 there (\cref{tab:datasets}); we name every setting
+by its $\rho$. CIFAR-100-LT has 480 training images in its largest class and 5 in its smallest. The training images
+are split among $K=10$ clients by a Dirichlet draw with $\alpha=0.5$ per class.
 \paragraph{Natural imbalance.} \R{nat/datasets_cite} keep their own class sizes, with training sets capped at 20,000
-images, and are split the same way. A validation set of 2,000 training images that no client holds is used for model
-selection; all results are on the official test sets. \Cref{tab:datasets} summarises the splits.
+images, and are split the same way. Training images that no client holds (200 per class, 20 per class on CIFAR-100,
+and at most a quarter of a class with natural imbalance) form a validation set. It trains the referee classifier of the
+generator diagnostics and is never used to select a model or a hyperparameter: every result is that of the last round,
+on the official test set. \Cref{tab:datasets} summarises the splits.
 
 \begin{table}[t]
 \centering\small
@@ -31,12 +36,16 @@ $K=10$, so one client per architecture). The rounds of the three stages are thos
 CIFAR-10). All methods of this setting share the same Stage-I extractor for a given dataset and seed.
 
 \paragraph{One shared model.} We follow the FedLTLib protocol~\cite{lin2026fedltlib}: CIFAR-10-LT and CIFAR-100-LT with
-the standard long-tailed class profile at imbalance ratios $\rho\in\{100,50,10\}$, 20 clients, Dirichlet $\alpha=0.5$,
+the standard long-tailed class profile $n_c=\lfloor n_{\max}\rho^{-c/(C-1)}\rfloor$ at $\rho\in\{100,50,10\}$, with
+$n_{\max}$ the images per class left after 200 per class (20 on CIFAR-100) are held out for validation (rounding down
+gives the smallest CIFAR-100 class 4 images at $\rho=100$), 20 clients, Dirichlet $\alpha=0.5$,
 8 clients (40\%) per round, one ResNet-8~\cite{he2016resnet}, 200 rounds of 10 local epochs with batch size 32 and SGD
 (learning rate 0.1, momentum 0.9, decay 0.99 per round). The baselines run in the authors' LongTailLib code, unchanged,
 on our splits. For \ours the ResNet-8 is split after its second stage into the frozen extractor and the head; the
-extractor is trained for 100 rounds and the head for 100, so that \ours uses the baselines' 200 rounds plus those of
-its generator, which we report separately.
+extractor is trained for 100 rounds and the head for 100 with 10 real epochs per round (the protocol's local epochs),
+so that \ours uses the baselines' 200 rounds plus those of its generator, which we report separately. \ours averages
+the clients' models with equal weights, as in the main setting, whereas the benchmark's FedAvg weights them by their
+numbers of samples.
 
 \subsection{Methods}\label{sec:setup-methods}
 
@@ -47,7 +56,8 @@ Hyperparameters are those of each method's paper; where the paper and the author
 \begin{table}[t]
 \centering\small
 \caption{Methods compared, their protocol and the origin of their code. HtFLlib~\cite{zhang2025htfllib} (Apache-2.0)
-methods are ported to Flower with their authors' hyperparameters; LongTailLib~\cite{lin2026fedltlib} methods run in
+methods are ported to Flower with their authors' hyperparameters, except that they train for the 5 local epochs of
+our head stage; LongTailLib~\cite{lin2026fedltlib} methods run in
 the authors' code, downloaded at a fixed commit.}
 \label{tab:baselines}
 \begin{adjustbox}{max width=\linewidth}
@@ -103,7 +113,8 @@ lists the settings of \ours, which are the same on every dataset.
 
 \begin{table}[t]
 \centering\small
-\caption{Settings of \ours (all datasets).}
+\caption{Settings of \ours (all datasets; with one shared model, 10 real epochs per round, the protocol's local
+epochs).}
 \label{tab:hyper}
 \begin{adjustbox}{max width=\linewidth}
 \begin{tabular}{ll}

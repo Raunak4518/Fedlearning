@@ -168,7 +168,9 @@ def lda_from_sums(n, S, M, gamma=0.1):
     Sw = (M - (mu.T * n) @ mu) / max(float(n.sum()) - int((~absent).sum()), 1.0)
     Sw = (Sw + Sw.T) / 2
     Ss = (1 - gamma) * Sw + (gamma * torch.trace(Sw) / d + 1e-6) * torch.eye(d, dtype=torch.float64, device=S.device)
-    W = mu @ torch.linalg.pinv(Ss, hermitian=True)
+    # the pseudo-inverse on the CPU (milliseconds for d <= a few hundred): on a nearly full GPU cuSOLVER's syevd failed
+    # (CUSOLVER_STATUS_EXECUTION_FAILED, one shared model, Kaggle, 27 Oct 2026); only rounding can differ
+    W = mu @ torch.linalg.pinv(Ss.cpu(), hermitian=True).to(Ss.device)
     b = -0.5 * (W * mu).sum(1)
     b[absent] = -1e4
     return W.float(), b.float()

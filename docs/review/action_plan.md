@@ -634,3 +634,37 @@ Target: IEEE (IEEEtran template, journals and conferences). No other venue profi
 - **Secure aggregation:** Flower SecAgg+ for every FedECS-LT release (statistics, CCWA rows, consensus, readout sums),
   30-bit quantisation, public bounds from the federation size and the server's validation features.
 - **Sweeps and checks (phases C, D)** are built after the main results name the five strongest baselines (§19).
+
+## 23. Bug audit before submission (28 Oct 2026): measured, fixed, still open
+
+Measured from the returned Kaggle logs and the code (three read-only audits plus checks of each claim).
+
+**Fixed (only schedule or memory changes; every value stays the same):**
+- `NB10_main_cifar100_part1of2` had been hand-edited on Kaggle (`--gpus 1 --per_gpu 1`): 21 runs one after another,
+  9.9 h, one GPU idle. Its results are valid. The runner now prints its worker count and warns when GPUs stay idle;
+  every notebook says "Do not edit any cell".
+- FedDF reused GeFL-F's generator but started right after it, waiting idle for up to 5,821 s while holding a worker
+  (3.8 of 19.4 slot-hours in CIFAR-10 part 1). Runs that reuse another run's generator are now queued last
+  (`build_notebooks.queue_order`).
+- EMNIST host RAM (24 of 39 runs killed): every process preprocessed all 697,932 training images (2.9 GB float);
+  now only the images used are preprocessed (`data.load_dataset(lazy=True)`). Final probabilities travel as float16
+  arrays instead of JSON lists (several GB per evaluation on EMNIST).
+- One shared model, GPU memory: the clients' Stage-II Adam states and generator copies (about 5.5 GB on CIFAR-100)
+  are freed before Stage III; the synthetic slice is written chunk by chunk (no 3 GiB concatenation).
+- The readout's pseudo-inverse runs on the CPU (cuSOLVER failure on a full GPU); the class-mean distance figure no
+  longer builds a 24 GB array; memory is freed after every run; a `.want` file of a killed process no longer blocks a
+  GPU.
+- `fill.py`: best / strongest / margin / count of best compare over the seeds both methods have (means over different
+  seed sets were compared before; one number changed: CIFAR-100 one-shared-model margin −8.6 → −8.9); STATUS lists
+  the methods with fewer seeds.
+- Paper text matched to the code: realised imbalance ratios (CIFAR-10-LT 48 after capping, CIFAR-100 one shared model
+  120 by rounding down), validation set (trains the referee; no selection), logit adjustment in the real phase only,
+  10 real epochs with one shared model, equal-weight averaging, HtFLlib local epochs 5, rounds of the natural-imbalance
+  datasets, how personal-head methods are scored.
+- Dataset links: all 16 download URLs answer (28 Oct 2026).
+
+**Measured and left (would change results or need more than a day):** LongTailLib runs at about 31 ms per ResNet-8
+step (probably CPU-bound with four runs on four CPUs; its loader costs only 0.6 s per epoch of 2,500 images, so the
+loader is not the cause); FedECS-LT with one shared model sums the consensus over the whole pool instead of the
+active clients' slices (74 % of its Stage-III time on CIFAR-100); its exclusive GPU lock covers Stage I too; clients
+of a run execute one after another; no mixed precision.

@@ -251,8 +251,9 @@ def run_htfl(grid, context, R):
         o = cfg_of(m.content)
         per[k] = o
         personal[k] = arrays_of(m.content, "model", "cpu")
-        if "probs" in o["test"]:
-            probs[str(k)] = o["test"].pop("probs")
+        pr = arrays_of(m.content, "probs", "cpu")
+        if pr is not None:
+            probs[str(k)] = pr["p"].numpy()
         if "embed" in o:
             emb = (o["embed"], o["embed_y"])
     for split, prefix in (("test", "final"), ("val", "val_final")):

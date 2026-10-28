@@ -36,3 +36,14 @@ def test_which_runs_need_the_whole_gpu():
     assert runner.needs_whole_gpu(dict(label="FedECS-LT (extractor 200 rounds)", ds="cifar10_t2"))
     assert not runner.needs_whole_gpu(dict(label="FedAvg (LongTailLib)", ds="cifar10_t2"))
     assert not runner.needs_whole_gpu(dict(label="FedECS-LT", ds="cifar10"))
+
+
+def test_dead_waiter_does_not_block(tmp_path):
+    """A .want file left by a process that was killed outright no longer keeps shared runs off the GPU."""
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    share = runner.GpuShare(str(tmp_path), False)
+    open(share.path + ".want.999999999", "w").close()
+    t0 = time.time()
+    with share:
+        pass
+    assert time.time() - t0 < 2

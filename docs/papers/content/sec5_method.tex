@@ -62,9 +62,10 @@ draw corrected samples themselves.
 \subsection{Heads}\label{sec:method-heads}
 
 Each round, client $k$ trains its head for $T_s=10$ epochs on corrected synthetic features and then for $T_r=5$
-epochs on its real features. Both phases use logit adjustment with the client's own prior~\cite{menon2021la},
-$\ell(f+\tau\log\hat\pi_k,y)$ with $\tau=1$ and the add-one smoothed class frequencies $\hat\pi_k$ of the client. On
-synthetic features the target is a \emph{consensus soft label}
+epochs on its real features. The real phase uses logit adjustment with the client's own prior~\cite{menon2021la},
+$\ell(f+\tau\log\hat\pi_k,y)$ with $\tau=1$ and the add-one smoothed class frequencies $\hat\pi_k$ of the client. The
+synthetic phase, whose labels are drawn uniformly over the classes, uses cross-entropy without adjustment, and its
+target is a \emph{consensus soft label}
 \begin{equation}\label{eq:csl}
 t(\tilde h)=(1-\beta)\,e_y+\beta\,\frac1G\sum_{g=1}^G\mathrm{softmax}\big(f_g(\tilde h)\big),\qquad \beta=0.5,
 \end{equation}
@@ -100,7 +101,7 @@ report every method both as trained and with this readout (exact readout, \ER).
 \For{round $t=1,\dots,T_{\mathrm{TN}}$} \Comment{Stage III}
   \State server sends heads and a pool seed; clients return the secure sum of consensus predictions (\cref{eq:csl})
   \State each client: $T_s$ epochs on corrected synthetic features with soft targets $t(\tilde h)$, then $T_r$ epochs on
-  real features, both with logit adjustment
+  real features with logit adjustment
   \State server averages heads of the same architecture
 \EndFor
 \State clients release embedding sums per architecture; server sets every last layer by \cref{eq:er}

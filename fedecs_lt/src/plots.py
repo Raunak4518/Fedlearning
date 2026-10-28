@@ -918,7 +918,8 @@ def f24(E, S, out):
         C = int(max(yr.max(), yg.max())) + 1
         mr = np.stack([Xr[yr == c].mean(0) if (yr == c).any() else np.zeros(Xr.shape[1]) for c in range(C)])
         mg = np.stack([Xg[yg == c].mean(0) if (yg == c).any() else np.zeros(Xg.shape[1]) for c in range(C)])
-        D = np.sqrt(((mr[:, None, :] - mg[None, :, :]) ** 2).sum(-1))
+        # row by row (same values): the C x C x d array was 24 GB for CIFAR-100 with one shared model (d = 32,768)
+        D = np.stack([np.sqrt(((r - mg) ** 2).sum(-1)) for r in mr])
         f, ax = ps.figure("column", 3.0)
         im = ax.imshow(D, cmap="cividis")
         ax.set_xlabel("Generated class")
