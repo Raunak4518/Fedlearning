@@ -106,10 +106,18 @@ Method & Bal. acc. & Macro-F1 & Precision & MCC & G-mean & Tail rec. & Worst rec
 
 \begin{widetable}[t]
 \centering\small
-\caption{Calibration and fairness across clients on the long-tailed benchmarks: expected calibration error (\%, 15
-bins; lower is better) and balanced accuracy of the weakest head architecture (\%); mean over seeds 3--5.}
+\caption{Calibration on the long-tailed benchmarks: expected calibration error (\%, 15 bins; lower is better), heads
+as trained; mean $\pm$ standard deviation over seeds 3--5.}
 \label{tab:app-calib}
 \slottab{main_ece}{\begin{tabular}{lccccc}\toprule
+Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
+\phrow{FedECS-LT}{5}\phrow{GeFL-F}{5}\phrow{[every other method]}{5}\bottomrule\end{tabular}}
+
+\vspace{6pt}
+\caption{Fairness across clients on the long-tailed benchmarks: balanced accuracy (\%) of the weakest head
+architecture, heads as trained; mean $\pm$ standard deviation over seeds 3--5.}
+\label{tab:app-worstarch}
+\slottab{main_worst_arch}{\begin{tabular}{lccccc}\toprule
 Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
 \phrow{FedECS-LT}{5}\phrow{GeFL-F}{5}\phrow{[every other method]}{5}\bottomrule\end{tabular}}
 \end{widetable}

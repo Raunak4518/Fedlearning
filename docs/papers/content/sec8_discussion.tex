@@ -7,11 +7,16 @@ we report both, and the comparison with the readout is the one that measures the
 
 \paragraph{Limitations.}
 \begin{itemize}
-\item The extractor is small and frozen, as in GeFL-F; we did not study pre-trained or larger extractors.
+\item The extractor is small and frozen, as in GeFL-F, and shared by all clients, so the clients' architectures
+differ only in their heads; we did not study pre-trained or larger extractors, or clients with different backbones.
+\item The splits are pure label skew (\cref{sec:setting}); feature and concept shift between clients are not tested.
+\item Three seeds per setting give fragile intervals and paired tests; the tests are reported with Holm's correction,
+and differences of about a point should be read with that in mind.
 \item In the main setting each architecture has one client ($K=10$)\whentab{robust}{; settings with several clients
 per architecture are covered only by \cref{tab:robust}}.
-\item The released class statistics are exact federation-level sums. For classes with few samples they describe
-those samples closely, and the results here do not include formal differential privacy.
+\item Secure aggregation hides each client's contribution from an honest-but-curious server, but the released
+federation-level sums are not differentially private: for classes with few samples they describe those samples
+closely. \ours should not be called privacy-preserving beyond that protocol guarantee.
 \item \claim{Some settings were run with fewer than three seeds; their tables say so and carry no interval.}
 \item \ours costs more than GeFL-F (\cref{tab:cost}), mainly through the longer synthetic phase.
 \item With one model shared by all clients, end-to-end long-tail methods such as FedYoYo, FedLoGe and CCVR are
@@ -26,7 +31,8 @@ implementation (one seed), the level of \ours here.
 
 Generator-based model-heterogeneous federated learning loses rare classes in three places: the optimiser's treatment
 of clients that lack a class, a last layer fitted to one client's prior, and synthetic features that do not carry
-their label. Each has an exact description, and each can be repaired with class statistics that secure aggregation
-computes exactly. \claim{\ours, which applies these repairs together, improves balanced accuracy and in particular the
-recall of the rarest classes across \R{count/datasets} datasets and two protocols.} Its code, logs and every figure's
+their label. Each can be described precisely, and each can be repaired with class statistics that secure aggregation
+computes up to its quantisation. \claim{\ours, which applies these repairs together, improves balanced accuracy and in
+particular the recall of the rarest classes when clients have different models; with one model shared by all
+clients, end-to-end long-tail methods remain stronger.} Its code, logs and every figure's
 data are public.

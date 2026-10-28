@@ -12,6 +12,7 @@ class-balanced readout computed from aggregated sums. With ten client architectu
 \R{main/cifar10/FedECS-LT/bal} balanced accuracy on CIFAR-10-LT and \R{main/cifar100/FedECS-LT/bal} on CIFAR-100-LT,
 \R{main/cifar10/margin} and \R{main/cifar100/margin} points above the strongest of \R{main/nbaselines_w} other methods;
 when every method is given the same exact readout, the margins are \R{main/cifar10/er_margin} and
-\R{main/cifar100/er_margin} points. It also has the highest balanced accuracy on \R{nat/nbest} of
-\R{nat/nsettings_w} datasets with natural class imbalance. With one model shared by all clients, end-to-end long-tail
-methods are stronger. All methods run in Flower on the same client splits with three seeds and paired tests.
+\R{main/cifar100/er_margin} points. It also has the highest balanced accuracy on \R{nat/nbest_of}
+datasets with natural class imbalance. With one model shared by all clients, end-to-end long-tail
+methods are stronger. All methods run in Flower on the same client splits, with three seeds and paired tests on the long-tailed
+benchmarks.

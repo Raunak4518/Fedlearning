@@ -7,7 +7,9 @@ embeddings (FedProto~\cite{tan2022fedproto}) or learn global prototypes on the s
 Other methods share a part of the network: the head (LG-FedAvg~\cite{liang2020lgfedavg}, FedGH~\cite{yi2023fedgh}) or a
 small homogeneous model next to each client's own (FedMRL~\cite{yi2024fedmrl}). Generator-based methods train a
 generator against the ensemble of client heads on the server (FedGen~\cite{zhu2021fedgen},
-FedFTG~\cite{zhang2022fedftg}), condition it on client statistics~\cite{niu2026fedvtc}, or train a conditional
+FedFTG~\cite{zhang2022fedftg}), train generators from feature-distribution statistics that the clients send to the
+server (FedVTC~\cite{niu2026fedvtc}, which targets generalisation to unseen data rather than long-tailed classes), or
+train a conditional
 generator on the clients by FedAvg (GeFL, GeFL-F~\cite{kang2025gefl}). HtFLlib~\cite{zhang2025htfllib} benchmarks these
 methods under label skew but not under a long-tailed global distribution. \ours keeps GeFL-F's three-stage design and
 changes how its class-specific quantities are estimated.
@@ -15,8 +17,9 @@ changes how its class-specific quantities are estimated.
 \paragraph{Federated learning under label skew and long tails.} With one shared model, the classifier is the most
 biased part under label skew. Classifier calibration re-trains it on virtual features drawn from aggregated class
 statistics (CCVR~\cite{luo2021ccvr}) or on federated features learned on the server (CReFF~\cite{shang2022creff});
-closed-form classifiers are computed from aggregated sums (Fed3R~\cite{fani2024fed3r},
-FedNCM~\cite{legate2023fedncm}); FedETF fixes the classifier to a simplex equiangular tight
+closed-form classifiers are computed from aggregated sums (Fed3R~\cite{fani2024fed3r}, a ridge-regression classifier,
+and FedNCM~\cite{legate2023fedncm}, nearest class means); our readout is a class-balanced linear discriminant of the same
+kind, computed for each architecture's embeddings; FedETF fixes the classifier to a simplex equiangular tight
 frame~\cite{li2023fedetf}. Loss corrections use each client's label frequencies (FedLC~\cite{zhang2022fedlc},
 FedRS~\cite{li2021fedrs}, FedRoD~\cite{chen2022fedrod}), and long-tail methods re-balance gradients
 (Fed-GraB~\cite{xiao2023fedgrab}), decouple a generic and a local head (FedLoGe~\cite{xiao2024fedloge}), combine prototype

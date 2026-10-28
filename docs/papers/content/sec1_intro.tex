@@ -27,8 +27,9 @@ the generator's class-specific conditioning parameters toward zero at Adam's ful
 hold the class barely grow them. Flat averaging then shrinks the rare classes' parameters round after round.
 \item \emph{The last layer.} Each head is trained on one client's real data, so its last layer fits that client's
 label prior. Per-client logit corrections (logit adjustment~\cite{menon2021la}, FedLC~\cite{zhang2022fedlc},
-FedRS~\cite{li2021fedrs}, Balanced Softmax~\cite{ren2020bsm}) are exact reparametrisations of such a head and cannot
-change its representation.
+FedRS~\cite{li2021fedrs}, Balanced Softmax~\cite{ren2020bsm}) are exact reparametrisations of such a head: training
+with them is plain training from a shifted initial bias, so they bring in no information about the classes the client
+lacks.
 \item \emph{The synthetic data.} When generated features do not carry their label, the synthetic phase of head
 training penalises the spread of the logits instead of teaching the missing classes.
 \end{enumerate}
@@ -65,8 +66,7 @@ rare classes, with short exact results checked against measurements (\cref{sec:a
 \item A comparison against \R{count/methods_w} published methods on \R{count/datasets_w} datasets in two protocols,
 run in one framework on the same client splits, with paired statistics, per-class metrics and the cost of every
 method (\cref{sec:results}). \claim{With different client models, \ours has the highest balanced accuracy on
-\R{main/nbest} of \R{main/nsettings_w} long-tailed benchmarks and \R{nat/nbest} of \R{nat/nsettings_w} naturally
-imbalanced datasets; most of its margin comes from the last layer, and with the same exact readout for every method
+\R{main/nbest_of} long-tailed benchmarks and \R{nat/nbest_of} naturally imbalanced datasets; most of its margin comes from the last layer, and with the same exact readout for every method
 it remains \R{main/cifar10/er_margin} to \R{main/cifar100/er_margin} points ahead on the CIFAR benchmarks. With one
 shared model, end-to-end long-tail methods are stronger, and we report where and by how much.}
 \end{enumerate}

@@ -28,8 +28,10 @@ means and spreads
 \begin{equation}\label{eq:moments}
 \mu_c=S^{(1)}_c/n_c,\qquad V_c=S^{(2)}_c/n_c-\|\mu_c\|^2=\E\big[\|h-\mu_c\|^2\,\big|\,y=c\big].
 \end{equation}
-These equal the values on the pooled data (\cref{prop:invariance}). Each client uploads them once,
-$C(d+2)$ numbers for features of dimension $d$.
+These equal the values on the pooled data (\cref{prop:invariance}) up to the quantisation of secure aggregation:
+each client's contribution is divided by a public bound and quantised to 30 bits with unbiased stochastic rounding,
+an error of at most $1.5\times10^{-8}$ of the bound per client and coordinate. We call the statistics exact in this
+sense. Each client uploads them once, $C(d+2)$ numbers for features of dimension $d$.
 
 \subsection{Generator}\label{sec:method-gen}
 
@@ -38,7 +40,8 @@ are apart (\cref{prop:w1} in \cref{app:proofs}). The server therefore computes t
 \begin{equation}\label{eq:gate}
 F=\frac{\frac1C\sum_c\|\mu_c-\bar\mu\|^2}{\frac1C\sum_c V_c},\qquad \bar\mu=\frac1C\sum_c\mu_c,
 \end{equation}
-from the released statistics. If $F\ge F_0=0.05$ it uses the mean-anchored generator; otherwise it uses GeFL-F's
+from the released statistics. If $F\ge F_0=0.05$ (a threshold fixed during the method's development, before the runs reported here, and not
+swept) it uses the mean-anchored generator; otherwise it uses GeFL-F's
 generator with class rows averaged by CCWA (\cref{eq:ccwa}). \claim{On our datasets $F$ ranges from \R{gate/F/min}
 to \R{gate/F/max}; the gate chose class rows on \R{gate/rows}.}
 
@@ -56,7 +59,7 @@ their mean $m_c$ and spread $\tilde V_c$, and corrects every later sample of cla
 \tilde h\leftarrow\mathrm{ReLU}\big(\mu_c+s_c(\tilde h-m_c)\big),\qquad s_c=\mathrm{clip}\Big(\sqrt{V_c/\tilde V_c},\,0.1,\,10\Big).
 \end{equation}
 Without the final ReLU and the clipping this is the map of least displacement that attains the exact mean and spread
-(\cref{prop:mc} in \cref{app:proofs}). The server sends $(\mu_c,m_c,s_c)$ to the clients, which hold the generator and
+(\cref{prop:mc} in \cref{app:proofs}); with them, the corrected samples match these moments only approximately. The server sends $(\mu_c,m_c,s_c)$ to the clients, which hold the generator and
 draw corrected samples themselves.
 
 \subsection{Heads}\label{sec:method-heads}

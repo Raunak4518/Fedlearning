@@ -31,7 +31,8 @@ a batch of client $k$ contains class $c$,
 \begin{equation}\label{eq:kappa}
 \kappa_c=\frac{\sum_{k\in H_c}\tau_k f_{kc}}{\sum_{k\notin H_c}\tau_k},
 \end{equation}
-and the row drifts toward zero in every coordinate when $\kappa_c<1$ (\cref{app:proofs}). Centrally the same decay is
+and the row drifts toward zero in every coordinate when $\kappa_c<1$. This count of Adam steps is a heuristic, not
+a bound: it ignores the moments Adam carries between rounds (\cref{app:proofs}). Centrally the same decay is
 harmless, because Adam's second-moment estimate for $r_c$ is dominated by data gradients as long as the class appears
 more often than the estimate forgets.
 
@@ -70,8 +71,12 @@ which scales the logits of absent classes by $\alpha$~\cite{li2021fedrs}, is cro
 variables with a larger learning rate on those rows; the body follows the same trajectory.
 \end{proposition}
 
-So for a head trained on one client's real data these corrections can only change the readout, not the
-representation. The readout itself can be computed exactly.
+For a head trained on one client's real data, such a correction is therefore equivalent to a different
+initialisation of the last-layer bias. This does not mean the representation is the one plain training from the same
+bias would learn: the logits, and hence the gradients reaching the body, differ along the way. What the proposition
+does show is that the correction adds no information about the classes the client lacks; its effect on the body is
+measured by removing logit adjustment from \ours with and without the readout below\whentab{abl_components}{
+(\cref{tab:components})}. The readout itself can be computed exactly.
 
 \begin{proposition}[partition invariance]\label{prop:invariance}
 An estimator that is a function of a sum $S=\sum_k\sum_{i\in D_k}T(x_i,y_i)$, with $T$ fixed in advance, takes the same
@@ -97,7 +102,8 @@ distribution.
 
 When generated features carry little information about their label, the synthetic phase therefore pulls the logits
 together instead of teaching the classes a client lacks. Alternating it with the real phase decides what survives:
-for quadratic losses the round map converges to a point where the synthetic data decide exactly the directions that
+in an illustrative model with quadratic losses (the heads are nonlinear and trained with cross-entropy) the round map
+converges to a point where the synthetic data decide exactly the directions that
 the client's real loss leaves free (\cref{app:proofs}), which are the directions of the absent classes. Logit
 adjustment keeps the real phase from pushing the absent classes' logits down without bound~\cite{soudry2018implicit}.
 \whenfig{fig_spread}{\claim{\Cref{fig:spread} shows the first effect on the real pipeline: in every round the

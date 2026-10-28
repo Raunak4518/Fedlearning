@@ -309,6 +309,9 @@ def fill_group(g, E, nums, made, status):
         ratios = sorted({int(round(1 / S[1])) for S in settings}, reverse=True)
         nums["t2/ratios"] = and_list([str(x) for x in ratios])
     nums[f"{g}/nbest"] = str(sum(1 for S in with_ours if ours_best(E, S)))
+    nb, ns = int(nums[f"{g}/nbest"]), len(with_ours)   # "all six", "both", "5 of the six", "none of the six"
+    nums[f"{g}/nbest_of"] = ("both" if ns == 2 else f"all {word(ns)}") if nb == ns and ns > 1 else \
+        (("neither" if ns == 2 else f"none of the {word(ns)}") if nb == 0 else f"{nb} of the {word(ns)}")
     # tables
     for suffix, key in ACROSS:
         h, rows, bold = across_table(E, settings, key, [m for m in E.methods if m != DIAG], key in LOWER)

@@ -4,7 +4,7 @@
 
 \Cref{tab:main} gives the balanced accuracy of every method on the long-tailed benchmarks (\R{main/datasets}) with
 the heads as trained, and \cref{tab:paired} the paired difference of \ours to each method.
-\claim{\ours has the highest balanced accuracy on \R{main/nbest} of the \R{main/nsettings_w} benchmarks. Its margin
+\claim{\ours has the highest balanced accuracy on \R{main/nbest_of} benchmarks. Its margin
 over the strongest other method is \R{main/cifar10/margin} points on CIFAR-10-LT (over \R{main/cifar10/strongest})
 and \R{main/cifar100/margin} on CIFAR-100-LT (over \R{main/cifar100/strongest}). With three seeds the difference is
 significant after Holm's correction on CIFAR-100-LT ($p\le$\R{main/cifar100/p/FedDF} against \R{main/cifar100/strongest})
@@ -115,8 +115,7 @@ ratio 100, 10 clients; each point is one class, mean over seeds 3--5).}
 \subsection{Datasets with natural class imbalance}\label{sec:res-natural}
 
 \Cref{tab:natural} repeats the comparison on \R{nat/nsettings_w} datasets whose class sizes are their own
-(\R{nat/datasets}). \claim{\ours has the highest balanced accuracy as trained on \R{nat/nbest} of the
-\R{nat/nsettings_w}, with margins of \R{nat/fer2013/margin} (FER-2013) to \R{nat/dermamnist/margin} points
+(\R{nat/datasets}). \claim{\ours has the highest balanced accuracy as trained on \R{nat/nbest_of}, with margins of \R{nat/fer2013/margin} (FER-2013) to \R{nat/dermamnist/margin} points
 (DermaMNIST) over the strongest other method. With the exact readout for every method the margins are below one
 point, and on BloodMNIST FedDF is level with \ours.} \claim{The
 separation gate chose the class-row generator on \R{gate/rows}, where the class means are too close for an anchor.}
