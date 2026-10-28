@@ -32,3 +32,4 @@ Download again with `python fedecs_lt/fetch_kaggle.py --all`.
 | NB20_track2_cifar10_IF100_s4_part1of2 | https://www.kaggle.com/code/mehuljindal124/notebookff78d03dc2 |
 | NB20_track2_cifar10_IF100_s4_part2of2 | https://www.kaggle.com/code/mehuljindal124/notebook273f266c73 |
 | NB20_track2_cifar10_IF100_s5_part2of2 | https://www.kaggle.com/code/manishparkhe/nb20-track2-cifar10-if100-s5-part2of2 |
+| NB29_track2_long_runs_1 | https://www.kaggle.com/code/wizard345/one-shared-model |

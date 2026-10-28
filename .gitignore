@@ -26,6 +26,8 @@ models/
 experiments/models/
 experiments/data/
 fedecs_lt/results/_downloads/
+fedecs_lt/results/_repeats/*/*.zip
+fedecs_lt/results/_repeats/*/*.pdf
 # LaTeX build files of docs/papers (the PDFs are kept)
 docs/papers/*/*.aux
 docs/papers/*/*.log

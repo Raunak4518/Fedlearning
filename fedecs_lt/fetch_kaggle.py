@@ -102,6 +102,16 @@ def record_source(name, url):
         f.write("\n".join(head + body) + "\n")
 
 
+def recorded_source(name):
+    """The Kaggle address this notebook's results were filed from, or None."""
+    if not os.path.exists(SOURCES):
+        return None
+    for r in open(SOURCES).read().splitlines():
+        if r.startswith(f"| {name} |"):
+            return r.split("|")[2].strip()
+    return None
+
+
 def fetch(user, slug, plan, results=False):
     url = f"https://www.kaggle.com/code/{user}/{slug}"
     files = [f for f in listing(user, slug) if "/" not in f["fileName"]]
@@ -111,20 +121,28 @@ def fetch(user, slug, plan, results=False):
         print(f"{url}: no NAME__summary.zip in its output (still running, or not saved as a version)")
         return None
     name = summ[0][: -len("__summary.zip")]
-    os.makedirs(DL, exist_ok=True)
+    known = recorded_source(name)
+    repeat = known is not None and known != url
+    # the same notebook run again on another account: kept apart, never over the first run (the paper's result)
+    d = os.path.join(RES, "_repeats", f"{name}__{user}") if repeat else os.path.join(RES, name)
+    dl = d if repeat else DL
+    os.makedirs(dl, exist_ok=True)
     want = [summ[0], name + "__report.pdf"] + ([name + "__results.zip"] if results else [])
     for fn in want:
         if fn in names:
-            urllib.request.urlretrieve(names[fn], os.path.join(DL, fn))
-    d = os.path.join(RES, name)
+            urllib.request.urlretrieve(names[fn], os.path.join(dl, fn))
     os.makedirs(d, exist_ok=True)
-    with zipfile.ZipFile(os.path.join(DL, summ[0])) as z:     # only named files are read: nothing else is unpacked
+    with zipfile.ZipFile(os.path.join(dl, summ[0])) as z:     # only named files are read: nothing else is unpacked
         for member in z.namelist():
             base = os.path.basename(member)
             if base in KEEP and member.count("/") <= 1:
                 with open(os.path.join(d, base), "wb") as f:
                     f.write(z.read(member))
-    record_source(name, url)
+    if repeat:
+        print(f"{name}: already filed from {known}; this second run is kept in {os.path.relpath(d, HERE)} "
+              "(results/_repeats/README.md), not used by the paper")
+    else:
+        record_source(name, url)
     complete, n, n_plan, n_failed = summary_md(name, url, d, plan)
     print(f"{name}: {n} of {n_plan} runs{'' if complete else ' -- INCOMPLETE'}"
           f"{f', {n_failed} failed' if n_failed else ''}  ({url})")
