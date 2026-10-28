@@ -178,7 +178,7 @@ for m in pkgutil.iter_modules(fs.__path__):
     for v in list(vars(mod).values()):
         if isinstance(v, type) and issubclass(v, sb.Server):
             _wrap(v)
-            for _n in ("compute_global_test_accuracy", "_evaluate_global"):
+            for _n in ("compute_global_test_accuracy", "_evaluate_global", "_globaltest"):
                 if _n in v.__dict__:
                     _wrap_eval(v, _n)
             if "aggregate_parameters" in v.__dict__:
@@ -187,6 +187,11 @@ sys.argv = ["main.py"] + args
 t0 = time.time()
 runpy.run_path("main.py", run_name="__main__")
 srv = CAP["server"]
+# Fed-GraB keeps its trained classifier in srv.g_classifier and evaluates with it (_globaltest); the global model's
+# own head is never trained there, so the generic evaluation below would score an untrained head (27 Oct 2026:
+# 1-13% instead of the library's own 28-51%). Copy the trained classifier into the head before evaluating.
+if hasattr(srv, "g_classifier") and hasattr(srv.global_model, "head"):
+    srv.global_model.head.load_state_dict(srv.g_classifier.state_dict())
 # re-run the library's own global evaluation while recording the scores it ranks
 REC, ACC = [], None
 _max, _tmax = torch.max, torch.Tensor.max
@@ -294,6 +299,7 @@ def run(algo, ds, IF, seed, lt_dir, out_dir, rounds=200, label=None, data_root=N
                client_counts=np.load(os.path.join(root, "suite_split.npz"))["counts"].tolist(),
                class_order=list(range(C)), class_names=CLASS_NAMES.get(ds),
                test_class_counts=np.bincount(y, minlength=C).tolist(),
+               fedgrab_eval_fixed=True,   # Fed-GraB scored with its trained classifier (see DRIVER)
                library_accuracy=lib_acc, accuracy_check=abs(m["acc"] - lib_acc) < 1e-6 if lib_acc == lib_acc else None,
                time_s=time.time() - t0, rounds=dict(T=rounds))
     # FLOPs of the ResNet-8 forward pass per image (this suite's ResNet-8, the architecture of LongTailLib's) and the

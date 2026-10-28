@@ -35,8 +35,8 @@ and the row drifts toward zero in every coordinate when $\kappa_c<1$ (\cref{app:
 harmless, because Adam's second-moment estimate for $r_c$ is dominated by data gradients as long as the class appears
 more often than the estimate forgets.
 
-\claim{\Cref{fig:rows} shows the effect on GeFL-F: the conditioning rows of the rare classes shrink to a fraction of
-their initial norm while those of the frequent classes grow.} Two remedies follow. Decoupling the decay removes the
+\whenfig{fig_rows}{\claim{\Cref{fig:rows} shows the effect on GeFL-F: after Stage II the conditioning rows of the
+rarest classes are several times shorter than those of the most frequent classes.}} Two remedies follow. Decoupling the decay removes the
 shrinkage. Averaging each row over its holders only, with weights that grow with the holder's count (class-count
 weighted averaging, CCWA), removes the non-holders' term $\bar D_c$ from \cref{prop:contraction} and keeps coupled
 decay:
@@ -48,15 +48,16 @@ where $E(n)$ is the effective number of samples~\cite{cui2019cb}: zero for a cli
 small $n$, and bounded by $1/(1-\beta)$ so that one large client cannot dominate a class. Both sums in \cref{eq:ccwa}
 are computed by secure aggregation.
 
+\whenfig{fig_rows}{%
 \begin{figure}[t]
 \centering
 \slotfig{fig_rows}{col}{Fig.~30 of the CIFAR-10-LT report: L2 norm of each class's conditioning row of GeFL-F's
 generator after Stage II, classes by frequency (or Fig.~33: the same over the rounds).}
-\caption{Conditioning rows of GeFL-F's generator after Stage II, per class, ordered from the most to the least
-frequent class (CIFAR-10-LT, imbalance ratio 100, 10 clients, Dirichlet $\alpha=0.5$; mean over seeds 3--5).
-\claim{The rows of the rarest classes shrink while those of the frequent classes grow.}}
+\caption{L2 norm of each class's conditioning row of GeFL-F's generator after Stage II, classes ordered from the
+most to the least frequent (CIFAR-10-LT, imbalance ratio 100, 10 clients, Dirichlet $\alpha=0.5$; mean over seeds
+3--5). FedDF uses the same generator. \ours's anchored generator has no class rows.}
 \label{fig:rows}
-\end{figure}
+\end{figure}}
 
 \subsection{The last layer: logit corrections are reparametrisations}\label{sec:analysis-head}
 
@@ -99,15 +100,18 @@ together instead of teaching the classes a client lacks. Alternating it with the
 for quadratic losses the round map converges to a point where the synthetic data decide exactly the directions that
 the client's real loss leaves free (\cref{app:proofs}), which are the directions of the absent classes. Logit
 adjustment keeps the real phase from pushing the absent classes' logits down without bound~\cite{soudry2018implicit}.
-\claim{\Cref{fig:spread} confirms both effects: the spread of the logits shrinks during GeFL-F's synthetic phase and
-much less during that of \ours.}
+\whenfig{fig_spread}{\claim{\Cref{fig:spread} shows the first effect on the real pipeline: in every round the
+synthetic phase reduces the spread of the heads' logits on the clients' real features, and it reduces it less for
+\ours than for GeFL-F.}}
 
+\whenfig{fig_spread}{%
 \begin{figure}[t]
 \centering
 \slotfig{fig_spread}{col}{Fig.~75 of the CIFAR-10-LT report: logit spread before and after the synthetic phase, per
 round, GeFL-F and FedECS-LT (or Fig.~76: retention of the synthetic phase's change).}
-\caption{Standard deviation of the logits on generated features after the synthetic phase of head training,
-relative to before it, per round (CIFAR-10-LT, imbalance ratio 100, 10 clients; mean over architectures and seeds
-3--5). A value below one means that the synthetic phase pulled the logits together.}
+\caption{Change of the logit spread of the clients' heads on their own real features during the synthetic phase
+of each head-training round (after minus before; negative: the synthetic phase pulled the logits together), per
+round (CIFAR-10-LT, imbalance ratio 100, 10 clients; mean over clients and seeds 3--5, band one standard
+deviation).}
 \label{fig:spread}
-\end{figure}
+\end{figure}}

@@ -78,6 +78,19 @@ def group_of(r):
     return None
 
 
+def correct_fedgrab(r):
+    """Fed-GraB runs recorded before the evaluation fix of 28 Oct 2026 scored the global model's untrained head
+    instead of Fed-GraB's trained classifier (fedecs_lt/src/track2.py). The library's own per-round accuracy of the
+    trained classifier is in history_library.rs_global_acc; its last value is the final accuracy, which equals
+    balanced accuracy on the balanced test set. The other metrics of such a run are invalid and dropped."""
+    h = (r.get("history_library") or {}).get("rs_global_acc")
+    if not r["label"].startswith("Fed-GraB") or not h or r.get("fedgrab_eval_fixed"):
+        return r
+    keep = {k: v for k, v in r.items() if not k.startswith(("final_", "val_final_", "er_", "val_er_"))}
+    keep.update(final_bal=float(h[-1]), final_acc=float(h[-1]), corrected="Fed-GraB: library's last-round accuracy")
+    return keep
+
+
 def load_runs():
     runs = {}
     for f in sorted(glob.glob(os.path.join(RESULTS, "NB*", "runs.jsonl"))):
@@ -85,7 +98,7 @@ def load_runs():
             continue
         for line in open(f):
             if line.strip():
-                r = json.loads(line)
+                r = correct_fedgrab(json.loads(line))
                 r["_folder"] = os.path.basename(os.path.dirname(f))
                 runs[r["run_id"]] = r
     return list(runs.values())
@@ -117,7 +130,27 @@ def tex(s):
     return pt.tex_escape(s)
 
 
+WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve",
+         "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty", "twenty-one",
+         "twenty-two", "twenty-three", "twenty-four"]
+DATA_CITE = {"mnist": "lecun1998mnist", "fmnist": "xiao2017fmnist", "svhn": "netzer2011svhn",
+             "cifar10": "krizhevsky2009cifar", "cifar100": "krizhevsky2009cifar", "dermamnist": "yang2023medmnist",
+             "organamnist": "yang2023medmnist", "bloodmnist": "yang2023medmnist", "pathmnist": "yang2023medmnist",
+             "gtsrb": "stallkamp2012gtsrb", "emnist": "cohen2017emnist", "fer2013": "goodfellow2013fer"}
+LT_METHODS = {"FedLC", "CCVR", "CReFF", "FedETF", "Fed-GraB", "FedLoGe", "FedYoYo", "RUCR"}
+
+
+def word(n):
+    return WORDS[n] if 0 <= n < len(WORDS) else str(n)
+
+
+def and_list(xs):
+    xs = list(xs)
+    return xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + " and " + xs[-1]
+
+
 def signed(x):
+    x = 0.0 if abs(x) < 0.05 else x   # no "-0.0"
     return f"{x:+.1f}"
 
 
@@ -229,8 +262,25 @@ def fill_group(g, E, nums, made, status):
             st = max(others, key=others.get)
             nums[f"{g}/{s}/strongest"] = tex(st)
             nums[f"{g}/{s}/margin"] = signed(100 * (means[OURS] - others[st]))
+        ers = {m: mean_of(E, m, "er_bal", S) for m in E.methods if m not in (DIAG, "Local")}
+        ers = {m: v for m, v in ers.items() if not np.isnan(v)}
+        if OURS in ers and len(ers) > 1:   # the same comparison with every last layer replaced by the exact readout
+            st = max((m for m in ers if m != OURS), key=ers.get)
+            nums[f"{g}/{s}/er_strongest"] = tex(st)
+            nums[f"{g}/{s}/er_margin"] = signed(100 * (ers[OURS] - ers[st]))
     with_ours = [S for S in settings if not np.isnan(mean_of(E, OURS, "final_bal", S))]
     nums[f"{g}/nsettings"] = str(len(with_ours))
+    nums[f"{g}/nsettings_w"] = word(len(with_ours))
+    nums[f"{g}/datasets"] = tex(and_list([pt.column_name(S, with_ours) for S in with_ours])) if with_ours else "none"
+    if with_ours and g != "t2":   # the same list with each dataset's citation
+        nums[f"{g}/datasets_cite"] = and_list([tex(pt.column_name(S, with_ours)) + "~\\cite{" + DATA_CITE[S[0]] + "}"
+                                               for S in with_ours if S[0] in DATA_CITE])
+    base = sorted({r["label"] for r in E.runs} - {OURS, DIAG, "Local"})
+    nums[f"{g}/nbaselines_w"] = word(len(base))
+    nums[f"{g}/nlt_w"] = word(len(set(base) & LT_METHODS))
+    if g == "t2":
+        ratios = sorted({int(round(1 / S[1])) for S in settings}, reverse=True)
+        nums["t2/ratios"] = and_list([str(x) for x in ratios])
     nums[f"{g}/nbest"] = str(sum(
         1 for S in with_ours
         if mean_of(E, OURS, "final_bal", S) >= max(mean_of(E, m, "final_bal", S) for m in E.methods
@@ -263,6 +313,8 @@ def fill_extras(E_by, nums, made):
     published = labels - {OURS, DIAG, "Local"} - set(bn.ABLATIONS) - {"FedDF + LA"}
     nums["count/methods"] = str(len(published))
     nums["count/datasets"] = str(len({r["dataset"].replace("_t2", "") for r in ours_runs}))
+    nums["count/datasets_w"] = word(len({r["dataset"].replace("_t2", "") for r in ours_runs}))
+    nums["count/methods_w"] = word(len(published))
     E = E_by.get("abl")
     if E is not None:
         for S in ordered(E):
@@ -471,6 +523,11 @@ def main():
         fill_figures(made, status, nums)
         status.append("")
     os.makedirs(GEN, exist_ok=True)
+    if "--figures" not in sys.argv:   # numbers computed only with the figures (repr/...): keep the last values
+        old = os.path.join(GEN, "numbers.tex")
+        if os.path.exists(old):
+            for k, v in re.findall(r"\\defnum\{(repr/[^}]*)\}\{(.*)\}\s*$", open(old).read(), re.M):
+                nums.setdefault(k, v)
     with open(os.path.join(GEN, "numbers.tex"), "w") as f:
         f.write("% written by docs/papers/fill.py; do not edit\n")
         for k in sorted(nums):

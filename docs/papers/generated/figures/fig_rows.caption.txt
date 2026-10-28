@@ -1,0 +1,1 @@
+L2 norm of each class's conditioning row of the generator after Stage II (class-row generators only); mean over seeds. CIFAR-10-LT (imbalance ratio 100), 10 clients, Dirichlet label split with alpha = 0.5; seeds 3, 4 and 5.

@@ -1,0 +1,1 @@
+Paired difference in balanced accuracy, FedECS-LT minus each baseline, over the same seeds and splits; points are means, bars 95% t confidence intervals (none for a baseline with one common seed); right of the dotted line FedECS-LT is better. CIFAR-10-LT (imbalance ratio 100), 10 clients, Dirichlet label split with alpha = 0.5; seeds 3, 4 and 5.

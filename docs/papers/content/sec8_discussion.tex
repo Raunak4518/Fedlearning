@@ -8,13 +8,18 @@ we report both, and the comparison with the readout is the one that measures the
 \paragraph{Limitations.}
 \begin{itemize}
 \item The extractor is small and frozen, as in GeFL-F; we did not study pre-trained or larger extractors.
-\item In the main setting each architecture has one client ($K=10$). Settings with several clients per
-architecture are covered only by \cref{tab:robust}.
+\item In the main setting each architecture has one client ($K=10$)\whentab{robust}{; settings with several clients
+per architecture are covered only by \cref{tab:robust}}.
 \item The released class statistics are exact federation-level sums. For classes with few samples they describe
 those samples closely, and the results here do not include formal differential privacy.
-\item \claim{At imbalance ratios 50 and 10 in the one-shared-model setting we ran one seed, so those columns carry no
-interval.}
+\item \claim{Some settings were run with fewer than three seeds; their tables say so and carry no interval.}
 \item \ours costs more than GeFL-F (\cref{tab:cost}), mainly through the longer synthetic phase.
+\item With one model shared by all clients, end-to-end long-tail methods such as FedYoYo, FedLoGe and CCVR are
+clearly stronger (\cref{tab:shared}); \ours is designed for clients with different models and has no advantage
+when their models can be averaged.
+\item The absolute accuracy of the main setting is low because of GeFL-F's small frozen extractor: on CIFAR-100-LT
+the same design trained centrally on the pooled data reached about 18\% with the exact readout in our earlier
+implementation (one seed), the level of \ours here.
 \end{itemize}
 
 \section{Conclusion}\label{sec:conclusion}

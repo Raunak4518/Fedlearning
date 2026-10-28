@@ -24,8 +24,8 @@ Written by `python docs/papers/fill.py` from 348 runs in fedecs_lt/results (NB00
 ## Slots in the paper
 
 - Tables filled: 11 of 14; still empty: `abl_bal`, `abl_components`, `robust`
-- Numbers filled: 38 of 49; still empty: `abl/cifar10/GeFL-F + LA/gain`, `abl/cifar10/rest`, `main/fmnist/margin`, `main/fmnist/strongest`, `main/mnist/margin`, `main/mnist/strongest`, `main/svhn/margin`, `main/svhn/strongest`, `repr/cifar10/FedECS-LT/knn`, `repr/cifar10/GeFL-F/knn`, `t2/cifar10-r100/fe200_diff`
-- Figures filled: 0 of 9; still empty: `fig_forest`, `fig_hmt`, `fig_overview`, `fig_realgen`, `fig_recall_size`, `fig_rows`, `fig_shared_rounds`, `fig_spread`, `fig_tsne`
+- Numbers filled: 56 of 59; still empty: `abl/cifar10/GeFL-F + LA/gain`, `abl/cifar10/rest`, `t2/cifar10-r100/fe200_diff`
+- Figures filled: 8 of 9; still empty: `fig_overview`
 
 ## Notebooks not returned yet (by folder)
 

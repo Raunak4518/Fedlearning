@@ -129,7 +129,10 @@ There are four commands in the text (defined in `content/macros.tex`).
 - **`\claim{...}` sentences are blue.** Every blue sentence makes a statement about the results. Read it whenever a
   result changes and make sure it is still true (section 5).
 - **Final build.** Uncomment `\finalslotstrue` in the wrapper before submitting. Then any red slot left is a LaTeX
-  error, and the blue colour disappears.
+  error, and the blue colour disappears. Parts wrapped in `\whentab{name}{...}`, `\whenfig{name}{...}`,
+  `\whennum{key}{...}` or `\whenanytab{a,b}{...}` (ablations, components, robustness, t-SNE, the overview figure)
+  are simply left out of the final build when their result has not come back, so a deadline never leaves an empty
+  slot: submit with what has returned.
 - **`generated/STATUS.md`** (written by `fill.py`) lists:
   - every experiment group with its settings, methods and seeds, flagged where fewer than three seeds came back;
   - the slots of the paper that are still empty;

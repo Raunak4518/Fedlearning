@@ -2,13 +2,13 @@
 
 \subsection{Main comparison: different client models}\label{sec:res-main}
 
-\Cref{tab:main} gives the balanced accuracy of every method on the five long-tailed benchmarks with the heads as
-trained, and \cref{tab:paired} the paired difference of \ours to each method.
-\claim{\ours has the highest balanced accuracy on \R{main/nbest} of the \R{main/nsettings} benchmarks. Its margin over
-the strongest other method is \R{main/mnist/margin} points on MNIST-LT (over \R{main/mnist/strongest}),
-\R{main/fmnist/margin} on Fashion-MNIST-LT (\R{main/fmnist/strongest}), \R{main/svhn/margin} on SVHN-LT
-(\R{main/svhn/strongest}), \R{main/cifar10/margin} on CIFAR-10-LT (\R{main/cifar10/strongest}) and
-\R{main/cifar100/margin} on CIFAR-100-LT (\R{main/cifar100/strongest}).} \claim{Against GeFL-F, the method it extends,
+\Cref{tab:main} gives the balanced accuracy of every method on the long-tailed benchmarks (\R{main/datasets}) with
+the heads as trained, and \cref{tab:paired} the paired difference of \ours to each method.
+\claim{\ours has the highest balanced accuracy on \R{main/nbest} of the \R{main/nsettings_w} benchmarks. Its margin
+over the strongest other method is \R{main/cifar10/margin} points on CIFAR-10-LT (over \R{main/cifar10/strongest})
+and \R{main/cifar100/margin} on CIFAR-100-LT (over \R{main/cifar100/strongest}). With three seeds the difference is
+significant after Holm's correction on CIFAR-100-LT ($p\le$\R{main/cifar100/p/FedDF} against \R{main/cifar100/strongest})
+but not on CIFAR-10-LT ($p=$\R{main/cifar10/p/FedDF}), although every seed favours \ours.} \claim{Against GeFL-F, the method it extends,
 the difference is \R{main/cifar10/diff/GeFL-F} points \R{main/cifar10/ci/GeFL-F} on CIFAR-10-LT and
 \R{main/cifar100/diff/GeFL-F} \R{main/cifar100/ci/GeFL-F} on CIFAR-100-LT.} The model-heterogeneous methods that
 exchange prototypes or shared sub-networks (FedProto, FedTGP, FedGH, LG-FedAvg, FedMRL) were designed for label skew
@@ -41,11 +41,15 @@ Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
 \bottomrule\end{tabular}}
 \end{widetable}
 
+\whenfig{fig_forest}{\Cref{fig:forest} shows the paired differences on CIFAR-10-LT with their confidence intervals.}
+
 \paragraph{With the exact readout.} Most of GeFL-F's long-tail loss is in its last layer (\cref{sec:analysis-head}).
 \Cref{tab:readout} therefore compares the methods of the GeFL-F family again with every last layer replaced by the
-same exact readout, so that the remaining differences are those of the bodies. \claim{With the same readout, \ours
-remains \R{main/cifar10/er_diff/GeFL-F} points ahead of GeFL-F on CIFAR-10-LT and \R{main/cifar100/er_diff/GeFL-F} on
-CIFAR-100-LT.}
+same exact readout, so that the remaining differences are those of the bodies. \claim{With the same readout the gap to every method shrinks: \ours remains
+\R{main/cifar10/er_diff/GeFL-F} points ahead of GeFL-F on CIFAR-10-LT and \R{main/cifar100/er_diff/GeFL-F} on
+CIFAR-100-LT, and \R{main/cifar10/er_margin} and \R{main/cifar100/er_margin} points ahead of the strongest other method
+(\R{main/cifar10/er_strongest} and \R{main/cifar100/er_strongest}). Most of the margin as trained is therefore in the
+last layer; the rest is a better representation.}
 
 \begin{widetable}[t]
 \centering\small
@@ -59,21 +63,23 @@ Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
 \bottomrule\end{tabular}}
 \end{widetable}
 
+\whenfig{fig_forest}{%
 \begin{figure}[t]
 \centering
 \slotfig{fig_forest}{col}{Fig.~39 of the CIFAR-10-LT report: difference of each method to FedECS-LT with 95\% CI.}
-\caption{Balanced accuracy of each method minus that of \ours on CIFAR-10-LT (points; mean over seeds 3--5 with 95\%
-$t$ confidence interval). Imbalance ratio 100, 10 clients, Dirichlet $\alpha=0.5$.}
+\caption{Balanced accuracy of \ours minus that of each method on CIFAR-10-LT (points; mean of the paired
+differences over seeds 3--5 with 95\% $t$ confidence interval; right of the dotted line \ours is better).
+Imbalance ratio 100, 10 clients, Dirichlet $\alpha=0.5$.}
 \label{fig:forest}
-\end{figure}
+\end{figure}}
 
 \subsection{Rare classes}\label{sec:res-tail}
 
-\Cref{tab:tail} reports the recall of the tail classes, and \cref{fig:recall-size} the recall of every class against
-its number of training images. \claim{The gain of \ours is concentrated in the tail: on CIFAR-100-LT its tail recall
+\Cref{tab:tail} reports the recall of the tail classes\whenfig{fig_recall_size}{, and \cref{fig:recall-size} the
+recall of every class against its number of training images}. \claim{The gain of \ours is concentrated in the tail: on CIFAR-100-LT its tail recall
 is \R{main/cifar100/FedECS-LT/tail} against \R{main/cifar100/GeFL-F/tail} for GeFL-F, and its worst-class recall
-\R{main/cifar100/FedECS-LT/worst} against \R{main/cifar100/GeFL-F/worst}.} \Cref{fig:hmt} splits the recall into the
-head, medium and tail classes.
+\R{main/cifar100/FedECS-LT/worst} against \R{main/cifar100/GeFL-F/worst}.} \whenfig{fig_hmt}{\Cref{fig:hmt} splits the
+recall into the head, medium and tail classes.}
 
 \begin{widetable}[t]
 \centering\small
@@ -87,6 +93,7 @@ Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
 \phrow{Local}{5}\bottomrule\end{tabular}}
 \end{widetable}
 
+\whenfig{fig_recall_size}{%
 \begin{figure}[t]
 \centering
 \slotfig{fig_recall_size}{col}{Fig.~10 of the CIFAR-100-LT report: per-class recall against the class's training
@@ -94,27 +101,31 @@ images.}
 \caption{Recall of every class against its number of training images in the federation (CIFAR-100-LT, imbalance
 ratio 100, 10 clients; each point is one class, mean over seeds 3--5).}
 \label{fig:recall-size}
-\end{figure}
+\end{figure}}
 
+\whenfig{fig_hmt}{%
 \begin{figure}[t]
 \centering
 \slotfig{fig_hmt}{col}{Fig.~14 of the CIFAR-10-LT report: head / medium / tail recall per method.}
 \caption{Recall of the head (30\% most frequent), medium and tail (40\% least frequent) classes, per method
 (CIFAR-10-LT, imbalance ratio 100, 10 clients; mean $\pm$ one standard deviation over seeds 3--5).}
 \label{fig:hmt}
-\end{figure}
+\end{figure}}
 
 \subsection{Datasets with natural class imbalance}\label{sec:res-natural}
 
-\Cref{tab:natural} repeats the comparison on seven datasets whose class sizes are their own.
-\claim{\ours has the highest balanced accuracy on \R{nat/nbest} of the \R{nat/nsettings} datasets.} \claim{The
+\Cref{tab:natural} repeats the comparison on \R{nat/nsettings_w} datasets whose class sizes are their own
+(\R{nat/datasets}). \claim{\ours has the highest balanced accuracy as trained on \R{nat/nbest} of the
+\R{nat/nsettings_w}, with margins of \R{nat/fer2013/margin} (FER-2013) to \R{nat/dermamnist/margin} points
+(DermaMNIST) over the strongest other method. With the exact readout for every method the margins are below one
+point, and on BloodMNIST FedDF is level with \ours.} \claim{The
 separation gate chose the class-row generator on \R{gate/rows}, where the class means are too close for an anchor.}
 
 \begin{widetable}[t]
 \centering\small
 \caption{Balanced accuracy (\%), heads as trained, on datasets with natural class imbalance (training sets capped
-at 20,000 images); mean $\pm$ standard deviation over seeds 3--5. 10 clients with ten different head
-architectures, Dirichlet $\alpha=0.5$.}
+at 20,000 images); mean $\pm$ standard deviation over seeds 3--5 (a value without $\pm$ is from one seed). 10
+clients with ten different head architectures, Dirichlet $\alpha=0.5$.}
 \label{tab:natural}
 \slottab{nat_bal}{\begin{tabular}{lccccccc}\toprule
 Method & DermaMNIST & OrganAMNIST & BloodMNIST & PathMNIST & GTSRB & EMNIST & FER-2013\\\midrule
@@ -125,18 +136,32 @@ Method & DermaMNIST & OrganAMNIST & BloodMNIST & PathMNIST & GTSRB & EMNIST & FE
 
 \subsection{One shared model}\label{sec:res-shared}
 
-\Cref{tab:shared} gives the results in the FedLTLib protocol. \claim{At imbalance ratio 100, \ours reaches
-\R{t2/cifar10-r100/FedECS-LT/bal} on CIFAR-10-LT and \R{t2/cifar100-r100/FedECS-LT/bal} on CIFAR-100-LT; the strongest
-other method is \R{t2/cifar10-r100/strongest} and \R{t2/cifar100-r100/strongest}, with a margin of
-\R{t2/cifar10-r100/margin} and \R{t2/cifar100-r100/margin} points.} \claim{Training the extractor of \ours for all 200
-rounds instead of 100 changes its balanced accuracy on CIFAR-10-LT by \R{t2/cifar10-r100/fe200_diff} points.}
-\Cref{fig:shared-rounds} shows the balanced accuracy over the rounds.
+\Cref{tab:shared} gives the results in the FedLTLib protocol. \claim{Here end-to-end long-tail methods are
+stronger. At imbalance ratio 100, \ours reaches \R{t2/cifar10-r100/FedECS-LT/bal} on CIFAR-10-LT and
+\R{t2/cifar100-r100/FedECS-LT/bal} on CIFAR-100-LT, about the level of FedAvg, while the strongest method,
+\R{t2/cifar10-r100/strongest}, is \R{t2/cifar10-r100/margin} and \R{t2/cifar100-r100/margin} points from \ours.} With
+one shared model nothing prevents training the whole network end to end on real data, and the methods that do so
+with long-tail corrections learn a better representation than a frozen extractor trained for half of the rounds;
+the generator, which is what lets clients with different models exchange knowledge, brings no advantage when the
+models can simply be averaged. \whennum{t2/cifar10-r100/fe200_diff}{\claim{Training the extractor of \ours for all 200 rounds changes
+its balanced accuracy on CIFAR-10-LT by \R{t2/cifar10-r100/fe200_diff} points.}}
+
+\paragraph{Comparison with published numbers.} Our baselines run in the authors' code on our splits and report the
+model after the last round. Against FedYoYo's evaluation in the same protocol~\cite{yan2025fedyoyo}, which trains
+300 rounds, most methods are within about three points of the published values (e.g.\ FedAvg 58.2, CCVR 68.1,
+FedETF 68.3, FedYoYo 81.5 on CIFAR-10-LT). FedLTLib~\cite{lin2026fedltlib} reports the best round and gives higher
+values for every method. Two methods are clearly below the published values in our runs: CReFF (70.5
+in~\cite{yan2025fedyoyo}) and Fed-GraB (70.6). Both run in the benchmark's code with its common settings (learning
+rate 0.1, batch size 32, ten local epochs), which differ from those in the methods' own papers; we did not tune them
+and report them as obtained.
+\whenfig{fig_shared_rounds}{\Cref{fig:shared-rounds} shows the balanced accuracy over the rounds.}
 
 \begin{widetable}[t]
 \centering\small
 \caption{Balanced accuracy (\%) with one ResNet-8 shared by all clients (FedLTLib protocol: 20 clients, 40\% per
-round, 200 rounds, Dirichlet $\alpha=0.5$); mean $\pm$ standard deviation over seeds 3--5 at imbalance ratio 100,
-one seed (3) at ratios 50 and 10. Baselines in the authors' LongTailLib code on the same client splits.}
+round, 200 rounds, Dirichlet $\alpha=0.5$); mean $\pm$ standard deviation over the seeds that came back (seeds
+3--5; a value without $\pm$ is from one seed). Baselines in the authors' LongTailLib code on the same client splits,
+evaluated after the last round. Fed-GraB: accuracy of its own trained classifier as logged by the library.}
 \label{tab:shared}
 \slottab{t2_bal}{\begin{tabular}{lcccccc}\toprule
 & \multicolumn{3}{c}{CIFAR-10-LT} & \multicolumn{3}{c}{CIFAR-100-LT}\\
@@ -145,6 +170,7 @@ Method & 100 & 50 & 10 & 100 & 50 & 10\\\midrule
 \phrow{FedETF}{6}\phrow{Fed-GraB}{6}\phrow{FedLoGe}{6}\phrow{FedYoYo}{6}\phrow{RUCR}{6}\bottomrule\end{tabular}}
 \end{widetable}
 
+\whenfig{fig_shared_rounds}{%
 \begin{figure}[t]
 \centering
 \slotfig{fig_shared_rounds}{col}{Fig.~71 of the CIFAR-100-LT (ratio 100) one-shared-model report: balanced accuracy
@@ -153,17 +179,18 @@ over the rounds.}
 100, 20 clients, 40\% per round; mean over seeds 3--5). For \ours the rounds are those of the extractor and then of
 the head.}
 \label{fig:shared-rounds}
-\end{figure}
+\end{figure}}
 
-\subsection{Ablations}\label{sec:res-ablation}
+\whenanytab{abl_bal,abl_components,robust}{\subsection{Ablations}\label{sec:res-ablation}}
 
-\paragraph{Variants of GeFL-F.} \Cref{tab:ablation} isolates what each change to GeFL-F contributes, on CIFAR-10-LT and
+\whentab{abl_bal}{\paragraph{Variants of GeFL-F.} \Cref{tab:ablation} isolates what each change to GeFL-F contributes, on CIFAR-10-LT and
 CIFAR-100-LT with the same splits and seeds: GeFL-F without its generator (heads on real features only), with logit
 adjustment and decoupled weight decay, with its generator replaced by class Gaussians from the exact class
 statistics, and FedDF with logit adjustment. \claim{Removing the coupled decay and adding logit adjustment recovers
 \R{abl/cifar10/GeFL-F + LA/gain} points of GeFL-F's deficit on CIFAR-10-LT; \ours adds \R{abl/cifar10/rest} points on
-top.}
+top.}}
 
+\whentab{abl_bal}{%
 \begin{table}[t]
 \centering\small
 \caption{Variants of GeFL-F: balanced accuracy (\%), heads as trained; mean $\pm$ standard deviation over seeds 3--5
@@ -173,12 +200,13 @@ top.}
 Method & CIFAR-10-LT & CIFAR-100-LT\\\midrule
 \phrow{FedECS-LT}{2}\phrow{GeFL-F}{2}\phrow{GeFL-F w/o generator}{2}\phrow{GeFL-F + LA}{2}
 \phrow{GeFL-F w/ Gaussian generator + LA}{2}\phrow{FedDF}{2}\phrow{FedDF + LA}{2}\bottomrule\end{tabular}}
-\end{table}
+\end{table}}
 
-\paragraph{Components of \ours.} \Cref{tab:components} removes one component of \ours at a time.
+\whentab{abl_components}{\paragraph{Components of \ours.} \Cref{tab:components} removes one component of \ours at a time.
 \claim{[Write once the component ablation has been run (GUIDE.md, section 4, experiment E7): which components matter
-most, with and without the exact readout.]}
+most, with and without the exact readout.]}}
 
+\whentab{abl_components}{%
 \begin{table}[t]
 \centering\small
 \caption{Components of \ours: balanced accuracy (\%) as trained and with the exact readout (\ER) when one component
@@ -190,11 +218,12 @@ Variant & as trained & \ER & as trained & \ER\\\midrule
 \phrow{FedECS-LT (full)}{4}\phrow{w/o mean anchor (class rows, CCWA)}{4}\phrow{w/o CCWA (flat averaging)}{4}
 \phrow{w/o moment correction}{4}\phrow{w/o consensus soft labels}{4}\phrow{w/o logit adjustment}{4}
 \phrow{$T_s=1$ instead of 10}{4}\bottomrule\end{tabular}}
-\end{table}
+\end{table}}
 
-\paragraph{Robustness.} \Cref{tab:robust} varies the label skew, the number of clients and the imbalance ratio.
-\claim{[Write once the sweeps have been run (GUIDE.md, section 4, experiment E8).]}
+\whentab{robust}{\paragraph{Robustness.} \Cref{tab:robust} varies the label skew, the number of clients and the imbalance ratio.
+\claim{[Write once the sweeps have been run (GUIDE.md, section 4, experiment E8).]}}
 
+\whentab{robust}{%
 \begin{table}[t]
 \centering\small
 \caption{Balanced accuracy (\%) of \ours and the strongest baselines under other settings (CIFAR-10-LT unless stated);
@@ -205,16 +234,17 @@ mean $\pm$ standard deviation over seeds 3--5.}
 Method & 0.1 & 1.0 & 50 & 100 & 50 & 10\\\midrule
 \phrow{FedECS-LT}{6}\phrow{[strongest baseline 1]}{6}\phrow{[strongest baseline 2]}{6}\phrow{GeFL-F}{6}
 \bottomrule\end{tabular}}
-\end{table}
+\end{table}}
 
-\subsection{Representations and generated features}\label{sec:res-repr}
+\whenfig{fig_tsne}{\subsection{Representations and generated features}\label{sec:res-repr}
 
-\Cref{fig:tsne} shows the test embeddings of GeFL-F and \ours on the same images. \claim{The rare classes of \ours form
-tighter groups; the leave-one-out 10-nearest-neighbour accuracy of the embeddings, which does not depend on the map,
-is \R{repr/cifar10/FedECS-LT/knn} for \ours and \R{repr/cifar10/GeFL-F/knn} for GeFL-F.} Cluster sizes and the
+\Cref{fig:tsne} shows the test embeddings of GeFL-F and \ours on the same images. \claim{The embeddings of \ours separate the classes
+better: the leave-one-out 10-nearest-neighbour accuracy of the embeddings, which does not depend on the map, is \R{repr/cifar10/FedECS-LT/knn} for \ours and \R{repr/cifar10/GeFL-F/knn} for GeFL-F (first architecture, mean
+over seeds 3--5).} Cluster sizes and the
 distances between clusters in such maps carry no meaning~\cite{wattenberg2016tsne}; only the grouping does.
-\Cref{fig:realgen} overlays real and generated features.
+\whenfig{fig_realgen}{\Cref{fig:realgen} overlays real and generated features.}}
 
+\whenfig{fig_tsne}{%
 \begin{widefigure}[t]
 \centering
 \slotfig{fig_tsne}{wide}{Fig.~83 of the CIFAR-10-LT report: t-SNE of GeFL-F and FedECS-LT test embeddings side by
@@ -224,15 +254,18 @@ images of CIFAR-10-LT (one architecture, seed 3; PCA to 50 dimensions, PCA initi
 30~\cite{kobak2019tsne}). Tail classes are drawn larger. Cluster sizes and distances between clusters are not
 interpretable.}
 \label{fig:tsne}
-\end{widefigure}
+\end{widefigure}}
 
+\whenfig{fig_realgen}{%
 \begin{figure}[t]
 \centering
 \slotfig{fig_realgen}{col}{Fig.~22 of the CIFAR-10-LT report: t-SNE of real and generated validation features of
 FedECS-LT.}
-\caption{Real (dots) and generated (crosses) features of \ours on CIFAR-10-LT, embedded together by t-SNE (seed 3).}
+\caption{Real validation features (circles) and features generated by \ours (crosses) on CIFAR-10-LT, embedded
+together by t-SNE (seed 3; same settings as \cref{fig:tsne}). Cluster sizes and distances between clusters are not
+interpretable.}
 \label{fig:realgen}
-\end{figure}
+\end{figure}}
 
 \subsection{Calibration, fairness across clients and cost}\label{sec:res-cost}
 

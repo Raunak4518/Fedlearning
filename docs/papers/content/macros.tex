@@ -10,6 +10,7 @@
 % \finalslotstrue in a wrapper turns every remaining placeholder into a LaTeX error, so that nothing unfilled is
 % submitted.
 \newif\iffinalslots
+\makeatletter
 \emergencystretch=2em   % placeholder names cannot be hyphenated
 \providecommand{\genpath}{../generated}
 
@@ -31,12 +32,10 @@
      {\scriptsize\textcolor{red}{Placeholder: table slot \texttt{\detokenize{#1}} (GUIDE.md)}}}}
 % one placeholder row: method name and n empty cells (the cells are built first, then emitted, so that the &s act
 % as column separators of the table)
-\makeatletter
 \newcommand{\phrow}[2]{\begingroup\count@=#2\relax\def\ph@c{}%
   \loop\ifnum\count@>\z@\edef\ph@c{\unexpanded\expandafter{\ph@c & --}}\advance\count@\m@ne\repeat
   \expandafter\endgroup\expandafter\ph@emit\expandafter{\ph@c}{#1}}
 \newcommand{\ph@emit}[2]{#2#1\\}
-\makeatother
 
 % figures: the drawn PDF at its print size (column 3.5 in, page 7.16 in; IEEE format), never wider than the line
 \newlength{\slotfigh}
@@ -47,6 +46,17 @@
      \ifstrequal{#2}{wide}{\setlength{\slotfigh}{0.28\textwidth}}{\setlength{\slotfigh}{0.55\linewidth}}%
      \fbox{\parbox[c][\slotfigh][c]{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{\centering\small
         \textcolor{red}{\textbf{FIGURE PLACEHOLDER: \texttt{\detokenize{#1}}}}\\[2pt]\footnotesize #3\par}}}}
+
+% parts that exist only when their experiment came back: in draft mode always shown (with placeholders), in the
+% final build (\finalslotstrue) left out when the result is missing, so that the paper never shows an empty slot.
+%   \whentab{name}{...}  \whenfig{name}{...}  \whennum{key}{...}  \whenanytab{a,b,c}{...}
+\newcommand{\whentab}[2]{\iffinalslots\IfFileExists{\genpath/tables/#1.tex}{#2}{}\else#2\fi}
+\newcommand{\whenfig}[2]{\iffinalslots\IfFileExists{\genpath/figures/#1.pdf}{#2}{}\else#2\fi}
+\newcommand{\whennum}[2]{\iffinalslots\ifcsname num@#1\endcsname#2\fi\else#2\fi}
+\newif\ifslot@any
+\newcommand{\whenanytab}[2]{\iffinalslots\slot@anyfalse
+  \@for\slot@x:=#1\do{\IfFileExists{\genpath/tables/\slot@x.tex}{\global\slot@anytrue}{}}%
+  \ifslot@any#2\fi\else#2\fi}
 
 % a sentence to check against the results before submission (blue in draft mode, plain in final mode)
 \newcommand{\claim}[1]{\iffinalslots#1\else\textcolor{blue}{#1}\fi}
@@ -60,3 +70,4 @@
 \newcommand{\ours}{FedECS-LT\xspace}
 \newcommand{\geflf}{GeFL-F\xspace}
 \newcommand{\pos}[1]{\textbf{#1}}
+\makeatother

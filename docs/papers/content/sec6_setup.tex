@@ -2,15 +2,13 @@
 
 \subsection{Datasets and client splits}\label{sec:setup-data}
 
-\paragraph{Long-tailed benchmarks.} MNIST~\cite{lecun1998mnist}, Fashion-MNIST~\cite{xiao2017fmnist},
-SVHN~\cite{netzer2011svhn}, CIFAR-10 and CIFAR-100~\cite{krizhevsky2009cifar} are made long-tailed with imbalance ratio
-$\rho=100$ and split among $K=10$ clients by a Dirichlet draw with $\alpha=0.5$ per class, as in GeFL-F's data
-fractions~\cite{kang2025gefl} (CIFAR-100-LT then has 480 training images in its largest class and 5 in its smallest).
-\paragraph{Natural imbalance.} DermaMNIST, OrganAMNIST, BloodMNIST and PathMNIST from MedMNIST~\cite{yang2023medmnist},
-GTSRB~\cite{stallkamp2012gtsrb}, EMNIST (ByClass)~\cite{cohen2017emnist} and FER-2013~\cite{goodfellow2013fer} keep their
-own class sizes, with training sets capped at 20,000 images, and are split the same way. A validation set of 2,000
-training images that no client holds is used for model selection; all results are on the official balanced or
-natural test sets. \Cref{tab:datasets} summarises the splits.
+\paragraph{Long-tailed benchmarks.} \R{main/datasets_cite} are made long-tailed with imbalance ratio $\rho=100$ and
+split among $K=10$ clients by a Dirichlet draw with $\alpha=0.5$ per class, with GeFL-F's data
+fractions~\cite{kang2025gefl} (CIFAR-100-LT then has 480 training images in its largest class and 5 in its
+smallest).
+\paragraph{Natural imbalance.} \R{nat/datasets_cite} keep their own class sizes, with training sets capped at 20,000
+images, and are split the same way. A validation set of 2,000 training images that no client holds is used for model
+selection; all results are on the official test sets. \Cref{tab:datasets} summarises the splits.
 
 \begin{table}[t]
 \centering\small

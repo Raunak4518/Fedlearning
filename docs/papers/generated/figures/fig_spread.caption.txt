@@ -1,0 +1,1 @@
+Change of the logit spread of the clients' heads on their own real features during the synthetic phase of each head-training round (after minus before; mean over clients; methods with a synthetic phase), per round, mean over seeds; the shaded band is one standard deviation. CIFAR-10-LT (imbalance ratio 100), 10 clients, Dirichlet label split with alpha = 0.5; seeds 3, 4 and 5.

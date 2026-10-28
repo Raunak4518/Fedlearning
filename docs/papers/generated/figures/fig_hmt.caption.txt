@@ -1,0 +1,1 @@
+Mean recall of the head (most frequent 30%), medium (next 30%) and tail (rarest 40%) classes; mean over seeds, error bars one standard deviation. CIFAR-10-LT (imbalance ratio 100), 10 clients, Dirichlet label split with alpha = 0.5; seeds 3, 4 and 5.

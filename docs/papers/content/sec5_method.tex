@@ -2,8 +2,9 @@
 
 \ours keeps the three stages of GeFL-F and the frozen extractor, and changes how every class-specific quantity is
 obtained. Wherever the data decide a class's result, it uses a statistic that secure aggregation computes exactly
-instead of a parameter that FedAvg estimates. \Cref{fig:overview} shows the pipeline and \cref{alg:fedecs} lists it.
+instead of a parameter that FedAvg estimates. \Cref{alg:fedecs} lists the pipeline\whenfig{fig_overview}{ and \cref{fig:overview} shows it}.
 
+\whenfig{fig_overview}{%
 \begin{widefigure}[t]
 \centering
 \slotfig{fig_overview}{wide}{Architecture diagram (draw it; GUIDE.md, section 6): clients with different head
@@ -16,7 +17,7 @@ to average its class rows over their holders, and to correct the moments of its 
 corrected synthetic features with consensus soft labels and on real features with logit adjustment (Stage III).
 Finally every architecture's last layer is replaced by a readout computed from aggregated sums.}
 \label{fig:overview}
-\end{widefigure}
+\end{widefigure}}
 
 \subsection{Statistics release}\label{sec:method-stats}
 

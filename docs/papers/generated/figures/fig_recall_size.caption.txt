@@ -1,0 +1,1 @@
+Per-class recall against the number of training images of the class in the federation (logarithmic axis); each point is one class, mean over seeds. CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet label split with alpha = 0.5; seeds 3, 4 and 5.
