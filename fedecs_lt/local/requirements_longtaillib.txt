@@ -1,0 +1,7 @@
+# Only for the one-shared-model jobs (NB20 / NB29: the authors' LongTailLib code); needs git. Linux only.
+h5py==3.16.0
+tqdm==4.70.1
+calmsize==0.1.3
+ftfy
+regex
+clip @ git+https://github.com/openai/CLIP.git@d05afc436d78f1c48dc0dbf8e5980a9d471f35f6

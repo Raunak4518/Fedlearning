@@ -22,6 +22,9 @@ FedECS-LT (Exact Class Statistics for Long-Tailed federated learning) and every 
 - `build_notebooks.py` writes `notebooks/<priority folder>/*.ipynb` (folders `0_` to `4_`, in run order) and
   `notebooks/START_HERE.md`. Notebooks are generated; edit `src/`
   or the builder, then rebuild.
+- `local/`: the same jobs on your own Windows (or Linux) PC with an NVIDIA GPU, one run at a time:
+  `local/README.md` (setup_windows.bat, run_check.bat, list_jobs.bat, run_job.bat); `local/jobs.json` and
+  `local/VERSION` are written by build_notebooks.py.
 - `fetch_kaggle.py` downloads finished notebooks' outputs from Kaggle into `results/<notebook>/` (with a summary.md).
 - `merge_results.py` joins several notebooks' results (parts, seeds, ablation + reference) into one report;
   `paper_tables.py` writes tables as LaTeX / CSV. The paper itself (docs/papers) fills from the results with

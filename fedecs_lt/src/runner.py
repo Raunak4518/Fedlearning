@@ -167,12 +167,10 @@ def needs_whole_gpu(R):
 def _alive(pid):
     """A waiting run's process still exists (a process killed outright leaves its .want file behind, which would
     otherwise block every shared run on that GPU until the deadline)."""
+    import oslock
     try:
-        os.kill(int(pid), 0)
-        return True
-    except PermissionError:
-        return True
-    except (ValueError, ProcessLookupError):
+        return oslock.alive(pid)
+    except ValueError:
         return False
 
 
@@ -188,13 +186,13 @@ class GpuShare:
         self.alone = alone
 
     def __enter__(self):
-        import fcntl
+        import oslock
         os.makedirs(os.path.dirname(self.path), exist_ok=True)
         self.f = open(self.path, "a")
         if self.alone:
             open(self.want, "a").close()
             print("waiting for the whole GPU", flush=True)
-            fcntl.flock(self.f, fcntl.LOCK_EX)
+            oslock.lock(self.f)
         else:
             import glob
             while True:
@@ -202,17 +200,17 @@ class GpuShare:
                 if not waiting:
                     break
                 time.sleep(5)
-            fcntl.flock(self.f, fcntl.LOCK_SH)
+            oslock.lock(self.f, shared=True)
         return self
 
     def __exit__(self, *exc):
-        import fcntl
+        import oslock
         if self.alone:
             try:
                 os.remove(self.want)
             except FileNotFoundError:
                 pass
-        fcntl.flock(self.f, fcntl.LOCK_UN)
+        oslock.unlock(self.f)
         self.f.close()
 
 

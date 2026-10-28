@@ -688,3 +688,25 @@ Decisions:
 - **Separate track, not blocking the paper:** CReFF, Fed-GraB, FedLoGe and RUCR in the grouped setting. FedYoYo needs
   image augmentation, impossible on frozen features.
 - New notebooks get descriptive names; the old NB names stay until after submission (links and folders unchanged).
+
+## 25. Local GPUs (user, 29 Oct 2026): the same jobs on own Windows PCs, RTX 3050 4 GB to RTX 4060 8 GB
+- **The constraint:** the PCs run Windows, with no Linux, no WSL2 and no administrator rights. `fedecs_lt/local/`:
+  - `setup_windows.bat` installs Python 3.12.10 for the user (Flower's simulation needs 3.12 on Windows) and PyTorch
+    2.14.1 cu126, plus the fixed versions of `requirements.txt`;
+  - `run_check.bat` / `list_jobs.bat` / `run_job.bat JOB`; the guide is `local/README.md`.
+- **The jobs are the notebooks** (`local/jobs.json`, written by build_notebooks.py), with the same splits and seeds.
+  - They run one at a time, with no CUDA graphs below 12 GB (`FEDECS_CUDA_GRAPHS=0`; same computation).
+  - The four output files are filed with `fetch_kaggle.py PATH/NAME__summary.zip`; the source is recorded as
+    "local GPU (<name>)".
+  - A notebook already filed from another source goes to `results/_repeats/`, never over the first run.
+- **Memory:**
+  - Kaggle peaks of 18-22 GB for the generator methods are mostly CUDA graphs. Full-size CPU profile without graphs:
+    server 3.5 GB, client 3.5 GB RSS.
+  - `run_check.bat` measures each kind of run on each GPU, and a job with a kind that does not fit is not started.
+- **On Windows the one-shared-model jobs (LongTailLib) stay on Kaggle.**
+- **Portability fixes in src:**
+  - `oslock.py`: fcntl on Linux, msvcrt on Windows;
+  - a process-alive check without `os.kill(pid, 0)`, which terminates the process on Windows;
+  - `PYTHONUTF8=1`, and Ray's folders under a short path.
+- **Not yet tested on Windows:** the first `run_check.bat` on each PC is the test.
+- **Rule:** never run a notebook both on Kaggle and locally.

@@ -10,6 +10,8 @@
 
 When results come back: `docs/papers/GUIDE.md`, section 0 (file them with fetch_kaggle.py, fill the paper with docs/papers/fill.py); section 4 says what each notebook gives the paper.
 
+**Own Windows PC with an NVIDIA GPU (4-8 GB) instead of Kaggle:** the same jobs, one run at a time: [`../local/README.md`](../local/README.md). Never run a notebook on both.
+
 Expected hours are estimates from NB00's measured run times (fedecs_lt/plan_time.py); a notebook starts no new run after 11 h and always saves what has finished.
 
 **65 notebooks to run, about 410 session-hours in total.**

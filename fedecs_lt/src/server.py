@@ -157,13 +157,10 @@ def claim(path, wait_s=8 * 3600):
             return True
         except FileExistsError:
             try:
-                pid = int(open(lock).read() or 0)
-                os.kill(pid, 0)
-                alive = True
-            except (ValueError, ProcessLookupError, FileNotFoundError):
+                import oslock
+                alive = oslock.alive(int(open(lock).read() or 0))
+            except (ValueError, FileNotFoundError):
                 alive = False
-            except PermissionError:
-                alive = True
             if not alive or time.time() - t0 > wait_s:
                 try:
                     os.remove(lock)

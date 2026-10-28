@@ -1,0 +1,14 @@
+# Fixed versions for local runs (fedecs_lt/local/setup.sh installs them; torch and torchvision come first, from
+# PyTorch's own index, with the CUDA build that matches the NVIDIA driver). These are the versions the CPU end-to-end
+# tests of every notebook ran with (28 Oct 2026); Flower and ReportLab are the versions the Kaggle notebooks pin.
+flwr[simulation]==1.42.0
+reportlab==5.0.1
+numpy==2.5.4
+scipy==1.18.1
+scikit-learn==1.9.1
+matplotlib==3.11.2
+pandas==3.0.5
+pyarrow==26.0.0
+pillow==12.3.0
+umap-learn==0.5.9.post2
+tensorboard==2.21.0

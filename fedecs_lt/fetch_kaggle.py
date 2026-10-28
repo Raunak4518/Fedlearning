@@ -4,6 +4,7 @@ tool). Public notebooks need no Kaggle login: the listing API answers without on
     python fedecs_lt/fetch_kaggle.py USER/SLUG [USER/SLUG ...]          # or full https://www.kaggle.com/code/... links
     python fedecs_lt/fetch_kaggle.py --all                               # every notebook in results/KAGGLE_SOURCES.md
     python fedecs_lt/fetch_kaggle.py --results USER/SLUG                 # also the large NAME__results.zip
+    python fedecs_lt/fetch_kaggle.py PATH/NAME__summary.zip              # a local GPU run (local/run_local.py)
 
 For each notebook it keeps, in the repository, the small text files that every table needs (runs.jsonl, runs.csv,
 failures.jsonl, audit.json, report_info.json, code_version.txt) and writes summary.md (runs finished against the
@@ -16,6 +17,7 @@ import datetime
 import json
 import os
 import re
+import shutil
 import sys
 import urllib.parse
 import urllib.request
@@ -66,7 +68,7 @@ def summary_md(name, url, d, plan):
     n_plan = plan.get(name)
     complete = n_plan is not None and len(done) == n_plan
     lines = [f"# {name}: {'complete' if complete else 'INCOMPLETE'}", "",
-             f"Kaggle: {url}  ", f"Downloaded: {datetime.date.today().isoformat()}  ", f"Code: {version}", "",
+             f"{'Kaggle' if url.startswith('http') else 'Run on'}: {url}  ", f"Downloaded: {datetime.date.today().isoformat()}  ", f"Code: {version}", "",
              f"Runs finished: {len(done)} of {n_plan if n_plan is not None else '?'} planned. "
              f"Runs that failed on every attempt: {len(failed)}.", ""]
     if info:
@@ -149,6 +151,41 @@ def fetch(user, slug, plan, results=False):
     return name
 
 
+def file_local(path, plan):
+    """A local GPU run's NAME__summary.zip (fedecs_lt/local/run_local.py), filed like a Kaggle notebook's output."""
+    fn = os.path.basename(path)
+    if not fn.endswith("__summary.zip"):
+        raise SystemExit(f"{path}: expected NAME__summary.zip from ~/fedecs_local/out/NAME/")
+    name = fn[: -len("__summary.zip")]
+    with zipfile.ZipFile(path) as z:
+        cv = next((z.read(m).decode().strip() for m in z.namelist() if m.endswith("code_version.txt")), "")
+    src = f"local GPU ({cv.split('local: ', 1)[-1] if 'local: ' in cv else 'unknown'})"
+    known = recorded_source(name)
+    repeat = known is not None and known != src
+    d = os.path.join(RES, "_repeats", f"{name}__local") if repeat else os.path.join(RES, name)
+    dl = d if repeat else DL
+    os.makedirs(dl, exist_ok=True)
+    os.makedirs(d, exist_ok=True)
+    shutil.copy(path, os.path.join(dl, fn))
+    rep = os.path.join(os.path.dirname(path), name + "__report.pdf")
+    if os.path.exists(rep):
+        shutil.copy(rep, os.path.join(dl, name + "__report.pdf"))
+    with zipfile.ZipFile(path) as z:
+        for member in z.namelist():
+            base = os.path.basename(member)
+            if base in KEEP and member.count("/") <= 1:
+                with open(os.path.join(d, base), "wb") as f:
+                    f.write(z.read(member))
+    if repeat:
+        print(f"{name}: already filed from {known}; this local run is kept in {os.path.relpath(d, HERE)}")
+    else:
+        record_source(name, src)
+    complete, n, n_plan, n_failed = summary_md(name, src, d, plan)
+    print(f"{name}: {n} of {n_plan} runs{'' if complete else ' -- INCOMPLETE'}"
+          f"{f', {n_failed} failed' if n_failed else ''}  ({src})")
+    return name
+
+
 def main():
     args = sys.argv[1:]
     results = "--results" in args
@@ -159,7 +196,10 @@ def main():
         raise SystemExit(__doc__)
     plan = planned_runs()
     for a in args:
-        fetch(*ref_of(a), plan, results=results)
+        if a.endswith(".zip") and os.path.exists(a):   # a local GPU run's summary zip
+            file_local(a, plan)
+        else:
+            fetch(*ref_of(a), plan, results=results)
     import gefl_measure   # GeFL's measure (every model's best round) from the per-round logs just downloaded
     gefl_measure.main()
 

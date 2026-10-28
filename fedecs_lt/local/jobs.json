@@ -1,0 +1,7828 @@
+{
+ "NB10_main_bloodmnist": {
+  "folder": "3_main_comparison_other_datasets",
+  "title": "Main comparison on BloodMNIST (natural imbalance), 10 clients, Dirichlet 0.5",
+  "what": "Main comparison on BloodMNIST (natural imbalance), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5.",
+  "kaggle_hours": 8.6,
+  "runs": [
+   {
+    "label": "FedECS-LT",
+    "ds": "bloodmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "bloodmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "bloodmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "bloodmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "bloodmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "bloodmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "bloodmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "bloodmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "bloodmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "bloodmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "bloodmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "bloodmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "bloodmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "bloodmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "bloodmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "bloodmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "bloodmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "bloodmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "bloodmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "bloodmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "bloodmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "bloodmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "bloodmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "bloodmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "bloodmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "bloodmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "bloodmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "bloodmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "bloodmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "bloodmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "bloodmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "bloodmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "bloodmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "bloodmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "bloodmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "bloodmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "bloodmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "bloodmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "bloodmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB10_main_cifar100_part1of2": {
+  "folder": "1_main_comparison_mnist_fmnist_svhn_cifar10_cifar100",
+  "title": "Main comparison on CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5 (part 1 of 2)",
+  "what": "Main comparison on CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5. Part 1 of 2: 7 methods; seeds 3, 4, 5.",
+  "kaggle_hours": 3.3,
+  "runs": [
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB10_main_cifar100_part2of2": {
+  "folder": "1_main_comparison_mnist_fmnist_svhn_cifar10_cifar100",
+  "title": "Main comparison on CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5 (part 2 of 2)",
+  "what": "Main comparison on CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5. Part 2 of 2: FedProto, FedTGP, FedGen, FedGH, LG-FedAvg, FedMRL; seeds 3, 4, 5.",
+  "kaggle_hours": 7.3,
+  "runs": [
+   {
+    "label": "FedProto",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB10_main_cifar10_part1of3": {
+  "folder": "1_main_comparison_mnist_fmnist_svhn_cifar10_cifar100",
+  "title": "Main comparison on CIFAR-10-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5 (part 1 of 3)",
+  "what": "Main comparison on CIFAR-10-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5. Part 1 of 3: 7 methods; seeds 3, 4, 5.",
+  "kaggle_hours": 4.9,
+  "runs": [
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB10_main_cifar10_part2of3": {
+  "folder": "1_main_comparison_mnist_fmnist_svhn_cifar10_cifar100",
+  "title": "Main comparison on CIFAR-10-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5 (part 2 of 3)",
+  "what": "Main comparison on CIFAR-10-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5. Part 2 of 3: FedProto, FedTGP, FedGen; seeds 3, 4, 5.",
+  "kaggle_hours": 6.9,
+  "runs": [
+   {
+    "label": "FedProto",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB10_main_cifar10_part3of3": {
+  "folder": "1_main_comparison_mnist_fmnist_svhn_cifar10_cifar100",
+  "title": "Main comparison on CIFAR-10-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5 (part 3 of 3)",
+  "what": "Main comparison on CIFAR-10-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5. Part 3 of 3: FedGH, LG-FedAvg, FedMRL; seeds 3, 4, 5.",
+  "kaggle_hours": 6.9,
+  "runs": [
+   {
+    "label": "FedGH",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB10_main_dermamnist": {
+  "folder": "3_main_comparison_other_datasets",
+  "title": "Main comparison on DermaMNIST (natural imbalance), 10 clients, Dirichlet 0.5",
+  "what": "Main comparison on DermaMNIST (natural imbalance), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5.",
+  "kaggle_hours": 5.6,
+  "runs": [
+   {
+    "label": "FedECS-LT",
+    "ds": "dermamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "dermamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "dermamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "dermamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "dermamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "dermamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "dermamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "dermamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "dermamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "dermamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "dermamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "dermamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "dermamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "dermamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "dermamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "dermamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "dermamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "dermamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "dermamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "dermamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "dermamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "dermamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "dermamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "dermamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "dermamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "dermamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "dermamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "dermamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "dermamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "dermamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "dermamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "dermamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "dermamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "dermamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "dermamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "dermamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "dermamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "dermamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "dermamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB10_main_emnist": {
+  "folder": "3_main_comparison_other_datasets",
+  "title": "Main comparison on EMNIST (ByClass) (natural imbalance), 10 clients, Dirichlet 0.5",
+  "what": "Main comparison on EMNIST (ByClass) (natural imbalance), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5.",
+  "kaggle_hours": 9.2,
+  "runs": [
+   {
+    "label": "FedECS-LT",
+    "ds": "emnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "emnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "emnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "emnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "emnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "emnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "emnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "emnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "emnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "emnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "emnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "emnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "emnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB10_main_emnist_rerun_7bfd7d": {
+  "folder": "5_reruns_of_failed_runs",
+  "title": "Main comparison on EMNIST (ByClass) (natural imbalance), 10 clients, Dirichlet 0.5: runs that did not finish",
+  "what": "26 runs of NB10_main_emnist that did not finish there, one run per GPU. Merge with that notebook's results.",
+  "kaggle_hours": 7.8,
+  "runs": [
+   {
+    "label": "FedMRL",
+    "ds": "emnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "emnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "emnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "emnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB10_main_fer2013_part1of3": {
+  "folder": "3_main_comparison_other_datasets",
+  "title": "Main comparison on FER-2013 (natural imbalance), 10 clients, Dirichlet 0.5 (part 1 of 3)",
+  "what": "Main comparison on FER-2013 (natural imbalance), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5. Part 1 of 3: 7 methods; seeds 3, 4, 5.",
+  "kaggle_hours": 3.7,
+  "runs": [
+   {
+    "label": "FedECS-LT",
+    "ds": "fer2013",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "fer2013",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "fer2013",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "fer2013",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "fer2013",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "fer2013",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "fer2013",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "fer2013",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "fer2013",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "fer2013",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "fer2013",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "fer2013",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "fer2013",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "fer2013",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "fer2013",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "fer2013",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "fer2013",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "fer2013",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "fer2013",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "fer2013",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "fer2013",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB10_main_fer2013_part2of3": {
+  "folder": "3_main_comparison_other_datasets",
+  "title": "Main comparison on FER-2013 (natural imbalance), 10 clients, Dirichlet 0.5 (part 2 of 3)",
+  "what": "Main comparison on FER-2013 (natural imbalance), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5. Part 2 of 3: FedProto, FedTGP, FedGen; seeds 3, 4, 5.",
+  "kaggle_hours": 7.4,
+  "runs": [
+   {
+    "label": "FedProto",
+    "ds": "fer2013",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "fer2013",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "fer2013",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "fer2013",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "fer2013",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "fer2013",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "fer2013",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "fer2013",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "fer2013",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB10_main_fer2013_part3of3": {
+  "folder": "3_main_comparison_other_datasets",
+  "title": "Main comparison on FER-2013 (natural imbalance), 10 clients, Dirichlet 0.5 (part 3 of 3)",
+  "what": "Main comparison on FER-2013 (natural imbalance), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5. Part 3 of 3: FedGH, LG-FedAvg, FedMRL; seeds 3, 4, 5.",
+  "kaggle_hours": 7.4,
+  "runs": [
+   {
+    "label": "FedGH",
+    "ds": "fer2013",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "fer2013",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "fer2013",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "fer2013",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "fer2013",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "fer2013",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "fer2013",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "fer2013",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "fer2013",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB10_main_fmnist": {
+  "folder": "1_main_comparison_mnist_fmnist_svhn_cifar10_cifar100",
+  "title": "Main comparison on Fashion-MNIST-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5",
+  "what": "Main comparison on Fashion-MNIST-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5.",
+  "kaggle_hours": 3.5,
+  "runs": [
+   {
+    "label": "FedECS-LT",
+    "ds": "fmnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "fmnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "fmnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "fmnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "fmnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "fmnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "fmnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "fmnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "fmnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "fmnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "fmnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "fmnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "fmnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "fmnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "fmnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "fmnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "fmnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "fmnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "fmnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "fmnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "fmnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "fmnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "fmnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "fmnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "fmnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "fmnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "fmnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "fmnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "fmnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "fmnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "fmnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "fmnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "fmnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "fmnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "fmnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "fmnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "fmnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "fmnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "fmnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB10_main_gtsrb_part1of3": {
+  "folder": "3_main_comparison_other_datasets",
+  "title": "Main comparison on GTSRB (natural imbalance), 10 clients, Dirichlet 0.5 (part 1 of 3)",
+  "what": "Main comparison on GTSRB (natural imbalance), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5. Part 1 of 3: 7 methods; seeds 3, 4, 5.",
+  "kaggle_hours": 3.7,
+  "runs": [
+   {
+    "label": "FedECS-LT",
+    "ds": "gtsrb",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "gtsrb",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "gtsrb",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "gtsrb",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "gtsrb",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "gtsrb",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "gtsrb",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "gtsrb",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "gtsrb",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "gtsrb",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "gtsrb",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "gtsrb",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "gtsrb",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "gtsrb",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "gtsrb",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "gtsrb",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "gtsrb",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "gtsrb",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "gtsrb",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "gtsrb",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "gtsrb",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB10_main_gtsrb_part2of3": {
+  "folder": "3_main_comparison_other_datasets",
+  "title": "Main comparison on GTSRB (natural imbalance), 10 clients, Dirichlet 0.5 (part 2 of 3)",
+  "what": "Main comparison on GTSRB (natural imbalance), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5. Part 2 of 3: FedProto, FedTGP, FedGen; seeds 3, 4, 5.",
+  "kaggle_hours": 7.4,
+  "runs": [
+   {
+    "label": "FedProto",
+    "ds": "gtsrb",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "gtsrb",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "gtsrb",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "gtsrb",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "gtsrb",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "gtsrb",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "gtsrb",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "gtsrb",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "gtsrb",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB10_main_gtsrb_part3of3": {
+  "folder": "3_main_comparison_other_datasets",
+  "title": "Main comparison on GTSRB (natural imbalance), 10 clients, Dirichlet 0.5 (part 3 of 3)",
+  "what": "Main comparison on GTSRB (natural imbalance), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5. Part 3 of 3: FedGH, LG-FedAvg, FedMRL; seeds 3, 4, 5.",
+  "kaggle_hours": 7.4,
+  "runs": [
+   {
+    "label": "FedGH",
+    "ds": "gtsrb",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "gtsrb",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "gtsrb",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "gtsrb",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "gtsrb",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "gtsrb",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "gtsrb",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "gtsrb",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "gtsrb",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB10_main_mnist": {
+  "folder": "1_main_comparison_mnist_fmnist_svhn_cifar10_cifar100",
+  "title": "Main comparison on MNIST-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5",
+  "what": "Main comparison on MNIST-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5.",
+  "kaggle_hours": 3.5,
+  "runs": [
+   {
+    "label": "FedECS-LT",
+    "ds": "mnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "mnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "mnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "mnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "mnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "mnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "mnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "mnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "mnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "mnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "mnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "mnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "mnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "mnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "mnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "mnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "mnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "mnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "mnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "mnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "mnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "mnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "mnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "mnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "mnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "mnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "mnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "mnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "mnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "mnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "mnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "mnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "mnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "mnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "mnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "mnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "mnist",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "mnist",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "mnist",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB10_main_organamnist": {
+  "folder": "3_main_comparison_other_datasets",
+  "title": "Main comparison on OrganAMNIST (natural imbalance), 10 clients, Dirichlet 0.5",
+  "what": "Main comparison on OrganAMNIST (natural imbalance), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5.",
+  "kaggle_hours": 9.2,
+  "runs": [
+   {
+    "label": "FedECS-LT",
+    "ds": "organamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "organamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "organamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "organamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "organamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "organamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "organamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "organamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "organamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "organamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "organamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "organamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "organamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "organamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "organamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "organamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "organamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "organamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "organamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "organamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "organamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "organamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "organamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "organamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "organamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "organamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "organamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "organamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "organamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "organamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "organamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "organamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "organamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "organamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "organamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "organamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "organamnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "organamnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "organamnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB10_main_pathmnist_part1of3": {
+  "folder": "3_main_comparison_other_datasets",
+  "title": "Main comparison on PathMNIST (natural imbalance), 10 clients, Dirichlet 0.5 (part 1 of 3)",
+  "what": "Main comparison on PathMNIST (natural imbalance), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5. Part 1 of 3: 7 methods; seeds 3, 4, 5.",
+  "kaggle_hours": 3.7,
+  "runs": [
+   {
+    "label": "FedECS-LT",
+    "ds": "pathmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "pathmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "pathmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "pathmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "pathmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "pathmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "pathmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "pathmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "pathmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "pathmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "pathmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "pathmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "pathmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "pathmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "pathmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "pathmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "pathmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "pathmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "pathmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "pathmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "pathmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB10_main_pathmnist_part2of3": {
+  "folder": "3_main_comparison_other_datasets",
+  "title": "Main comparison on PathMNIST (natural imbalance), 10 clients, Dirichlet 0.5 (part 2 of 3)",
+  "what": "Main comparison on PathMNIST (natural imbalance), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5. Part 2 of 3: FedProto, FedTGP, FedGen; seeds 3, 4, 5.",
+  "kaggle_hours": 7.4,
+  "runs": [
+   {
+    "label": "FedProto",
+    "ds": "pathmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "pathmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "pathmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "pathmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "pathmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "pathmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "pathmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "pathmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "pathmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB10_main_pathmnist_part3of3": {
+  "folder": "3_main_comparison_other_datasets",
+  "title": "Main comparison on PathMNIST (natural imbalance), 10 clients, Dirichlet 0.5 (part 3 of 3)",
+  "what": "Main comparison on PathMNIST (natural imbalance), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5. Part 3 of 3: FedGH, LG-FedAvg, FedMRL; seeds 3, 4, 5.",
+  "kaggle_hours": 7.4,
+  "runs": [
+   {
+    "label": "FedGH",
+    "ds": "pathmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "pathmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "pathmnist",
+    "seed": 3,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "pathmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "pathmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "pathmnist",
+    "seed": 4,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "pathmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "pathmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "pathmnist",
+    "seed": 5,
+    "IF": null,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB10_main_svhn": {
+  "folder": "1_main_comparison_mnist_fmnist_svhn_cifar10_cifar100",
+  "title": "Main comparison on SVHN-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5",
+  "what": "Main comparison on SVHN-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: FedECS-LT against 11 published methods and the Local lower bound, seeds 3-5.",
+  "kaggle_hours": 6.4,
+  "runs": [
+   {
+    "label": "FedECS-LT",
+    "ds": "svhn",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "svhn",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "svhn",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "svhn",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "svhn",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "svhn",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "svhn",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "svhn",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "svhn",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "svhn",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "svhn",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "svhn",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "svhn",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "svhn",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "svhn",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "svhn",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "svhn",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "svhn",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "svhn",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "svhn",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "svhn",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "svhn",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "svhn",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "svhn",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "svhn",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "svhn",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "svhn",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedLC",
+    "ds": "svhn",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedRS",
+    "ds": "svhn",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Local",
+    "ds": "svhn",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProto",
+    "ds": "svhn",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedTGP",
+    "ds": "svhn",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGen",
+    "ds": "svhn",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedGH",
+    "ds": "svhn",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "svhn",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedMRL",
+    "ds": "svhn",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "svhn",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "svhn",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "svhn",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB20_track2_cifar100_IF010_s3_part1of3": {
+  "folder": "4_one_shared_model_IF050_IF010_and_long_runs",
+  "title": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 10, 20 clients, 40% per round, seed 3 (part 1 of 3)",
+  "what": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 10, 20 clients, 40% per round, seed 3: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 1 of 3: MOON (LongTailLib), FedProx (LongTailLib), FedLC (LongTailLib), FedECS-LT; seed 3.",
+  "kaggle_hours": 8.8,
+  "runs": [
+   {
+    "label": "MOON (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedProx (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedLC (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB20_track2_cifar100_IF010_s3_part2of3": {
+  "folder": "4_one_shared_model_IF050_IF010_and_long_runs",
+  "title": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 10, 20 clients, 40% per round, seed 3 (part 2 of 3)",
+  "what": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 10, 20 clients, 40% per round, seed 3: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 2 of 3: CReFF (LongTailLib), RUCR (LongTailLib), FedAvg (LongTailLib), FedETF (LongTailLib); seed 3.",
+  "kaggle_hours": 7.8,
+  "runs": [
+   {
+    "label": "CReFF (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "RUCR (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedAvg (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedETF (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB20_track2_cifar100_IF010_s3_part3of3": {
+  "folder": "4_one_shared_model_IF050_IF010_and_long_runs",
+  "title": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 10, 20 clients, 40% per round, seed 3 (part 3 of 3)",
+  "what": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 10, 20 clients, 40% per round, seed 3: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 3 of 3: Fed-GraB (LongTailLib), FedLoGe (LongTailLib), CCVR (LongTailLib); seed 3.",
+  "kaggle_hours": 7.3,
+  "runs": [
+   {
+    "label": "Fed-GraB (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedLoGe (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "CCVR (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB20_track2_cifar100_IF050_s3_part1of2": {
+  "folder": "4_one_shared_model_IF050_IF010_and_long_runs",
+  "title": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 50, 20 clients, 40% per round, seed 3 (part 1 of 2)",
+  "what": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 50, 20 clients, 40% per round, seed 3: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 1 of 2: FedYoYo (LongTailLib), Fed-GraB (LongTailLib), RUCR (LongTailLib), CCVR (LongTailLib), FedLC (LongTailLib), FedECS-LT; seed 3.",
+  "kaggle_hours": 7.5,
+  "runs": [
+   {
+    "label": "FedYoYo (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "Fed-GraB (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "RUCR (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "CCVR (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedLC (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB20_track2_cifar100_IF050_s3_part2of2": {
+  "folder": "4_one_shared_model_IF050_IF010_and_long_runs",
+  "title": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 50, 20 clients, 40% per round, seed 3 (part 2 of 2)",
+  "what": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 50, 20 clients, 40% per round, seed 3: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 2 of 2: MOON (LongTailLib), CReFF (LongTailLib), FedLoGe (LongTailLib), FedProx (LongTailLib), FedAvg (LongTailLib), FedETF (LongTailLib); seed 3.",
+  "kaggle_hours": 8.2,
+  "runs": [
+   {
+    "label": "MOON (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "CReFF (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedLoGe (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedProx (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedAvg (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedETF (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB20_track2_cifar100_IF100_s3_part1of2": {
+  "folder": "2_one_shared_model_IF100_and_ablations",
+  "title": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 3 (part 1 of 2)",
+  "what": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 3: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 1 of 2: FedYoYo (LongTailLib), Fed-GraB (LongTailLib), RUCR (LongTailLib), CCVR (LongTailLib), FedLC (LongTailLib), FedECS-LT; seed 3.",
+  "kaggle_hours": 6.5,
+  "runs": [
+   {
+    "label": "FedYoYo (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "Fed-GraB (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "RUCR (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "CCVR (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedLC (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB20_track2_cifar100_IF100_s3_part2of2": {
+  "folder": "2_one_shared_model_IF100_and_ablations",
+  "title": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 3 (part 2 of 2)",
+  "what": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 3: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 2 of 2: MOON (LongTailLib), CReFF (LongTailLib), FedLoGe (LongTailLib), FedProx (LongTailLib), FedAvg (LongTailLib), FedETF (LongTailLib); seed 3.",
+  "kaggle_hours": 7.1,
+  "runs": [
+   {
+    "label": "MOON (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "CReFF (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedLoGe (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedProx (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedAvg (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedETF (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB20_track2_cifar100_IF100_s4_part1of2": {
+  "folder": "2_one_shared_model_IF100_and_ablations",
+  "title": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 4 (part 1 of 2)",
+  "what": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 4: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 1 of 2: FedYoYo (LongTailLib), Fed-GraB (LongTailLib), RUCR (LongTailLib), CCVR (LongTailLib), FedLC (LongTailLib), FedECS-LT; seed 4.",
+  "kaggle_hours": 6.5,
+  "runs": [
+   {
+    "label": "FedYoYo (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "Fed-GraB (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "RUCR (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "CCVR (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedLC (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar100_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB20_track2_cifar100_IF100_s4_part2of2": {
+  "folder": "2_one_shared_model_IF100_and_ablations",
+  "title": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 4 (part 2 of 2)",
+  "what": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 4: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 2 of 2: MOON (LongTailLib), CReFF (LongTailLib), FedLoGe (LongTailLib), FedProx (LongTailLib), FedAvg (LongTailLib), FedETF (LongTailLib); seed 4.",
+  "kaggle_hours": 7.1,
+  "runs": [
+   {
+    "label": "MOON (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "CReFF (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedLoGe (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedProx (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedAvg (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedETF (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB20_track2_cifar100_IF100_s5_part1of2": {
+  "folder": "2_one_shared_model_IF100_and_ablations",
+  "title": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 5 (part 1 of 2)",
+  "what": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 5: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 1 of 2: FedYoYo (LongTailLib), Fed-GraB (LongTailLib), RUCR (LongTailLib), CCVR (LongTailLib), FedLC (LongTailLib), FedECS-LT; seed 5.",
+  "kaggle_hours": 6.5,
+  "runs": [
+   {
+    "label": "FedYoYo (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "Fed-GraB (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "RUCR (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "CCVR (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedLC (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar100_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB20_track2_cifar100_IF100_s5_part2of2": {
+  "folder": "2_one_shared_model_IF100_and_ablations",
+  "title": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 5 (part 2 of 2)",
+  "what": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 5: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 2 of 2: MOON (LongTailLib), CReFF (LongTailLib), FedLoGe (LongTailLib), FedProx (LongTailLib), FedAvg (LongTailLib), FedETF (LongTailLib); seed 5.",
+  "kaggle_hours": 7.1,
+  "runs": [
+   {
+    "label": "MOON (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "CReFF (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedLoGe (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedProx (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedAvg (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedETF (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB20_track2_cifar10_IF010_s3_part1of3": {
+  "folder": "4_one_shared_model_IF050_IF010_and_long_runs",
+  "title": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 10, 20 clients, 40% per round, seed 3 (part 1 of 3)",
+  "what": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 10, 20 clients, 40% per round, seed 3: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 1 of 3: MOON (LongTailLib), FedProx (LongTailLib), FedAvg (LongTailLib), FedETF (LongTailLib); seed 3.",
+  "kaggle_hours": 9.2,
+  "runs": [
+   {
+    "label": "MOON (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedProx (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedAvg (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedETF (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB20_track2_cifar10_IF010_s3_part2of3": {
+  "folder": "4_one_shared_model_IF050_IF010_and_long_runs",
+  "title": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 10, 20 clients, 40% per round, seed 3 (part 2 of 3)",
+  "what": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 10, 20 clients, 40% per round, seed 3: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 2 of 3: CReFF (LongTailLib), RUCR (LongTailLib), FedLC (LongTailLib), FedECS-LT; seed 3.",
+  "kaggle_hours": 8.1,
+  "runs": [
+   {
+    "label": "CReFF (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "RUCR (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedLC (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB20_track2_cifar10_IF010_s3_part3of3": {
+  "folder": "4_one_shared_model_IF050_IF010_and_long_runs",
+  "title": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 10, 20 clients, 40% per round, seed 3 (part 3 of 3)",
+  "what": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 10, 20 clients, 40% per round, seed 3: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 3 of 3: Fed-GraB (LongTailLib), FedLoGe (LongTailLib), CCVR (LongTailLib); seed 3.",
+  "kaggle_hours": 7.6,
+  "runs": [
+   {
+    "label": "Fed-GraB (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedLoGe (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "CCVR (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB20_track2_cifar10_IF050_s3_part1of2": {
+  "folder": "4_one_shared_model_IF050_IF010_and_long_runs",
+  "title": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 50, 20 clients, 40% per round, seed 3 (part 1 of 2)",
+  "what": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 50, 20 clients, 40% per round, seed 3: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 1 of 2: FedYoYo (LongTailLib), Fed-GraB (LongTailLib), RUCR (LongTailLib), CCVR (LongTailLib), FedLC (LongTailLib), FedECS-LT; seed 3.",
+  "kaggle_hours": 8.3,
+  "runs": [
+   {
+    "label": "FedYoYo (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "Fed-GraB (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "RUCR (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "CCVR (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedLC (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB20_track2_cifar10_IF050_s3_part2of2": {
+  "folder": "4_one_shared_model_IF050_IF010_and_long_runs",
+  "title": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 50, 20 clients, 40% per round, seed 3 (part 2 of 2)",
+  "what": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 50, 20 clients, 40% per round, seed 3: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 2 of 2: MOON (LongTailLib), CReFF (LongTailLib), FedLoGe (LongTailLib), FedProx (LongTailLib), FedAvg (LongTailLib), FedETF (LongTailLib); seed 3.",
+  "kaggle_hours": 9.1,
+  "runs": [
+   {
+    "label": "MOON (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "CReFF (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedLoGe (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedProx (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedAvg (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedETF (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB20_track2_cifar10_IF100_s3_part1of2": {
+  "folder": "2_one_shared_model_IF100_and_ablations",
+  "title": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 3 (part 1 of 2)",
+  "what": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 3: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 1 of 2: FedYoYo (LongTailLib), Fed-GraB (LongTailLib), RUCR (LongTailLib), CCVR (LongTailLib), FedLC (LongTailLib), FedECS-LT (extractor 200 rounds); seed 3.",
+  "kaggle_hours": 7.7,
+  "runs": [
+   {
+    "label": "FedYoYo (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "Fed-GraB (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "RUCR (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "CCVR (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedLC (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedECS-LT (extractor 200 rounds)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4,
+    "rounds": {
+     "T_FE": 200
+    }
+   }
+  ]
+ },
+ "NB20_track2_cifar10_IF100_s3_part2of2": {
+  "folder": "2_one_shared_model_IF100_and_ablations",
+  "title": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 3 (part 2 of 2)",
+  "what": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 3: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 2 of 2: 7 methods; seed 3.",
+  "kaggle_hours": 8.1,
+  "runs": [
+   {
+    "label": "MOON (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "CReFF (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedLoGe (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedProx (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedAvg (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedETF (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB20_track2_cifar10_IF100_s4_part1of2": {
+  "folder": "2_one_shared_model_IF100_and_ablations",
+  "title": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 4 (part 1 of 2)",
+  "what": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 4: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 1 of 2: FedYoYo (LongTailLib), Fed-GraB (LongTailLib), RUCR (LongTailLib), CCVR (LongTailLib), FedLC (LongTailLib), FedECS-LT; seed 4.",
+  "kaggle_hours": 7.4,
+  "runs": [
+   {
+    "label": "FedYoYo (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "Fed-GraB (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "RUCR (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "CCVR (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedLC (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB20_track2_cifar10_IF100_s4_part2of2": {
+  "folder": "2_one_shared_model_IF100_and_ablations",
+  "title": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 4 (part 2 of 2)",
+  "what": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 4: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 2 of 2: MOON (LongTailLib), CReFF (LongTailLib), FedLoGe (LongTailLib), FedProx (LongTailLib), FedAvg (LongTailLib), FedETF (LongTailLib); seed 4.",
+  "kaggle_hours": 8.1,
+  "runs": [
+   {
+    "label": "MOON (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "CReFF (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedLoGe (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedProx (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedAvg (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedETF (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB20_track2_cifar10_IF100_s5_part1of2": {
+  "folder": "2_one_shared_model_IF100_and_ablations",
+  "title": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 5 (part 1 of 2)",
+  "what": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 5: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 1 of 2: FedYoYo (LongTailLib), Fed-GraB (LongTailLib), RUCR (LongTailLib), CCVR (LongTailLib), FedLC (LongTailLib), FedECS-LT; seed 5.",
+  "kaggle_hours": 7.4,
+  "runs": [
+   {
+    "label": "FedYoYo (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "Fed-GraB (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "RUCR (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "CCVR (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedLC (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB20_track2_cifar10_IF100_s5_part2of2": {
+  "folder": "2_one_shared_model_IF100_and_ablations",
+  "title": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 5 (part 2 of 2)",
+  "what": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 5: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 2 of 2: MOON (LongTailLib), CReFF (LongTailLib), FedLoGe (LongTailLib), FedProx (LongTailLib), FedAvg (LongTailLib), FedETF (LongTailLib); seed 5.",
+  "kaggle_hours": 8.1,
+  "runs": [
+   {
+    "label": "MOON (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "CReFF (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedLoGe (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedProx (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedAvg (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedETF (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB20_track2_rerun_2a90fa": {
+  "folder": "5_reruns_of_failed_runs",
+  "title": "One shared model (FedLTLib protocol): runs that did not finish",
+  "what": "Runs that did not finish in NB20_track2_cifar100_IF100_s3_part1of2, NB20_track2_cifar10_IF100_s3_part1of2: FedECS-LT, CIFAR-100-LT ratio 100, seed 3; FedECS-LT (extractor 200 rounds), CIFAR-10-LT ratio 100, seed 3. One run per GPU. Merge each with its notebook's results.",
+  "kaggle_hours": 3.0,
+  "runs": [
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedECS-LT (extractor 200 rounds)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4,
+    "rounds": {
+     "T_FE": 200
+    }
+   }
+  ]
+ },
+ "NB20_track2_rerun_f2bb89": {
+  "folder": "5_reruns_of_failed_runs",
+  "title": "One shared model (FedLTLib protocol): runs that did not finish",
+  "what": "Runs that did not finish in NB20_track2_cifar100_IF010_s3_part1of3, NB20_track2_cifar100_IF100_s3_part2of2, NB20_track2_cifar10_IF010_s3_part2of3: FedLoGe (LongTailLib), CIFAR-100-LT ratio 100, seed 3; FedECS-LT, CIFAR-100-LT ratio 10, seed 3; FedECS-LT, CIFAR-10-LT ratio 10, seed 3. One run per GPU. Merge each with its notebook's results.",
+  "kaggle_hours": 9.0,
+  "runs": [
+   {
+    "label": "FedLoGe (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB29_track2_long_runs_1": {
+  "folder": "4_one_shared_model_IF050_IF010_and_long_runs",
+  "title": "One shared model (FedLTLib protocol): runs too long to share a GPU",
+  "what": "Runs that need a GPU each to finish within one session: FedYoYo (LongTailLib) on CIFAR-10-LT, imbalance ratio 10, seed 3; FedYoYo (LongTailLib) on CIFAR-100-LT, imbalance ratio 10, seed 3.",
+  "kaggle_hours": 8.7,
+  "runs": [
+   {
+    "label": "FedYoYo (LongTailLib)",
+    "ds": "cifar10_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   },
+   {
+    "label": "FedYoYo (LongTailLib)",
+    "ds": "cifar100_t2",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 20,
+    "pfrac": 0.4
+   }
+  ]
+ },
+ "NB30_ablation_cifar10": {
+  "folder": "2_one_shared_model_IF100_and_ablations",
+  "title": "Ablations on CIFAR-10-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5",
+  "what": "Ablations on CIFAR-10-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: GeFL-F without its generator, with logit adjustment, with a Gaussian generator, and FedDF with logit adjustment; seeds 3-5. FedECS-LT and GeFL-F, the references, come from the main notebook of this dataset (same client splits and seeds).",
+  "kaggle_hours": 4.6,
+  "runs": [
+   {
+    "label": "GeFL-F w/o generator",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F + LA",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/ Gaussian generator + LA",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF + LA",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/o generator",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F + LA",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/ Gaussian generator + LA",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF + LA",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/o generator",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F + LA",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/ Gaussian generator + LA",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF + LA",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB30_ablation_cifar100": {
+  "folder": "2_one_shared_model_IF100_and_ablations",
+  "title": "Ablations on CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5",
+  "what": "Ablations on CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: GeFL-F without its generator, with logit adjustment, with a Gaussian generator, and FedDF with logit adjustment; seeds 3-5. FedECS-LT and GeFL-F, the references, come from the main notebook of this dataset (same client splits and seeds).",
+  "kaggle_hours": 3.0,
+  "runs": [
+   {
+    "label": "GeFL-F w/o generator",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F + LA",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/ Gaussian generator + LA",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF + LA",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/o generator",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F + LA",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/ Gaussian generator + LA",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF + LA",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/o generator",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F + LA",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/ Gaussian generator + LA",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF + LA",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB31_components_cifar10": {
+  "folder": "2_one_shared_model_IF100_and_ablations",
+  "title": "Components of FedECS-LT on CIFAR-10-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5",
+  "what": "Components of FedECS-LT on CIFAR-10-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: FedECS-LT with one component changed at a time (class rows with CCWA or flat averaging instead of the gate, without moment correction, without consensus soft labels, without logit adjustment, one synthetic epoch); seeds 3-5. The full FedECS-LT comes from the main notebook of this dataset (same client splits and seeds).",
+  "kaggle_hours": 7.8,
+  "runs": [
+   {
+    "label": "FedECS-LT w/ class rows (CCWA)",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (flat averaging)",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o moment correction",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (CCWA)",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (flat averaging)",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o moment correction",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (CCWA)",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (flat averaging)",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o moment correction",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o consensus soft labels",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o logit adjustment",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ one synthetic epoch",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o consensus soft labels",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o logit adjustment",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ one synthetic epoch",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o consensus soft labels",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o logit adjustment",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ one synthetic epoch",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB31_components_cifar100": {
+  "folder": "2_one_shared_model_IF100_and_ablations",
+  "title": "Components of FedECS-LT on CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5",
+  "what": "Components of FedECS-LT on CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: FedECS-LT with one component changed at a time (class rows with CCWA or flat averaging instead of the gate, without moment correction, without consensus soft labels, without logit adjustment, one synthetic epoch); seeds 3-5. The full FedECS-LT comes from the main notebook of this dataset (same client splits and seeds).",
+  "kaggle_hours": 5.3,
+  "runs": [
+   {
+    "label": "FedECS-LT w/ class rows (CCWA)",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (flat averaging)",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o moment correction",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (CCWA)",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (flat averaging)",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o moment correction",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (CCWA)",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (flat averaging)",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o moment correction",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o consensus soft labels",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o logit adjustment",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ one synthetic epoch",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o consensus soft labels",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o logit adjustment",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ one synthetic epoch",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o consensus soft labels",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o logit adjustment",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ one synthetic epoch",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB40_sweep_cifar10_IF010": {
+  "folder": "6_robustness_sweeps",
+  "title": "Robustness on CIFAR-10-LT: imbalance ratio 10 (otherwise the main setting)",
+  "what": "Robustness on CIFAR-10-LT: imbalance ratio 10 (otherwise the main setting): FedECS-LT, GeFL-F, FedDF, Balanced Softmax; seeds 3-5.",
+  "kaggle_hours": 4.7,
+  "runs": [
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.1,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB40_sweep_cifar10_IF050": {
+  "folder": "6_robustness_sweeps",
+  "title": "Robustness on CIFAR-10-LT: imbalance ratio 50 (otherwise the main setting)",
+  "what": "Robustness on CIFAR-10-LT: imbalance ratio 50 (otherwise the main setting): FedECS-LT, GeFL-F, FedDF, Balanced Softmax; seeds 3-5.",
+  "kaggle_hours": 4.7,
+  "runs": [
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.02,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "NB40_sweep_cifar10_K100": {
+  "folder": "6_robustness_sweeps",
+  "title": "Robustness on CIFAR-10-LT: 100 clients (otherwise the main setting)",
+  "what": "Robustness on CIFAR-10-LT: 100 clients (otherwise the main setting): FedECS-LT, GeFL-F, FedDF, Balanced Softmax; seeds 3-5.",
+  "kaggle_hours": 4.7,
+  "runs": [
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 100
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 100
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 100
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 100
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 100
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 100
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 100
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 100
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 100
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 100
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 100
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 100
+   }
+  ]
+ },
+ "NB40_sweep_cifar10_K50": {
+  "folder": "6_robustness_sweeps",
+  "title": "Robustness on CIFAR-10-LT: 50 clients (otherwise the main setting)",
+  "what": "Robustness on CIFAR-10-LT: 50 clients (otherwise the main setting): FedECS-LT, GeFL-F, FedDF, Balanced Softmax; seeds 3-5.",
+  "kaggle_hours": 4.7,
+  "runs": [
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   }
+  ]
+ },
+ "NB40_sweep_cifar10_a0.1": {
+  "folder": "6_robustness_sweeps",
+  "title": "Robustness on CIFAR-10-LT: Dirichlet alpha = 0.1 (otherwise the main setting)",
+  "what": "Robustness on CIFAR-10-LT: Dirichlet alpha = 0.1 (otherwise the main setting): FedECS-LT, GeFL-F, FedDF, Balanced Softmax; seeds 3-5.",
+  "kaggle_hours": 4.7,
+  "runs": [
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.1,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.1,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.1,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.1,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.1,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.1,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.1,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.1,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.1,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.1,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.1,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.1,
+    "K": 10
+   }
+  ]
+ },
+ "NB40_sweep_cifar10_a1.0": {
+  "folder": "6_robustness_sweeps",
+  "title": "Robustness on CIFAR-10-LT: Dirichlet alpha = 1.0 (otherwise the main setting)",
+  "what": "Robustness on CIFAR-10-LT: Dirichlet alpha = 1.0 (otherwise the main setting): FedECS-LT, GeFL-F, FedDF, Balanced Softmax; seeds 3-5.",
+  "kaggle_hours": 4.7,
+  "runs": [
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 1.0,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 1.0,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 1.0,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 1.0,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 1.0,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 1.0,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 1.0,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 1.0,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 1.0,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 1.0,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 1.0,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 1.0,
+    "K": 10
+   }
+  ]
+ },
+ "cifar100_10clients_grouped_baselines": {
+  "folder": "7_gefl_protocol_grouped_baselines_10_and_50_clients",
+  "title": "CIFAR-100-LT (imbalance ratio 100), 10 clients (1 per architecture, ten architectures), Dirichlet 0.5",
+  "what": "CIFAR-100-LT (imbalance ratio 100), 10 clients (1 per architecture, ten architectures), Dirichlet 0.5: GeFL's grouped baselines (FedAvg, FedProx, FedALA, AvgKD) and the long-tail methods CCVR and FedETF, run within each architecture on the shared frozen extractor; FedECS-LT and the other methods of this setting are in the main notebooks of this dataset (same splits and seeds); seeds 3-5.",
+  "kaggle_hours": 1.1,
+  "runs": [
+   {
+    "label": "FedAvg",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProx",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedALA",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "AvgKD",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "CCVR",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedETF",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedAvg",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProx",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedALA",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "AvgKD",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "CCVR",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedETF",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedAvg",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProx",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedALA",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "AvgKD",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "CCVR",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedETF",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "cifar100_50clients_all_methods_part1of2": {
+  "folder": "7_gefl_protocol_grouped_baselines_10_and_50_clients",
+  "title": "CIFAR-100-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5 (part 1 of 2)",
+  "what": "CIFAR-100-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5: every method of the main comparison and GeFL's grouped baselines; seeds 3-5. Part 1 of 2: 13 methods; seeds 3, 4, 5.",
+  "kaggle_hours": 3.9,
+  "runs": [
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedLC",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedRS",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "Local",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedAvg",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedProx",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedALA",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "AvgKD",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "CCVR",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedETF",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedLC",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedRS",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "Local",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedAvg",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedProx",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedALA",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "AvgKD",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "CCVR",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedETF",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedLC",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedRS",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "Local",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedAvg",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedProx",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedALA",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "AvgKD",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "CCVR",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedETF",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   }
+  ]
+ },
+ "cifar100_50clients_all_methods_part2of2": {
+  "folder": "7_gefl_protocol_grouped_baselines_10_and_50_clients",
+  "title": "CIFAR-100-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5 (part 2 of 2)",
+  "what": "CIFAR-100-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5: every method of the main comparison and GeFL's grouped baselines; seeds 3-5. Part 2 of 2: FedProto, FedTGP, FedGen, FedGH, LG-FedAvg, FedMRL; seeds 3, 4, 5.",
+  "kaggle_hours": 7.3,
+  "runs": [
+   {
+    "label": "FedProto",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedTGP",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedGen",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedGH",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedMRL",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedProto",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedTGP",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedGen",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedGH",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedMRL",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedProto",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedTGP",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedGen",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedGH",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedMRL",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   }
+  ]
+ },
+ "cifar10_10clients_grouped_baselines": {
+  "folder": "7_gefl_protocol_grouped_baselines_10_and_50_clients",
+  "title": "CIFAR-10-LT (imbalance ratio 100), 10 clients (1 per architecture, ten architectures), Dirichlet 0.5",
+  "what": "CIFAR-10-LT (imbalance ratio 100), 10 clients (1 per architecture, ten architectures), Dirichlet 0.5: GeFL's grouped baselines (FedAvg, FedProx, FedALA, AvgKD) and the long-tail methods CCVR and FedETF, run within each architecture on the shared frozen extractor; FedECS-LT and the other methods of this setting are in the main notebooks of this dataset (same splits and seeds); seeds 3-5.",
+  "kaggle_hours": 1.4,
+  "runs": [
+   {
+    "label": "FedAvg",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProx",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedALA",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "AvgKD",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "CCVR",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedETF",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedAvg",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProx",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedALA",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "AvgKD",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "CCVR",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedETF",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedAvg",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedProx",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedALA",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "AvgKD",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "CCVR",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedETF",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "cifar10_50clients_all_methods_part1of3": {
+  "folder": "7_gefl_protocol_grouped_baselines_10_and_50_clients",
+  "title": "CIFAR-10-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5 (part 1 of 3)",
+  "what": "CIFAR-10-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5: every method of the main comparison and GeFL's grouped baselines; FedECS-LT, GeFL-F, FedDF and Balanced Softmax at 50 clients are NB40_sweep_cifar10_K50 (same splits and seeds); seeds 3-5. Part 1 of 3: 9 methods; seeds 3, 4, 5.",
+  "kaggle_hours": 1.7,
+  "runs": [
+   {
+    "label": "FedLC",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedRS",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "Local",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedAvg",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedProx",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedALA",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "AvgKD",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "CCVR",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedETF",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedLC",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedRS",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "Local",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedAvg",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedProx",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedALA",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "AvgKD",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "CCVR",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedETF",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedLC",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedRS",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "Local",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedAvg",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedProx",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedALA",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "AvgKD",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "CCVR",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedETF",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   }
+  ]
+ },
+ "cifar10_50clients_all_methods_part2of3": {
+  "folder": "7_gefl_protocol_grouped_baselines_10_and_50_clients",
+  "title": "CIFAR-10-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5 (part 2 of 3)",
+  "what": "CIFAR-10-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5: every method of the main comparison and GeFL's grouped baselines; FedECS-LT, GeFL-F, FedDF and Balanced Softmax at 50 clients are NB40_sweep_cifar10_K50 (same splits and seeds); seeds 3-5. Part 2 of 3: FedProto, FedTGP, FedGen; seeds 3, 4, 5.",
+  "kaggle_hours": 6.9,
+  "runs": [
+   {
+    "label": "FedProto",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedTGP",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedGen",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedProto",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedTGP",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedGen",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedProto",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedTGP",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedGen",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   }
+  ]
+ },
+ "cifar10_50clients_all_methods_part3of3": {
+  "folder": "7_gefl_protocol_grouped_baselines_10_and_50_clients",
+  "title": "CIFAR-10-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5 (part 3 of 3)",
+  "what": "CIFAR-10-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5: every method of the main comparison and GeFL's grouped baselines; FedECS-LT, GeFL-F, FedDF and Balanced Softmax at 50 clients are NB40_sweep_cifar10_K50 (same splits and seeds); seeds 3-5. Part 3 of 3: FedGH, LG-FedAvg, FedMRL; seeds 3, 4, 5.",
+  "kaggle_hours": 6.9,
+  "runs": [
+   {
+    "label": "FedGH",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedMRL",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedGH",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedMRL",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedGH",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedMRL",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   }
+  ]
+ },
+ "cifar10_cifar100_pooled_data_reference": {
+  "folder": "7_gefl_protocol_grouped_baselines_10_and_50_clients",
+  "title": "Reference with pooled data: GeFL-F's extractor and ten head architectures trained on the whole long-tailed training set (CIFAR-10-LT and CIFAR-100-LT, imbalance ratio 100)",
+  "what": "Reference with pooled data: GeFL-F's extractor and ten head architectures trained on the whole long-tailed training set (CIFAR-10-LT and CIFAR-100-LT, imbalance ratio 100): the same images as the federated split of each seed, every client holding all of them; heads on real data, as trained and with the exact readout; seeds 3-5.",
+  "kaggle_hours": 3.6,
+  "runs": [
+   {
+    "label": "Centralised (pooled data)",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10,
+    "pooled": true
+   },
+   {
+    "label": "Centralised (pooled data)",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10,
+    "pooled": true
+   },
+   {
+    "label": "Centralised (pooled data)",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10,
+    "pooled": true
+   },
+   {
+    "label": "Centralised (pooled data)",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10,
+    "pooled": true
+   },
+   {
+    "label": "Centralised (pooled data)",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10,
+    "pooled": true
+   },
+   {
+    "label": "Centralised (pooled data)",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10,
+    "pooled": true
+   }
+  ]
+ }
+}

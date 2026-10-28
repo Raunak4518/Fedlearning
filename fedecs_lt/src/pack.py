@@ -92,10 +92,10 @@ def pack(work, name, title, report=True, out_dir=None, models=True):
 
 def quick(work, name, out_dir):
     """After every run: results.zip only (fast), under a lock so parallel workers do not collide."""
-    import fcntl
+    import oslock
     os.makedirs(out_dir, exist_ok=True)
     with open(os.path.join(work, ".pack.lock"), "w") as lk:
-        fcntl.flock(lk, fcntl.LOCK_EX)
+        oslock.lock(lk)
         runs_csv(os.path.join(work, "results"))
         zip_dir(os.path.join(work, "results"), os.path.join(out_dir, f"{name}__results.zip"))
         summary_zip(os.path.join(work, "results"), os.path.join(out_dir, f"{name}__summary.zip"))

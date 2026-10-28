@@ -549,6 +549,8 @@ def main():
             "(large: predictions and weights) on Google Drive.",
             "", "When results come back: `docs/papers/GUIDE.md`, section 0 (file them with fetch_kaggle.py, fill the "
             "paper with docs/papers/fill.py); section 4 says what each notebook gives the paper.",
+            "", "**Own Windows PC with an NVIDIA GPU (4-8 GB) instead of Kaggle:** the same jobs, one run at a time: "
+            "[`../local/README.md`](../local/README.md). Never run a notebook on both.",
             "", "Expected hours are estimates from NB00's measured run times (fedecs_lt/plan_time.py); a notebook "
             "starts no new run after 11 h and always saves what has finished.", "",
             f"**{len(nbs) - 1} notebooks to run, about "
@@ -570,6 +572,20 @@ def main():
                         f"{nb['hours']:.1f} | `{n}__summary.zip`, `{n}__report.pdf` |")
         rows.append("")
     open(os.path.join(OUT, "START_HERE.md"), "w").write("\n".join(rows) + "\n")
+    local_jobs(nbs)
+
+
+def local_jobs(nbs):
+    """The same run lists for local GPUs (local/run_local.py): every notebook except NB00, with its folder, title and
+    Kaggle estimate; run_local.py rewrites the paths and marks the notebooks whose results are already filed."""
+    jobs = {n: dict(folder=folder(n), title=nb["title"], what=nb["what"], kaggle_hours=round(nb["hours"], 1),
+                    runs=queue_order(nb["runs"]))
+            for n, nb in sorted(nbs.items()) if not n.startswith("NB00")}
+    os.makedirs(os.path.join(HERE, "local"), exist_ok=True)
+    json.dump(jobs, open(os.path.join(HERE, "local", "jobs.json"), "w"), indent=1)
+    # the commit the job list was built from, for machines that download the repository as a ZIP (no git)
+    open(os.path.join(HERE, "local", "VERSION"), "w").write(code_version().split(" / ")[0] + "\n")
+    print("wrote local/jobs.json", len(jobs), "jobs")
 
 
 if __name__ == "__main__":

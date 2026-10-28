@@ -67,14 +67,14 @@ class _DatasetLock:
         self.path = os.path.join(root, f"_fedecs_lock_{name}")
 
     def __enter__(self):
-        import fcntl
+        import oslock
         self.f = open(self.path, "w")
-        fcntl.flock(self.f, fcntl.LOCK_EX)
+        oslock.lock(self.f)
         return self
 
     def __exit__(self, *exc):
-        import fcntl
-        fcntl.flock(self.f, fcntl.LOCK_UN)
+        import oslock
+        oslock.unlock(self.f)
         self.f.close()
 
 

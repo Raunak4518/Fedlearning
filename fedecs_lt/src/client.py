@@ -32,6 +32,10 @@ from settings import DATASETS, HEADER_WIDTHS
 
 DEV = "cuda" if torch.cuda.is_available() else "cpu"
 torch.backends.cudnn.benchmark = True
+# CUDA graphs (one recorded training step per client, model and batch shape) speed up the small heads but keep a
+# private memory pool each; FEDECS_CUDA_GRAPHS=0 runs the same steps eagerly, for GPUs below 12 GB (local runs,
+# fedecs_lt/local/run_local.py). The computation is the same; only the speed and the memory held differ.
+GRAPHS = DEV == "cuda" and os.environ.get("FEDECS_CUDA_GRAPHS", "1") != "0"
 STATE = {}  # process-level store: federations, features, generators, optimiser states
 app = ClientApp()
 
@@ -75,7 +79,7 @@ def compute_features(fe, x):
 def graphs_for(name):
     k = ("graphs", name)
     if k not in STATE:
-        STATE[k] = GraphCache(DEV == "cuda")
+        STATE[k] = GraphCache(GRAPHS)
     return STATE[k]
 
 
@@ -152,7 +156,7 @@ def gen_store(cfg, fed, shape):
         if cfg["gen"]["type"] == "pcvae":
             proto = torch.zeros(fed.C, *shape, device=DEV)  # the class means arrive in the weights (buffer)
         G = make_generator(cfg["gen"]["type"], shape[0], spec["latent"], fed.C, proto).to(DEV)
-        G.graphs = GraphCache(DEV == "cuda")
+        G.graphs = GraphCache(GRAPHS)
         STATE[k] = dict(G=G, opts={}, local={})
     return STATE[k]
 
