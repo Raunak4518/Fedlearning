@@ -27,7 +27,7 @@ Written by `python docs/papers/fill.py` from 348 runs in fedecs_lt/results (NB00
 ## Slots in the paper
 
 - Tables filled: 12 of 15; still empty: `abl_bal`, `abl_components`, `robust`
-- Numbers filled: 54 of 57; still empty: `abl/cifar10/GeFL-F + LA/gain`, `abl/cifar10/rest`, `t2/cifar10-r100/fe200_diff`
+- Numbers filled: 64 of 67; still empty: `abl/cifar10/GeFL-F + LA/gain`, `abl/cifar10/rest`, `t2/cifar10-r100/fe200_diff`
 - Figures filled: 8 of 9; still empty: `fig_overview`
 
 ## Notebooks not returned yet (by folder)

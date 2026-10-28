@@ -68,7 +68,8 @@ moments only approximately. \hfill$\square$
 \paragraph{Models.} The extractor, the ten head architectures (CNN-1 to CNN-10) and GeFL-F's conditional VAE follow
 GeFL-F~\cite{kang2025gefl}; heads are trained by SGD with learning rate 0.1. Rounds of the three stages: 20/100/50 on
 MNIST and Fashion-MNIST, 50/100/100 on SVHN and 50/200/100 on CIFAR-10 and CIFAR-100; with natural imbalance,
-20/100/50 on OrganAMNIST and EMNIST and 50/100/100 on DermaMNIST, BloodMNIST, PathMNIST, GTSRB and FER-2013.
+20/100/50 on OrganAMNIST and EMNIST and 50/100/100 on DermaMNIST, BloodMNIST, PathMNIST\whennum{nat/gtsrb/FedECS-LT/bal}{,
+GTSRB} and FER-2013.
 
 \paragraph{Reproduction check.} Before the comparison, the Flower implementation was checked against the original
 implementation on MNIST-LT and CIFAR-10-LT with seed 3: the client splits were identical (every client's class counts),

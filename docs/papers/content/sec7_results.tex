@@ -48,8 +48,11 @@ Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
 same exact readout, so that the remaining differences are those of the bodies. \claim{With the same readout the gap to every method shrinks: \ours remains
 \R{main/cifar10/er_diff/GeFL-F} points ahead of GeFL-F on CIFAR-10-LT and \R{main/cifar100/er_diff/GeFL-F} on
 CIFAR-100-LT, and \R{main/cifar10/er_margin} and \R{main/cifar100/er_margin} points ahead of the strongest other method
-(\R{main/cifar10/er_strongest} and \R{main/cifar100/er_strongest}). Most of the margin as trained is therefore in the
-last layer; the rest is a better representation.}
+(\R{main/cifar10/er_strongest} and \R{main/cifar100/er_strongest}). These remaining differences are not significant
+in the paired tests (Holm-corrected $p=\R{main/cifar10/er_strongest_p}$ and $\R{main/cifar100/er_strongest_p}$; 95\%
+intervals \R{main/cifar10/er_strongest_ci} and \R{main/cifar100/er_strongest_ci} points). Most of the margin as trained
+is therefore in the last layer, and three seeds do not show whether \ours also learns a better representation than
+the strongest other method.}
 
 \begin{widetable}[t]
 \centering\small
@@ -137,8 +140,10 @@ Method & DermaMNIST & OrganAMNIST & BloodMNIST & PathMNIST & GTSRB & EMNIST & FE
 
 \Cref{tab:shared} gives the results in the FedLTLib protocol. \claim{Here end-to-end long-tail methods are
 stronger. At imbalance ratio 100, \ours reaches \R{t2/cifar10-r100/FedECS-LT/bal} on CIFAR-10-LT and
-\R{t2/cifar100-r100/FedECS-LT/bal} on CIFAR-100-LT, about the level of FedAvg, while the strongest method,
-\R{t2/cifar10-r100/strongest}, is \R{t2/cifar10-r100/margin} and \R{t2/cifar100-r100/margin} points from \ours.} With
+\R{t2/cifar100-r100/FedECS-LT/bal} on CIFAR-100-LT, about the level of FedAvg, while the strongest methods,
+\R{t2/cifar10-r100/strongest} and \R{t2/cifar100-r100/strongest}, are \R{t2/cifar10-r100/margin} and
+\R{t2/cifar100-r100/margin} points from \ours on the seeds both have (\R{t2/cifar10-r100/margin_seeds} on CIFAR-10-LT,
+\R{t2/cifar100-r100/margin_seeds} on CIFAR-100-LT; \cref{tab:shared} averages every seed of each method).} With
 one shared model nothing prevents training the whole network end to end on real data, and the methods that do so
 with long-tail corrections learn a better representation than a frozen extractor trained for half of the rounds;
 the generator, which is what lets clients with different models exchange knowledge, brings no advantage when the

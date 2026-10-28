@@ -290,11 +290,23 @@ def fill_group(g, E, nums, made, status):
             st = min(others, key=lambda m: others[m][0])
             nums[f"{g}/{s}/strongest"] = tex(st)
             nums[f"{g}/{s}/margin"] = signed(others[st][0])
+            nums[f"{g}/{s}/margin_seeds"] = and_list([str(x) for x in others[st][1]])
+            pt_ = paired(E, S, "final_bal").get(st)   # paired over seeds, Holm-corrected over all methods
+            if pt_:
+                nums[f"{g}/{s}/strongest_p"] = f"{pt_[4]:.2g}"
         ers = matched(E, S, "er_bal", exclude=("Local",))
         if ers:   # the same comparison with every last layer replaced by the exact readout
             st = min(ers, key=lambda m: ers[m][0])
             nums[f"{g}/{s}/er_strongest"] = tex(st)
             nums[f"{g}/{s}/er_margin"] = signed(ers[st][0])
+            pt_ = paired(E, S, "er_bal").get(st)
+            if pt_:
+                nums[f"{g}/{s}/er_strongest_p"] = f"{pt_[4]:.2g}"
+                nums[f"{g}/{s}/er_strongest_ci"] = f"[{pt_[1] - pt_[2]:+.1f}, {pt_[1] + pt_[2]:+.1f}]"
+    sr = [x for r in E.runs if r["label"] == OURS for x in (r.get("spread_ratio") or [])]
+    if sr:   # generated over exact within-class spread after the moment correction, every class and run
+        nums[f"{g}/mc_spread_lo"], nums[f"{g}/mc_spread_med"], nums[f"{g}/mc_spread_hi"] = (
+            f"{np.min(sr):.2f}", f"{np.median(sr):.2f}", f"{np.max(sr):.2f}")
     with_ours = [S for S in settings if not np.isnan(mean_of(E, OURS, "final_bal", S))]
     nums[f"{g}/nsettings"] = str(len(with_ours))
     nums[f"{g}/nsettings_w"] = word(len(with_ours))

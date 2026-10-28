@@ -59,7 +59,9 @@ their mean $m_c$ and spread $\tilde V_c$, and corrects every later sample of cla
 \tilde h\leftarrow\mathrm{ReLU}\big(\mu_c+s_c(\tilde h-m_c)\big),\qquad s_c=\mathrm{clip}\Big(\sqrt{V_c/\tilde V_c},\,0.1,\,10\Big).
 \end{equation}
 Without the final ReLU and the clipping this is the map of least displacement that attains the exact mean and spread
-(\cref{prop:mc} in \cref{app:proofs}); with them, the corrected samples match these moments only approximately. The server sends $(\mu_c,m_c,s_c)$ to the clients, which hold the generator and
+(\cref{prop:mc} in \cref{app:proofs}); with them, the corrected samples match these moments only approximately:
+\claim{after the correction the generated within-class spread is \R{main/mc_spread_lo} to \R{main/mc_spread_hi}
+times the exact one (median \R{main/mc_spread_med}) over every class and run of the long-tailed benchmarks}. The server sends $(\mu_c,m_c,s_c)$ to the clients, which hold the generator and
 draw corrected samples themselves.
 
 \subsection{Heads}\label{sec:method-heads}
@@ -88,8 +90,12 @@ architecture $g$ becomes the class-balanced linear discriminant
 \begin{equation}\label{eq:er}
 w_c=\Sigma_\gamma^{-1}\nu_c,\qquad b_c=-\tfrac12\,\nu_c^\top\Sigma_\gamma^{-1}\nu_c,
 \end{equation}
-with $b_c=-10^4$ for a class no client holds. By \cref{prop:invariance} it equals the readout that centralised training
-of the same body would compute. It needs one extra round and $C(d_e+1)+d_e^2$ numbers per architecture and client. We
+with $b_c=-10^4$ for a class no client holds. By \cref{prop:invariance} it equals the same estimator computed
+centrally on the pooled embeddings of the same body (not a last layer trained centrally by SGD). It is the Bayes
+classifier for equally likely classes when the embeddings of each class are Gaussian with a shared covariance;
+otherwise it is a statistics-based linear classifier without an optimality guarantee. It needs one extra round and
+$C(d_e+1)+d_e^2$ numbers per architecture and client, and every client must run a forward pass (no training) of
+every architecture's body on its own features once; a client that cannot do so would be left out of the sums. We
 report every method both as trained and with this readout (exact readout, \ER).
 
 \begin{algorithm}[t]

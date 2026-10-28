@@ -105,7 +105,9 @@ over the compared methods. Settings that were run with one seed say so and carry
 
 \subsection{Implementation}\label{sec:setup-impl}
 
-All methods run in Flower 1.42~\cite{beutel2020flower} (simulation with the Ray backend), one simulation per run, on
+\ours and every method of the main setting run in Flower 1.42~\cite{beutel2020flower} (simulation with the Ray
+backend), one simulation per run; the one-shared-model baselines run in the authors' LongTailLib code on the same
+client splits and are evaluated on the same test set; all runs are on
 NVIDIA T4 GPUs. All releases of \ours use Flower's SecAgg+~\cite{bell2020secaggplus} with 30-bit quantisation, every
 vector divided by a public bound before quantisation. The Flower implementation reproduces the client splits of the
 original GeFL-F implementation exactly and its accuracy within seed noise (\cref{app:protocol}). \Cref{tab:hyper}

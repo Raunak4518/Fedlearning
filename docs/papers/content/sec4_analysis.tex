@@ -85,8 +85,8 @@ value for every partition of the pooled data, and equals the centralised estimat
 
 The class-balanced linear discriminant used by \ours (\cref{sec:method-readout}) is such an estimator, and so are
 Fed3R~\cite{fani2024fed3r}, FedNCM~\cite{legate2023fedncm} and CCVR~\cite{luo2021ccvr} when computed over all clients.
-The last layer then stops being a source of loss relative to centralised training of the same bodies, and the
-accuracy with this readout measures the quality of the body. \claim{The readout alone raises GeFL-F's balanced
+The last layer then stops being a source of loss relative to the same readout computed centrally on the same
+bodies, and the accuracy with this readout compares the bodies. \claim{The readout alone raises GeFL-F's balanced
 accuracy by \R{main/cifar10/GeFL-F/gain_er} points on CIFAR-10-LT and \R{main/cifar100/GeFL-F/gain_er} on
 CIFAR-100-LT (\cref{tab:readout}).} A head trained on one client is an extreme case of minority
 collapse~\cite{fang2021minority}: for the classes the client lacks, the imbalance ratio is infinite.

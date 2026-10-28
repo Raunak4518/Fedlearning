@@ -64,10 +64,11 @@ rare classes, with short exact results checked against measurements (\cref{sec:a
 \item \ours, which uses exact, securely aggregated class statistics in the generator, the heads and the readout
 (\cref{sec:method}).
 \item A comparison against \R{count/methods_w} published methods on \R{count/datasets_w} datasets in two protocols,
-run in one framework on the same client splits, with paired statistics, per-class metrics and the cost of every
+run on the same client splits, with paired statistics, per-class metrics and the cost of every
 method (\cref{sec:results}). \claim{With different client models, \ours has the highest balanced accuracy on
 \R{main/nbest_of} long-tailed benchmarks and \R{nat/nbest_of} naturally imbalanced datasets; most of its margin comes from the last layer, and with the same exact readout for every method
-it remains \R{main/cifar10/er_margin} to \R{main/cifar100/er_margin} points ahead on the CIFAR benchmarks. With one
+it remains \R{main/cifar10/er_margin} to \R{main/cifar100/er_margin} points ahead on the CIFAR benchmarks, a
+difference that is not significant with three seeds. With one
 shared model, end-to-end long-tail methods are stronger, and we report where and by how much.}
 \end{enumerate}
 The code, every log and every figure's data are released (\cref{sec:availability}).

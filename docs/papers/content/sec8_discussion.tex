@@ -18,7 +18,9 @@ per architecture are covered only by \cref{tab:robust}}.
 federation-level sums are not differentially private: for classes with few samples they describe those samples
 closely. \ours should not be called privacy-preserving beyond that protocol guarantee.
 \item \claim{Some settings were run with fewer than three seeds; their tables say so and carry no interval.}
-\item \ours costs more than GeFL-F (\cref{tab:cost}), mainly through the longer synthetic phase.
+\item \ours costs more than GeFL-F (\cref{tab:cost}), mainly through the longer synthetic phase, and we did not
+compare the methods at matched computation or communication.
+\item The gate threshold $F_0$ and the other settings of \cref{tab:hyper} were fixed before these runs and not swept.
 \item With one model shared by all clients, end-to-end long-tail methods such as FedYoYo, FedLoGe and CCVR are
 clearly stronger (\cref{tab:shared}); \ours is designed for clients with different models and has no advantage
 when their models can be averaged.
