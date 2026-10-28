@@ -123,6 +123,37 @@ def sweep_notebook(tag, change, ds="cifar10", seeds=SEEDS):
                       acceptance=False, runs=runs)
 
 
+# GeFL's comparison protocol (user, 29 Oct 2026): GeFL compares its baselines in a grouped setting ("clients are
+# partitioned by model architecture"), at 10 clients (one per architecture) and 50 (five per architecture). The grouped
+# baselines FedAvg, FedProx, FedALA, AvgKD and the long-tail methods CCVR and FedETF join the comparison at 10 clients;
+# at 50 clients every method of the main comparison runs as well (CIFAR-10-LT: FedECS-LT, GeFL-F, FedDF and Balanced
+# Softmax at 50 clients are NB40_sweep_cifar10_K50, the same splits and seeds, so they are not run twice).
+GROUPED = ["FedAvg", "FedProx", "FedALA", "AvgKD", "CCVR", "FedETF"]
+GROUPED_DATASETS = ("cifar10", "cifar100")
+
+
+def grouped_notebook(ds, K, seeds=SEEDS):
+    sys.path.insert(0, SRC)
+    import settings
+    spec = settings.DATASETS[ds]
+    per = K // 10
+    if K == 10:
+        name, methods = f"{ds}_10clients_grouped_baselines", GROUPED
+        what = ("GeFL's grouped baselines (FedAvg, FedProx, FedALA, AvgKD) and the long-tail methods CCVR and FedETF, "
+                "run within each architecture on the shared frozen extractor; FedECS-LT and the other methods of this "
+                "setting are in the main notebooks of this dataset (same splits and seeds)")
+    else:
+        methods = [m for m in TRACK1_MAIN + GROUPED if not (ds == "cifar10" and K == 50 and m in SWEEP_METHODS)]
+        name = f"{ds}_{K}clients_all_methods"
+        what = ("every method of the main comparison and GeFL's grouped baselines" +
+                ("; FedECS-LT, GeFL-F, FedDF and Balanced Softmax at 50 clients are NB40_sweep_cifar10_K50 (same "
+                 "splits and seeds)" if ds == "cifar10" and K == 50 else ""))
+    title = (f"{spec['name']}-LT (imbalance ratio 100), {K} clients ({per} per architecture, ten architectures), "
+             "Dirichlet 0.5")
+    runs = [run(m, ds, s, K=K) for s in seeds for m in methods]
+    return name, dict(title=title, what=f"{title}: {what}; seeds 3-5.", hours=None, acceptance=False, runs=runs)
+
+
 # ---------------------------------------------------------------- cells
 def md(text):
     return dict(cell_type="markdown", metadata={}, source=text.splitlines(True))
@@ -342,6 +373,13 @@ def all_notebooks():
         name, nb = components_notebook(ds)
         labels = list(dict.fromkeys(r["label"] for r in nb["runs"]))
         nbs.update(_parts(name, nb, plan_time.split_track1(nb["runs"], labels, [], SEEDS)))
+    for ds in GROUPED_DATASETS:
+        for K in (10, 50):
+            name, nb = grouped_notebook(ds, K)
+            labels = list(dict.fromkeys(r["label"] for r in nb["runs"]))
+            nbs.update(_parts(name, nb, plan_time.split_track1(
+                nb["runs"], [m for m in labels if m not in plan_time.HTFL_METHODS],
+                [m for m in labels if m in plan_time.HTFL_METHODS], SEEDS)))
     for tag, change in SWEEPS:
         name, nb = sweep_notebook(tag, change)
         nbs.update(_parts(name, nb, plan_time.split_track1(nb["runs"], SWEEP_METHODS, [], SEEDS)))
@@ -380,8 +418,8 @@ def rerun_notebooks(nbs):
     from runner import run_id
     from settings import DATASETS
     done = set()
-    for f in glob.glob(os.path.join(HERE, "results", "NB*", "runs.jsonl")):
-        if not os.path.basename(os.path.dirname(f)).startswith("NB00"):
+    for f in glob.glob(os.path.join(HERE, "results", "*", "runs.jsonl")):
+        if not os.path.basename(os.path.dirname(f)).startswith(("NB00", "_")):
             done |= {json.loads(line)["run_id"] for line in open(f) if line.strip()}
     missing = {}
     for name, nb in nbs.items():
@@ -439,6 +477,8 @@ def priority(name):
     component ablation (NB31) are priority 2."""
     if name.startswith("NB00"):
         return 0
+    if "clients_" in name and not name.startswith("NB"):
+        return 7
     if "_rerun" in name:
         return 5
     if name.startswith("NB10"):
@@ -458,7 +498,8 @@ FOLDERS = {0: "0_acceptance_done",
            3: "3_main_comparison_other_datasets",
            4: "4_one_shared_model_IF050_IF010_and_long_runs",
            5: "5_reruns_of_failed_runs",
-           6: "6_robustness_sweeps"}
+           6: "6_robustness_sweeps",
+           7: "7_gefl_protocol_grouped_baselines_10_and_50_clients"}
 
 
 def folder(name):

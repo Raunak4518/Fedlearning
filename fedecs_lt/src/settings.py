@@ -99,5 +99,5 @@ CITE = {
     "FedNH": "Dai et al., AAAI 2023", "FedVLS": "Guo et al., AAAI 2025", "FedMRL": "Yi et al., NeurIPS 2024",
     "FedAvg": "McMahan et al., AISTATS 2017", "FedProx": "Li et al., MLSys 2020", "MOON": "Li et al., CVPR 2021",
     "CLIP2FL": "Shi et al., AAAI 2024", "Balanced Softmax": "Ren et al., NeurIPS 2020",
-    "LA": "Menon et al., ICLR 2021",
+    "LA": "Menon et al., ICLR 2021", "FedALA": "Zhang et al., AAAI 2023", "AvgKD": "Afonin and Karimireddy, ICLR 2022",
 }

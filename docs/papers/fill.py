@@ -5,7 +5,7 @@
                                             # fedecs_lt/results/_downloads (fetch_kaggle.py --results); minutes
     python docs/papers/fill.py --check-highlights
 
-It reads every run that came back (every folder fedecs_lt/results/NB*, except NB00, whose runs are an earlier code
+It reads every run that came back (every folder of fedecs_lt/results, except NB00, whose runs are an earlier code
 version), sorts the runs into the paper's experiment groups by method and dataset (so parts, reruns and the order of
 the notebooks do not matter), and writes
   generated/numbers.tex      \\defnum{key}{value} for every number slot (\\R{key} in the text)
@@ -93,8 +93,8 @@ def correct_fedgrab(r):
 
 def load_runs():
     runs = {}
-    for f in sorted(glob.glob(os.path.join(RESULTS, "NB*", "runs.jsonl"))):
-        if os.path.basename(os.path.dirname(f)).startswith("NB00"):
+    for f in sorted(glob.glob(os.path.join(RESULTS, "*", "runs.jsonl"))):
+        if os.path.basename(os.path.dirname(f)).startswith(("NB00", "_")):
             continue
         for line in open(f):
             if line.strip():

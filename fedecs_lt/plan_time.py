@@ -19,6 +19,9 @@ HTFL = (60.0, 3.81e-3)            # FedTGP: 7,040 s at 18,485 x 100 (HtFLlib bat
 # each adds: FedDF a server distillation, FedGen a generator, FedMRL a second model)
 HEAD_FACTOR = {"FedDF": 2.0, "FedDF + LA": 2.0, "Local": 1.5, "GeFL-F w/ Gaussian generator + LA": 1.2}
 HTFL_FACTOR = {"FedProto": 1.0, "FedTGP": 1.0, "FedGen": 1.2, "FedGH": 0.9, "LG-FedAvg": 0.8, "FedMRL": 1.6}
+# GeFL's grouped baselines: a head stage on real data (estimates: FedALA adds its weight learning, AvgKD every other
+# architecture's forward pass, CCVR its calibration)
+GROUPED_FACTOR = {"FedAvg": 0.8, "FedProx": 1.0, "FedALA": 1.3, "AvgKD": 1.6, "CCVR": 1.1, "FedETF": 0.8}
 # Track 2 (one shared ResNet-8): FedECS-LT 7,409 s and LongTailLib FedAvg 12,018 s measured on CIFAR-10-LT IF 100;
 # the other LongTailLib methods relative to FedAvg (estimates from what each adds per round)
 T2_FEDECS = 7409.0
@@ -75,6 +78,8 @@ def run_parts(r):
     shared = [(("s1", ds, seed), _lin(STAGE1, N * spec["T_FE"]))]
     if m in HTFL_FACTOR:
         return shared, HTFL_FACTOR[m] * _lin(HTFL, N * spec["T_TN"])
+    if m in GROUPED_FACTOR:
+        return shared, GROUPED_FACTOR[m] * _lin(HEAD, N * spec["T_TN"])
     g = PIPE_GEN.get(m)
     if g == "fedecs":
         shared.append((("gen", g, ds, seed), _lin(GEN_FEDECS, N * spec["T_KA"])))

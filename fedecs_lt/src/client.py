@@ -601,3 +601,4 @@ def eval_gen(msg, context):
 
 
 import htfl_client  # noqa: E402,F401  (registers the Track-1 baseline handlers on this ClientApp)
+import grouped_client  # noqa: E402,F401  (registers the handlers of GeFL's grouped baselines)

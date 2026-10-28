@@ -59,18 +59,20 @@ OURS = "FedECS-LT"
 ORDER = ["FedECS-LT", "FedECS-LT (200 extractor rounds)", "GeFL-F", "Balanced Softmax", "FedLC", "FedRS", "FedDF", "Local",
          "FedProto", "FedTGP", "FedGen", "FedGH", "LG-FedAvg", "FedMRL",
          "GeFL-F w/o generator", "GeFL-F + LA", "GeFL-F w/ Gaussian generator + LA", "FedDF + LA",
-         "FedAvg", "FedProx", "MOON", "CCVR", "CReFF", "FedETF", "Fed-GraB", "FedLoGe", "FedYoYo", "RUCR", "CLIP2FL",
-         "FedNH", "FedVLS"]
+         "FedAvg", "FedProx", "FedALA", "AvgKD", "MOON", "CCVR", "CReFF", "FedETF", "Fed-GraB", "FedLoGe", "FedYoYo",
+         "RUCR", "CLIP2FL", "FedNH", "FedVLS"]
 # Colour and marker index of every method (18 of each): unique among the methods one report can show together
-# (main comparison 0-12, ablations 13-16 with 0-1, the variant 17; the one-shared-model baselines avoid 0, 1, 3, 8
-# and 17, the indices of FedECS-LT, GeFL-F, FedLC, FedTGP and the variant, which share reports with them)
+# (main comparison 0-12, ablations 13-16 with 0-1, the variant 17; the grouped baselines of GeFL's setting 13-18 with
+# 0-12; the one-shared-model baselines avoid 0, 1, 3, 8 and 17, the indices of FedECS-LT, GeFL-F, FedLC, FedTGP and the
+# variant, which share reports with them). Index 18 has no colour of its own: another colour, marker and dashes.
 STYLE_INDEX = {m: i for i, m in enumerate(["FedECS-LT", "GeFL-F", "Balanced Softmax", "FedLC", "FedRS", "FedDF",
                                            "Local", "FedProto", "FedTGP", "FedGen", "FedGH", "LG-FedAvg", "FedMRL",
                                            "GeFL-F w/o generator", "GeFL-F + LA",
                                            "GeFL-F w/ Gaussian generator + LA", "FedDF + LA",
                                            "FedECS-LT (200 extractor rounds)"])}
-STYLE_INDEX.update({"FedAvg": 2, "FedProx": 4, "MOON": 5, "CCVR": 6, "CReFF": 7, "FedETF": 9, "Fed-GraB": 10,
-                    "FedLoGe": 11, "FedYoYo": 12, "RUCR": 13, "CLIP2FL": 14, "FedNH": 15, "FedVLS": 16})
+STYLE_INDEX.update({"FedAvg": 13, "FedProx": 14, "CCVR": 15, "FedETF": 16, "FedALA": 17, "AvgKD": 18, "MOON": 5,
+                    "CReFF": 7, "Fed-GraB": 10, "FedLoGe": 11, "FedYoYo": 12, "RUCR": 2, "CLIP2FL": 4, "FedNH": 6,
+                    "FedVLS": 9})
 
 
 def style(method):
@@ -81,7 +83,8 @@ def style(method):
             method, variant = method[:-len(suffix)], v
     # unknown names: a stable index (str hash() changes between processes)
     i = STYLE_INDEX[method] if method in STYLE_INDEX else zlib.crc32(method.encode()) % len(PALETTE)
-    return dict(color=PALETTE[i % len(PALETTE)], marker=MARKERS[i % len(MARKERS)],
+    ci, mi = (i, i) if i < len(PALETTE) else ((i + 7) % len(PALETTE), (i + 11) % len(MARKERS))
+    return dict(color=PALETTE[ci], marker=MARKERS[mi],
                 linestyle=DASHES[(i + 3 * variant) % len(DASHES)] if method != OURS or variant else "-",
                 linewidth=1.4 if method == OURS else 1.0, zorder=5 if method == OURS else 2)
 

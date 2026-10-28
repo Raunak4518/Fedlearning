@@ -668,3 +668,23 @@ step (probably CPU-bound with four runs on four CPUs; its loader costs only 0.6 
 loader is not the cause); FedECS-LT with one shared model sums the consensus over the whole pool instead of the
 active clients' slices (74 % of its Stage-III time on CIFAR-100); its exclusive GPU lock covers Stage I too; clients
 of a run execute one after another; no mixed precision.
+
+## 24. Comparison protocol as in GeFL (user, 29 Oct 2026; submission moved by 2-3 days, quality first)
+
+GeFL (Kang et al., IEEE TMC 2025) compares its baselines in a **grouped setting**: clients are partitioned by model
+architecture and FedAvg, FedProx, FedALA and LG-FedAvg run within each group; at 10 clients each architecture has one
+client (the grouped methods then train alone), at 50 clients each of the ten architectures has five. AvgKD and FedDF
+are the model-heterogeneous baselines. It reports the mean accuracy over the ten architectures with 95% intervals.
+Decisions:
+- Main setting unchanged: FedECS-LT on GeFL-F's architecture (shared frozen extractor, CNN-1..CNN-10 heads).
+- **10 clients** (as now) plus GeFL's grouped baselines FedAvg, FedProx, FedALA, AvgKD and the long-tail methods
+  CCVR and FedETF applied the same way (`<ds>_10clients_grouped_baselines`, CIFAR-10/100, seeds 3-5).
+- **50 clients**, five per architecture: every method of the main comparison and the grouped baselines
+  (`<ds>_50clients_all_methods_part*`, CIFAR-10/100; CIFAR-10's FedECS-LT, GeFL-F, FedDF and Balanced Softmax are
+  NB40_sweep_cifar10_K50, the same splits and seeds).
+- Sources: FedAvg, FedProx, AvgKD from GeFL's code (github.com/honggkang/hetero-model-fl-gen, MIT), FedALA's ALA from
+  its authors (Apache-2.0), CCVR and FedETF as LongTailLib; hyperparameters of those codes, 5 local epochs.
+- The shared-ResNet-8 comparison stays as an extra section.
+- **Separate track, not blocking the paper:** CReFF, Fed-GraB, FedLoGe and RUCR in the grouped setting. FedYoYo needs
+  image augmentation, impossible on frozen features.
+- New notebooks get descriptive names; the old NB names stay until after submission (links and folders unchanged).

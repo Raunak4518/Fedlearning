@@ -2,6 +2,7 @@
 the frozen feature extractor (FE), the ten client head architectures CNN-1..CNN-10, the CVAE-F generator, the
 mean-anchored PC-VAE generator of FedECS-LT and the Gaussian feature generator; plus CUDA-graph replay for speed."""
 import math
+import numpy as np
 
 import torch
 import torch.nn as nn
@@ -49,6 +50,43 @@ class PaperHeader(nn.Module):
 
     def forward(self, h):
         return self.fc(self.embed(h))
+
+
+class GroupedHead(PaperHeader):
+    """A client's CNN-g head for the baselines GeFL compares in its grouped setting (FedAvg, FedProx, FedALA, AvgKD,
+    CCVR): the same network as GeFL-F's target network; base() is the embedding the HtFL code expects."""
+
+    def base(self, h):
+        return self.embed(h)
+
+
+class ETFHead(nn.Module):
+    """FedETF (Li et al., ICCV 2023) on a CNN-g body, as LongTailLib resnet_fedetf.py: linear projection of the
+    embedding to C dimensions, L2 normalisation, fixed simplex-ETF classifier P (I - 11^T / C) sqrt(C / (C - 1)) with
+    a random orthogonal P (QR of a uniform matrix, seeded; the same for every client), and a learnable logit scale
+    initialised at 1."""
+
+    def __init__(self, widths, in_ch, bn, C, seed=0, S=16):
+        super().__init__()
+        body = PaperHeader(widths, in_ch, bn, C, S)
+        self.features = body.features
+        self.emb_dim = body.emb_dim
+        self.linear_proto = nn.Linear(body.emb_dim, C)
+        a = np.random.RandomState(seed).random_sample((C, C))
+        P, _ = np.linalg.qr(a)
+        M = np.sqrt(C / (C - 1)) * (torch.tensor(P).float() @ (torch.eye(C) - torch.ones(C, C) / C))
+        self.register_buffer("proto", M)
+        self.scaling_train = nn.Parameter(torch.tensor(1.0))
+
+    def embed(self, h):
+        return self.features(h).flatten(1)
+
+    base = embed
+
+    def forward(self, h):
+        f = self.linear_proto(self.embed(h))
+        f = f / torch.norm(f, p=2, dim=1, keepdim=True).clamp(min=1e-12)
+        return self.scaling_train * (f @ self.proto)
 
 
 def build_headers(in_ch, bn, C, device):
