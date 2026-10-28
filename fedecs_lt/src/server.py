@@ -55,14 +55,16 @@ class Fed:
         self.nid = {cfg_of(m.content)["pid"]: m.metadata.src_node_id for m in rep}
         self.pid = {v: k for k, v in self.nid.items()}
         self.fed = Federation(R["ds"], R["data_root"], R["IF"], R["alpha"], R["K"], R["seed"], DEV,
-                              tail_perm=R.get("tail_perm", False), frac_scale=R.get("frac_scale", 1.0), clients=False)
+                              tail_perm=R.get("tail_perm", False), frac_scale=R.get("frac_scale", 1.0), clients=False,
+                              pooled=R.get("pooled", False))
         self.C, self.K, self.arch, self.groups = self.fed.C, R["K"], self.fed.arch, self.fed.groups
         self.N = int(sum(self.fed.sizes))
 
     def base(self, **kw):
         R = self.R
         d = dict(ds=R["ds"], IF=R["IF"], alpha=R["alpha"], K=R["K"], seed=R["seed"], tail_perm=R.get("tail_perm", False),
-                 frac_scale=R.get("frac_scale", 1.0), data_root=R["data_root"], run_id=R["run_id"])
+                 frac_scale=R.get("frac_scale", 1.0), data_root=R["data_root"], run_id=R["run_id"],
+                 pooled=R.get("pooled", False))
         d.update(kw)
         return d
 
@@ -193,7 +195,7 @@ def _add_bytes(mon, delta):
 def stage_one(S, T_FE, la=False):
     R, spec, mon = S.R, S.spec, S.mon
     key = key_of("stage1", R["ds"], R["IF"], R["alpha"], R["K"], R["seed"], R.get("tail_perm", False),
-                 R.get("frac_scale", 1.0), R.get("pfrac", 1.0), T_FE, la)
+                 R.get("frac_scale", 1.0), R.get("pfrac", 1.0), T_FE, la, R.get("pooled", False))
     path = cache_path(R, "stage1", key)
     if not claim(path):
         c = torch.load(path, weights_only=False)

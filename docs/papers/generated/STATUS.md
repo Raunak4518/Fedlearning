@@ -27,7 +27,7 @@ Written by `python docs/papers/fill.py` from 348 runs in fedecs_lt/results (NB00
 ## Slots in the paper
 
 - Tables filled: 12 of 15; still empty: `abl_bal`, `abl_components`, `robust`
-- Numbers filled: 64 of 67; still empty: `abl/cifar10/GeFL-F + LA/gain`, `abl/cifar10/rest`, `t2/cifar10-r100/fe200_diff`
+- Numbers filled: 66 of 73; still empty: `abl/cifar10/GeFL-F + LA/gain`, `abl/cifar10/rest`, `main/cifar10/Centralised (pooled data)/bal`, `main/cifar10/Centralised (pooled data)/er_bal`, `main/cifar100/Centralised (pooled data)/bal`, `main/cifar100/Centralised (pooled data)/er_bal`, `t2/cifar10-r100/fe200_diff`
 - Figures filled: 8 of 9; still empty: `fig_overview`
 
 ## Notebooks not returned yet (by folder)
@@ -38,3 +38,4 @@ Written by `python docs/papers/fill.py` from 348 runs in fedecs_lt/results (NB00
 - 4_one_shared_model_IF050_IF010_and_long_runs: NB20_track2_cifar10_IF010_s3_part3of3, NB20_track2_cifar10_IF050_s3_part1of2, NB20_track2_cifar10_IF050_s3_part2of2, NB20_track2_cifar100_IF010_s3_part2of3, NB20_track2_cifar100_IF010_s3_part3of3, NB20_track2_cifar100_IF050_s3_part1of2, NB20_track2_cifar100_IF050_s3_part2of2, NB29_track2_long_runs_1
 - 5_reruns_of_failed_runs: NB10_main_emnist_rerun_7bfd7d, NB20_track2_rerun_f2bb89, NB20_track2_rerun_2a90fa
 - 6_robustness_sweeps: NB40_sweep_cifar10_a0.1, NB40_sweep_cifar10_a1.0, NB40_sweep_cifar10_K50, NB40_sweep_cifar10_K100, NB40_sweep_cifar10_IF050, NB40_sweep_cifar10_IF010
+- 7_gefl_protocol_grouped_baselines_10_and_50_clients: cifar10_10clients_grouped_baselines, cifar10_50clients_all_methods_part1of3, cifar10_50clients_all_methods_part2of3, cifar10_50clients_all_methods_part3of3, cifar100_10clients_grouped_baselines, cifar100_50clients_all_methods_part1of2, cifar100_50clients_all_methods_part2of2, cifar10_cifar100_pooled_data_reference

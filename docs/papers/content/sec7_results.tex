@@ -7,8 +7,10 @@ the heads as trained, and \cref{tab:paired} the paired difference of \ours to ea
 \claim{\ours has the highest balanced accuracy on \R{main/nbest_of} benchmarks. Its margin
 over the strongest other method is \R{main/cifar10/margin} points on CIFAR-10-LT (over \R{main/cifar10/strongest})
 and \R{main/cifar100/margin} on CIFAR-100-LT (over \R{main/cifar100/strongest}). With three seeds the difference is
-significant after Holm's correction on CIFAR-100-LT ($p\le$\R{main/cifar100/p/FedDF} against \R{main/cifar100/strongest})
-but not on CIFAR-10-LT ($p=$\R{main/cifar10/p/FedDF}), although every seed favours \ours.} \claim{Against GeFL-F, the method it extends,
+significant after Holm's correction on CIFAR-100-LT ($p=\R{main/cifar100/strongest_p}$ against
+\R{main/cifar100/strongest}) but not on CIFAR-10-LT ($p=\R{main/cifar10/strongest_p}$), although every seed favours
+\ours.} \claim{On CIFAR-100-LT, \R{main/cifar100/FedECS-LT/nzero} classes on average are recognised by none of the ten
+client models of \ours, against \R{main/cifar100/strongest_nzero} for \R{main/cifar100/strongest}.} \claim{Against GeFL-F, the method it extends,
 the difference is \R{main/cifar10/diff/GeFL-F} points \R{main/cifar10/ci/GeFL-F} on CIFAR-10-LT and
 \R{main/cifar100/diff/GeFL-F} \R{main/cifar100/ci/GeFL-F} on CIFAR-100-LT.} The model-heterogeneous methods that
 exchange prototypes or shared sub-networks (FedProto, FedTGP, FedGH, LG-FedAvg, FedMRL) were designed for label skew

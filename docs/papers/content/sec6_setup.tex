@@ -94,7 +94,11 @@ also report macro-F1, macro precision, the multi-class Matthews correlation coef
 the geometric mean of the class recalls (each floored at 1\%), the recall of the tail classes (the 40\% least
 frequent) and of the worst class, macro AUC-PR, the expected calibration error with 15 bins
 (ECE)~\cite{guo2017calibration} and its class-wise form~\cite{kull2019classwise}, and, for the main setting, the balanced
-accuracy of the weakest architecture and the accuracy on each client's own class mix. Every per-class metric is
+accuracy of the weakest architecture and the accuracy on each client's own class mix. In the setting with different
+client models every metric is, as in GeFL~\cite{kang2025gefl}, the mean over the ten client models (one per
+architecture), each evaluated on the whole test set; the geometric mean and the worst-class recall are computed for
+each model and then averaged, which makes them lower than the same metrics on the models' pooled predictions. Every
+per-class metric is
 logged for every class at every evaluation. Cost is the measured communication per client, the wall-clock time on one
 GPU and the floating-point operations.
 

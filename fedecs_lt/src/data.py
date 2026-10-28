@@ -303,7 +303,8 @@ class Federation:
     """One dataset split into clients for one (setting, seed): every client's images and labels on the device,
     the validation set and the test set. Built identically by the server and by the client process."""
 
-    def __init__(self, ds, root, IF, alpha, K, seed, device, tail_perm=False, frac_scale=1.0, clients=True):
+    def __init__(self, ds, root, IF, alpha, K, seed, device, tail_perm=False, frac_scale=1.0, clients=True,
+                 pooled=False):
         spec = DATASETS[ds]
         self.ds, self.C, self.K, self.seed, self.device = ds, spec["C"], K, seed, device
         data = load_dataset(ds, root, device, lazy=True)
@@ -335,10 +336,17 @@ class Federation:
         else:
             frac = frac_of(ds, len(data["ytr"])) * frac_scale
             part = make_partition(data["ytr"], self.C, K, frac, IF, alpha, seed)
+        if pooled:   # reference: every client holds the whole federated training set (the union of the split)
+            allp = torch.cat([torch.as_tensor(np.asarray(p)).long() for p in part["parts"]])
+            part = dict(part, parts=[allp] * K, counts=np.tile(part["class_counts"], (K, 1)))
         self.counts, self.class_counts = part["counts"], part["class_counts"]
         # the server process keeps no client data (clients=False): only sizes and, for logging, the class counts
-        self.x = [prep(data["xtr"][p]).to(device) for p in part["parts"]] if clients else None
-        self.y = [data["ytr"][p].to(device) for p in part["parts"]] if clients else None
+        if clients and pooled:   # one copy shared by every client
+            x0, y0 = prep(data["xtr"][part["parts"][0]]).to(device), data["ytr"][part["parts"][0]].to(device)
+            self.x, self.y = [x0] * K, [y0] * K
+        else:
+            self.x = [prep(data["xtr"][p]).to(device) for p in part["parts"]] if clients else None
+            self.y = [data["ytr"][p].to(device) for p in part["parts"]] if clients else None
         self.x_val = prep(data["xtr"][part["heldout"]]).to(device)
         self.y_val = data["ytr"][part["heldout"]].to(device)
         self.x_te, self.y_te = data["xte"].to(device), data["yte"].to(device)

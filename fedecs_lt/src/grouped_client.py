@@ -186,6 +186,21 @@ def grouped_train(msg, context):
     return reply(msg, out, up={n: v.detach() for n, v in model.state_dict().items()})
 
 
+@app.query("eval_groups")
+def eval_groups(msg, context):
+    """Every architecture's averaged head on the test features (the aggregated models of a round), one client."""
+    cfg = cfg_of(msg.content)
+    fed = fed_of(cfg)
+    F_ = feats_of(cfg, fed)
+    srv = arrays_of(msg.content, "srv", DEV) or {}
+    out = {}
+    for g in sorted({int(n.split("|", 1)[0]) for n in srv}):
+        h = new_head(cfg["method"], g, F_["te"].shape[1], spec_of(cfg), fed.C, cfg["seed"]).to(DEV)
+        h.load_state_dict(group_sd(srv, g))
+        out[str(g)] = log_view(evaluate_model(h, F_["te"], fed.y_te, fed.C))
+    return reply(msg, dict(groups=out))
+
+
 @app.query("ccvr_stats")
 def ccvr_stats(msg, context):
     """CCVR: per-class count, sum and sum of outer products of the client's embeddings under its architecture's

@@ -38,6 +38,10 @@ PIPELINE = {
 # Track 2 diagnosis (user, 24 Oct): FedECS-LT with its extractor trained for all 200 rounds of the baselines (the run
 # sets rounds T_FE = 200; generator and heads as FedECS-LT, so 300 rounds in total, reported as such)
 PIPELINE["FedECS-LT (extractor 200 rounds)"] = dict(PIPELINE["FedECS-LT"])
+# Reference (user, 29 Oct 2026): the same architecture with all training data pooled: every client holds the whole
+# federated training set (run option pooled=True), so FedAvg within an architecture trains on all of it; heads on real
+# data with cross-entropy, reported as trained and with the exact readout. The ceiling of GeFL-F's design here.
+PIPELINE["Centralised (pooled data)"] = dict(pipeline="gefl", gen=None, head=dict(ts=0, tr=5, loss="ce"))
 # Component ablation (paper, Table "Components of FedECS-LT"; user, 27 Oct 2026): one component changed at a time,
 # everything else as FedECS-LT. The two generator variants replace the gate: class rows averaged by CCWA, or class
 # rows averaged flat (GeFL-F's generator), both with the exact statistics, moment correction and the same heads.
@@ -62,7 +66,8 @@ def method_spec(label):
 
 
 def run_id(r):
-    extra = ("|tp" if r.get("tail_perm") else "") + (f"|p{r['pfrac']}" if r.get("pfrac", 1.0) < 1.0 else "")
+    extra = ("|tp" if r.get("tail_perm") else "") + (f"|p{r['pfrac']}" if r.get("pfrac", 1.0) < 1.0 else "") \
+        + ("|pooled" if r.get("pooled") else "")
     return f"{r['label']}|{r['ds']}|IF{r['IF']}|a{r['alpha']}|K{r['K']}|s{r['seed']}" + extra
 
 

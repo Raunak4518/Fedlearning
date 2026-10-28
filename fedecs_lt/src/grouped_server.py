@@ -24,6 +24,20 @@ CCVR_HP = dict(num_vr=2000, retrain_epoch=10, retrain_lr=0.001, momentum=0.9, we
 MU = 1e-2   # FedProx (GeFL args.mu)
 
 
+def mean_view(views):
+    """Mean of metric views: scalars, and per-class lists element by element (as htfl_server's rec['post'])."""
+    out = {}
+    for k in (views[0] if views else {}):
+        vals = [v[k] for v in views if v.get(k) is not None]
+        if not vals:
+            continue
+        if isinstance(vals[0], list):
+            out[k] = [round(float(x), 4) for x in np.nanmean(np.array(vals, dtype=float), 0)]
+        elif isinstance(vals[0], (int, float)):
+            out[k] = round(float(np.mean(vals)), 4)
+    return out
+
+
 def average(sds):
     """Unweighted mean of state dicts (integer buffers such as num_batches_tracked: the last client's)."""
     return {n: (sum(sd[n].float() for sd in sds) / len(sds)).to(sds[0][n].dtype) if sds[0][n].is_floating_point()
@@ -150,6 +164,14 @@ def run_grouped(grid, context, R):
         if ev:
             rec["pre"] = {str(k): i["pre"] for k, i in infos if "pre" in i}
             rec["post_clients"] = {str(k): i["post"] for k, i in infos if "post" in i}
+            if meth == "FedALA":   # personal models: their mean after local training, as for the HtFLlib methods
+                views = [i["pre"] for _, i in infos if "pre" in i]
+            else:                  # the aggregated model of every architecture, mean over the clients' architectures
+                srv_all = {f"{g}|{n}": v for g, sd in glob.items() for n, v in sd.items()}
+                gv = cfg_of(S.ask("query.eval_groups", [(S.nid[0], pack(dict(base_cfg, round=r), srv=srv_all))],
+                                  account=False)[0].content)["groups"]
+                views = [gv[str(S.arch[k])] for k in range(S.K) if str(S.arch[k]) in gv]
+            rec["post"] = mean_view(views)
         mon.log("stage3_round", **rec)
         history.append(rec)
     mon.stop("stage3")

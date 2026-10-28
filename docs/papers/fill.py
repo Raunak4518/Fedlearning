@@ -42,6 +42,8 @@ from settings import DATASETS  # noqa: E402
 
 OURS = "FedECS-LT"
 DIAG = "FedECS-LT (200 extractor rounds)"
+# references, not competitors: shown in the tables, never "best", "strongest" or counted among the baselines
+REFS = {"Centralised (pooled data)"}
 # number slots per method: (short name in the key, runs.jsonl key)
 METRICS = [("bal", "final_bal"), ("er_bal", "er_bal"), ("f1", "final_f1"), ("tail", "final_tail"),
            ("worst", "final_worst"), ("mcc", "final_mcc"), ("gmean", "final_gmean"), ("ece", "final_ece"),
@@ -183,7 +185,7 @@ def matched(E, S, key, exclude=()):
     ours = {r["seed"]: r.get(key) for r in E.of(OURS, S)}
     out = {}
     for m in E.methods:
-        if m in (OURS, DIAG) or m in exclude:
+        if m in (OURS, DIAG) or m in REFS or m in exclude:
             continue
         other = {r["seed"]: r.get(key) for r in E.of(m, S)}
         common = [x for x in sorted(set(ours) & set(other)) if ours[x] is not None and other[x] is not None]
@@ -222,9 +224,10 @@ def across_table(E, settings, key, methods=None, lower=False):
     if vals:
         A = np.array(vals, dtype=float)
         for j in range(A.shape[1]):
-            if not np.all(np.isnan(A[:, j])):
-                b = np.nanmin(A[:, j]) if lower else np.nanmax(A[:, j])
-                bold |= {(int(i), j + 1) for i in np.where(np.isclose(A[:, j], b, rtol=0, atol=1e-9))[0]}
+            col = np.array([np.nan if r[0] in REFS else v for r, v in zip(rows, A[:, j])], dtype=float)
+            if not np.all(np.isnan(col)):
+                b = np.nanmin(col) if lower else np.nanmax(col)
+                bold |= {(int(i), j + 1) for i in np.where(np.isclose(col, b, rtol=0, atol=1e-9))[0]}
     return header, rows, bold
 
 
@@ -270,6 +273,9 @@ def fill_group(g, E, nums, made, status):
                 mu, sd, n = plots.metric(E, m, key, S)
                 if not np.isnan(mu):
                     nums[f"{g}/{s}/{m}/{short}"] = tex(report.fmt(mu, sd, key, n))
+            nz = [sum(1 for x in r["final_recall_c"] if x == 0) for r in E.of(m, S) if r.get("final_recall_c")]
+            if nz:   # classes that none of the client models recognises (pooled recall 0), mean over seeds
+                nums[f"{g}/{s}/{m}/nzero"] = f"{np.mean(nz):.1f}".rstrip("0").rstrip(".")
             b, e = mean_of(E, m, "final_bal", S), mean_of(E, m, "er_bal", S)
             if not (np.isnan(b) or np.isnan(e)):
                 nums[f"{g}/{s}/{m}/gain_er"] = signed(100 * (e - b))
@@ -279,7 +285,7 @@ def fill_group(g, E, nums, made, status):
                 nums[f"{g}/{s}/{pre}ci/{m}"] = f"[{d - half:+.1f}, {d + half:+.1f}]"
                 nums[f"{g}/{s}/{pre}p/{m}"] = f"{ph:.3g}"
         d = matched(E, S, "final_bal")   # FedECS-LT minus each method over common seeds
-        means = {m: mean_of(E, m, "final_bal", S) for m in E.methods if m not in (DIAG,)}
+        means = {m: mean_of(E, m, "final_bal", S) for m in E.methods if m not in (DIAG,) and m not in REFS}
         means = {m: v for m, v in means.items() if not np.isnan(v)}
         if d:
             nums[f"{g}/{s}/best"] = tex(OURS if ours_best(E, S) else min(d, key=lambda m: d[m][0]))
@@ -290,6 +296,8 @@ def fill_group(g, E, nums, made, status):
             st = min(others, key=lambda m: others[m][0])
             nums[f"{g}/{s}/strongest"] = tex(st)
             nums[f"{g}/{s}/margin"] = signed(others[st][0])
+            if f"{g}/{s}/{st}/nzero" in nums:
+                nums[f"{g}/{s}/strongest_nzero"] = nums[f"{g}/{s}/{st}/nzero"]
             nums[f"{g}/{s}/margin_seeds"] = and_list([str(x) for x in others[st][1]])
             pt_ = paired(E, S, "final_bal").get(st)   # paired over seeds, Holm-corrected over all methods
             if pt_:
@@ -314,7 +322,7 @@ def fill_group(g, E, nums, made, status):
     if with_ours and g != "t2":   # the same list with each dataset's citation
         nums[f"{g}/datasets_cite"] = and_list([tex(pt.column_name(S, with_ours)) + "~\\cite{" + DATA_CITE[S[0]] + "}"
                                                for S in with_ours if S[0] in DATA_CITE])
-    base = sorted({r["label"] for r in E.runs} - {OURS, DIAG, "Local"})
+    base = sorted({r["label"] for r in E.runs} - {OURS, DIAG, "Local"} - REFS)
     nums[f"{g}/nbaselines_w"] = word(len(base))
     nums[f"{g}/nlt_w"] = word(len(set(base) & LT_METHODS))
     if g == "t2":
@@ -349,7 +357,7 @@ def fill_extras(E_by, nums, made):
         rows_ds = sorted({DATASETS[r["dataset"]]["name"] for r in T1 if r.get("gate_branch") == "rows"})
         nums["gate/rows"] = tex(", ".join(rows_ds)) if rows_ds else "none of them"
     labels = {r["label"] for E in allE for r in E.runs}
-    published = labels - {OURS, DIAG, "Local"} - set(bn.ABLATIONS) - {"FedDF + LA"}
+    published = labels - {OURS, DIAG, "Local"} - REFS - set(bn.ABLATIONS) - {"FedDF + LA"}
     nums["count/methods"] = str(len(published))
     nums["count/datasets"] = str(len({r["dataset"].replace("_t2", "") for r in ours_runs}))
     nums["count/datasets_w"] = word(len({r["dataset"].replace("_t2", "") for r in ours_runs}))

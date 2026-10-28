@@ -75,6 +75,9 @@ def run_parts(r):
         extra = 3101.0 if (r.get("rounds") or {}).get("T_FE") == 200 else 0.0   # Stage I: 3,101 s per 100 rounds
         return [], scale * (T2_FEDECS + extra)
     N, spec = n_train(ds)
+    if r.get("pooled"):   # every client holds the whole training set: K times the images, nothing shared
+        NK = N * r["K"]
+        return [], _lin(STAGE1, NK * spec["T_FE"]) + _lin(HEAD, NK * spec["T_TN"])
     shared = [(("s1", ds, seed), _lin(STAGE1, N * spec["T_FE"]))]
     if m in HTFL_FACTOR:
         return shared, HTFL_FACTOR[m] * _lin(HTFL, N * spec["T_TN"])

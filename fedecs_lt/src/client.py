@@ -39,13 +39,14 @@ app = ClientApp()
 # ---------------------------------------------------------------- process store
 def fed_of(cfg):
     k = ("fed", cfg["ds"], cfg["IF"], cfg["alpha"], cfg["K"], cfg["seed"], cfg.get("tail_perm", False),
-         cfg.get("frac_scale", 1.0))
+         cfg.get("frac_scale", 1.0), cfg.get("pooled", False))
     if k not in STATE:
         for old in [x for x in STATE if x[0] in ("fed", "feat")]:  # one dataset split per process at a time
             del STATE[old]
         torch.cuda.empty_cache() if DEV == "cuda" else None
         STATE[k] = Federation(cfg["ds"], cfg["data_root"], cfg["IF"], cfg["alpha"], cfg["K"], cfg["seed"], DEV,
-                              tail_perm=cfg.get("tail_perm", False), frac_scale=cfg.get("frac_scale", 1.0))
+                              tail_perm=cfg.get("tail_perm", False), frac_scale=cfg.get("frac_scale", 1.0),
+                              pooled=cfg.get("pooled", False))
     return STATE[k]
 
 
@@ -130,8 +131,12 @@ def features(msg, context):
     if k not in STATE:
         fe = make_fe(spec).to(DEV)
         fe.load_state_dict(arrays_of(msg.content, "fe", DEV))
-        STATE[k] = dict(x=[compute_features(fe, x) for x in fed.x], te=compute_features(fe, fed.x_te),
-                        val=compute_features(fe, fed.x_val))
+        memo = {}   # clients holding the same tensor (pooled reference) share one copy of its features
+        for x in fed.x:
+            if id(x) not in memo:
+                memo[id(x)] = compute_features(fe, x)
+        xs = [memo[id(x)] for x in fed.x]
+        STATE[k] = dict(x=xs, te=compute_features(fe, fed.x_te), val=compute_features(fe, fed.x_val))
     return reply(msg, dict(ok=True, shape=list(STATE[k]["te"].shape[1:])))
 
 

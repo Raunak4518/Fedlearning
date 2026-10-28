@@ -12,7 +12,7 @@ When results come back: `docs/papers/GUIDE.md`, section 0 (file them with fetch_
 
 Expected hours are estimates from NB00's measured run times (fedecs_lt/plan_time.py); a notebook starts no new run after 11 h and always saves what has finished.
 
-**64 notebooks to run, about 407 session-hours in total.**
+**65 notebooks to run, about 410 session-hours in total.**
 
 ## Run order
 The notebooks are in one folder per priority. Folder 1 first (the paper's main tables), then 2, 3, 4; folder 0 is done. Any free account takes the next notebook from the lowest-numbered folder still open. Folder 5 holds reruns of runs that failed in returned notebooks: run them whenever an account is free (they complete experiments whose other runs came back).
@@ -110,7 +110,7 @@ The notebooks are in one folder per priority. Folder 1 first (the paper's main t
 | [NB40_sweep_cifar10_a0.1.ipynb](6_robustness_sweeps/NB40_sweep_cifar10_a0.1.ipynb) | Robustness on CIFAR-10-LT: Dirichlet alpha = 0.1 (otherwise the main setting): FedECS-LT, GeFL-F, FedDF, Balanced Softmax; seeds 3-5. | 12 | 4.7 | `NB40_sweep_cifar10_a0.1__summary.zip`, `NB40_sweep_cifar10_a0.1__report.pdf` |
 | [NB40_sweep_cifar10_a1.0.ipynb](6_robustness_sweeps/NB40_sweep_cifar10_a1.0.ipynb) | Robustness on CIFAR-10-LT: Dirichlet alpha = 1.0 (otherwise the main setting): FedECS-LT, GeFL-F, FedDF, Balanced Softmax; seeds 3-5. | 12 | 4.7 | `NB40_sweep_cifar10_a1.0__summary.zip`, `NB40_sweep_cifar10_a1.0__report.pdf` |
 
-### Priority 7: [`7_gefl_protocol_grouped_baselines_10_and_50_clients/`](7_gefl_protocol_grouped_baselines_10_and_50_clients/) (7 notebooks, about 29 session-hours)
+### Priority 7: [`7_gefl_protocol_grouped_baselines_10_and_50_clients/`](7_gefl_protocol_grouped_baselines_10_and_50_clients/) (8 notebooks, about 33 session-hours)
 
 | Notebook | What it runs | Runs | Expected hours | Send back |
 |---|---|---|---|---|
@@ -121,4 +121,5 @@ The notebooks are in one folder per priority. Folder 1 first (the paper's main t
 | [cifar10_50clients_all_methods_part1of3.ipynb](7_gefl_protocol_grouped_baselines_10_and_50_clients/cifar10_50clients_all_methods_part1of3.ipynb) | CIFAR-10-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5: every method of the main comparison and GeFL's grouped baselines; FedECS-LT, GeFL-F, FedDF and Balanced Softmax at 50 clients are NB40_sweep_cifar10_K50 (same splits and seeds); seeds 3-5. Part 1 of 3: 9 methods; seeds 3, 4, 5. | 27 | 1.7 | `cifar10_50clients_all_methods_part1of3__summary.zip`, `cifar10_50clients_all_methods_part1of3__report.pdf` |
 | [cifar10_50clients_all_methods_part2of3.ipynb](7_gefl_protocol_grouped_baselines_10_and_50_clients/cifar10_50clients_all_methods_part2of3.ipynb) | CIFAR-10-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5: every method of the main comparison and GeFL's grouped baselines; FedECS-LT, GeFL-F, FedDF and Balanced Softmax at 50 clients are NB40_sweep_cifar10_K50 (same splits and seeds); seeds 3-5. Part 2 of 3: FedProto, FedTGP, FedGen; seeds 3, 4, 5. | 9 | 6.9 | `cifar10_50clients_all_methods_part2of3__summary.zip`, `cifar10_50clients_all_methods_part2of3__report.pdf` |
 | [cifar10_50clients_all_methods_part3of3.ipynb](7_gefl_protocol_grouped_baselines_10_and_50_clients/cifar10_50clients_all_methods_part3of3.ipynb) | CIFAR-10-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5: every method of the main comparison and GeFL's grouped baselines; FedECS-LT, GeFL-F, FedDF and Balanced Softmax at 50 clients are NB40_sweep_cifar10_K50 (same splits and seeds); seeds 3-5. Part 3 of 3: FedGH, LG-FedAvg, FedMRL; seeds 3, 4, 5. | 9 | 6.9 | `cifar10_50clients_all_methods_part3of3__summary.zip`, `cifar10_50clients_all_methods_part3of3__report.pdf` |
+| [cifar10_cifar100_pooled_data_reference.ipynb](7_gefl_protocol_grouped_baselines_10_and_50_clients/cifar10_cifar100_pooled_data_reference.ipynb) | Reference with pooled data: GeFL-F's extractor and ten head architectures trained on the whole long-tailed training set (CIFAR-10-LT and CIFAR-100-LT, imbalance ratio 100): the same images as the federated split of each seed, every client holding all of them; heads on real data, as trained and with the exact readout; seeds 3-5. | 6 | 3.6 | `cifar10_cifar100_pooled_data_reference__summary.zip`, `cifar10_cifar100_pooled_data_reference__report.pdf` |
 

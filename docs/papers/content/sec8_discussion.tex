@@ -24,9 +24,13 @@ compare the methods at matched computation or communication.
 \item With one model shared by all clients, end-to-end long-tail methods such as FedYoYo, FedLoGe and CCVR are
 clearly stronger (\cref{tab:shared}); \ours is designed for clients with different models and has no advantage
 when their models can be averaged.
-\item The absolute accuracy of the main setting is low because of GeFL-F's small frozen extractor: on CIFAR-100-LT
-the same design trained centrally on the pooled data reached about 18\% with the exact readout in our earlier
-implementation (one seed), the level of \ours here.
+\item The absolute accuracy of the main setting is low because of GeFL-F's design, a frozen one-block extractor and
+small heads, not because of the federation alone: GeFL's own methods reach 52--59\% on CIFAR-10 with balanced data and
+full models~\cite{kang2025gefl}\whennum{main/cifar100/Centralised (pooled data)/bal}{, and the same extractor and heads
+trained on all the training data pooled reach \R{main/cifar10/Centralised (pooled data)/bal} on CIFAR-10-LT and
+\R{main/cifar100/Centralised (pooled data)/bal} on CIFAR-100-LT (\R{main/cifar10/Centralised (pooled data)/er_bal} and
+\R{main/cifar100/Centralised (pooled data)/er_bal} with the exact readout), the ceiling of this design}. These numbers
+are not comparable with centralised long-tail results for ResNet-32 and larger networks.
 \end{itemize}
 
 \section{Conclusion}\label{sec:conclusion}

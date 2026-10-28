@@ -154,6 +154,18 @@ def grouped_notebook(ds, K, seeds=SEEDS):
     return name, dict(title=title, what=f"{title}: {what}; seeds 3-5.", hours=None, acceptance=False, runs=runs)
 
 
+def pooled_reference_notebook(seeds=SEEDS):
+    """The ceiling of GeFL-F's design (user, 29 Oct 2026): the same extractor and ten heads trained on all the training
+    data pooled (every client holds the whole federated split), CIFAR-10-LT and CIFAR-100-LT, seeds 3-5."""
+    name = "cifar10_cifar100_pooled_data_reference"
+    title = ("Reference with pooled data: GeFL-F's extractor and ten head architectures trained on the whole "
+             "long-tailed training set (CIFAR-10-LT and CIFAR-100-LT, imbalance ratio 100)")
+    runs = [run("Centralised (pooled data)", ds, s, pooled=True) for ds in GROUPED_DATASETS for s in seeds]
+    return name, dict(title=title, what=f"{title}: the same images as the federated split of each seed, every client "
+                                        "holding all of them; heads on real data, as trained and with the exact "
+                                        "readout; seeds 3-5.", hours=None, acceptance=False, runs=runs)
+
+
 # ---------------------------------------------------------------- cells
 def md(text):
     return dict(cell_type="markdown", metadata={}, source=text.splitlines(True))
@@ -380,6 +392,8 @@ def all_notebooks():
             nbs.update(_parts(name, nb, plan_time.split_track1(
                 nb["runs"], [m for m in labels if m not in plan_time.HTFL_METHODS],
                 [m for m in labels if m in plan_time.HTFL_METHODS], SEEDS)))
+    name, nb = pooled_reference_notebook()
+    nbs.update(_parts(name, nb, plan_time.split_track1(nb["runs"], ["Centralised (pooled data)"], [], SEEDS)))
     for tag, change in SWEEPS:
         name, nb = sweep_notebook(tag, change)
         nbs.update(_parts(name, nb, plan_time.split_track1(nb["runs"], SWEEP_METHODS, [], SEEDS)))
@@ -477,7 +491,7 @@ def priority(name):
     component ablation (NB31) are priority 2."""
     if name.startswith("NB00"):
         return 0
-    if "clients_" in name and not name.startswith("NB"):
+    if ("clients_" in name or "pooled_data" in name) and not name.startswith("NB"):
         return 7
     if "_rerun" in name:
         return 5

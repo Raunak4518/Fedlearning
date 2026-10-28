@@ -42,3 +42,15 @@ def test_feddf_after_its_generator():
     # alone (no GeFL-F in the queue) FedDF trains the generator itself and keeps its place
     alone = [bn.run(m, "mnist", 3) for m in ("FedDF", "Local")]
     assert bn.queue_order(alone) == alone
+
+
+def test_pooled_reference_every_client_holds_the_split(tmp_path):
+    """Pooled reference: every client holds exactly the union of the federated split of the same seed (one shared
+    tensor), the validation and test sets unchanged."""
+    fake_cache(str(tmp_path), "mnist", 6000, 28, 1)
+    fed = data.Federation("mnist", str(tmp_path), 0.01, 0.5, 10, 3, "cpu")
+    pooled = data.Federation("mnist", str(tmp_path), 0.01, 0.5, 10, 3, "cpu", pooled=True)
+    assert all(x is pooled.x[0] for x in pooled.x)
+    assert sorted(pooled.y[0].tolist()) == sorted(torch.cat(fed.y).tolist())
+    assert (pooled.counts == fed.class_counts).all() and (pooled.class_counts == fed.class_counts).all()
+    assert torch.equal(pooled.x_val, fed.x_val) and torch.equal(pooled.x_te, fed.x_te)
