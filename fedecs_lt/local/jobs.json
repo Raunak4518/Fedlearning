@@ -8058,7 +8058,7 @@
   "kaggle_hours": 6.7,
   "runs": [
    {
-    "label": "GeFL-F (T_s=10)",
+    "label": "GeFL-F (10 synthetic epochs)",
     "ds": "cifar10",
     "seed": 3,
     "IF": 0.01,
@@ -8066,7 +8066,7 @@
     "K": 10
    },
    {
-    "label": "GeFL-F (T_s=10)",
+    "label": "GeFL-F (10 synthetic epochs)",
     "ds": "cifar10",
     "seed": 4,
     "IF": 0.01,
@@ -8074,7 +8074,7 @@
     "K": 10
    },
    {
-    "label": "GeFL-F (T_s=10)",
+    "label": "GeFL-F (10 synthetic epochs)",
     "ds": "cifar10",
     "seed": 5,
     "IF": 0.01,
@@ -8082,7 +8082,7 @@
     "K": 10
    },
    {
-    "label": "GeFL-F (T_s=10)",
+    "label": "GeFL-F (10 synthetic epochs)",
     "ds": "cifar100",
     "seed": 3,
     "IF": 0.01,
@@ -8090,7 +8090,7 @@
     "K": 10
    },
    {
-    "label": "GeFL-F (T_s=10)",
+    "label": "GeFL-F (10 synthetic epochs)",
     "ds": "cifar100",
     "seed": 4,
     "IF": 0.01,
@@ -8098,7 +8098,7 @@
     "K": 10
    },
    {
-    "label": "GeFL-F (T_s=10)",
+    "label": "GeFL-F (10 synthetic epochs)",
     "ds": "cifar100",
     "seed": 5,
     "IF": 0.01,
@@ -8106,7 +8106,7 @@
     "K": 10
    },
    {
-    "label": "FedDF (T_s=10)",
+    "label": "FedDF (10 synthetic epochs)",
     "ds": "cifar10",
     "seed": 3,
     "IF": 0.01,
@@ -8114,7 +8114,7 @@
     "K": 10
    },
    {
-    "label": "FedDF (T_s=10)",
+    "label": "FedDF (10 synthetic epochs)",
     "ds": "cifar10",
     "seed": 4,
     "IF": 0.01,
@@ -8122,7 +8122,7 @@
     "K": 10
    },
    {
-    "label": "FedDF (T_s=10)",
+    "label": "FedDF (10 synthetic epochs)",
     "ds": "cifar10",
     "seed": 5,
     "IF": 0.01,
@@ -8130,7 +8130,7 @@
     "K": 10
    },
    {
-    "label": "FedDF (T_s=10)",
+    "label": "FedDF (10 synthetic epochs)",
     "ds": "cifar100",
     "seed": 3,
     "IF": 0.01,
@@ -8138,7 +8138,7 @@
     "K": 10
    },
    {
-    "label": "FedDF (T_s=10)",
+    "label": "FedDF (10 synthetic epochs)",
     "ds": "cifar100",
     "seed": 4,
     "IF": 0.01,
@@ -8146,7 +8146,7 @@
     "K": 10
    },
    {
-    "label": "FedDF (T_s=10)",
+    "label": "FedDF (10 synthetic epochs)",
     "ds": "cifar100",
     "seed": 5,
     "IF": 0.01,

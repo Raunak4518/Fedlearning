@@ -25,9 +25,9 @@ def diff(a, b, path=""):
 def test_new_arms_change_one_setting():
     assert diff(PIPELINE["GeFL-F + AdamW"], PIPELINE["GeFL-F"]) == ["/gen/opt"]
     assert PIPELINE["GeFL-F + AdamW"]["gen"]["opt"] == "adamw" and PIPELINE["GeFL-F + AdamW"]["head"]["loss"] == "ce"
-    assert diff(PIPELINE["GeFL-F (T_s=10)"], PIPELINE["GeFL-F"]) == ["/head/ts"]
-    assert diff(PIPELINE["FedDF (T_s=10)"], PIPELINE["FedDF"]) == ["/head/ts"]
-    assert PIPELINE["GeFL-F (T_s=10)"]["head"]["ts"] == PIPELINE["FedECS-LT"]["head"]["ts"] == 10
+    assert diff(PIPELINE["GeFL-F (10 synthetic epochs)"], PIPELINE["GeFL-F"]) == ["/head/ts"]
+    assert diff(PIPELINE["FedDF (10 synthetic epochs)"], PIPELINE["FedDF"]) == ["/head/ts"]
+    assert PIPELINE["GeFL-F (10 synthetic epochs)"]["head"]["ts"] == PIPELINE["FedECS-LT"]["head"]["ts"] == 10
     assert diff(PIPELINE["FedECS-LT w/ Gaussian sampler"], PIPELINE["FedECS-LT"]) == ["/gen/beta", "/gen/opt",
                                                                                        "/gen/type", "/gen/wd"]
     assert PIPELINE["FedECS-LT w/ Gaussian sampler"]["gen"] == dict(type="gauss")

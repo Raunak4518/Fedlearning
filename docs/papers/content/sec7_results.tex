@@ -209,11 +209,11 @@ Gaussians from the exact class statistics, FedDF with logit adjustment, and GeFL
 per round, as \ours. \whennum{abl/cifar10/GeFL-F + AdamW/gain}{\claim{Decoupled weight decay alone changes GeFL-F's
 balanced accuracy by \R{abl/cifar10/GeFL-F + AdamW/gain} points on CIFAR-10-LT and
 \R{abl/cifar100/GeFL-F + AdamW/gain} on CIFAR-100-LT, a direct test of the decay diagnosis of
-\cref{sec:analysis-gen}.}} \whennum{abl/cifar10/heads_vs/GeFL-F (T_s=10)}{\claim{With ten synthetic epochs per round,
-GeFL-F changes by \R{abl/cifar10/GeFL-F (T_s=10)/gain} points on CIFAR-10-LT and FedDF by
-\R{abl/cifar10/FedDF (T_s=10)/gain}; the heads of \ours remain \R{abl/cifar10/heads_vs/GeFL-F (T_s=10)} and
-\R{abl/cifar10/heads_vs/FedDF (T_s=10)} points ahead of them (CIFAR-100-LT: \R{abl/cifar100/heads_vs/GeFL-F (T_s=10)} and
-\R{abl/cifar100/heads_vs/FedDF (T_s=10)}), against a noise floor of \R{repeat/bal/floor} points.}} \claim{Removing the coupled decay and adding logit adjustment recovers
+\cref{sec:analysis-gen}.}} \whennum{abl/cifar10/heads_vs/GeFL-F (10 synthetic epochs)}{\claim{With ten synthetic epochs per round,
+GeFL-F changes by \R{abl/cifar10/GeFL-F (10 synthetic epochs)/gain} points on CIFAR-10-LT and FedDF by
+\R{abl/cifar10/FedDF (10 synthetic epochs)/gain}; the heads of \ours remain \R{abl/cifar10/heads_vs/GeFL-F (10 synthetic epochs)} and
+\R{abl/cifar10/heads_vs/FedDF (10 synthetic epochs)} points ahead of them (CIFAR-100-LT: \R{abl/cifar100/heads_vs/GeFL-F (10 synthetic epochs)} and
+\R{abl/cifar100/heads_vs/FedDF (10 synthetic epochs)}), against a noise floor of \R{repeat/bal/floor} points.}} \claim{Removing the coupled decay and adding logit adjustment recovers
 \R{abl/cifar10/GeFL-F + LA/gain} points of GeFL-F's deficit on CIFAR-10-LT; the heads of \ours add
 \R{abl/cifar10/rest} points on top, before the readout.}}
 
@@ -226,8 +226,8 @@ GeFL-F changes by \R{abl/cifar10/GeFL-F (T_s=10)/gain} points on CIFAR-10-LT and
 \slottab{abl_bal}{\begin{tabular}{lcc}\toprule
 Method & CIFAR-10-LT & CIFAR-100-LT\\\midrule
 \phrow{FedECS-LT}{2}\phrow{FedECS-LT (heads only)}{2}\phrow{GeFL-F}{2}\phrow{GeFL-F w/o generator}{2}\phrow{GeFL-F + LA}{2}
-\phrow{GeFL-F + AdamW}{2}\phrow{GeFL-F w/ Gaussian generator + LA}{2}\phrow{GeFL-F (T\_s=10)}{2}\phrow{FedDF}{2}
-\phrow{FedDF + LA}{2}\phrow{FedDF (T\_s=10)}{2}\bottomrule\end{tabular}}
+\phrow{GeFL-F + AdamW}{2}\phrow{GeFL-F w/ Gaussian generator + LA}{2}\phrow{GeFL-F (10 synthetic epochs)}{2}\phrow{FedDF}{2}
+\phrow{FedDF + LA}{2}\phrow{FedDF (10 synthetic epochs)}{2}\bottomrule\end{tabular}}
 \end{table}}
 
 \whentab{abl_components}{\paragraph{Components of \ours} \Cref{tab:components} removes one component of \ours at a time.

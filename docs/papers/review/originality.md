@@ -25,3 +25,7 @@ xiao2024fedloge              sec6_setup.tex:151  (6 words) the number of images 
 ```
 
 Reading: no passage of 8 or more words is shared with any source. The 6-word matches are generic phrases ("the number of images per class", optimiser settings) and stay. The repeated passages inside the paper are listed for the editing pass.
+
+## v06 (29 Oct 2026)
+`overlap_check.py` against the same 42 sources: 0 passages of 8 or more words shared with a source. Nine repeated
+12-word passages inside the paper are caption phrases ("with its readout, its heads only, other methods ...") and stay.

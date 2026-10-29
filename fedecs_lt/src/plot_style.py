@@ -59,7 +59,7 @@ OURS = "FedECS-LT"
 ORDER = ["FedECS-LT", "FedECS-LT (200 extractor rounds)", "GeFL-F", "Balanced Softmax", "FedLC", "FedRS", "FedDF", "Local",
          "FedProto", "FedTGP", "FedGen", "FedGH", "LG-FedAvg", "FedMRL",
          "GeFL-F w/o generator", "GeFL-F + AdamW", "GeFL-F + LA", "GeFL-F w/ Gaussian generator + LA", "FedDF + LA",
-         "FedECS-LT w/ Gaussian sampler", "GeFL-F (T_s=10)", "FedDF (T_s=10)",
+         "FedECS-LT w/ Gaussian sampler", "GeFL-F (10 synthetic epochs)", "FedDF (10 synthetic epochs)",
          "FedAvg", "FedProx", "FedALA", "AvgKD", "MOON", "CCVR", "CReFF", "FedETF", "Fed-GraB", "FedLoGe", "FedYoYo",
          "RUCR", "CLIP2FL", "FedNH", "FedVLS"]
 # Colour and marker index of every method (18 of each): unique among the methods one report can show together
@@ -75,8 +75,8 @@ STYLE_INDEX.update({"FedAvg": 13, "FedProx": 14, "CCVR": 15, "FedETF": 16, "FedA
                     "CReFF": 7, "Fed-GraB": 10, "FedLoGe": 11, "FedYoYo": 12, "RUCR": 2, "CLIP2FL": 4, "FedNH": 6,
                     "FedVLS": 9,
                     # the reviewer-requested notebooks (unique within each notebook's report)
-                    "GeFL-F + AdamW": 17, "FedECS-LT w/ Gaussian sampler": 18, "GeFL-F (T_s=10)": 13,
-                    "FedDF (T_s=10)": 14})
+                    "GeFL-F + AdamW": 17, "FedECS-LT w/ Gaussian sampler": 18, "GeFL-F (10 synthetic epochs)": 13,
+                    "FedDF (10 synthetic epochs)": 14})
 
 
 def style(method):

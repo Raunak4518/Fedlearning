@@ -64,8 +64,8 @@ for _name, _change in COMPONENTS.items():
 # - GeFL-F and FedDF with ten synthetic epochs per round, as FedECS-LT: is the gain only the longer synthetic phase.
 PIPELINE["GeFL-F + AdamW"] = dict(PIPELINE["GeFL-F"], gen=dict(PIPELINE["GeFL-F"]["gen"], opt="adamw"))
 PIPELINE["FedECS-LT w/ Gaussian sampler"] = dict(PIPELINE["FedECS-LT"], gen=dict(type="gauss"))
-PIPELINE["GeFL-F (T_s=10)"] = dict(PIPELINE["GeFL-F"], head=dict(PIPELINE["GeFL-F"]["head"], ts=10))
-PIPELINE["FedDF (T_s=10)"] = dict(PIPELINE["FedDF"], head=dict(PIPELINE["FedDF"]["head"], ts=10))
+PIPELINE["GeFL-F (10 synthetic epochs)"] = dict(PIPELINE["GeFL-F"], head=dict(PIPELINE["GeFL-F"]["head"], ts=10))
+PIPELINE["FedDF (10 synthetic epochs)"] = dict(PIPELINE["FedDF"], head=dict(PIPELINE["FedDF"]["head"], ts=10))
 
 
 def method_spec(label):

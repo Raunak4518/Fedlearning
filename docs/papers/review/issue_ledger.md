@@ -40,3 +40,9 @@ AUTHOR_DECISION_REQUIRED. Severity P0 (validity/integrity) to P3 (editorial).
 | E-18, E-20 | 1 | P2 | sec8 | weak baselines; small extractor | limitations | RESOLVED_UNVERIFIED (text); experiment not planned | - |
 | E-24 | 1 | P3 | front matter | placeholders | user gives names and URL | AUTHOR_DECISION_REQUIRED | - |
 | F-* | 1 | P1-P3 | all | editorial review | applied by the editor agent (skips listed) | RESOLVED_UNVERIFIED | F_applied.md |
+| I (all PARTIAL, D-5 FAIL) | 2 | P1 | abstract, intro, conclusion, highlights, sec6, sec7 | shared-model wording, highlight 4, T_s in abstract, causal wording, grouped text without results, ratios 50/10 | accept | RESOLVED_UNVERIFIED (v06) | final checks |
+| G-M1, G-M2, G-M3 | 2 | P1 | method, setting | components, K = G = 10, tuning on reported splits | folder 8 and folder 7 notebooks | BLOCKED (runs) | - |
+| G-M4..G-M6 | 2 | P1 | intro, sec4, sec6, conclusion, abstract | causal claims, FedDF spread, MC fidelity, promised content, trade-offs | accept | RESOLVED_UNVERIFIED (v06) | final checks |
+| G-M7 | 2 | P2 | sec5 | privacy of class means | note added; no inversion experiment | REJECTED_WITH_RATIONALE (separate study) | - |
+| G-minor | 2 | P2-P3 | all | terms, symbols, fonts, citations, captions | accept, except symbol renames | RESOLVED_UNVERIFIED | final_review.md |
+

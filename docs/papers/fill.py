@@ -45,7 +45,7 @@ OURS = "FedECS-LT"
 SIG = {}   # (group, setting) -> margin over the strongest other method significant after Holm (unrounded p)
 DIAG = "FedECS-LT (200 extractor rounds)"
 HEADS = "FedECS-LT (heads only)"
-MATCHED = ("GeFL-F (T_s=10)", "FedDF (T_s=10)")   # as many synthetic epochs per round as FedECS-LT   # FedECS-LT before its last step: the heads as trained, without the exact readout
+MATCHED = ("GeFL-F (10 synthetic epochs)", "FedDF (10 synthetic epochs)")   # as many synthetic epochs per round as FedECS-LT   # FedECS-LT before its last step: the heads as trained, without the exact readout
 NOTEST = {DIAG, HEADS}   # shown in the tables, never in the test family, "best", "strongest" or the baseline counts
 # references, not competitors: shown in the tables, never "best", "strongest" or counted among the baselines
 REFS = {"Centralised (pooled data)"}

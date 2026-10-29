@@ -139,7 +139,7 @@ def pooled_reference_notebook(seeds=SEEDS):
 # own folder, replacing NB30 and NB31, whose results never came back). Each answers one objection; the paper shows a result only once
 # it is back (docs/papers/fill.py groups abl, comp, fresh). Every notebook trains its own Stage I and generators.
 GEFL_VARIANTS = ABLATIONS + ["GeFL-F + AdamW", "FedECS-LT w/ Gaussian sampler"]
-MATCHED_TS = ["GeFL-F (T_s=10)", "FedDF (T_s=10)"]
+MATCHED_TS = ["GeFL-F (10 synthetic epochs)", "FedDF (10 synthetic epochs)"]
 FRESH_SEEDS = [6, 7, 8]      # never used in the development of FedECS-LT (seeds 0-5): new client splits
 FRESH_METHODS = ["FedECS-LT", "GeFL-F", "FedDF", "Balanced Softmax"]
 

@@ -32,7 +32,7 @@ def test_fill_sorts_and_writes(tmp_path, monkeypatch):
                                                          ("FedECS-LT w/o moment correction",
                                                           "FedECS-LT w/ Gaussian sampler")],
             "cifar10_cifar100_gefl_f_variants": [rec("GeFL-F + AdamW", "cifar10", s, 0.32) for s in (3, 4, 5)],
-            "cifar10_cifar100_matched_synthetic_epochs": [rec("GeFL-F (T_s=10)", "cifar10", s, 0.33)
+            "cifar10_cifar100_matched_synthetic_epochs": [rec("GeFL-F (10 synthetic epochs)", "cifar10", s, 0.33)
                                                           for s in (3, 4, 5)],
             "cifar10_cifar100_fresh_seeds_6_to_8": [rec(m, "cifar10", s, b) for s in (6, 7, 8)
                                                     for m, b in (("FedECS-LT", 0.10), ("GeFL-F", 0.05))],
@@ -65,9 +65,9 @@ def test_fill_sorts_and_writes(tmp_path, monkeypatch):
     assert "FedECS-LT (full)" in comp and "w/o moment correction" in comp and "w/ Gaussian sampler" in comp
     assert "44.0" in comp and "54.0" in comp                                    # full: as trained and with readout
     abl = (tables / "abl_bal.tex").read_text()
-    assert "GeFL-F + AdamW" in abl and "GeFL-F (T\\_s=10)" in abl and "FedECS-LT (heads only)" in abl
+    assert "GeFL-F + AdamW" in abl and "GeFL-F (10 synthetic epochs)" in abl and "FedECS-LT (heads only)" in abl
     assert r"\defnum{abl/cifar10/GeFL-F + AdamW/gain}{-2.0}" in nums                # against GeFL-F (34.0)
-    assert r"\defnum{abl/cifar10/heads_vs/GeFL-F (T_s=10)}{+11.0}" in nums
+    assert r"\defnum{abl/cifar10/heads_vs/GeFL-F (10 synthetic epochs)}{+11.0}" in nums
     assert r"\defnum{comp/cifar10/w/ Gaussian sampler/er_drop}{+6.0}" in nums       # full 54.0 with the readout
     assert r"\defnum{comp/cifar10/w/ Gaussian sampler/drop}{+6.0}" in nums          # heads 44.0 as trained
     assert r"\defnum{comp/n_variants}{two}" in nums

@@ -28,3 +28,12 @@
 - **E-24 (front matter, repository URL):** waiting for the user ("I'll give names + URL").
 - **F's editorial findings** are applied by a separate editor agent on the v05 text (report in
   reviews/cycle1/F_applied.md once it returns).
+
+## Cycle 2 (29 Oct 2026), v06
+- Verifier I and reviewer G read v05 independently. Every I PARTIAL/FAIL item and every G item that text can fix
+  were applied (final_review.md). G's experiment requests map to the folder-8 notebooks and to folder 7 (K = 50); no
+  new notebook was added.
+- Not done, with reasons: inversion test / DP release (separate study), stronger extractor (outside GeFL-F's
+  design), symbol renames (names follow the cited methods; each is defined where used).
+- The labels of the matched-epoch arms became "GeFL-F (10 synthetic epochs)" and "FedDF (10 synthetic epochs)":
+  the underscore of "T_s" failed the report's caption check in the CPU test. No run had used the old labels.
