@@ -160,7 +160,7 @@ def hours(runs, per_gpu=2, calibrated=False):
     return simulate(runs, workers=2 * per_gpu, alone=per_gpu == 1, calibrated=calibrated) / 3600.0
 
 
-def split_track1(runs, methods_pipe, methods_htfl, seeds):
+def split_track1(runs, methods_pipe, methods_htfl, seeds, per_gpu=2):
     """Parts of a main-comparison notebook: all methods if they fit; else the pipeline methods and the HtFLlib
     methods apart; a part that still does not fit is split by method halves, then by seeds."""
     def sel(ms, ss):
@@ -170,7 +170,7 @@ def split_track1(runs, methods_pipe, methods_htfl, seeds):
         part = sel(ms, ss)
         if not part:
             return []
-        if hours(part) <= BUDGET_H:
+        if hours(part, per_gpu) <= BUDGET_H:
             return [part]
         if len(ms) > 1:
             h = math.ceil(len(ms) / 2)
@@ -180,7 +180,7 @@ def split_track1(runs, methods_pipe, methods_htfl, seeds):
             return fit(ms, ss[:h]) + fit(ms, ss[h:])
         return [part]      # one method and one seed: cannot be split further
     whole = sel(methods_pipe + methods_htfl, seeds)
-    if hours(whole) <= BUDGET_H:
+    if hours(whole, per_gpu) <= BUDGET_H:
         return [whole]
     return fit(list(methods_pipe), seeds) + fit(list(methods_htfl), seeds)
 

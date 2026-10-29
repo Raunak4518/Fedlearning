@@ -5679,7 +5679,7 @@
   "folder": "6_robustness_sweeps",
   "title": "Robustness on CIFAR-10-LT: 100 clients (otherwise the main setting)",
   "what": "Robustness on CIFAR-10-LT: 100 clients (otherwise the main setting): FedECS-LT, GeFL-F, FedDF, Balanced Softmax; seeds 3-5.",
-  "kaggle_hours": 4.7,
+  "kaggle_hours": 5.2,
   "runs": [
    {
     "label": "FedECS-LT",
@@ -5783,7 +5783,7 @@
   "folder": "6_robustness_sweeps",
   "title": "Robustness on CIFAR-10-LT: 50 clients (otherwise the main setting)",
   "what": "Robustness on CIFAR-10-LT: 50 clients (otherwise the main setting): FedECS-LT, GeFL-F, FedDF, Balanced Softmax; seeds 3-5.",
-  "kaggle_hours": 4.7,
+  "kaggle_hours": 5.2,
   "runs": [
    {
     "label": "FedECS-LT",
@@ -6243,11 +6243,11 @@
    }
   ]
  },
- "cifar100_50clients_all_methods_part1of2": {
+ "cifar100_50clients_all_methods_part1of3": {
   "folder": "7_gefl_protocol_grouped_baselines_10_and_50_clients",
-  "title": "CIFAR-100-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5 (part 1 of 2)",
-  "what": "CIFAR-100-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5: every method of the main comparison and GeFL's grouped baselines; seeds 3-5. Part 1 of 2: 13 methods; seeds 3, 4, 5.",
-  "kaggle_hours": 3.9,
+  "title": "CIFAR-100-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5 (part 1 of 3)",
+  "what": "CIFAR-100-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5: every method of the main comparison and GeFL's grouped baselines; seeds 3-5. Part 1 of 3: 13 methods; seeds 3, 4, 5.",
+  "kaggle_hours": 4.6,
   "runs": [
    {
     "label": "FedECS-LT",
@@ -6563,11 +6563,11 @@
    }
   ]
  },
- "cifar100_50clients_all_methods_part2of2": {
+ "cifar100_50clients_all_methods_part2of3": {
   "folder": "7_gefl_protocol_grouped_baselines_10_and_50_clients",
-  "title": "CIFAR-100-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5 (part 2 of 2)",
-  "what": "CIFAR-100-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5: every method of the main comparison and GeFL's grouped baselines; seeds 3-5. Part 2 of 2: FedProto, FedTGP, FedGen, FedGH, LG-FedAvg, FedMRL; seeds 3, 4, 5.",
-  "kaggle_hours": 7.3,
+  "title": "CIFAR-100-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5 (part 2 of 3)",
+  "what": "CIFAR-100-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5: every method of the main comparison and GeFL's grouped baselines; seeds 3-5. Part 2 of 3: FedProto, FedTGP, FedGen; seeds 3, 4, 5.",
+  "kaggle_hours": 5.2,
   "runs": [
    {
     "label": "FedProto",
@@ -6594,30 +6594,6 @@
     "K": 50
    },
    {
-    "label": "FedGH",
-    "ds": "cifar100",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 50
-   },
-   {
-    "label": "LG-FedAvg",
-    "ds": "cifar100",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 50
-   },
-   {
-    "label": "FedMRL",
-    "ds": "cifar100",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 50
-   },
-   {
     "label": "FedProto",
     "ds": "cifar100",
     "seed": 4,
@@ -6635,30 +6611,6 @@
    },
    {
     "label": "FedGen",
-    "ds": "cifar100",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 50
-   },
-   {
-    "label": "FedGH",
-    "ds": "cifar100",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 50
-   },
-   {
-    "label": "LG-FedAvg",
-    "ds": "cifar100",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 50
-   },
-   {
-    "label": "FedMRL",
     "ds": "cifar100",
     "seed": 4,
     "IF": 0.01,
@@ -6685,6 +6637,62 @@
     "label": "FedGen",
     "ds": "cifar100",
     "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   }
+  ]
+ },
+ "cifar100_50clients_all_methods_part3of3": {
+  "folder": "7_gefl_protocol_grouped_baselines_10_and_50_clients",
+  "title": "CIFAR-100-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5 (part 3 of 3)",
+  "what": "CIFAR-100-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5: every method of the main comparison and GeFL's grouped baselines; seeds 3-5. Part 3 of 3: FedGH, LG-FedAvg, FedMRL; seeds 3, 4, 5.",
+  "kaggle_hours": 5.4,
+  "runs": [
+   {
+    "label": "FedGH",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedMRL",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedGH",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "LG-FedAvg",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedMRL",
+    "ds": "cifar100",
+    "seed": 4,
     "IF": 0.01,
     "alpha": 0.5,
     "K": 50
@@ -6871,7 +6879,7 @@
   "folder": "7_gefl_protocol_grouped_baselines_10_and_50_clients",
   "title": "CIFAR-10-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5 (part 1 of 3)",
   "what": "CIFAR-10-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5: every method of the main comparison and GeFL's grouped baselines; FedECS-LT, GeFL-F, FedDF and Balanced Softmax at 50 clients are NB40_sweep_cifar10_K50 (same splits and seeds); seeds 3-5. Part 1 of 3: 9 methods; seeds 3, 4, 5.",
-  "kaggle_hours": 1.7,
+  "kaggle_hours": 2.1,
   "runs": [
    {
     "label": "FedLC",
@@ -7095,7 +7103,7 @@
   "folder": "7_gefl_protocol_grouped_baselines_10_and_50_clients",
   "title": "CIFAR-10-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5 (part 2 of 3)",
   "what": "CIFAR-10-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5: every method of the main comparison and GeFL's grouped baselines; FedECS-LT, GeFL-F, FedDF and Balanced Softmax at 50 clients are NB40_sweep_cifar10_K50 (same splits and seeds); seeds 3-5. Part 2 of 3: FedProto, FedTGP, FedGen; seeds 3, 4, 5.",
-  "kaggle_hours": 6.9,
+  "kaggle_hours": 8.4,
   "runs": [
    {
     "label": "FedProto",
@@ -7175,7 +7183,7 @@
   "folder": "7_gefl_protocol_grouped_baselines_10_and_50_clients",
   "title": "CIFAR-10-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5 (part 3 of 3)",
   "what": "CIFAR-10-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5: every method of the main comparison and GeFL's grouped baselines; FedECS-LT, GeFL-F, FedDF and Balanced Softmax at 50 clients are NB40_sweep_cifar10_K50 (same splits and seeds); seeds 3-5. Part 3 of 3: FedGH, LG-FedAvg, FedMRL; seeds 3, 4, 5.",
-  "kaggle_hours": 6.9,
+  "kaggle_hours": 8.8,
   "runs": [
    {
     "label": "FedGH",

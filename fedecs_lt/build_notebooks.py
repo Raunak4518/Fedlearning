@@ -373,8 +373,9 @@ def _parts(name, nb, parts):
     """One notebook per part (plan_time.py: each part's estimate fits one Kaggle session); a notebook that fits
     keeps its name. Parts of one experiment share `group`, so that their results can be merged."""
     import plan_time
+    pg = nb.get("per_gpu", 2)
     if len(parts) == 1:
-        return {name: dict(nb, hours=plan_time.hours(parts[0]), group=name)}
+        return {name: dict(nb, hours=plan_time.hours(parts[0], pg), group=name)}
     out = {}
     for i, runs in enumerate(parts, 1):
         ms = list(dict.fromkeys(r["label"] for r in runs))
@@ -383,8 +384,17 @@ def _parts(name, nb, parts):
             "; seed" + ("s " if len(ss) > 1 else " ") + ", ".join(map(str, ss)))
         out[f"{name}_part{i}of{len(parts)}"] = dict(
             nb, title=f"{nb['title']} (part {i} of {len(parts)})", what=f"{nb['what']} Part {i} of {len(parts)}: {what}.",
-            runs=runs, hours=plan_time.hours(runs), group=name)
+            runs=runs, hours=plan_time.hours(runs, pg), group=name)
     return out
+
+
+def per_gpu_for(runs):
+    """Runs per GPU: two, except with many clients. At 50 clients four runs at once (two per GPU) took Kaggle's 30 GB
+    of host memory and every run of NB40_sweep_cifar10_K50 was killed (29 Oct 2026); one run per GPU halves it."""
+    return 1 if max(r["K"] for r in runs) >= MANY_CLIENTS else 2
+
+
+MANY_CLIENTS = 50
 
 
 def all_notebooks():
@@ -402,15 +412,17 @@ def all_notebooks():
     for ds in GROUPED_DATASETS:
         for K in (10, 50):
             name, nb = grouped_notebook(ds, K)
+            nb["per_gpu"] = per_gpu_for(nb["runs"])
             labels = list(dict.fromkeys(r["label"] for r in nb["runs"]))
             nbs.update(_parts(name, nb, plan_time.split_track1(
                 nb["runs"], [m for m in labels if m not in plan_time.HTFL_METHODS],
-                [m for m in labels if m in plan_time.HTFL_METHODS], SEEDS)))
+                [m for m in labels if m in plan_time.HTFL_METHODS], SEEDS, nb["per_gpu"])))
     name, nb = pooled_reference_notebook()
     nbs.update(_parts(name, nb, plan_time.split_track1(nb["runs"], ["Centralised (pooled data)"], [], SEEDS)))
     for tag, change in SWEEPS:
         name, nb = sweep_notebook(tag, change)
-        nbs.update(_parts(name, nb, plan_time.split_track1(nb["runs"], SWEEP_METHODS, [], SEEDS)))
+        nb["per_gpu"] = per_gpu_for(nb["runs"])
+        nbs.update(_parts(name, nb, plan_time.split_track1(nb["runs"], SWEEP_METHODS, [], SEEDS, nb["per_gpu"])))
     long_runs = []
     for ds_key in ("cifar10_t2", "cifar100_t2"):
         for IF in (0.1, 0.02, 0.01):
