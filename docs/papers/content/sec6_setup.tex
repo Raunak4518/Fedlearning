@@ -12,8 +12,8 @@ protocol, the ablations, the statistical analysis and the threats to validity.
 \item \textbf{RQ1 (diagnosis).} Where does GeFL-F lose the rare classes under long-tailed label skew? The analysis
 names three places: the generator's class rows, the heads' last layers and the synthetic phase. RQ1 checks each in
 GeFL-F's own runs.
-\item \textbf{RQ2 (effect).} Does \ours raise balanced accuracy over GeFL-F and the other methods that work with
-different client models, with every model evaluated as trained?
+\item \textbf{RQ2 (effect).} Does \ours, which ends with the exact readout, raise balanced accuracy over GeFL-F and the
+other methods that work with different client models, each as published?
 \item \textbf{RQ3 (representation or last layer).} How much of the difference remains when every method of the
 GeFL-F pipeline gets the same exact readout, so that only the heads' bodies differ?
 \item \textbf{RQ4 (components).} Which changes to GeFL-F carry the effect?
@@ -52,17 +52,18 @@ computed once without augmentation. In Stage II the clients train a conditional 
 averaging. In Stage III every client trains its head, first on generated features and then on its real features,
 and the heads of each architecture are averaged.
 
-\ours keeps this pipeline and changes five things (\cref{sec:method}):
+\ours keeps this pipeline, changes five things in it and adds a last step (\cref{sec:method}):
 \begin{enumerate}
 \item the generator, which is anchored to the exact class means, or uses class rows averaged by CCWA when the gate
 finds the classes poorly separated;
 \item the moment correction of generated features;
 \item logit adjustment in the real phase;
 \item consensus soft labels in the synthetic phase;
-\item the number of synthetic epochs per round, $T_s=10$ instead of GeFL-F's 1.
+\item the number of synthetic epochs per round, $T_s=10$ instead of GeFL-F's 1;
+\item the exact readout of \cref{sec:method-readout}, which sets every last layer after Stage III.
 \end{enumerate}
-The exact readout of \cref{sec:method-readout} is computed after training. We report it separately for every method
-of the pipeline and never mix it into the numbers as trained. \Cref{tab:hyper} lists the settings of \ours, which are
+Since the readout can be added to every method of the pipeline, we also report these methods with it (\ER), and the
+heads of \ours before it (heads only). \Cref{tab:hyper} lists the settings of \ours, which are
 the same on every dataset.
 
 The extractor is one convolutional block followed by $2\times2$ max pooling: one $3\times3$ convolution with three
@@ -283,8 +284,8 @@ Let $r_{gc}$ be the recall of class $c$ by the model of architecture $g$ on the 
 balanced on Fashion-MNIST, CIFAR-10 and CIFAR-100 and imbalanced on MNIST, SVHN and the naturally imbalanced
 datasets; balanced accuracy weights every class equally in either case. The primary metric is the balanced accuracy, $\frac1G\sum_g\frac1C\sum_c r_{gc}$: the mean
 over the $G=10$ client models of each model's mean class recall. GeFL~\cite{kang2025gefl} also averages over the
-ten models, with top-1 accuracy at each model's best round. It is reported with the heads as trained and, for the methods of the GeFL-F pipeline,
-with the exact readout. The second number answers RQ3.
+ten models, with top-1 accuracy at each model's best round. It is reported for every method as published (\ours with its readout, and its heads only)
+and, for the methods of the GeFL-F pipeline, also with the readout added; the second set answers RQ3.
 
 The other metrics are:
 \begin{itemize}
@@ -364,9 +365,9 @@ Each variant is reported as trained and with the exact readout.
 
 We report the mean $\pm$ sample standard deviation over seeds. A difference to \ours is the mean paired difference
 over the seeds both methods have, with a 95\% $t$ interval and the paired $t$-test. The $p$-values are corrected by
-Holm's procedure~\cite{holm1979} over the other methods of the same table and setting: every method as trained, and
+Holm's procedure~\cite{holm1979} over the other methods of the same table and setting: every method as published, and
 the methods of the GeFL-F pipeline with the exact readout. Local is included; the pooled-data reference and the
-diagnostic runs are not. There is no correction across datasets or metrics.
+diagnostic runs and the heads of \ours alone are not. There is no correction across datasets or metrics.
 "Best" and "strongest other method" are decided on the seeds both methods have.
 
 With three seeds the tests have little power, and they rest on the $t$ model: a sign-flip permutation test cannot
@@ -400,7 +401,8 @@ mean that these settings do not suit frozen features.
 \begin{itemize}
 \item Balanced accuracy is a mean over ten models of different sizes, so a large gain of the small heads and a small
 gain of the large heads give the same number. \Cref{tab:app-worstarch} gives the weakest architecture.
-\item The headline numbers are the heads as trained; the readout is a separate evaluation.
+\item The readout was added to the methods of the GeFL-F pipeline but not to the HtFLlib methods, so the margins of
+\ours over the latter include the readout's gain.
 \item The server holds a small validation set (held out from the training data) for the generator diagnostics and
 the secure-aggregation bounds; a deployment without such data would need another source for the bounds.
 \item The last-round model can be below a method's best round; \cref{tab:app-gefl} gives the best round.

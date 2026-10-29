@@ -25,7 +25,7 @@ STAGES = [
     ("Stage III: heads", [("x", "consensus soft labels\non a shared pool"),
                           ("c", "$T_s$ synthetic epochs"), ("c", "$T_r$ real epochs,\nlogit adjustment"),
                           ("s", "average heads\nper architecture")]),
-    ("Evaluation", [("x", "$n_c$, $\\sum e$, $\\sum ee^{\\top}$\nper architecture"),
+    ("Exact readout", [("x", "$n_c$, $\\sum e$, $\\sum ee^{\\top}$\nper architecture"),
                     ("s", "exact readout\n(class-balanced LDA)")]),
 ]
 WIDTHS = [1.0, 1.0, 1.15, 1.2, 1.15]

@@ -44,6 +44,8 @@ from baselines import GROUPED  # noqa: E402
 OURS = "FedECS-LT"
 SIG = {}   # (group, setting) -> margin over the strongest other method significant after Holm (unrounded p)
 DIAG = "FedECS-LT (200 extractor rounds)"
+HEADS = "FedECS-LT (heads only)"   # FedECS-LT before its last step: the heads as trained, without the exact readout
+NOTEST = {DIAG, HEADS}   # shown in the tables, never in the test family, "best", "strongest" or the baseline counts
 # references, not competitors: shown in the tables, never "best", "strongest" or counted among the baselines
 REFS = {"Centralised (pooled data)"}
 # number slots per method: (short name in the key, runs.jsonl key)
@@ -105,6 +107,23 @@ def correct_fedgrab(r):
     keep = {k: v for k, v in r.items() if not k.startswith(("final_", "val_final_", "er_", "val_er_"))}
     keep.update(final_bal=float(h[-1]), final_acc=float(h[-1]), corrected="Fed-GraB: library's last-round accuracy")
     return keep
+
+
+def with_readout(r):
+    """FedECS-LT ends with the exact readout (paper, sec:method-readout), so its reported metrics (final_*, val_final_*)
+    are those of the readout (er_*, val_er_*), computed in the same run. Its heads as trained become a second run,
+    labelled HEADS, with GeFL's per-round measure (heads only: the readout is computed once, at the end). The
+    as-trained values also stay in the FedECS-LT run under heads_final_*. Other methods are unchanged."""
+    if r["label"] != OURS or r.get("er_bal") is None:
+        return [r]
+    heads = {k: v for k, v in r.items() if not k.startswith(("er_", "val_er_"))}
+    heads["label"] = HEADS
+    full = {k: v for k, v in r.items() if not k.startswith("gefl_") and k != "final_per_arch"}
+    for k in [k for k in r if k.startswith(("er_", "val_er_"))]:
+        f = k.replace("er_", "final_", 1)
+        full["heads_" + f] = r.get(f)
+        full[f] = r[k]
+    return [full, heads]
 
 
 def load_runs():
@@ -189,7 +208,11 @@ def exp_of(runs, tmp, name):
     with open(os.path.join(d, "runs.jsonl"), "w") as f:
         for r in runs:
             f.write(json.dumps({k: v for k, v in r.items() if k != "_folder"}) + "\n")
-    return plots.Exp(d)
+    E = plots.Exp(d)
+    if HEADS in E.methods:   # the heads-only row right after FedECS-LT
+        E.methods.remove(HEADS)
+        E.methods.insert(E.methods.index(OURS) + 1 if OURS in E.methods else 0, HEADS)
+    return E
 
 
 def sid(S):
@@ -234,14 +257,15 @@ def signed(x):
 
 
 # ---------------------------------------------------------------- statistics
-def paired(E, S, key):
-    """FedECS-LT minus each method on `key`, paired over common seeds: {method: (n, mean, half-width, p, p_Holm)}."""
+def paired(E, S, key, ours_label=OURS):
+    """FedECS-LT (or ours_label) minus each method on `key`, paired over common seeds:
+    {method: (n, mean, half-width, p, p_Holm)}."""
     from scipy import stats
     import representation as rp
-    ours = {r["seed"]: r for r in E.of(OURS, S)}
+    ours = {r["seed"]: r for r in E.of(ours_label, S)}
     rows = []
     for m in E.methods:
-        if m in (OURS, DIAG) or m in REFS:   # references and diagnostics are not in the test family
+        if m == OURS or m in NOTEST or m in REFS:   # references and diagnostics are not in the test family
             continue
         other = {r["seed"]: r for r in E.of(m, S)}
         d = [100 * (ours[x][key] - other[x][key]) for x in sorted(set(ours) & set(other))
@@ -255,14 +279,14 @@ def paired(E, S, key):
     return {r[0]: (r[1], r[2], r[3], r[4], a) for r, a in zip(rows, adj)}
 
 
-def matched(E, S, key, exclude=()):
+def matched(E, S, key, exclude=(), ours_label=OURS):
     """FedECS-LT minus each method on `key` (points), averaged over the seeds both have: {method: (difference,
     seeds)}. Means over different seed sets are not comparable (some methods came back with fewer seeds), so every
     best / strongest / margin statement uses this."""
-    ours = {r["seed"]: r.get(key) for r in E.of(OURS, S)}
+    ours = {r["seed"]: r.get(key) for r in E.of(ours_label, S)}
     out = {}
     for m in E.methods:
-        if m in (OURS, DIAG) or m in REFS or m in exclude:
+        if m == OURS or m in NOTEST or m in REFS or m in exclude:
             continue
         other = {r["seed"]: r.get(key) for r in E.of(m, S)}
         common = [x for x in sorted(set(ours) & set(other)) if ours[x] is not None and other[x] is not None]
@@ -313,7 +337,7 @@ def paired_table(E, settings, key="final_bal"):
     P = {S: paired(E, S, key) for S in settings}
     rows, bold = [], set()
     for m in E.methods:
-        if m == OURS or not any(m in P[S] for S in settings):
+        if m == OURS or m in NOTEST or not any(m in P[S] for S in settings):
             continue
         row = [m]
         for j, S in enumerate(settings):
@@ -353,7 +377,8 @@ def fill_group(g, E, nums, made, status):
             nz = [sum(1 for x in r["final_recall_c"] if x == 0) for r in E.of(m, S) if r.get("final_recall_c")]
             if nz:   # classes that none of the client models recognises (pooled recall 0), mean over seeds
                 nums[f"{g}/{s}/{m}/nzero"] = f"{np.mean(nz):.1f}".rstrip("0").rstrip(".")
-            b, e = mean_of(E, m, "final_bal", S), mean_of(E, m, "er_bal", S)
+            b = mean_of(E, m, "heads_final_bal" if m == OURS else "final_bal", S)   # as trained
+            e = mean_of(E, m, "er_bal", S)
             if not (np.isnan(b) or np.isnan(e)):
                 nums[f"{g}/{s}/{m}/gain_er"] = signed(100 * (e - b))
         for key, pre in (("final_bal", ""), ("er_bal", "er_"), ("final_head", "head_"), ("final_medium", "med_"),
@@ -363,7 +388,7 @@ def fill_group(g, E, nums, made, status):
                 nums[f"{g}/{s}/{pre}ci/{m}"] = f"[{d - half:+.1f}, {d + half:+.1f}]"
                 nums[f"{g}/{s}/{pre}p/{m}"] = f"{ph:.3g}"
         d = matched(E, S, "final_bal")   # FedECS-LT minus each method over common seeds
-        means = {m: mean_of(E, m, "final_bal", S) for m in E.methods if m not in (DIAG,) and m not in REFS}
+        means = {m: mean_of(E, m, "final_bal", S) for m in E.methods if m not in NOTEST and m not in REFS}
         means = {m: v for m, v in means.items() if not np.isnan(v)}
         if d:
             nums[f"{g}/{s}/best"] = tex(OURS if ours_best(E, S) else min(d, key=lambda m: d[m][0]))
@@ -389,6 +414,14 @@ def fill_group(g, E, nums, made, status):
             if pt_:
                 nums[f"{g}/{s}/strongest_p"] = f"{pt_[4]:.2g}"
                 SIG[(g, s)] = pt_[4] < 0.05   # decided on the unrounded p-value
+        hd = matched(E, S, "final_bal", exclude=("Local",), ours_label=HEADS)
+        if hd:   # FedECS-LT's heads before the readout against every other method as trained
+            st = min(hd, key=lambda m: hd[m][0])
+            nums[f"{g}/{s}/heads_strongest"] = tex(st)
+            nums[f"{g}/{s}/heads_margin"] = signed(hd[st][0])
+            pt_ = paired(E, S, "final_bal", ours_label=HEADS).get(st)
+            if pt_:
+                nums[f"{g}/{s}/heads_strongest_p"] = f"{pt_[4]:.2g}"
         ers = matched(E, S, "er_bal", exclude=("Local",))
         if ers:   # the same comparison with every last layer replaced by the exact readout
             st = min(ers, key=lambda m: ers[m][0])
@@ -405,6 +438,12 @@ def fill_group(g, E, nums, made, status):
             n = len(E.of(OURS, S))
             nums[f"{g}/margin_{end}"] = signed(mg[S])
             nums[f"{g}/margin_{end}_ds"] = tex(pt.column_name(S, settings)) + (", one seed" if n == 1 else "")
+    me = {S: matched(E, S, "er_bal", exclude=("Local",)) for S in settings}
+    me = {S: min(v[0] for v in d.values()) for S, d in me.items() if d}
+    if me:   # the same range with the exact readout for every method of the GeFL-F pipeline
+        for end, S in (("lo", min(me, key=me.get)), ("hi", max(me, key=me.get))):
+            nums[f"{g}/er_margin_{end}"] = signed(me[S])
+            nums[f"{g}/er_margin_{end}_ds"] = tex(pt.column_name(S, settings))
     if g == "t2":   # the strongest method at imbalance ratio 100 on both datasets, in one phrase
         pair = [S for S in settings if round(1 / S[1]) == 100]
         st = {S: min(((m, v) for m, v in matched(E, S, "final_bal").items() if m != "Local"),
@@ -438,7 +477,7 @@ def fill_group(g, E, nums, made, status):
     if with_ours and g != "t2":   # the same list with each dataset's citation
         nums[f"{g}/datasets_cite"] = and_list([tex(pt.column_name(S, with_ours)) + "~\\cite{" + DATA_CITE[S[0]] + "}"
                                                for S in with_ours if S[0] in DATA_CITE])
-    base = sorted({r["label"] for r in E.runs} - {OURS, DIAG, "Local"} - REFS)
+    base = sorted({r["label"] for r in E.runs} - {OURS, "Local"} - NOTEST - REFS)
     nums[f"{g}/nbaselines_w"] = word(len(base))
     nums[f"{g}/nlt_w"] = word(len(set(base) & LT_METHODS))
     if g == "t2":
@@ -484,7 +523,7 @@ def fill_extras(E_by, nums, made):
         rows_all = sorted({name(r) for r in T if r.get("gate_branch") == "rows"})
         nums["gate/rows_all"] = tex(and_list(rows_all)) if rows_all else "none of them"
     labels = {r["label"] for E in allE for r in E.runs}
-    published = labels - {OURS, DIAG, "Local"} - REFS - set(bn.ABLATIONS) - {"FedDF + LA"}
+    published = labels - {OURS, "Local"} - NOTEST - REFS - set(bn.ABLATIONS) - {"FedDF + LA"}
     nums["count/methods"] = str(len(published))
     nums["count/datasets"] = str(len({r["dataset"].replace("_t2", "") for r in ours_runs}))
     nums["count/datasets_w"] = word(len({r["dataset"].replace("_t2", "") for r in ours_runs}))
@@ -493,7 +532,7 @@ def fill_extras(E_by, nums, made):
     if E is not None:
         for S in ordered(E):
             s = sid(S)
-            g, la, us = (mean_of(E, m, "final_bal", S) for m in ("GeFL-F", "GeFL-F + LA", OURS))
+            g, la, us = (mean_of(E, m, "final_bal", S) for m in ("GeFL-F", "GeFL-F + LA", HEADS))   # as trained
             if not (np.isnan(g) or np.isnan(la)):
                 nums[f"abl/{s}/GeFL-F + LA/gain"] = signed(100 * (la - g))
             if not (np.isnan(us) or np.isnan(la)):
@@ -507,7 +546,7 @@ def fill_extras(E_by, nums, made):
     E = E_by.get("t2")
     if E is not None:
         for S in ordered(E):
-            d, o = mean_of(E, DIAG, "final_bal", S), mean_of(E, OURS, "final_bal", S)
+            d, o = mean_of(E, DIAG, "final_bal", S), mean_of(E, HEADS, "final_bal", S)   # both as trained
             if not (np.isnan(d) or np.isnan(o)):
                 nums[f"t2/{sid(S)}/fe200_diff"] = signed(100 * (d - o))
     E = E_by.get("main")
@@ -533,6 +572,7 @@ def fill_extras(E_by, nums, made):
             cells = []
             for S in sets:
                 for key in ("final_bal", "er_bal"):
+                    key = "heads_final_bal" if (m == OURS and key == "final_bal") else key   # its heads as trained
                     mu, sd, n = plots.metric(E, m, key, S)
                     cells.append(report.fmt(mu, sd, key, n))
             if any(c != "-" for c in cells):
@@ -549,7 +589,7 @@ def fill_extras(E_by, nums, made):
                     f"ratio {int(round(1 / IF))}" if IF else "natural")
         header = ["Method"] + [label(S) for S in sets]
         rows = []
-        for m in bn.SWEEP_METHODS:
+        for m in bn.SWEEP_METHODS[:1] + [HEADS] + bn.SWEEP_METHODS[1:]:
             cells = [report.fmt(*plots.metric(E, m, "final_bal", S)[:2], "final_bal", plots.metric(E, m, "final_bal",
                                                                                                     S)[2])
                      for S in sets]
@@ -675,15 +715,16 @@ def main():
     runs = load_runs()
     by = {}
     for r in runs:
-        g = group_of(r)
-        if g:
-            by.setdefault(g, []).append(r)
-        if k50_setting(r):   # also in `sweep` (the robustness table's K=50 column) for the sweep methods
-            by.setdefault("k50", []).append(r)
+        g, k50 = group_of(r), k50_setting(r)   # decided on the run as recorded, before the readout relabelling
+        for x in with_readout(r):
+            if g:
+                by.setdefault(g, []).append(x)
+            if k50:   # also in `sweep` (the robustness table's K=50 column) for the sweep methods
+                by.setdefault("k50", []).append(x)
     # the ablation table also needs the references of the same datasets (same splits and seeds)
     if "abl" in by:
         ds = {r["dataset"] for r in by["abl"]}
-        by["abl"] += [r for r in by.get("main", []) if r["dataset"] in ds and r["label"] in (OURS, "GeFL-F", "FedDF")]
+        by["abl"] += [r for r in by.get("main", []) if r["dataset"] in ds and r["label"] in (OURS, HEADS, "GeFL-F", "FedDF")]
     if "comp" in by:   # the full FedECS-LT of the same datasets is the components' reference
         ds = {r["dataset"] for r in by["comp"]}
         by["comp"] += [r for r in by.get("main", []) if r["dataset"] in ds and r["label"] == OURS]

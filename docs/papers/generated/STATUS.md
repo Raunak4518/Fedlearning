@@ -2,32 +2,32 @@
 
 Written by `python docs/papers/fill.py` from 350 runs in fedecs_lt/results (NB00 excluded). Slots not listed under 'filled' still show a red placeholder.
 
-## Group `main`: 78 runs, 2 settings
+## Group `main`: 84 runs, 2 settings
 
-- CIFAR-10-LT (imbalance ratio 100), 10 clients, Dirichlet label split with alpha = 0.5: 13 methods, seeds [3, 4, 5]
-- CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet label split with alpha = 0.5: 13 methods, seeds [3, 4, 5]
+- CIFAR-10-LT (imbalance ratio 100), 10 clients, Dirichlet label split with alpha = 0.5: 14 methods, seeds [3, 4, 5]
+- CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet label split with alpha = 0.5: 14 methods, seeds [3, 4, 5]
 
-## Group `nat`: 208 runs, 6 settings
+## Group `nat`: 224 runs, 6 settings
 
-- DermaMNIST (natural class imbalance), 10 clients, Dirichlet label split with alpha = 0.5: 13 methods, seeds [3, 4, 5]
-- OrganAMNIST (natural class imbalance), 10 clients, Dirichlet label split with alpha = 0.5: 13 methods, seeds [3, 4, 5]
-- BloodMNIST (natural class imbalance), 10 clients, Dirichlet label split with alpha = 0.5: 13 methods, seeds [3, 4, 5]
-- PathMNIST (natural class imbalance), 10 clients, Dirichlet label split with alpha = 0.5: 13 methods, seeds [3, 4, 5]
-- EMNIST (ByClass) (natural class imbalance), 10 clients, Dirichlet label split with alpha = 0.5: 13 methods, seeds [3, 5]  **(fewer than 3 seeds)**
-  - methods with fewer seeds: Balanced Softmax [3]; FedDF [3]; FedECS-LT [3]; FedGH [3]; FedGen [3]; FedLC [3]; FedMRL [5]; FedProto [3]; FedRS [3]; FedTGP [3]; GeFL-F [3]; LG-FedAvg [5]; Local [3]
-- FER-2013 (natural class imbalance), 10 clients, Dirichlet label split with alpha = 0.5: 13 methods, seeds [3, 4, 5]
+- DermaMNIST (natural class imbalance), 10 clients, Dirichlet label split with alpha = 0.5: 14 methods, seeds [3, 4, 5]
+- OrganAMNIST (natural class imbalance), 10 clients, Dirichlet label split with alpha = 0.5: 14 methods, seeds [3, 4, 5]
+- BloodMNIST (natural class imbalance), 10 clients, Dirichlet label split with alpha = 0.5: 14 methods, seeds [3, 4, 5]
+- PathMNIST (natural class imbalance), 10 clients, Dirichlet label split with alpha = 0.5: 14 methods, seeds [3, 4, 5]
+- EMNIST (ByClass) (natural class imbalance), 10 clients, Dirichlet label split with alpha = 0.5: 14 methods, seeds [3, 5]  **(fewer than 3 seeds)**
+  - methods with fewer seeds: Balanced Softmax [3]; FedDF [3]; FedECS-LT [3]; FedECS-LT (heads only) [3]; FedGH [3]; FedGen [3]; FedLC [3]; FedMRL [5]; FedProto [3]; FedRS [3]; FedTGP [3]; GeFL-F [3]; LG-FedAvg [5]; Local [3]
+- FER-2013 (natural class imbalance), 10 clients, Dirichlet label split with alpha = 0.5: 14 methods, seeds [3, 4, 5]
 
-## Group `t2`: 64 runs, 2 settings
+## Group `t2`: 67 runs, 2 settings
 
-- CIFAR-10-LT (imbalance ratio 100), 20 clients, Dirichlet label split with alpha = 0.5, one ResNet-8 shared by all clients (standard CIFAR-LT class profile), 40% of the clients per round: 12 methods, seeds [3, 4, 5]
-  - methods with fewer seeds: CCVR [3, 4]; Fed-GraB [3, 4]; FedECS-LT [3, 4]; FedLC [3, 4]; FedYoYo [3, 4]; RUCR [3, 4]
-- CIFAR-100-LT (imbalance ratio 100), 20 clients, Dirichlet label split with alpha = 0.5, one ResNet-8 shared by all clients (standard CIFAR-LT class profile), 40% of the clients per round: 12 methods, seeds [3, 4]  **(fewer than 3 seeds)**
-  - methods with fewer seeds: FedECS-LT [4]; FedLoGe [4]
+- CIFAR-10-LT (imbalance ratio 100), 20 clients, Dirichlet label split with alpha = 0.5, one ResNet-8 shared by all clients (standard CIFAR-LT class profile), 40% of the clients per round: 13 methods, seeds [3, 4, 5]
+  - methods with fewer seeds: CCVR [3, 4]; Fed-GraB [3, 4]; FedECS-LT [3, 4]; FedECS-LT (heads only) [3, 4]; FedLC [3, 4]; FedYoYo [3, 4]; RUCR [3, 4]
+- CIFAR-100-LT (imbalance ratio 100), 20 clients, Dirichlet label split with alpha = 0.5, one ResNet-8 shared by all clients (standard CIFAR-LT class profile), 40% of the clients per round: 13 methods, seeds [3, 4]  **(fewer than 3 seeds)**
+  - methods with fewer seeds: FedECS-LT [4]; FedECS-LT (heads only) [4]; FedLoGe [4]
 
 ## Slots in the paper
 
 - Tables filled: 14 of 17; still empty: `abl_bal`, `abl_components`, `robust`
-- Numbers filled: 119 of 126; still empty: `abl/cifar10/GeFL-F + LA/gain`, `abl/cifar10/rest`, `main/cifar10/Centralised (pooled data)/bal`, `main/cifar10/Centralised (pooled data)/er_bal`, `main/cifar100/Centralised (pooled data)/bal`, `main/cifar100/Centralised (pooled data)/er_bal`, `t2/cifar10-r100/fe200_diff`
+- Numbers filled: 137 of 144; still empty: `abl/cifar10/GeFL-F + LA/gain`, `abl/cifar10/rest`, `main/cifar10/Centralised (pooled data)/bal`, `main/cifar10/Centralised (pooled data)/er_bal`, `main/cifar100/Centralised (pooled data)/bal`, `main/cifar100/Centralised (pooled data)/er_bal`, `t2/cifar10-r100/fe200_diff`
 - Figures filled: 9 of 9; still empty: none
 
 ## Notebooks not returned yet (by folder)

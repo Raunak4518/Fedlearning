@@ -116,7 +116,7 @@ Per-dataset tables of every metric are generated from the same runs (\cref{tab:a
 
 \begin{widetable}[t]
 \centering\small
-\caption{CIFAR-10-LT (imbalance ratio 100, 10 clients, Dirichlet $\alpha=0.5$): main metrics (\%), heads as trained;
+\caption{CIFAR-10-LT (imbalance ratio 100, 10 clients, Dirichlet $\alpha=0.5$): main metrics (\%); \ours with its readout, its heads only, other methods as published;
 mean $\pm$ standard deviation over seeds 3--5. Tail: 40\% least frequent classes; G-mean with recalls floored at 1\%.}
 \label{tab:app-cifar10}
 \slottab{main_cifar10_main}{\begin{tabular}{lcccccccc}\toprule
@@ -137,37 +137,39 @@ Method & Bal. acc. & Macro-F1 & Precision & MCC & G-mean & Tail rec. & Worst rec
 \centering\small
 \caption{GeFL's measure on the long-tailed benchmarks: each client model's best test accuracy (\%) at GeFL's
 evaluation rounds of the head stage (the first, every tenth and the last), averaged over the ten models, as in GeFL's
-code; mean $\pm$ standard deviation over seeds 3--5. The main tables report the last round instead.}
+code; mean $\pm$ standard deviation over seeds 3--5. The main tables report the last round instead. For \ours
+only its heads: the readout is computed once, after the last round.}
 \label{tab:app-gefl}
 \slottab{main_gefl}{\begin{tabular}{lccccc}\toprule
 Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
-\phrow{FedECS-LT}{5}\phrow{GeFL-F}{5}\phrow{[every other method]}{5}\bottomrule\end{tabular}}
+\phrow{FedECS-LT}{5}\phrow{FedECS-LT (heads only)}{5}\phrow{GeFL-F}{5}\phrow{[every other method]}{5}\bottomrule\end{tabular}}
 \end{widetable}
 
 \begin{widetable}[t]
 \centering\small
 \caption{Accuracy (\%) on each client's own class mix (the test accuracy re-weighted to the class frequencies of the
-model's own clients), heads as trained, on the long-tailed benchmarks; mean $\pm$ standard deviation over seeds 3--5.}
+model's own clients) on the long-tailed benchmarks; \ours with its readout, its heads only, other methods as
+published; mean $\pm$ standard deviation over seeds 3--5.}
 \label{tab:app-local}
 \slottab{main_local}{\begin{tabular}{lccccc}\toprule
 Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
-\phrow{FedECS-LT}{5}\phrow{GeFL-F}{5}\phrow{[every other method]}{5}\bottomrule\end{tabular}}
+\phrow{FedECS-LT}{5}\phrow{FedECS-LT (heads only)}{5}\phrow{GeFL-F}{5}\phrow{[every other method]}{5}\bottomrule\end{tabular}}
 \end{widetable}
 
 \begin{widetable}[t]
 \centering\small
-\caption{Calibration on the long-tailed benchmarks: expected calibration error (\%, 15 bins; lower is better), heads
-as trained; mean $\pm$ standard deviation over seeds 3--5.}
+\caption{Calibration on the long-tailed benchmarks: expected calibration error (\%, 15 bins; lower is better); \ours with its readout, its
+heads only, other methods as published; mean $\pm$ standard deviation over seeds 3--5.}
 \label{tab:app-calib}
 \slottab{main_ece}{\begin{tabular}{lccccc}\toprule
 Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
-\phrow{FedECS-LT}{5}\phrow{GeFL-F}{5}\phrow{[every other method]}{5}\bottomrule\end{tabular}}
+\phrow{FedECS-LT}{5}\phrow{FedECS-LT (heads only)}{5}\phrow{GeFL-F}{5}\phrow{[every other method]}{5}\bottomrule\end{tabular}}
 
 \vspace{6pt}
 \caption{Fairness across clients on the long-tailed benchmarks: balanced accuracy (\%) of the weakest head
-architecture, heads as trained; mean $\pm$ standard deviation over seeds 3--5.}
+architecture; \ours with its readout, its heads only, other methods as published; mean $\pm$ standard deviation over seeds 3--5.}
 \label{tab:app-worstarch}
 \slottab{main_worst_arch}{\begin{tabular}{lccccc}\toprule
 Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
-\phrow{FedECS-LT}{5}\phrow{GeFL-F}{5}\phrow{[every other method]}{5}\bottomrule\end{tabular}}
+\phrow{FedECS-LT}{5}\phrow{FedECS-LT (heads only)}{5}\phrow{GeFL-F}{5}\phrow{[every other method]}{5}\bottomrule\end{tabular}}
 \end{widetable}

@@ -1,5 +1,6 @@
 Method,Comm./client (MB),Time (s),MFLOPs/img,Train. GFLOPs/round
 FedECS-LT,"11,278 ± 113","7,910 ± 2,253",2.45,"1,424 ± 112"
+FedECS-LT (heads only),"11,278 ± 113","7,910 ± 2,253",2.45,"1,424 ± 112"
 GeFL-F,"8,659","7,025 ± 446",2.45,579 ± 42
 Balanced Softmax,60.8,542 ± 99,2.45,485 ± 34
 FedLC,60.8,501 ± 1.2e+02,2.45,485 ± 34

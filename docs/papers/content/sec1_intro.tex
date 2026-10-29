@@ -41,7 +41,7 @@ and has no class-specific parameter for the decay to shrink; when the classes ar
 a gate computed from the same statistics falls back to class-specific parameters averaged over their holders only
 (class-count weighted averaging). Generated features are rescaled to the exact class means and spreads. Heads are
 trained with logit adjustment and with consensus soft labels, the averaged prediction of all architectures on each
-generated feature. After training, every architecture's last layer is replaced by a class-balanced linear readout
+generated feature. As its last step, \ours sets every architecture's last layer to a class-balanced linear readout
 computed from aggregated sums of its embeddings. None of these statistics is new on its own: aggregated class
 statistics underlie classifier calibration~\cite{luo2021ccvr}, closed-form federated
 classifiers~\cite{fani2024fed3r,legate2023fedncm,goswami2025fedcof}, including an LDA-type classifier from class
@@ -67,11 +67,12 @@ rare classes, with short exact results checked against measurements (\cref{sec:a
 (\cref{sec:method}).
 \item A comparison against \R{count/methods_w} published methods on \R{count/datasets_w} datasets in two protocols,
 run on the same client splits, with paired statistics, per-class metrics and the cost of every
-method (\cref{sec:results}). \claim{With different client models, \ours has the highest mean balanced accuracy on
-\R{main/nbest_of} long-tailed benchmarks and \R{nat/nbest_of} naturally imbalanced datasets; most of its margin comes from the last layer, and with the same exact readout for every method of the GeFL-F
-pipeline
-it remains \R{main/cifar10/er_margin} to \R{main/cifar100/er_margin} points ahead on the CIFAR benchmarks, a
-difference that is not significant with three seeds. With one
-shared model, the strongest long-tail methods are better than \ours, and we report which and by how much.}
+method (\cref{sec:results}). Every method of the GeFL-F pipeline is also evaluated with the readout of \ours added,
+which separates the readout's gain from that of the rest of the method. \claim{With different client models, \ours
+has the highest mean balanced accuracy on \R{main/nbest_of} long-tailed benchmarks and \R{nat/nbest_of} naturally
+imbalanced datasets. Most of its margin over the published methods comes from the readout: with the same readout for
+every method of the GeFL-F pipeline it remains \R{main/er_margin_lo} to \R{main/er_margin_hi} points ahead on the CIFAR
+benchmarks, a difference that is not significant with three seeds. With one shared model, the strongest long-tail
+methods are better than \ours, and we report which and by how much.}
 \end{enumerate}
 The code, every log and every figure's data are released (\cref{sec:availability}).

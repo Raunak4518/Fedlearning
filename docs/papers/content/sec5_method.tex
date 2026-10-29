@@ -1,7 +1,7 @@
 \section{FedECS-LT}\label{sec:method}
 
-\ours keeps the three stages of GeFL-F and the frozen extractor, and changes how every class-specific quantity is
-obtained. Wherever the data decide a class's result, it uses a statistic that secure aggregation computes exactly
+\ours keeps the three stages of GeFL-F and the frozen extractor, adds a closing step that sets every last layer, and
+changes how every class-specific quantity is obtained. Wherever the data decide a class's result, it uses a statistic that secure aggregation computes exactly
 instead of a parameter that FedAvg estimates. \Cref{alg:fedecs} lists the pipeline\whenfig{fig_overview}{ and \cref{fig:overview} shows it}.
 
 \whenfig{fig_overview}{%
@@ -13,8 +13,8 @@ the server; SA: summed over the clients by secure aggregation. After Stage I the
 statistics, from which the server computes the class means and spreads and the gate $F$. The gate chooses the
 generator: anchored to the class means, or class rows averaged by CCWA. The moment correction is computed once after
 Stage II. In every round of Stage III the heads train on corrected synthetic features with consensus soft labels and
-on real features with logit adjustment. For evaluation, every architecture's last layer can be replaced by the exact
-readout computed from aggregated embedding sums.}
+on real features with logit adjustment. Last, every architecture's last layer is set by the exact readout, computed
+from aggregated sums of its embeddings.}
 \label{fig:overview}
 \end{widefigure}}
 
@@ -88,7 +88,8 @@ the same architecture are averaged as in GeFL-F.
 
 \subsection{Exact readout}\label{sec:method-readout}
 
-After Stage III, the server broadcasts every architecture's body; each client computes, for every architecture $g$, the
+The last layer is where GeFL-F loses most of the rare classes (\cref{sec:analysis-head}), and it is the one part of a
+head that class statistics determine in closed form. \ours therefore ends with a readout step. After Stage III, the server broadcasts every architecture's body; each client computes, for every architecture $g$, the
 per-class counts, the sums $\sum e$ and the second moment $\sum ee^\top$ of the embeddings $e$ of its real features, and
 secure aggregation sums them over all clients. With the class means $\nu_c$ and the pooled within-class covariance
 $\Sigma$ shrunk to $\Sigma_\gamma=(1-\gamma)\Sigma+\gamma\frac{\mathrm{tr}\,\Sigma}{d_e}I$, $\gamma=0.1$, the last layer of
@@ -103,10 +104,11 @@ each class are Gaussian with a shared covariance. Computed from the sums, with t
 is a plug-in estimate of that classifier, and otherwise a statistics-based linear classifier without an optimality
 guarantee. It needs one extra round and
 $C(d_e+1)+d_e^2$ numbers per architecture and client, and every client must run a forward pass (no training) of
-every architecture's body on its own features once; a client that cannot do so would be left out of the sums. We
-report every method of the GeFL-F pipeline both as trained and with this readout (exact readout, \ER). The
-readout is an evaluation device applied to every such method: the headline numbers of \ours are its heads as
-trained.
+every architecture's body on its own features once; a client that cannot do so would be left out of the sums. The
+readout does not use the head's trained last layer, only its body, so it can be added to any method whose heads have
+a body and a linear last layer. We therefore report \ours with its readout, its heads before the readout (``heads
+only''), every method as published, and every method of the GeFL-F pipeline with the same readout added (\ER), which
+separates the gain of the readout from that of the rest of the method.
 
 \begin{algorithm}[t]
 \caption{\ours (one run; all sums are computed by secure aggregation)}\label{alg:fedecs}
@@ -123,8 +125,8 @@ trained.
   real features with logit adjustment
   \State server averages heads of the same architecture
 \EndFor
-\State \textbf{Evaluation:} clients release embedding sums per architecture; server sets every last layer by
-\cref{eq:er} (reported separately as \ER)
+\State \textbf{Exact readout:} clients release embedding sums per architecture; server sets every last layer by
+\cref{eq:er}
 \end{algorithmic}
 \end{algorithm}
 

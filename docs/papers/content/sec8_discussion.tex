@@ -1,10 +1,14 @@
 \section{Discussion and limitations}\label{sec:discussion}
 
 \paragraph{What the gains consist of.} A large part of what any method of the GeFL-F family loses under a long tail is
-in its last layer, and an exact readout recovers it for every member of the family (\cref{tab:readout}).
-\claim{The difference between \ours and the strongest baseline is therefore smaller with the readout than without it;
-we report both. The comparison with the readout is closer to a comparison of the bodies, but the readout is the
-same linear classifier for every body, so it does not measure every property of a representation.}
+in its last layer, and the exact readout recovers it for every member of the family (\cref{tab:readout}). This is why
+the readout is part of \ours, and why most of its margin over the published methods is the readout's.
+\claim{When every method of the pipeline has the readout, \ours keeps a lead of \R{main/er_margin_lo} to
+\R{main/er_margin_hi} points over the strongest of them on the CIFAR benchmarks, not resolved with three seeds, and a
+significant lead over GeFL-F on CIFAR-100-LT.} The comparison with the readout is closer to a comparison of the
+bodies, but the readout is the same linear classifier for every body, so it does not measure every property of a
+representation. With one shared model the readout lowers the accuracy of \ours (\cref{sec:res-shared}); it is meant
+for heads trained on one client each.
 
 \paragraph{Limitations.}
 \begin{itemize}
@@ -48,7 +52,9 @@ are not comparable with centralised long-tail results for ResNet-32 and larger n
 Generator-based model-heterogeneous federated learning loses rare classes in three places: the optimiser's treatment
 of clients that lack a class, a last layer fitted to one client's prior, and synthetic features that do not carry
 their label. Each can be described precisely, and each can be repaired with class statistics that secure aggregation
-computes up to its quantisation. \claim{\ours, which applies these repairs together, improves balanced accuracy when clients
-have different models, on CIFAR-10-LT mostly through the recall of the tail classes; with one model shared by all
-clients, the strongest long-tail methods remain better.} Its code, logs and every figure's
+computes up to its quantisation. \claim{\ours, which applies these repairs together and ends with an exact readout of every last layer, improves
+balanced accuracy over the published methods when clients have different models, on CIFAR-10-LT mostly through the
+recall of the tail classes. Most of the gain is the readout's: added to every method of the GeFL-F pipeline, it
+leaves \ours a lead that three seeds do not resolve. With one model shared by all clients, the strongest long-tail
+methods remain better.} Its code, logs and every figure's
 data are public.

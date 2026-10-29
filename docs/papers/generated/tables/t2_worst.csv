@@ -1,5 +1,6 @@
 Method,CIFAR-10,CIFAR-100
-FedECS-LT,38.9 ± 1.8,0.0
+FedECS-LT,25.1 ± 1.4,0.0
+FedECS-LT (heads only),38.9 ± 1.8,0.0
 FedLC,21.6 ± 9.5,0.0 ± 0.0
 FedAvg,24.4 ± 7.4,0.0 ± 0.0
 FedProx,10.6 ± 5.6,0.0 ± 0.0
