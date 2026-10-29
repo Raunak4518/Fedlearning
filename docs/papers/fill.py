@@ -55,7 +55,7 @@ METRICS = [("bal", "final_bal"), ("er_bal", "er_bal"), ("f1", "final_f1"), ("tai
            ("worst_arch", "final_worst_arch"), ("er_tail", "er_tail"), ("local", "final_local"),
            ("gefl", "gefl_best_acc"), ("gefl_drop", "gefl_drop")]
 # tables across settings: (slot suffix, runs.jsonl key)
-ACROSS = [("bal", "final_bal"), ("er", "er_bal"), ("f1", "final_f1"), ("tail", "final_tail"),
+ACROSS = [("bal", "final_bal"), ("er", "er_bal"), ("ertail", "er_tail"), ("f1", "final_f1"), ("tail", "final_tail"),
           ("worst", "final_worst"), ("ece", "final_ece"), ("worst_arch", "final_worst_arch"),
           ("gefl", "gefl_best_acc"),   # GeFL's measure: every model's best round (fedecs_lt/gefl_measure.py)
           ("local", "final_local")]   # accuracy on each model's own clients' class mix
@@ -255,8 +255,9 @@ def and_list(xs):
 
 
 def signed(x):
-    x = 0.0 if abs(x) < 0.05 else x   # no "-0.0"
-    return f"{x:+.1f}"
+    if abs(x) < 0.005:
+        return "+0.0"
+    return f"{x:+.2f}" if abs(x) < 0.05 else f"{x:+.1f}"   # a small difference keeps its sign ("-0.03", not "+0.0")
 
 
 # ---------------------------------------------------------------- statistics
@@ -328,7 +329,8 @@ def across_table(E, settings, key, methods=None, lower=False):
     if vals:
         A = np.array(vals, dtype=float)
         for j in range(A.shape[1]):
-            col = np.array([np.nan if r[0] in REFS else v for r, v in zip(rows, A[:, j])], dtype=float)
+            col = np.array([np.nan if r[0] in REFS or r[0] in NOTEST else v for r, v in zip(rows, A[:, j])],
+                           dtype=float)
             if not np.all(np.isnan(col)):
                 b = np.nanmin(col) if lower else np.nanmax(col)
                 bold |= {(int(i), j + 1) for i in np.where(np.isclose(col, b, rtol=0, atol=1e-9))[0]}
@@ -389,7 +391,7 @@ def fill_group(g, E, nums, made, status):
             for m, (n, d, half, p, ph) in paired(E, S, key).items():
                 nums[f"{g}/{s}/{pre}diff/{m}"] = signed(d)
                 nums[f"{g}/{s}/{pre}ci/{m}"] = f"[{d - half:+.1f}, {d + half:+.1f}]"
-                nums[f"{g}/{s}/{pre}p/{m}"] = f"{ph:.3g}"
+                nums[f"{g}/{s}/{pre}p/{m}"] = f"{ph:.2g}"
         d = matched(E, S, "final_bal")   # FedECS-LT minus each method over common seeds
         means = {m: mean_of(E, m, "final_bal", S) for m in E.methods if m not in NOTEST and m not in REFS}
         means = {m: v for m, v in means.items() if not np.isnan(v)}
@@ -442,11 +444,15 @@ def fill_group(g, E, nums, made, status):
             nums[f"{g}/margin_{end}"] = signed(mg[S])
             nums[f"{g}/margin_{end}_ds"] = tex(pt.column_name(S, settings)) + (", one seed" if n == 1 else "")
     me = {S: matched(E, S, "er_bal", exclude=("Local",)) for S in settings}
+    who = {S: min(d, key=lambda m: d[m][0]) for S, d in me.items() if d}
     me = {S: min(v[0] for v in d.values()) for S, d in me.items() if d}
     if me:   # the same range with the exact readout for every method of the GeFL-F pipeline
         for end, S in (("lo", min(me, key=me.get)), ("hi", max(me, key=me.get))):
             nums[f"{g}/er_margin_{end}"] = signed(me[S])
             nums[f"{g}/er_margin_{end}_ds"] = tex(pt.column_name(S, settings))
+            nums[f"{g}/er_margin_{end}_who"] = tex(who[S])
+        behind = [S for S in me if me[S] < 0]   # settings where a method with the readout has the higher mean
+        nums[f"{g}/er_n_behind"] = word(len(behind))
     if g == "t2":   # the strongest method at imbalance ratio 100 on both datasets, in one phrase
         pair = [S for S in settings if round(1 / S[1]) == 100]
         st = {S: min(((m, v) for m, v in matched(E, S, "final_bal").items() if m != "Local"),
@@ -531,6 +537,9 @@ def fill_group(g, E, nums, made, status):
     h, rows, bold = paired_table(E, settings)
     if rows:
         made.append(write_table(f"{g}_paired", h, rows, bold))
+    h, rows, bold = paired_table(E, settings, "er_bal")   # every method of the pipeline with the readout
+    if rows:
+        made.append(write_table(f"{g}_er_paired", h, rows, bold))
     for S in settings:   # every metric of every setting (appendix)
         rows, bold = pt.metric_rows(E, S, report.MAIN)
         if rows:

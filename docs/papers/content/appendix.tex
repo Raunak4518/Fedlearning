@@ -136,7 +136,7 @@ error~\cite{kull2019classwise} is logged as well. The figures of this appendix s
 
 \begin{widetable}[t]
 \centering\small
-\caption{CIFAR-10-LT (imbalance ratio 100, 10 clients, Dirichlet $\alpha=0.5$): main metrics (\%); \ours with its readout, its heads only, other methods as published;
+\caption{CIFAR-10-LT (imbalance ratio 100, 10 clients, Dirichlet $\alpha=0.5$): main metrics (\%); \ours with its readout, its heads only, other methods without the readout;
 mean $\pm$ standard deviation over seeds 3--5. Tail: 40\% least frequent classes; G-mean with recalls floored at 1\%.}
 \label{tab:app-cifar10}
 \slottab{main_cifar10_main}{\begin{tabular}{lcccccccc}\toprule
@@ -212,7 +212,12 @@ After Stage I the server trains a referee classifier (CNN-5 head, Adam, 40 epoch
 images, which no client holds, and measures for each class the share of 300 generated features of that class that the
 referee assigns to it. \Cref{tab:fidelity} gives the mean over the classes of each group. Chance is 10\% on
 CIFAR-10-LT and 1\% on CIFAR-100-LT. The referee's accuracy on held-out real features was not logged, so the values
-compare generators with each other, not with real data.
+compare generators with each other, not with real data. \claim{The moment correction raises the head classes' fidelity of \ours on CIFAR-10-LT from
+\R{main/cifar10/FedECS-LT/fidelity_head} to \R{main/cifar10/FedECS-LT/fidelity_mc_head} and lowers that of the tail
+classes from \R{main/cifar10/FedECS-LT/fidelity_tail} to \R{main/cifar10/FedECS-LT/fidelity_mc_tail}; on
+CIFAR-100-LT the mean is \R{main/cifar100/FedECS-LT/fidelity_all} before and \R{main/cifar100/FedECS-LT/fidelity_mc_all}
+after.} It matches the moments it is built for (\cref{sec:method-gen}), not the referee's decision boundaries, and
+its effect on accuracy is measured by the component ablation\whentab{abl_components}{ (\cref{tab:components})}.
 
 \begin{table}[t]
 \centering\small
@@ -241,11 +246,48 @@ Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
 \phrow{FedECS-LT}{5}\phrow{FedECS-LT (heads only)}{5}\phrow{GeFL-F}{5}\phrow{[every other method]}{5}\bottomrule\end{tabular}}
 \end{widetable}
 
+\whentab{nat_er}{%
+\begin{widetable}[t]
+\centering\small
+\caption{Datasets with natural class imbalance, every method of the GeFL-F pipeline with the exact readout: balanced
+accuracy (\%); mean $\pm$ standard deviation over seeds 3--5 (a value without $\pm$ is from one seed). Same setting
+as \cref{tab:natural}.}
+\label{tab:app-nat-er}
+\slottab{nat_er}{\begin{tabular}{lcccccc}\toprule
+Method & DermaMNIST & OrganAMNIST & BloodMNIST & PathMNIST & EMNIST & FER-2013\\\midrule
+\phrow{FedECS-LT}{6}\phrow{GeFL-F}{6}\phrow{Balanced Softmax}{6}\phrow{FedLC}{6}\phrow{FedRS}{6}\phrow{FedDF}{6}
+\bottomrule\end{tabular}}
+\end{widetable}}
+
+\whentab{main_er_paired}{%
+\begin{table}[t]
+\centering\small
+\caption{With the exact readout for every method of the GeFL-F pipeline: balanced accuracy of \ours minus each
+method (points), paired over seeds 3--5, with the 95\% $t$ interval; bold where significant after Holm's correction.
+Same setting as \cref{tab:readout}.}
+\label{tab:app-er-paired}
+\slottab{main_er_paired}{\begin{tabular}{lcc}\toprule
+Method & CIFAR-10-LT & CIFAR-100-LT\\\midrule
+\phrow{GeFL-F}{2}\phrow{Balanced Softmax}{2}\phrow{FedLC}{2}\phrow{FedRS}{2}\phrow{FedDF}{2}\bottomrule\end{tabular}}
+\end{table}}
+
+\whentab{main_ertail}{%
+\begin{table}[t]
+\centering\small
+\caption{Recall of the tail classes (\%) with the exact readout for every method of the GeFL-F pipeline; mean $\pm$
+standard deviation over seeds 3--5. Same setting as \cref{tab:readout}.}
+\label{tab:app-ertail}
+\slottab{main_ertail}{\begin{tabular}{lcc}\toprule
+Method & CIFAR-10-LT & CIFAR-100-LT\\\midrule
+\phrow{FedECS-LT}{2}\phrow{GeFL-F}{2}\phrow{Balanced Softmax}{2}\phrow{FedLC}{2}\phrow{FedRS}{2}\phrow{FedDF}{2}
+\bottomrule\end{tabular}}
+\end{table}}
+
 \begin{widetable}[t]
 \centering\small
 \caption{Accuracy (\%) on each client's own class mix (the test accuracy re-weighted to the class frequencies of the
-model's own clients) on the long-tailed benchmarks; \ours with its readout, its heads only, other methods as
-published; mean $\pm$ standard deviation over seeds 3--5.}
+model's own clients) on the long-tailed benchmarks; \ours with its readout, its heads only, other methods without
+the readout; mean $\pm$ standard deviation over seeds 3--5.}
 \label{tab:app-local}
 \slottab{main_local}{\begin{tabular}{lccccc}\toprule
 Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
@@ -255,7 +297,7 @@ Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
 \begin{widetable}[t]
 \centering\small
 \caption{Calibration on the long-tailed benchmarks: expected calibration error (\%, 15 bins; lower is better); \ours with its readout, its
-heads only, other methods as published; mean $\pm$ standard deviation over seeds 3--5.}
+heads only, other methods without the readout; mean $\pm$ standard deviation over seeds 3--5.}
 \label{tab:app-calib}
 \slottab{main_ece}{\begin{tabular}{lccccc}\toprule
 Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
@@ -265,7 +307,7 @@ Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
 \begin{widetable}[t]
 \centering\small
 \caption{Fairness across clients on the long-tailed benchmarks: balanced accuracy (\%) of the weakest head
-architecture; \ours with its readout, its heads only, other methods as published; mean $\pm$ standard deviation over seeds 3--5.}
+architecture; \ours with its readout, its heads only, other methods without the readout; mean $\pm$ standard deviation over seeds 3--5.}
 \label{tab:app-worstarch}
 \slottab{main_worst_arch}{\begin{tabular}{lccccc}\toprule
 Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule

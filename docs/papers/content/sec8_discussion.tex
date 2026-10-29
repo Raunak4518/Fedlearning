@@ -7,7 +7,8 @@ limits of what the study covers.
 differ only in their heads; we did not study pre-trained or larger extractors, or clients with different backbones.
 \item No published method addresses both different client models and a long tail, so the comparison is with
 long-tail losses applied per client, with FedDF and with model-heterogeneous methods designed for label skew; the
-long-tail methods CCVR and FedETF enter only GeFL's grouped protocol, within each architecture.
+long-tail methods CCVR and FedETF\numelse{main/cifar10/CCVR/bal}{ enter only GeFL's grouped protocol, within
+each architecture}{ are not compared with different client models}.
 \item The client splits are a pure label shift (\cref{sec:setting}); feature shift and concept shift between clients
 are not tested.
 \item In the main setting each architecture has one client ($K=10$)\whentab{robust}{; settings with several clients
@@ -31,12 +32,14 @@ centralised long-tail results for ResNet-32 and larger networks.
 
 \section{Conclusion}\label{sec:conclusion}
 
-Generator-based model-heterogeneous federated learning loses rare classes in at least three places: coupled weight
-decay under Adam on clients that lack a class, a last layer fitted to one client's label prior, and generated features
-that do not carry their label. Each is addressed by a component of \ours that uses class statistics computed by secure
+We examined three places where generator-based model-heterogeneous federated learning can lose rare classes:
+coupled weight decay under Adam on clients that lack a class, which shrinks the rare classes' rows in GeFL-F's
+generator but is not yet shown to cause their loss; a last layer fitted to one client's label prior; and generated
+features that do not carry their label. Each is addressed by a component of \ours that uses class statistics computed by secure
 aggregation or, for the heads, logit adjustment and consensus soft labels.\numelse{comp/cifar10/largest}{}{ Which of
 these components carry the effect beyond the readout is not yet measured.} \claim{\ours, which applies these repairs together and ends with an exact readout of every last layer, improves
 balanced accuracy over the published methods when clients have different models, on CIFAR-10-LT mostly through the
 recall of the tail classes. Most of the gain is the readout's: added to every method of the GeFL-F pipeline, it
-leaves \ours a lead over the strongest other method that three seeds do not resolve. With one model shared by all clients, the strongest long-tail
-methods remain better.}
+leaves \ours a lead over the strongest other method that three seeds do not resolve. With one model shared by all clients, \R{t2/cifar10-r100/n_above}
+other methods are better on CIFAR-10-LT. \ours also trades accuracy on the clients' own class mixes and, for its
+readout and consensus, more communication and the condition that every client can evaluate every head.}

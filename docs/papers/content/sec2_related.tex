@@ -53,6 +53,8 @@ for private data release~\cite{harder2021dpmerf}.
 long-tailed or skewed label distributions. Synthetic: trains or uses synthetic data or features. Extra data: needs
 data that no client holds (a public or proxy set). $^a$FedDF needs public data; here it distils on GeFL-F's
 generated features.}
+\def\posgroupedrows{}\whennum{main/cifar10/FedAvg/bal}{\def\posgroupedrows{FedALA~\cite{zhang2023fedala} (within each architecture) & -- & -- & -- & --\\
+AvgKD~\cite{afonin2022avgkd} & \checkmark & -- & -- & --\\}}
 \label{tab:positioning}
 \begin{adjustbox}{max width=\linewidth}
 \begin{tabular}{lcccc}
@@ -65,8 +67,7 @@ CCVR~\cite{luo2021ccvr}, CReFF~\cite{shang2022creff} & -- & \checkmark & \checkm
 FedETF~\cite{li2023fedetf}, Fed-GraB~\cite{xiao2023fedgrab}, FedLoGe~\cite{xiao2024fedloge} & -- & \checkmark & -- & --\\
 RUCR~\cite{huang2024rucr}, FedYoYo~\cite{yan2025fedyoyo} & -- & \checkmark & -- & --\\
 FedProto~\cite{tan2022fedproto}, FedTGP~\cite{zhang2024fedtgp} & \checkmark & -- & -- & --\\
-FedALA~\cite{zhang2023fedala} (within each architecture) & -- & -- & -- & --\\
-AvgKD~\cite{afonin2022avgkd} & \checkmark & -- & -- & --\\
+\posgroupedrows
 LG-FedAvg~\cite{liang2020lgfedavg}, FedGH~\cite{yi2023fedgh}, FedMRL~\cite{yi2024fedmrl} & \checkmark & -- & -- & --\\
 FedGen~\cite{zhu2021fedgen}, GeFL-F~\cite{kang2025gefl} & \checkmark & -- & \checkmark & --\\
 FedDF~\cite{lin2020feddf} & \checkmark & -- & \checkmark$^a$ & \checkmark$^a$\\

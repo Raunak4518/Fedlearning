@@ -18,14 +18,15 @@ features. The generator is the only channel through which an architecture learns
 GeFL-F was evaluated on balanced clients. Under long-tailed label skew we find that it loses most of its accuracy on
 the rare classes, and we ask where.
 
-\paragraph{Where the rare classes are lost} Because a client partition is a pure label shift, federation cannot
-bias class-conditional quantities by itself (\cref{sec:setting}). We examine how it can still lose rare classes:
+\paragraph{Where the rare classes are lost} Because a client partition is a pure label shift, the target of every
+class-conditional quantity does not depend on the partition (\cref{sec:setting}); its federated estimate can. We examine how it can still lose rare classes:
 through the optimiser, through parameters tied to a client's label prior, through the synthetic data and through
 sample size. We locate three such losses, one through each of the first three routes (\cref{sec:analysis}).
 \begin{enumerate}
 \item \emph{The generator.} With Adam~\cite{kingma2015adam} and coupled weight decay, a client that lacks a class moves
-the generator's class row, its only class-specific parameter, toward zero by about one learning rate per step, while
-the clients that hold the class barely grow it. Flat averaging then shrinks the rare classes' rows round after round.
+the generator's class row, its only class-specific parameter, toward zero by about one learning rate per step, and flat averaging includes these clients. In GeFL-F's runs the
+rare classes' rows end several times shorter than the frequent ones'; whether this causes their loss is not yet
+tested.
 \item \emph{The last layer.} Each head is trained on one client's real data, so its last layer fits that client's
 label prior. Per-client logit corrections (logit adjustment~\cite{menon2021la}, FedLC~\cite{zhang2022fedlc},
 Balanced Softmax~\cite{ren2020bsm} and, up to a step size, FedRS~\cite{li2021fedrs}) change only the initialisation
@@ -63,7 +64,8 @@ metric is logged per class.
 \begin{enumerate}
 \item A long-tail evaluation of generator-based model-heterogeneous FL and a measured, stage-by-stage diagnosis of
 where it loses rare classes, supported by elementary lemmas (\cref{sec:analysis}).
-\item \ours, which uses exact, securely aggregated class statistics in the generator, the heads and the readout
+\item \ours, which uses exact, securely aggregated class statistics in the generator and the readout, and trains the
+heads with logit adjustment, consensus soft labels and more synthetic epochs
 (\cref{sec:method}).
 \item A comparison against \R{count/methods_w} published methods in two protocols: \R{main/nbaselines_w} on
 \R{count/datasets_w} datasets with different client models, and \R{t2/nbaselines_w} on two benchmarks with one shared
@@ -73,6 +75,7 @@ the readout of \ours added, which separates the readout's gain from that of the 
 different client models, \ours has the highest mean balanced accuracy on \R{main/nbest_of} long-tailed benchmarks and
 \R{nat/nbest_of} naturally imbalanced datasets, and most of its margin comes from the readout: with the same readout
 for every method of the GeFL-F pipeline, its lead of \R{main/er_margin_lo} to \R{main/er_margin_hi} points over the
-strongest other method on the long-tailed benchmarks is not significant with three seeds. With one shared model, the strongest long-tail methods are better.}
+strongest other method on the long-tailed benchmarks is not significant with three seeds. With one shared model,
+\R{t2/cifar10-r100/n_above} other methods are better on CIFAR-10-LT (\R{t2/cifar10-r100/above_list}).}
 \end{enumerate}
-The code, every log and every figure's data are released (\cref{sec:availability}).
+The code, every log and every figure's data are released (see the data and code availability statement).

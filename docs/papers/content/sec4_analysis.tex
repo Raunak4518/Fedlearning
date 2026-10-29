@@ -32,7 +32,7 @@ a batch of client $k$ contains class $c$,
 \kappa_c=\frac{\sum_{k\in H_c}q_k f_{kc}}{\sum_{k\notin H_c}q_k},
 \end{equation}
 and the row drifts toward zero in every coordinate when $\kappa_c<1$. This count of Adam steps is a heuristic, not
-a bound: it ignores the moments Adam carries between rounds (\cref{app:proofs}). Centrally the same decay is
+a bound, and we have not checked it against the measured rows: it ignores the moments Adam carries between rounds (\cref{app:proofs}). Centrally the same decay is
 harmless, because Adam's second-moment estimate for $r_c$ is dominated by data gradients as long as batches that
 contain the class occur within the memory of that estimate, about $1/(1-\beta_2)$ steps for Adam's second-moment
 parameter $\beta_2$.
@@ -111,7 +111,7 @@ CIFAR-100-LT (\cref{tab:readout}).}
 \begin{lemma}[label-free synthetic data]\label{prop:variance}
 If the synthetic label $y$ is uniform on $\{1,\dots,C\}$ and independent of the generated feature, then for every logit
 vector $f$, $\E_y\,\ell(f,y)=\LSE(f)-\bar f=\log C+\KL(u\,\|\,\mathrm{softmax}f)
-=\log C+\frac1{2C}\sum_c(f_c-\bar f)^2+O(\|f-\bar f\|^3)$, where $\bar f$ is the mean logit and $u$ the uniform
+=\log C+\frac1{2C}\sum_c(f_c-\bar f)^2+O(\|f-\bar f\|^3)$, where $\LSE(f)=\log\sum_c e^{f_c}$, $\bar f$ is the mean logit and $u$ the uniform
 distribution.
 \end{lemma}
 
@@ -122,11 +122,14 @@ fidelity above). Alternating the synthetic phase with the real phase decides wha
 with quadratic losses (the heads are nonlinear and trained with cross-entropy), the round map converges to a point where the synthetic data alone decide the directions that the client's real loss leaves free
 (\cref{app:proofs}). For a head trained on one client's real data, the directions of the absent classes are nearly
 free in this sense, but not exactly: cross-entropy still pushes their logits down. Logit
-adjustment keeps the real phase from pushing the absent classes' logits down without bound~\cite{soudry2018implicit}.
+adjustment shifts the real phase's targets for the absent classes; without it, cross-entropy on data that a head
+separates keeps pushing those logits down~\cite{soudry2018implicit}.
 \whenfig{fig_spread}{\claim{\Cref{fig:spread} shows the first effect on the real pipeline: in every round on CIFAR-10-LT the
 synthetic phase reduces the logit spread of the heads on the clients' real features, and it reduces it less for
 \ours than for GeFL-F.} \ours also differs from GeFL-F in the number of synthetic epochs, the consensus soft labels and logit
-adjustment, so this comparison does not isolate the effect of features that carry their label.}
+adjustment, so this comparison does not isolate the effect of features that carry their label. \claim{FedDF, which
+trains on GeFL-F's generator, loses less spread than \ours}: the change of the spread is therefore not determined by
+whether the generated features carry their label.}
 
 \whenfig{fig_spread}{%
 \begin{figure}[t]

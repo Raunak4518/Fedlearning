@@ -10,7 +10,7 @@ All experiments use the same client splits for every method.
 \item \textbf{RQ1 (diagnosis).} Do the three losses of \cref{sec:analysis} occur in GeFL-F's own runs (class-row
 norms, readout gain and logit spread)?
 \item \textbf{RQ2 (effect).} Does \ours, which ends with the exact readout, raise balanced accuracy over GeFL-F and the
-other methods that work with different client models, each as published (\cref{sec:res-main}\whentab{k50_bal}{, also
+other methods that work with different client models, each without the readout (\cref{sec:res-main}\whentab{k50_bal}{, also
 with 50 clients})?
 \item \textbf{RQ3 (representation or last layer).} How much of the difference remains when every method of the
 GeFL-F pipeline gets the same exact readout, so that only the heads' bodies differ (\cref{sec:res-main},
@@ -26,8 +26,8 @@ Cost and calibration are reported for every method as secondary outcomes.
 \subsection{System under evaluation}\label{sec:setup-system}
 
 \ours keeps the three-stage pipeline of GeFL-F (\cref{sec:setting}), in which the frozen extractor computes every
-image's features once, without augmentation. It changes five things in this pipeline and adds a last step
-(\cref{sec:method}):
+image's features once, without augmentation. It changes five things in this pipeline (items 1--5) and adds a last step
+(item 6; \cref{sec:method}):
 \begin{enumerate}
 \item the generator, which is anchored to the exact class means, or uses class rows averaged by CCWA when the gate
 finds the classes poorly separated;
@@ -109,7 +109,9 @@ Dataset & Classes & Training images & Test images & Largest / smallest class\\\m
 \subsection{Protocols}\label{sec:setup-protocols}
 
 \paragraph{Main setting: different client models} The main setting is GeFL-F's setting with $K=10$ clients, one
-per architecture, at $\rho=100$ and Dirichlet $\alpha=0.5$. The rounds of the three
+per architecture, at $\rho=100$ and Dirichlet $\alpha=0.5$. The ratio sets the target profile; where a
+frequent class has fewer images than the profile asks for, it keeps all of them, so the realised ratio of the
+training set can be lower (\cref{tab:datasets}, last column). The rounds of the three
 stages, $T_{\mathrm{I}}$, $T_{\mathrm{II}}$ and $T_{\mathrm{III}}$, are GeFL-F's: 50, 200 and 100 on CIFAR-10, and the same on CIFAR-100
 (\cref{app:protocol} lists every dataset). All federated methods of this setting share the same Stage-I extractor for
 a given dataset and seed: Stage I is computed once and reused.\whentab{k50_bal}{ GeFL's second setting has $K=50$
@@ -117,7 +119,7 @@ clients, five per architecture (\cref{sec:res-main}); every method of the main c
 
 \paragraph{One shared model} We follow the FedLTLib protocol~\cite{lin2026fedltlib}, whose training settings come
 from CReFF~\cite{shang2022creff}: CIFAR-10-LT and CIFAR-100-LT with
-the standard profile $n_c=\lfloor n_{\max}\rho^{-c/(C-1)}\rfloor$ at $\rho\in\{100,50,10\}$, where $n_{\max}$ is the
+the standard profile $n_c=\lfloor n_{\max}\rho^{-c/(C-1)}\rfloor$ at $\rho=100$\numelse{t2/cifar10-r10/FedECS-LT/bal}{ (and 50 and 10)}{}, where $n_{\max}$ is the
 number of images per class left after 200 per class (20 on CIFAR-100) are held out for validation. Rounding down gives
 the smallest CIFAR-100 class 4 images at $\rho=100$.
 
@@ -140,7 +142,7 @@ library draws its own, so participation is not paired between \ours and the base
 \subsection{Methods compared}\label{sec:setup-methods}
 
 \Cref{tab:baselines} lists every method, its reference and the origin of its code, and \cref{tab:fairness} what each
-method of the main setting exchanges and computes. The methods fall into six groups.
+method of the main setting exchanges and computes. The methods fall into these groups.
 \begin{itemize}
 \item \textbf{GeFL-F}, the method \ours extends: the difference to it answers RQ2 directly.
 \item \textbf{FedDF}~\cite{lin2020feddf}, ensemble distillation on the server. GeFL distils on public data; we
@@ -148,10 +150,10 @@ run FedDF's distillation on GeFL-F's generated features instead, so that no meth
 \item \textbf{Per-client long-tail losses}: Balanced Softmax~\cite{ren2020bsm}, FedLC~\cite{zhang2022fedlc} and
 FedRS~\cite{li2021fedrs}. They test whether a correction of the loss alone repairs the long tail. They are applied
 to GeFL-F without its generator.
-\item \textbf{GeFL's baselines}: FedAvg~\cite{mcmahan2017fedavg}, FedProx~\cite{li2020fedprox} and
+\whennum{main/cifar10/FedAvg/bal}{\item \textbf{GeFL's baselines}: FedAvg~\cite{mcmahan2017fedavg}, FedProx~\cite{li2020fedprox} and
 FedALA~\cite{zhang2023fedala} run within each architecture group, and AvgKD~\cite{afonin2022avgkd} distils across all
 architectures, as GeFL compares them~\cite{kang2025gefl}. CCVR~\cite{luo2021ccvr} and FedETF~\cite{li2023fedetf}, two
-long-tail methods, are applied within each group.
+long-tail methods, are applied within each group.}
 \item \textbf{Model-heterogeneous methods from HtFLlib}~\cite{zhang2025htfllib}: prototypes (FedProto, FedTGP), a
 generator of embeddings (FedGen), a shared global head (FedGH), shared last layers (LG-FedAvg) and shared
 sub-networks (FedMRL). They represent the other ways in which clients with different models exchange knowledge.
@@ -168,8 +170,8 @@ only.
 \item the HtFLlib methods use the values of HtFLlib's run scripts, with 5 local epochs per round to match Stage III
 (\cref{app:protocol});
 \item the LongTailLib methods use the benchmark's common settings, which differ from some methods' own papers;
-\item the grouped baselines use the settings of GeFL's code (FedAvg, FedProx with $\mu=0.01$, AvgKD) and of the
-authors' code (FedALA) or LongTailLib (CCVR, FedETF);
+\whennum{main/cifar10/FedAvg/bal}{\item the grouped baselines use the settings of GeFL's code (FedAvg, FedProx with $\mu=0.01$, AvgKD) and of the
+authors' code (FedALA) or LongTailLib (CCVR, FedETF);}
 \item Balanced Softmax and FedLC ($\tau=1$) are re-implemented losses with the client's add-one smoothed class
 counts, and FedRS ($\alpha=0.5$) with the classes the client lacks;
 \item FedDF uses 20 server distillation steps per round (\cref{app:protocol}).
@@ -177,7 +179,7 @@ counts, and FedRS ($\alpha=0.5$) with the classes the client lacks;
 The settings of \ours (\cref{tab:hyper}) were fixed during its development, on earlier runs of the same benchmarks
 with seeds 0 to 5. These included seeds 3 to 5 with the same client splits as the reported runs, and every earlier
 run was evaluated on the same test sets. The development compared about 36 configurations of the method and its
-variants on CIFAR-10-LT and 17 on CIFAR-100-LT (\texttt{experiments/LEDGER.md}), and runs on MNIST, Fashion-MNIST and
+variants on CIFAR-10-LT and 17 on CIFAR-100-LT (listed in the experiment ledger of the released code), and runs on MNIST, Fashion-MNIST and
 SVHN; it never used the datasets with natural class imbalance. The settings were not changed for the runs
 reported here (\cref{sec:setup-threats}).
 
@@ -185,8 +187,8 @@ reported here (\cref{sec:setup-threats}).
 \centering\small
 \caption{Methods compared, their protocol and the origin of their code. HtFLlib~\cite{zhang2025htfllib} (Apache-2.0)
 methods are ported to Flower with HtFLlib's settings and 5 local epochs per round, on the shared frozen extractor.
-LongTailLib~\cite{lin2026fedltlib} methods run in the authors' code, downloaded at a fixed commit. FedAvg, FedProx and
-AvgKD of the main setting follow GeFL's code~\cite{kang2025gefl} (MIT).}
+LongTailLib~\cite{lin2026fedltlib} methods run in the authors' code, downloaded at a fixed commit.\whennum{main/cifar10/FedAvg/bal}{ FedAvg, FedProx and
+AvgKD of the main setting follow GeFL's code~\cite{kang2025gefl} (MIT).}}
 \label{tab:baselines}
 \def\groupedrows{}\whennum{main/cifar10/FedAvg/bal}{\def\groupedrows{FedAvg, FedProx (grouped)~\cite{mcmahan2017fedavg,li2020fedprox} & different models & GeFL's code, within each architecture\\
 AvgKD~\cite{afonin2022avgkd} & different models & GeFL's code, across architectures\\
@@ -228,6 +230,8 @@ FedYoYo~\cite{yan2025fedyoyo}, RUCR~\cite{huang2024rucr} & one shared model & Lo
 synthetic / real epochs per Stage-III round, what is exchanged in Stage III beyond the averaging of heads of the same
 architecture (which exchanges nothing at $K=10$), whether the exact readout is applied (as the last step of \ours, or
 added as \ER), and the loss of the real phase. Stage I is shared by all federated methods.}
+\def\fairgroupedrows{}\whennum{main/cifar10/FedAvg/bal}{\def\fairgroupedrows{Grouped FedAvg, FedProx, FedALA & none & 0 / 5 & heads (none at $K=10$) & no & method's own\\
+AvgKD; grouped CCVR, FedETF & none & 0 / 5 & predictions or statistics & no & method's own\\}}
 \label{tab:fairness}
 \begin{adjustbox}{max width=\linewidth}
 \begin{tabular}{lccccc}
@@ -239,8 +243,7 @@ GeFL-F & class rows, flat (200) & 1 / 5 & none at $K=10$ & yes & cross-entropy\\
 FedDF & GeFL-F's (200) & 1 / 5 & server distillation & yes & cross-entropy\\
 Balanced Softmax, FedLC, FedRS & none & 0 / 5 & none at $K=10$ & yes & per-client correction\\
 HtFLlib methods & FedGen: in every batch & 0 / 5 & prototypes, heads or sub-networks & no & method's own\\
-Grouped FedAvg, FedProx, FedALA & none & 0 / 5 & heads (none at $K=10$) & no & method's own\\
-AvgKD; grouped CCVR, FedETF & none & 0 / 5 & predictions or statistics & no & method's own\\
+\fairgroupedrows
 Local & none & alone: $5T_{\mathrm{I}}+5T_{\mathrm{III}}$ epochs & none & no & cross-entropy\\
 \bottomrule
 \end{tabular}
@@ -253,7 +256,7 @@ Let $r_{gc}$ be the recall of class $c$ by the model of architecture $g$ on the 
 balanced on CIFAR-10\whennum{main/fmnist/FedECS-LT/bal}{, Fashion-MNIST} and CIFAR-100 and imbalanced on the naturally imbalanced
 datasets\whennum{main/mnist/FedECS-LT/bal}{, MNIST}\whennum{main/svhn/FedECS-LT/bal}{, SVHN}; balanced accuracy weights every class equally in either case. The primary metric is the balanced accuracy, $\frac1G\sum_g\frac1C\sum_c r_{gc}$: the mean
 over the $G=10$ client models of each model's mean class recall. GeFL~\cite{kang2025gefl} also averages over the
-ten models, with top-1 accuracy at each model's best round. It is reported for every method as published (\ours with its readout, and its heads only)
+ten models, with top-1 accuracy at each model's best round. It is reported for every method without the readout (\ours with its readout, and its heads only)
 and, for the methods of the GeFL-F pipeline, also with the readout added; the second set answers RQ3.
 
 The other metrics are:
@@ -324,7 +327,7 @@ from that of the exact statistics.
 
 We report the mean $\pm$ sample standard deviation over seeds. A difference to \ours is the mean paired difference
 over the seeds both methods have, with a 95\% $t$ interval and the paired $t$-test. The $p$-values are corrected by
-Holm's procedure~\cite{holm1979} over the other methods of the same table and setting: every method as published, and
+Holm's procedure~\cite{holm1979} over the other methods of the same table and setting: every method without the readout, and
 the methods of the GeFL-F pipeline with the exact readout. Local is included; the pooled-data reference and the
 diagnostic runs and the heads of \ours alone are not. There is no correction across datasets or metrics.
 ``Best'' and ``strongest other method'' are decided on the seeds both methods have.
@@ -333,7 +336,8 @@ With three seeds the tests have little power, and they assume normally distribut
 give $p<0.25$ with three paired differences. A test result near $p=0.05$ can also depend on which methods form the Holm
 family. GPU non-determinism alone gives the mean of three paired differences a standard deviation of about half the
 two-run value above; we treat differences smaller than twice that, \R{repeat/bal/floor} points as trained and
-\R{repeat/er/floor} with the exact readout, as unresolved, and report every interval with its test.
+\R{repeat/er/floor} with the exact readout, as unresolved. Exceeding the floor is necessary, not sufficient: a
+difference above it is resolved only if its paired test is also significant after Holm's correction.
 
 \subsection{Threats to validity}\label{sec:setup-threats}
 

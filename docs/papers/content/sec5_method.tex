@@ -1,8 +1,9 @@
 \section{FedECS-LT}\label{sec:method}
 
 \ours keeps the three stages of GeFL-F and the frozen extractor, adds a closing step that sets every last layer, and
-changes how every class-specific quantity is obtained. For every quantity specific to one class, it uses a statistic
-that secure aggregation computes exactly instead of a parameter estimated by FedAvg. \Cref{alg:fedecs} lists the pipeline\whenfig{fig_overview}{ and \cref{fig:overview} shows it}.
+changes how the class-specific quantities of the generator and the last layer are obtained: it uses statistics that
+secure aggregation computes exactly instead of parameters estimated by FedAvg. The heads are trained with logit
+adjustment (each client's own prior), consensus soft labels and ten synthetic epochs per round. \Cref{alg:fedecs} lists the pipeline\whenfig{fig_overview}{ and \cref{fig:overview} shows it}.
 
 \whenfig{fig_overview}{%
 \begin{widefigure}[t]
@@ -66,7 +67,7 @@ draw corrected samples themselves.
 
 \subsection{Heads}\label{sec:method-heads}
 
-Each round, client $k$ first takes $T_s\lfloor n_k/B\rfloor$ SGD steps on batches of $B$ corrected generated features
+Each round, client $k$ first takes $T_s\lfloor n_k/B\rfloor$ SGD steps on batches of $B$ corrected generated features ($B=128$ on CIFAR, 64 on the other datasets)
 ($T_s=10$ synthetic epochs of the size of its real data; GeFL-F uses $T_s=1$) and then trains $T_r=5$ epochs on its
 real features, each phase with a fresh SGD optimiser. The real phase uses logit adjustment with the client's own prior~\cite{menon2021la},
 $\ell(f+\tau\log\hat\pi_k,y)$ with $\tau=1$ and the add-one smoothed class frequencies $\hat\pi_k$ of the client. The
@@ -77,7 +78,7 @@ t(\tilde h)=(1-\omega)\,e_y+\omega\,\frac1G\sum_{g=1}^G\mathrm{softmax}\big(f_g(
 \end{equation}
 where $e_y$ is the one-hot generated label and $f_g$ the current head of architecture $g$: the federation's averaged
 prediction on that feature, the target form of AvgKD~\cite{afonin2022avgkd} and FedDF's ensemble
-distillation~\cite{lin2020feddf}, here computed on generated features through one secure sum~\cite{menon2021distill}. Every client regenerates the same pool of generated features from a
+distillation~\cite{lin2020feddf}, here computed on generated features through one secure sum. Every client regenerates the same pool of generated features from a
 seed sent by the server and returns $w_k\,\mathrm{softmax}(f_{a(k)}(\tilde h))$ with $w_k=1/(G\,|\{j:a(j)=a(k)\}|)$; the
 secure sum over clients is the average in \cref{eq:csl}. Every client thus receives every architecture's current
 head, which FedAvg within an architecture does not reveal (\cref{sec:setting}); secure aggregation only hides each
@@ -89,7 +90,8 @@ the same architecture are averaged as in GeFL-F.
 The last layer is where GeFL-F loses most of the rare classes (\cref{sec:analysis-head}), and it is the one part of a
 head that class statistics determine in closed form. \ours therefore ends with the \emph{exact readout} (\ER), a
 class-balanced linear discriminant computed from securely aggregated sums. After Stage III, the server broadcasts every architecture's body; each client computes, for every architecture $g$, the
-per-class counts, the sums $\sum e$ and the second moment $\sum ee^\top$ of the embeddings $e$ of its real features, and
+per-class counts, the sums $\sum e$ and the second moment $\sum ee^\top$ of the embeddings $e\in\Rset^{d_e}$ (the input of the last layer) of its
+real features, and
 secure aggregation sums them over all clients. With the class means $\nu_c$ and the pooled within-class covariance
 $\Sigma$ shrunk to $\Sigma_\gamma=(1-\gamma)\Sigma+\gamma\frac{\mathrm{tr}\,\Sigma}{d_e}I$, $\gamma=0.1$, the last layer of
 architecture $g$ becomes
@@ -110,7 +112,7 @@ $C(d_e+1)+d_e^2$ numbers per architecture and client, and every client must run 
 every architecture's body on its own features once; a client that cannot do so would be left out of the sums. The
 readout does not use the head's trained last layer, only its body, so it can be added to any method whose heads have
 a body and a linear last layer. We therefore report \ours with its readout, its heads before the readout (``heads
-only''), every method as published, and every method of the GeFL-F pipeline with the same readout added (\ER), which
+only''), every method without the readout, and every method of the GeFL-F pipeline with the same readout added (\ER), which
 separates the gain of the readout from that of the rest of the method.
 
 \begin{algorithm}[t]
@@ -141,6 +143,7 @@ probabilities per generated feature per round, and the readout sums once. \claim
 communication and time of every method.} The server, and through the generator and the moment correction every
 client, learns the federation-level class means and spreads. For a class that one client holds, these equal that
 client's own statistics, and for a class with few images, they reveal more about each image than a mean over
-thousands would.
+thousands would. The features come from a shallow extractor, so a class mean is close to a mean image at reduced
+resolution; we did not test how much of the images an inversion of the released means recovers.
 Formal differential privacy for the released statistics is possible with the Gaussian mechanism but is not part of the
 results reported here, and it would not cover the FedAvg training of the generator and heads.
