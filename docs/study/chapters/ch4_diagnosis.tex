@@ -65,23 +65,23 @@ clients 2 and 5, shrink it by a full learning rate on every step.
 
 \paragraph{Averaging turns this into contraction} After the round, the server averages the returned rows. Let
 $\Delta_k=\|r_{k,c}\|-\|r_c\|$ be the change of the length of class $c$'s row on client $k$ during the round. Let
-$\bar G_c$ be the mean of $\Delta_k$ over the $m_c$ clients that hold the class (the \emph{holders}), $\bar D_c$ the
+$\bar g^{+}_c$ (the paper's $\bar G_c$) be the mean of $\Delta_k$ over the $m_c$ clients that hold the class (the \emph{holders}), $\bar g^{-}_c$ the
 mean of $-\Delta_k$ over the others (a positive number when they shrink the row), and $p_c=m_c/K$ the share of holders.
 
 \begin{lemma*}[contraction under flat averaging]
-Under $r_c^+=\frac1K\sum_k r_{k,c}$, $\|r_c^+\|\le\|r_c\|+p_c\bar G_c-(1-p_c)\bar D_c$, with equality if and only if all
-$r_{k,c}$ are non-negative multiples of one another. The row contracts whenever $p_c<\bar D_c/(\bar G_c+\bar D_c)$.
+Under $r_c^+=\frac1K\sum_k r_{k,c}$, $\|r_c^+\|\le\|r_c\|+p_c\bar g^{+}_c-(1-p_c)\bar g^{-}_c$, with equality if and only if all
+$r_{k,c}$ are non-negative multiples of one another. The row contracts whenever $p_c<\bar g^{-}_c/(\bar g^{+}_c+\bar g^{-}_c)$.
 \end{lemma*}
 
 The proof is the triangle inequality: the length of an average is at most the average of the lengths,
-$\frac1K\sum_k\|r_{k,c}\|=\|r_c\|+\frac1K\sum_k\Delta_k=\|r_c\|+p_c\bar G_c-(1-p_c)\bar D_c$. The bound is negative when
-$p_c\bar G_c<(1-p_c)\bar D_c$, which rearranges to $p_c<\bar D_c/(\bar G_c+\bar D_c)$. The inequality is often strict,
+$\frac1K\sum_k\|r_{k,c}\|=\|r_c\|+\frac1K\sum_k\Delta_k=\|r_c\|+p_c\bar g^{+}_c-(1-p_c)\bar g^{-}_c$. The bound is negative when
+$p_c\bar g^{+}_c<(1-p_c)\bar g^{-}_c$, which rearranges to $p_c<\bar g^{-}_c/(\bar g^{+}_c+\bar g^{-}_c)$. The inequality is often strict,
 because clients that fit the row to their own few images move it in different directions, and averaging vectors that
 point in different directions shortens them further.
 
 The two classes of the running example show the difference. Class 0 is held by all ten clients, so $p_0=1$: there
-are no non-holders, the decay term is absent, and the row can only shrink through the triangle inequality. Class 9 is
-held by eight clients, $p_9=0.8$. Take, for illustration, $\bar G_9=0.02$ and $\bar D_9=0.05$: the threshold is
+are no non-holders, the decay term is absent, and the row can shrink only through the triangle inequality. Class 9 is
+held by eight clients, $p_9=0.8$. Take, for illustration, $\bar g^{+}_9=0.02$ and $\bar g^{-}_9=0.05$: the threshold is
 $0.05/0.07=0.71$, below $0.8$, and the bound allows a gain of $0.8\cdot0.02-0.2\cdot0.05=0.006$ per round. If the
 holders' mean change is zero, which the previous paragraph makes plausible, the threshold is $1$, above $0.8$, and the
 row shrinks by at least $0.2\cdot0.05=0.01$ every round, over 200 rounds. \Cref{fig:s-shrink} draws this picture with
@@ -104,9 +104,9 @@ class 9, which two clients lack and the holders rarely see, shrinks a little eve
 
 The paper also gives a predictor of the direction, counting Adam steps:
 \[
-\kappa_c=\frac{\sum_{k\in H_c}q_k f_{kc}}{\sum_{k\notin H_c}q_k},
+\kappa_c=\frac{\sum_{k\in H_c}q_k u_{kc}}{\sum_{k\notin H_c}q_k},
 \]
-where $H_c$ is the set of holders, $q_k$ the number of local steps of client $k$, and $f_{kc}$ the probability that a
+where $H_c$ is the set of holders, $q_k$ the number of local steps of client $k$, and $u_{kc}$ the probability that a
 batch of client $k$ contains class $c$. The numerator counts the steps on which a holder actually sees the class, the
 denominator the steps on which a non-holder decays it; a holder's other steps are neglected, which the previous
 paragraph justifies. When $\kappa_c<1$ the row drifts toward zero. The paper is explicit that this is a heuristic, not
@@ -115,7 +115,7 @@ a bound: it ignores the momentum Adam carries between rounds, and it was \emph{n
 \paragraph{The remedies} Two changes remove the effect. Decoupled weight decay (AdamW) applies the decay outside
 Adam's normalisation, so the shrinkage becomes the negligible factor $1-\eta\lambda$. Or the rows can be averaged over
 their holders only, weighted by how much of the class each holds (class-count weighted averaging, CCWA, in
-\cref{sec:s-gen}): the non-holders' term $\bar D_c$ then drops out of the lemma.
+\cref{sec:s-gen}): the non-holders' term $\bar g^{-}_c$ then drops out of the lemma.
 
 \paragraph{What was measured} The paper's figure of the class rows (\cref{fig:s-rows}) shows that after Stage II the
 rows of the rarest classes are several times shorter than those of the most frequent ones. That is the predicted
@@ -125,11 +125,11 @@ A second measurement limits what this shows. After Stage I the server trains a c
 features of its validation images, and asks it to classify 300 generated features of each class. The share it assigns
 to the intended class is the generator's \emph{fidelity} for that class. If the decay were what makes rare classes
 fail, the rare classes' fidelity would be low and the frequent classes' high. Instead GeFL-F's generated CIFAR-10-LT
-features are recognised at \R{main/cifar10/GeFL-F/fidelity_all} on average (chance is 10\%),
+features are recognised (besides the tail classes of \cref{ch:gefl}, the paper reports the \emph{head classes}, the
+30\% most frequent, and the \emph{medium} classes in between) at \R{main/cifar10/GeFL-F/fidelity_all} on average
+(chance is 10\%),
 \R{main/cifar10/GeFL-F/fidelity_head} on the head classes and \R{main/cifar10/GeFL-F/fidelity_tail} on the tail
-classes. On CIFAR-100-LT the mean is \R{main/cifar100/GeFL-F/fidelity_all}, chance level (\cref{tab:s-fidelity}). Besides the
-tail classes of \cref{ch:gefl}, the paper reports the \emph{head classes}, the 30\% most frequent, and the
-\emph{medium} classes in between. The referee's accuracy on held-out real features was not
+classes. On CIFAR-100-LT the mean is \R{main/cifar100/GeFL-F/fidelity_all}, chance level (\cref{tab:s-fidelity}). The referee's accuracy on held-out real features was not
 logged, so the fidelity values compare generators with each other, not with real data.
 
 \paragraph{How strong the evidence is} The shrinkage is measured and predicted by the lemmas. That it causes the rare
@@ -169,7 +169,8 @@ methods of the paper do this by adding a constant vector $a_k$ to the logits dur
 \item \emph{logit adjustment} and \emph{Balanced Softmax}: $a_k=\tau\log\hat\pi_k$, with $\tau=1$;
 \item \emph{FedLC}: $a_{kc}=-\tau(n_{kc}+1)^{-1/4}$, which lowers the logits of rare classes during training
 (\texttt{fedecs.client\_loss\_adj});
-\item \emph{FedRS} instead multiplies the logits of the classes the client lacks by $\alpha=0.5$ during training.
+\item \emph{FedRS} instead multiplies the logits of the classes the client lacks by $\alpha_{\mathrm{RS}}=0.5$ during
+training (not the Dirichlet $\alpha$ of \cref{ch:problem}).
 \end{itemize}
 \emph{Post-hoc logit adjustment} is the version without retraining: train plainly, then subtract $\tau\log\hat\pi$ from
 the logits at test time, which raises the classes the training data made rare.
@@ -181,16 +182,16 @@ Let a head have a free last-layer bias $b$, trained by SGD without decay on $b$,
 of client $k$, as in logit adjustment ($a_k=\tau\log\hat\pi_k$), FedLC or Balanced Softmax. Training with the loss
 $\ell(f+a_k,y)$ from $(\theta_0,b_0)$ produces exactly the trajectory of training with $\ell(f,y)$ from
 $(\theta_0,b_0+a_k)$: every parameter except $b$ is the same at every step. FedRS, which scales the logits of absent
-classes by $\alpha\in(0,1]$, is cross-entropy in the rescaled last-layer variables $\alpha w_c,\alpha b_c$ of those
-classes, trained with the smaller learning rate $\alpha^2\eta$.
+classes by $\alpha_{\mathrm{RS}}\in(0,1]$, is cross-entropy in the rescaled last-layer variables $\alpha_{\mathrm{RS}} w_c,\alpha_{\mathrm{RS}} b_c$ of those
+classes, trained with the smaller learning rate $\alpha_{\mathrm{RS}}^2\eta$.
 \end{lemma*}
 
 The proof: $f+a_k=We+(b+a_k)$, and moving from $b$ to $b+a_k$ is a translation, which does not change gradients; by
 induction over the steps the two trajectories agree. So training with the corrected loss is plain training that
 starts from the bias $b_0+a_k$, and leaving the correction out at test time subtracts $a_k$: post-hoc logit adjustment
-of a head trained from a shifted starting bias. For FedRS, write $\tilde w_c=\alpha w_c$; the gradient with respect to
-$\tilde w_c$ is $1/\alpha$ times the gradient with respect to $w_c$, so a step of $\eta$ on $w_c$ moves $\tilde w_c$ by
-$\alpha^2\eta$ times that gradient, while the body sees the same logits.
+of a head trained from a shifted starting bias. For FedRS, write $\tilde w_c=\alpha_{\mathrm{RS}} w_c$; the gradient with respect to
+$\tilde w_c$ is $1/\alpha_{\mathrm{RS}}$ times the gradient with respect to $w_c$, so a step of $\eta$ on $w_c$ moves $\tilde w_c$ by
+$\alpha_{\mathrm{RS}}^2\eta$ times that gradient, while the body sees the same logits.
 
 \paragraph{A three-class example} A client holds 70 images of class A, 30 of class B and none of class C. With add-one
 smoothing its frequencies are $(71,31,1)/103$, so $a=\log\hat\pi\approx(-0.37,\,-1.20,\,-4.63)$. At test time the

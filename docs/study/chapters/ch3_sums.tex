@@ -37,8 +37,8 @@ advance, takes the same value for every partition of the pooled data, and equals
 The proof is that addition does not depend on the order or grouping of its terms. The lemma is simple, and the paper
 says that it is known for closed-form federated classifiers (Fed3R, AFL, FedCOF). Its use here is that it tells which
 quantities a federated method can compute \emph{without any bias from the split}: those that are functions of
-per-client sums. It does not remove the bias that a small sample causes in any estimator, centralised or not; that
-bias is the fourth route at the end of this chapter. The class spread is one. With $S^{(2)}_{kc}=\sum_{i\in D_{kc}}\|h_i\|^2$,
+per-client sums. The class spread is one. (The lemma does not remove the bias that a small sample causes in any
+estimator, centralised or not; that bias is the fourth route at the end of this chapter.) With $S^{(2)}_{kc}=\sum_{i\in D_{kc}}\|h_i\|^2$,
 \[
 V_c=\frac{\sum_k S^{(2)}_{kc}}{n_c}-\|\mu_c\|^2=\E\big[\|h-\mu_c\|^2\,\big|\,y=c\big],
 \]

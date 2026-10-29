@@ -79,8 +79,9 @@ toward the ten architectures' mean prediction, for 20 steps. FedDF originally di
 on GeFL-F's generated features, so that no method uses data that no client holds. It is the strongest generator-based
 competitor.
 \item \textbf{Per-client long-tail losses}: Balanced Softmax, FedLC and FedRS, applied to the heads with \emph{no
-generator}. They test whether correcting the loss alone repairs the long tail. By the reparametrisation lemma they
-should behave alike, and \cref{ch:diagnosis} showed that they do once the readout is added.
+generator}. They test whether correcting the loss alone repairs the long tail. By the reparametrisation lemma their
+offsets add no information to the last layer, and \cref{ch:diagnosis} showed that the three are equal once the last
+layer is replaced by the readout.
 \item \textbf{Model-heterogeneous methods from the HtFLlib library}: prototypes (FedProto, FedTGP), a generator of
 embeddings (FedGen), a shared global head (FedGH), shared last layers (LG-FedAvg) and shared sub-networks (FedMRL). They
 represent the other ways of sharing knowledge between different models. They were designed for label skew without a
@@ -97,9 +98,9 @@ of this design.
 \paragraph{Fairness of the comparison} The paper's fairness table records what each method spends and exchanges.
 FedECS-LT trains 10 synthetic epochs per round against 1 for GeFL-F and FedDF and none for the methods without a
 generator; it exchanges consensus soft labels; and it ends with the readout. GeFL-F, FedDF and the three per-client losses are
-also reported with the readout added. The paper calls a method's heads after Stage III, without the readout, its
-\emph{heads as trained}. The HtFLlib methods are not, so FedECS-LT's margin over them includes the
-readout's gain. No baseline was tuned on the paper's data.
+also reported with the readout added. The HtFLlib methods are not, so FedECS-LT's margin over them includes the
+readout's gain. No baseline was tuned on the paper's data. The paper calls a method's heads after Stage III, without
+the readout, its \emph{heads as trained}.
 
 \subsection{Metrics}
 
@@ -135,8 +136,8 @@ is $1.43/(0.86/\sqrt3)=2.89$ with 2 degrees of freedom, giving an uncorrected tw
 $1.43\pm4.30\cdot0.86/\sqrt3$, which is \R{main/cifar10/er_ci/Balanced Softmax}: it contains zero.
 
 \paragraph{Holm's correction} A table compares FedECS-LT with many methods at once, and with many tests some will look
-significant by chance. Holm's procedure controls this. Sort the $m$ $p$-values from smallest to largest, multiply the
-smallest by $m$, the next by $m-1$, and so on, and keep each adjusted value at least as large as the one before. A
+significant by chance. Holm's procedure controls this. Sort the $M$ $p$-values from smallest to largest, multiply the
+smallest by $M$, the next by $M-1$, and so on, and keep each adjusted value at least as large as the one before. A
 difference is called significant only if its adjusted $p$ is below $0.05$. The family is every other method of the
 same table and setting. In the example the family is the five other methods of the pipeline, with uncorrected $p$
 of $0.068$ (GeFL-F), $0.094$ (FedRS), $0.097$ (FedLC), $0.102$ (Balanced Softmax) and $0.126$ (FedDF) (run logs). Holm
@@ -175,8 +176,8 @@ The paper lists these threats in its design section. Each one changes how a resu
 \item \textbf{Compute.} FedECS-LT trains longer and communicates more. Its gain is therefore not shown to come from the
 statistics rather than from the extra computation until the matched-epoch runs return.
 \item \textbf{Missing runs.} Some settings have fewer than three seeds, and those values carry no interval or a very
-wide one: EMNIST (one seed), CIFAR-100-LT with one shared model (one seed for FedECS-LT), and CIFAR-10-LT with one
-shared model (seeds 3 and 4 only for FedECS-LT, CCVR, Fed-GraB, FedLC, FedYoYo and RUCR). With one shared model some runs of FedECS-LT failed where the baselines finished,
+wide one: EMNIST (one seed), CIFAR-100-LT with one shared model (seeds 3 and 4 for every method, but only seed 4 for FedECS-LT and FedLoGe), and
+CIFAR-10-LT with one shared model (seeds 3 and 4 only for FedECS-LT, CCVR, Fed-GraB, FedLC, FedYoYo and RUCR). With one shared model some runs of FedECS-LT failed where the baselines finished,
 so the missing runs are not random.
 \item \textbf{Ports.} The HtFLlib methods run on a frozen extractor with settings meant for end-to-end training, which
 may not suit them.

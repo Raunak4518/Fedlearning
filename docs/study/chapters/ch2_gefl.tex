@@ -48,8 +48,8 @@ client $k$ trains architecture $k$, so each architecture has exactly one client.
 \begin{table}[t]
 \centering\small
 \caption{The ten head architectures on CIFAR (from \texttt{settings.HEADER\_WIDTHS} and \texttt{models.PaperHeader}
-in \texttt{fedecs\_lt/src}): output channels of each $3\times3$ convolutional block (each followed by batch
-normalisation, ReLU and $2\times2$ max pooling), embedding dimension $d_e$ and number of parameters with $C=10$. Look
+in \texttt{fedecs\_lt/src}): output channels of each $3\times3$ convolutional block (each followed by ReLU and $2\times2$ max pooling; on
+the medical datasets also by batch normalisation), embedding dimension $d_e$ and number of parameters with $C=10$. Look
 at $d_e$: it falls as the heads get deeper, so the deepest heads have the smallest embeddings.}
 \label{tab:s-heads}
 \begin{adjustbox}{max width=\linewidth}
@@ -57,7 +57,7 @@ at $d_e$: it falls as the heads get deeper, so the deepest heads have the smalle
 Head & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10\\\midrule
 Blocks & 16 & 16,32 & 20,40 & 10,20 & 16,32,64 & 20,40,80 & 10,20,40 & 16,\dots,128 & 20,\dots,100 & 10,\dots,80\\
 $d_e$ & 1024 & 512 & 640 & 320 & 256 & 320 & 160 & 128 & 100 & 80\\
-Parameters & 11.7k & 11.3k & 15.6k & 6.0k & 27.4k & 41.4k & 11.7k & 100.2k & 111.5k & 40.0k\\\bottomrule
+Parameters & 11.7k & 11.2k & 15.5k & 5.9k & 27.2k & 41.1k & 11.6k & 99.7k & 111.0k & 39.7k\\\bottomrule
 \end{tabular}
 \end{adjustbox}
 \end{table}
@@ -85,8 +85,7 @@ generator that was trained partly on client 7's 63 images of that class. If the 
 real ones, client 2's head learns class 9 without ever seeing a class-9 image. Whether they do look like real ones is
 the central question of \cref{ch:diagnosis}.
 
-\paragraph{What goes wrong} GeFL-F was designed and evaluated on balanced clients. On CIFAR-10-LT (mean over seeds 3--5, of which the running
-example is the first) it reaches \R{main/cifar10/GeFL-F/bal} balanced accuracy on CIFAR-10-LT, about the level of Local, in which
+\paragraph{What goes wrong} GeFL-F was designed and evaluated on balanced clients. On CIFAR-10-LT (mean over seeds 3--5, of which the running example is the first) it reaches \R{main/cifar10/GeFL-F/bal} balanced accuracy, about the level of Local, in which
 every client trains alone (\R{main/cifar10/Local/bal}). On the tail classes, the 40\% least frequent (classes 6--9),
 its recall is \R{main/cifar10/GeFL-F/tail}. On CIFAR-100-LT it reaches \R{main/cifar100/GeFL-F/bal}, against
 \R{main/cifar100/Local/bal} for Local. On these benchmarks GeFL-F ends close to training alone.

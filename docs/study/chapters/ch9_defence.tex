@@ -10,8 +10,8 @@ strongest other method by \R{main/cifar10/margin} and \R{main/cifar100/margin} p
 method of the GeFL-F pipeline it leads by \R{main/cifar10/er_margin} \R{main/cifar10/er_strongest_ci} and
 \R{main/cifar100/er_margin} \R{main/cifar100/er_strongest_ci}, not significant after Holm's correction
 ($p=\R{main/cifar10/er_strongest_p}$ and $\R{main/cifar100/er_strongest_p}$), and by at most \R{nat/er_margin_hi} on the
-natural datasets (\cref{sec:s-same-readout,sec:s-natural}). Balanced Softmax, which has no generator, ends
-\R{main/cifar10/er_diff/Balanced Softmax} points behind FedECS-LT on CIFAR-10-LT once it has the readout.
+natural datasets (\cref{sec:s-same-readout,sec:s-natural}). Balanced Softmax, which has no generator, leaves
+FedECS-LT a lead of only \R{main/cifar10/er_diff/Balanced Softmax} points on CIFAR-10-LT once it has the readout.
 
 \paragraph{Why the readout is still part of the method} The readout follows from the diagnosis: \cref{sec:s-lastlayer}
 shows that no per-client correction of the loss can give a last layer information about absent classes, and the
@@ -99,8 +99,8 @@ omit it, is not implemented.
 
 \paragraph{Answer} First correct the premise: on CIFAR-10-LT, paired over the two seeds both have, FedECS-LT minus FedAvg is \R{t2/cifar10-r100/diff/FedAvg} \R{t2/cifar10-r100/ci/FedAvg} points, which is unresolved; the
 methods that are far ahead are FedYoYo, FedLoGe and CCVR (\cref{sec:s-shared}). The honest conclusion is that
-FedECS-LT is a method for clients with different models, and that in this protocol it is behind the long-tail methods
-built for it. Why, the paper did not test. Possible reasons are that with one shared model FedAvg already carries
+FedECS-LT is a method for clients with different models, and that in this protocol it is behind the strongest long-tail
+methods built for it, FedYoYo, FedLoGe and CCVR. Why, the paper did not test. Possible reasons are that with one shared model FedAvg already carries
 every client's knowledge into every model, that FedECS-LT trains its head on frozen features of unaugmented images
 while the baselines train end to end with augmentation, and, for the readout's
 \R{t2/cifar10-r100/FedECS-LT/gain_er}-point effect, that the shared head's last layer is not fitted to one client's

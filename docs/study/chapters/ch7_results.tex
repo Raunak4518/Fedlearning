@@ -152,7 +152,8 @@ not reach $0.05$. The differences to GeFL-F and FedDF on CIFAR-100-LT stay signi
 Balanced Softmax gains \R{main/cifar10/Balanced Softmax/gain_er} points on CIFAR-10-LT, GeFL-F
 \R{main/cifar10/GeFL-F/gain_er}. Second, once every method has it, the methods are close. Third, Balanced Softmax with
 the readout reaches \R{main/cifar10/Balanced Softmax/er_bal} on CIFAR-10-LT. With one client per architecture, Balanced
-Softmax trains every head on its own client's data with no generator and no exchange after Stage I. So a body trained alone, plus the readout computed over all clients, ends only \R{main/cifar10/er_diff/Balanced Softmax} points behind the full method. Most of the margin of \cref{sec:s-main} is the readout's.
+Softmax trains every head on its own client's data with no generator and no exchange after Stage I. So a body trained alone, plus the readout computed over all clients, leaves the full method a lead of only
+\R{main/cifar10/er_diff/Balanced Softmax} points. Most of the margin of \cref{sec:s-main} is the readout's.
 
 \paragraph{What it does not show} It does not show that the other components do nothing. Margins of
 \R{main/cifar10/er_margin} and \R{main/cifar100/er_margin} points exceed the noise floor of \R{repeat/er/floor}, but
@@ -270,7 +271,8 @@ all clients can run the same model. It is a test of scope, outside the setting t
 \centering\small
 \caption{Balanced accuracy (\%) with one ResNet-8 shared by all clients (FedLTLib protocol), imbalance ratio 100; the
 paper's shared-model table. Each row averages the seeds that completed: on CIFAR-10-LT seeds 3 and 4 for FedECS-LT,
-CCVR, Fed-GraB, FedLC, FedYoYo and RUCR, seeds 3--5 for the others; a value without $\pm$ is from one seed. Look at
+CCVR, Fed-GraB, FedLC, FedYoYo and RUCR, seeds 3--5 for the others; on CIFAR-100-LT seeds 3 and 4, but seed 4 only
+for FedECS-LT and FedLoGe, whose values have no $\pm$. Look at
 which rows are clearly above the first one, and which only slightly.}
 \label{tab:s-shared}
 \slottab{t2_bal}{}
@@ -281,12 +283,14 @@ which rows are clearly above the first one, and which only slightly.}
 \R{t2/cifar10-r100/FedECS-LT (heads only)/bal} on CIFAR-10-LT. Paired over the seeds both have, three methods are far above it on CIFAR-10-LT, with uncorrected intervals that
 exclude zero: FedYoYo by \R{t2/cifar10-r100/diff/FedYoYo} points \R{t2/cifar10-r100/ci/FedYoYo},
 FedLoGe by \R{t2/cifar10-r100/diff/FedLoGe} \R{t2/cifar10-r100/ci/FedLoGe} and CCVR by
-\R{t2/cifar10-r100/diff/CCVR} \R{t2/cifar10-r100/ci/CCVR} (negative numbers: FedECS-LT is behind). FedAvg and MOON have
-higher means, \R{t2/cifar10-r100/FedAvg/bal} and \R{t2/cifar10-r100/MOON/bal}, but the paired differences,
+\R{t2/cifar10-r100/diff/CCVR} \R{t2/cifar10-r100/ci/CCVR} (negative numbers: FedECS-LT is behind). FedAvg, MOON and FedETF
+have higher means, \R{t2/cifar10-r100/FedAvg/bal} and \R{t2/cifar10-r100/MOON/bal}, but the paired differences,
 \R{t2/cifar10-r100/diff/FedAvg} \R{t2/cifar10-r100/ci/FedAvg} and \R{t2/cifar10-r100/diff/MOON}
-\R{t2/cifar10-r100/ci/MOON}, are unresolved on two seeds. FedLC, CReFF, RUCR and Fed-GraB have lower means
-(\R{t2/cifar10-r100/FedLC/bal}, \R{t2/cifar10-r100/CReFF/bal}, \R{t2/cifar10-r100/RUCR/bal} and
-\R{t2/cifar10-r100/Fed-GraB/bal}). With two seeds no paired difference is significant after Holm's correction. On
+\R{t2/cifar10-r100/ci/MOON} and \R{t2/cifar10-r100/diff/FedETF} \R{t2/cifar10-r100/ci/FedETF}, are unresolved on two
+seeds. FedLC, CReFF, FedProx, RUCR and Fed-GraB have lower means (\R{t2/cifar10-r100/FedLC/bal},
+\R{t2/cifar10-r100/CReFF/bal}, \R{t2/cifar10-r100/FedProx/bal}, \R{t2/cifar10-r100/RUCR/bal} and
+\R{t2/cifar10-r100/Fed-GraB/bal}). After Holm's correction no method ahead of FedECS-LT is significantly ahead, and
+of those behind it only RUCR is significantly behind ($p=\R{t2/cifar10-r100/p/RUCR}$). On
 CIFAR-100-LT \R{t2/cifar100-r100/above_list} have higher means. The readout changes the heads by
 \R{t2/cifar10-r100/FedECS-LT/gain_er} points on CIFAR-10-LT and \R{t2/cifar100-r100/FedECS-LT/gain_er} on
 CIFAR-100-LT. The runs of FedECS-LT that are missing failed where the baselines finished, so they are not missing at
@@ -316,7 +320,7 @@ further below; they run with the library's common settings, which differ from th
 tuned.
 
 \paragraph{What it shows} FedECS-LT is a method for clients with different models. When the clients can share one
-model, the long-tail methods FedYoYo, FedLoGe and CCVR have far higher means, and plain FedAvg is not worse.
+model, the long-tail methods FedYoYo, FedLoGe and CCVR have far higher means, and plain FedAvg is not shown to be worse.
 
 \subsection{Representations}
 
@@ -382,8 +386,8 @@ and what changes. ``Supports'' always means a difference above the noise floor \
 correction.
 
 \paragraph{Several clients per architecture} The paper's 50-client setting has five clients per architecture, so heads
-of one architecture are averaged in Stage III. The question: is the readout's dominance an artefact of one client per
-architecture? With averaging, Balanced Softmax's heads would no longer be purely local, and their last layers would no
+of one architecture are averaged in Stage III. The question is whether the readout's dominance is an artefact of one
+client per architecture. With averaging, Balanced Softmax's heads would no longer be purely local, and their last layers would no
 longer fit one client's prior, so the readout should matter less. The paper is supported if FedECS-LT stays ahead of
 every method with the readout; it is weakened if the margins fall to zero, because then FedECS-LT's case would rest on
 the one-client-per-architecture setting alone. When the runs return, the paper gains a table and a figure with both
@@ -396,7 +400,7 @@ pending; the first attempt on CIFAR-10-LT ran out of host memory on Kaggle (run 
 per GPU.}
 
 \paragraph{New client splits} Seeds 6--8 draw splits that the development never used, for FedECS-LT, GeFL-F, FedDF
-and Balanced Softmax. The question: are the CIFAR margins the product of choosing settings on the reported splits? The
+and Balanced Softmax. The question is whether the CIFAR margins are the product of choosing settings on the reported splits. The
 paper is supported if the margins on seeds 6--8 are like those on 3--5, and weakened if the same-readout margin
 vanishes there. When they return, the paper reports the margins on the new splits next to those on seeds 3--5, and the
 development threat can point to them.

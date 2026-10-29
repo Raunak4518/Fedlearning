@@ -200,8 +200,8 @@ ratio 100, \ours reaches \R{t2/cifar10-r100/FedECS-LT/bal} on CIFAR-10-LT and
 \R{t2/cifar100-r100/FedECS-LT/bal} on CIFAR-100-LT, against \R{t2/cifar10-r100/FedAvg/bal} and
 \R{t2/cifar100-r100/FedAvg/bal} for FedAvg, while \R{t2/r100/strongest_phrase} \ours on the seeds both have (seeds \R{t2/cifar10-r100/margin_seeds} on CIFAR-10-LT and
 \R{t2/cifar100-r100/margin_seeds} on CIFAR-100-LT; \cref{tab:shared} averages every seed of each method).
-With two common seeds on CIFAR-10-LT no paired difference is significant after Holm's correction; FedAvg and MOON have
-higher means than \ours, but their paired differences, \R{t2/cifar10-r100/diff/FedAvg} \R{t2/cifar10-r100/ci/FedAvg}
+With two common seeds on CIFAR-10-LT no method above \ours is significantly so after Holm's correction; FedAvg and
+MOON have higher means than \ours, but their paired differences, \R{t2/cifar10-r100/diff/FedAvg} \R{t2/cifar10-r100/ci/FedAvg}
 and \R{t2/cifar10-r100/diff/MOON} \R{t2/cifar10-r100/ci/MOON}, are unresolved.} A possible
 explanation is that with one shared model the baselines train the whole network end to end on real, augmented data,
 whereas \ours trains its head on frozen features (\cref{sec:setup-protocols}). We did not measure the representations

@@ -87,7 +87,7 @@ r_c\leftarrow\frac{\sum_k E(n_{kc})\,r_{k,c}}{\sum_k E(n_{kc})},\qquad E(n)=\fra
 \]
 $E(n)$ is the \emph{effective number of samples} (a function of a count, not the expectation $\E$), and this $\beta$
 is CCWA's own constant, unrelated to Adam's $\beta_2$ although equal in value. $E(n)$ is zero for a client without the
-class, so non-holders drop out and the term $\bar D_c$ of the contraction lemma disappears. It is close to $n$ for small
+class, so non-holders drop out and the term $\bar g^{-}_c$ of the contraction lemma disappears. It is close to $n$ for small
 $n$ and saturates at $1/(1-\beta)=1000$, so one large client cannot dominate a class. For class 9 of the running
 example, client 7 (63 images) gets weight $E(63)\approx61.1$, client 1 (4 images) gets $E(4)\approx4.0$, and clients 2
 and 5 get zero. For class 1, client 7's 2,803 images give $E(2803)\approx940$, not 2,803. Both sums are computed by
@@ -170,9 +170,9 @@ support, and that every head learns from the ensemble of all ten architectures; 
 accuracy is a pending ablation.
 
 \paragraph{How the consensus is computed} The average is computed by one secure sum per round. Every client
-regenerates the same pool of generated features from a seed the server sends. Writing $a(k)$ for the architecture of
-client $k$, it returns $w_k\,\mathrm{softmax}(f_{a(k)}(\tilde h))$ for every feature of the pool, with
-$w_k=1/(10\cdot|\{j:a(j)=a(k)\}|)$, one over ten times the number of clients of its own architecture. The secure sum of
+regenerates the same pool of generated features from a seed the server sends. Writing $\mathrm{arch}(k)$ for the architecture
+of client $k$, it returns $w_k\,\mathrm{softmax}(f_{\mathrm{arch}(k)}(\tilde h))$ for every feature of the pool, with
+$w_k=1/(10\cdot|\{j:\mathrm{arch}(j)=\mathrm{arch}(k)\}|)$, one over ten times the number of clients of its own architecture. The secure sum of
 these is the average above. The pool is as large as the largest client's synthetic phase, $T_s\lfloor n_k/B\rfloor B$
 (\texttt{fedecs.csl\_pool\_size}): in the running example, client 7 with 4,538 images gives
 $10\cdot35\cdot128=44{,}800$ features, so every client returns $448{,}000$ numbers per round. For this every client also
@@ -251,8 +251,8 @@ w_c=\Sigma_\gamma^{-1}\nu_c,\qquad b_c=-\tfrac12\,\nu_c^\top\Sigma_\gamma^{-1}\n
 $b_c=-10^4$ for a class that no client holds, so that it is never predicted.
 
 Carried through the example, $\Sigma_\gamma=0.9\,\mathrm{diag}(1,0.25)+0.1\cdot0.625\,I=\mathrm{diag}(0.9625,\,0.2875)$,
-so $w_A\approx(1.04,\,3.48)$ and $b_A\approx-2.26$. For $e=(1.2,0.3)$ the logit of A is
-$1.04\cdot1.2+3.48\cdot0.3\approx2.29$, now above $2.26$: with shrinkage the point goes back to A. Shrinkage pulls the
+so $w_A\approx(1.04,\,3.48)$ and $b_A\approx-2.26$. For $e=(1.2,0.3)$, $w_A^\top e=1.04\cdot1.2+3.48\cdot0.3\approx2.29$ now exceeds
+$-b_A\approx2.26$, so A's logit is about $+0.03$, above B's logit $0$: with shrinkage the point goes back to A. Shrinkage pulls the
 rule part of the way from LDA toward the nearest-mean rule, trusting the precise direction less, and with it the
 estimates of the small variances, which are the least reliable part of the estimate.
 
@@ -324,7 +324,7 @@ round, and the readout sums once. The measured totals are in \cref{ch:results}.
 \paragraph{What is revealed} Secure aggregation hides each client's own vectors. The server, and through the generator
 and the moment correction every client, learns the federation-level class means and spreads. For a class that one
 client holds, these equal that client's own statistics. For a class with few images they reveal more about each image
-than a mean over thousands would: each of class 9's 100 images contributes a hundredth of its class mean. The features
+than a mean over thousands would: each of class 9's 100 images enters its class mean with a weight of one hundredth. The features
 come from a shallow extractor, two convolutions and a pooling, so a class mean is close to a mean image at half
 resolution. The paper did not test how much of the images an inversion of the released means recovers. Formal
 differential privacy, adding calibrated noise to the sums, is possible but not part of the results, and it would not
