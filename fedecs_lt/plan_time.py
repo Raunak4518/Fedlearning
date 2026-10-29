@@ -17,7 +17,10 @@ HEAD_FEDECS = (531.0, 8.88e-4)    # FedECS-LT Stage III (consensus, readout, sec
 HTFL = (60.0, 3.81e-3)            # FedTGP: 7,040 s at 18,485 x 100 (HtFLlib batch 10)
 # relative cost of each method's own stage (measured: GeFL-F, FedECS-LT, FedTGP; the others are estimates from what
 # each adds: FedDF a server distillation, FedGen a generator, FedMRL a second model)
-HEAD_FACTOR = {"FedDF": 2.0, "FedDF + LA": 2.0, "Local": 1.5, "GeFL-F w/ Gaussian generator + LA": 1.2}
+HEAD_FACTOR = {"FedDF": 2.0, "FedDF + LA": 2.0, "Local": 1.5, "GeFL-F w/ Gaussian generator + LA": 1.2,
+               # ten synthetic epochs per round instead of one (estimates: the synthetic phase dominates, as in
+               # FedECS-LT's head stage, which is about four times GeFL-F's)
+               "GeFL-F (T_s=10)": 4.0, "FedDF (T_s=10)": 5.0}
 HTFL_FACTOR = {"FedProto": 1.0, "FedTGP": 1.0, "FedGen": 1.2, "FedGH": 0.9, "LG-FedAvg": 0.8, "FedMRL": 1.6}
 # GeFL's grouped baselines: a head stage on real data (estimates: FedALA adds its weight learning, AvgKD every other
 # architecture's forward pass, CCVR its calibration)
@@ -33,7 +36,8 @@ BUDGET_H = 9.5                    # a part's estimate must stay below this (no n
 SETUP_S = 25 * 60                 # packages, data, report and packing
 
 PIPE_GEN = {"FedECS-LT": "fedecs", "GeFL-F": "cvae", "FedDF": "cvae", "FedDF + LA": "cvae",
-            "GeFL-F + LA": "cvae_adamw",
+            "GeFL-F + LA": "cvae_adamw", "GeFL-F + AdamW": "cvae_adamw",   # the same generator (one cache)
+            "GeFL-F (T_s=10)": "cvae", "FedDF (T_s=10)": "cvae",
             # component ablation: four variants share FedECS-LT's generator, two train class-row generators
             "FedECS-LT w/o moment correction": "fedecs", "FedECS-LT w/o consensus soft labels": "fedecs",
             "FedECS-LT w/o logit adjustment": "fedecs", "FedECS-LT w/ one synthetic epoch": "fedecs",

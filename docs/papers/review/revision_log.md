@@ -7,3 +7,4 @@
 | v02 | 248170e | 1 | results and discussion corrected after agent D (tail, own mix, shared model, published numbers, 10-NN, significance) |
 | v03 | (this commit) | 1 | C and D cycle-1 findings: tuning disclosure (seeds 3-5), test-set balance, Holm family wording, grouped baselines at K=10, SecAgg bounds, appendix widths and FedDF, notation, noise floor slots, threats |
 | v04 | (this commit) | 1 | literature audit (B) and remaining technical items (C, D-15) |
+| v05 | (this commit) | 1 | readout inside FedECS-LT (user decision; fill.py heads-only row, same-readout comparisons); E findings: fidelity table, softened decay diagnosis, client assumption, lemmas, post-hoc logit adjustment, method counts, calibration rank, development count, conclusion and highlights, cost against Balanced Softmax, number formatting, final-mode build; conditional text for the four new Flower notebooks |

@@ -71,37 +71,6 @@ def main_setting_notebook(ds, part=None, methods=None, seeds=SEEDS):
                       hours=None, acceptance=False, runs=runs, **from_settings)
 
 
-def ablation_notebook(ds, seeds=SEEDS):
-    sys.path.insert(0, SRC)
-    import settings
-    spec = settings.DATASETS[ds]
-    name = f"NB30_ablation_{ds}"
-    title = f"Ablations on {spec['name']}-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5"
-    runs = [run(m, ds, s) for s in seeds for m in ABLATIONS]
-    return name, dict(title=title, what=f"{title}: GeFL-F without its generator, with logit adjustment, with a "
-                                        "Gaussian generator, and FedDF with logit adjustment; seeds 3-5. FedECS-LT and "
-                                        "GeFL-F, the references, come from the main notebook of this dataset (same "
-                                        "client splits and seeds).", hours=None, acceptance=False, runs=runs)
-
-
-def components_notebook(ds, seeds=SEEDS):
-    """Component ablation of FedECS-LT (paper, Table "Components of FedECS-LT"): one component changed at a time.
-    The full FedECS-LT, the reference, comes from the main notebook of this dataset (same splits and seeds)."""
-    sys.path.insert(0, SRC)
-    import runner
-    import settings
-    spec = settings.DATASETS[ds]
-    name = f"NB31_components_{ds}"
-    title = f"Components of FedECS-LT on {spec['name']}-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5"
-    runs = [run(m, ds, s) for s in seeds for m in runner.COMPONENTS]
-    return name, dict(title=title, what=f"{title}: FedECS-LT with one component changed at a time (class rows with "
-                                        "CCWA or flat averaging instead of the gate, without moment correction, "
-                                        "without consensus soft labels, without logit adjustment, one synthetic "
-                                        "epoch); seeds 3-5. The full FedECS-LT comes from the main notebook of this "
-                                        "dataset (same client splits and seeds).", hours=None, acceptance=False,
-                      runs=runs)
-
-
 # robustness sweeps (paper, Table "Robustness"): CIFAR-10-LT, FedECS-LT, GeFL-F and the two strongest other methods
 # of the main comparison on CIFAR-10-LT and CIFAR-100-LT when the sweeps were built (27 Oct 2026: FedDF, Balanced
 # Softmax), one setting changed at a time from the main setting (imbalance ratio 100, Dirichlet 0.5, 10 clients)
@@ -164,6 +133,53 @@ def pooled_reference_notebook(seeds=SEEDS):
     return name, dict(title=title, what=f"{title}: the same images as the federated split of each seed, every client "
                                         "holding all of them; heads on real data, as trained and with the exact "
                                         "readout; seeds 3-5.", hours=None, acceptance=False, runs=runs)
+
+
+# runs requested by the reviews of the paper (user, 29 Oct 2026: new Flower notebooks with descriptive names, in their
+# own folder, replacing NB30 and NB31, whose results never came back). Each answers one objection; the paper shows a result only once
+# it is back (docs/papers/fill.py groups abl, comp, fresh). Every notebook trains its own Stage I and generators.
+GEFL_VARIANTS = ABLATIONS + ["GeFL-F + AdamW", "FedECS-LT w/ Gaussian sampler"]
+MATCHED_TS = ["GeFL-F (T_s=10)", "FedDF (T_s=10)"]
+FRESH_SEEDS = [6, 7, 8]      # never used in the development of FedECS-LT (seeds 0-5): new client splits
+FRESH_METHODS = ["FedECS-LT", "GeFL-F", "FedDF", "Balanced Softmax"]
+
+
+def reviewer_notebooks():
+    sys.path.insert(0, SRC)
+    import runner
+    sets = "CIFAR-10-LT and CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5"
+    same = "same client splits and seeds as the main notebooks, whose FedECS-LT and GeFL-F runs are the references"
+    out = {
+        "cifar10_cifar100_components_of_fedecs_lt": dict(
+            title=f"Components of FedECS-LT: one component changed at a time; {sets}",
+            what="FedECS-LT with one component changed at a time (class rows with CCWA or with flat averaging instead "
+                 "of the gate, without moment correction, without consensus soft labels, without logit adjustment, one "
+                 f"synthetic epoch), each as trained and with the exact readout; seeds 3-5 ({same}).",
+            methods=list(runner.COMPONENTS), seeds=SEEDS),
+        "cifar10_cifar100_fresh_seeds_6_to_8": dict(
+            title=f"Fresh seeds 6-8 (new client splits, never used in the development of FedECS-LT); {sets}",
+            what="FedECS-LT, GeFL-F, FedDF and Balanced Softmax on seeds 6-8, which no earlier run used: a check of "
+                 "the main comparison that its settings could not have been tuned on.",
+            methods=FRESH_METHODS, seeds=FRESH_SEEDS),
+        "cifar10_cifar100_gefl_f_variants": dict(
+            title=f"Variants of GeFL-F and a Gaussian sampler for FedECS-LT; {sets}",
+            what="GeFL-F without its generator, with decoupled weight decay (AdamW) alone, with AdamW and logit "
+                 "adjustment, with class Gaussians and logit adjustment; FedDF with logit adjustment; FedECS-LT with "
+                 f"its generator replaced by class Gaussians with the exact class means and covariances; seeds 3-5 "
+                 f"({same}).",
+            methods=GEFL_VARIANTS, seeds=SEEDS),
+        "cifar10_cifar100_matched_synthetic_epochs": dict(
+            title=f"GeFL-F and FedDF with ten synthetic epochs per round, as FedECS-LT; {sets}",
+            what=f"GeFL-F and FedDF with T_s = 10 synthetic epochs per round instead of 1; seeds 3-5 ({same}).",
+            methods=MATCHED_TS, seeds=SEEDS),
+    }
+    return {name: dict(title=d["title"], what=d["what"], hours=None, acceptance=False,
+                       runs=[run(m, ds, sd) for ds in ABLATION_DATASETS for sd in d["seeds"] for m in d["methods"]])
+            for name, d in out.items()}
+
+
+REVIEWER_NOTEBOOKS = ("cifar10_cifar100_components_of_fedecs_lt", "cifar10_cifar100_fresh_seeds_6_to_8",
+                      "cifar10_cifar100_gefl_f_variants", "cifar10_cifar100_matched_synthetic_epochs")
 
 
 # ---------------------------------------------------------------- cells
@@ -379,12 +395,10 @@ def all_notebooks():
     for ds in TIER1 + TIER2:
         name, nb = main_setting_notebook(ds)
         nbs.update(_parts(name, nb, plan_time.split_track1(nb["runs"], pipe, htfl, SEEDS)))
-    for ds in ABLATION_DATASETS:
-        name, nb = ablation_notebook(ds)
-        nbs.update(_parts(name, nb, plan_time.split_track1(nb["runs"], list(ABLATIONS), [], SEEDS)))
-        name, nb = components_notebook(ds)
+    for name, nb in reviewer_notebooks().items():
         labels = list(dict.fromkeys(r["label"] for r in nb["runs"]))
-        nbs.update(_parts(name, nb, plan_time.split_track1(nb["runs"], labels, [], SEEDS)))
+        seeds = sorted({r["seed"] for r in nb["runs"]})
+        nbs.update(_parts(name, nb, plan_time.split_track1(nb["runs"], labels, [], seeds)))
     for ds in GROUPED_DATASETS:
         for K in (10, 50):
             name, nb = grouped_notebook(ds, K)
@@ -487,10 +501,12 @@ def rerun_notebooks(nbs):
 def priority(name):
     """Run order: 0 NB00 (done), 1 Track 1 on the tier-1 datasets, 2 Track 2 at imbalance ratio 100 and the ablations,
     3 Track 1 on the tier-2 datasets, 4 Track 2 at ratios 50 and 10 and the long runs; 5 reruns of failed runs (any
-    time: they complete experiments whose other runs came back); 6 robustness sweeps. Ablations (NB30) and the
-    component ablation (NB31) are priority 2."""
+    time: they complete experiments whose other runs came back); 6 robustness sweeps; 7 GeFL's grouped protocol; 8 the
+    runs requested by the reviews of the paper (components, fresh seeds, GeFL-F variants, matched synthetic epochs)."""
     if name.startswith("NB00"):
         return 0
+    if name.startswith(REVIEWER_NOTEBOOKS):
+        return 8
     if ("clients_" in name or "pooled_data" in name) and not name.startswith("NB"):
         return 7
     if "_rerun" in name:
@@ -498,7 +514,7 @@ def priority(name):
     if name.startswith("NB10"):
         return 1 if any(f"NB10_main_{d}" in name and not name.startswith(f"NB10_main_{d}mnist")
                         for d in TIER1) else 3
-    if (name.startswith("NB20") and "_IF100_" in name) or name.startswith(("NB30", "NB31")):
+    if name.startswith("NB20") and "_IF100_" in name:
         return 2
     if name.startswith("NB40"):
         return 6
@@ -508,12 +524,13 @@ def priority(name):
 # one folder per priority (user, 26 Oct 2026), named so that the folders sort in run order
 FOLDERS = {0: "0_acceptance_done",
            1: "1_main_comparison_mnist_fmnist_svhn_cifar10_cifar100",
-           2: "2_one_shared_model_IF100_and_ablations",
+           2: "2_one_shared_model_IF100",
            3: "3_main_comparison_other_datasets",
            4: "4_one_shared_model_IF050_IF010_and_long_runs",
            5: "5_reruns_of_failed_runs",
            6: "6_robustness_sweeps",
-           7: "7_gefl_protocol_grouped_baselines_10_and_50_clients"}
+           7: "7_gefl_protocol_grouped_baselines_10_and_50_clients",
+           8: "8_reviewer_requested_runs"}
 
 
 def folder(name):

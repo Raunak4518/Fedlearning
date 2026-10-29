@@ -710,3 +710,22 @@ Decisions:
   - `PYTHONUTF8=1`, and Ray's folders under a short path.
 - **Not yet tested on Windows:** the first `run_check.bat` on each PC is the test.
 - **Rule:** never run a notebook both on Kaggle and locally.
+
+## 26. The readout is part of FedECS-LT; reviewer-requested runs (user, 29 Oct 2026)
+
+- **Decision (user):** "if readout is improving result, why aren't u adding it in our main architecture". FedECS-LT
+  ends with the exact class-balanced readout (paper sec5, Algorithm 1). `docs/papers/fill.py` reports FedECS-LT with
+  its readout and its heads alone as "FedECS-LT (heads only)"; every GeFL-F-pipeline method is also shown with the
+  same readout, which is the comparison the paper leads with after the margins over the published methods. With one
+  shared model the readout lowers FedECS-LT (CIFAR-10-LT); the paper says so.
+- **New Flower notebooks (user: "no older notebooks, i need flower implementations")**, folder
+  `fedecs_lt/notebooks/8_reviewer_requested_runs/`, replacing NB30/NB31 (whose results never came back). Order of
+  importance (Kaggle session-hours; a local 8 GB GPU takes about three times as long):
+  1. `cifar10_cifar100_components_of_fedecs_lt` (two parts): what each component adds beyond the readout (RQ4).
+  2. `cifar10_cifar100_fresh_seeds_6_to_8`: FedECS-LT, GeFL-F, FedDF, Balanced Softmax on new client splits
+     (answers "tuned on the test splits").
+  3. `cifar10_cifar100_gefl_f_variants`: GeFL-F + AdamW alone (decay diagnosis), the NB30 arms, and FedECS-LT with a
+     Gaussian sampler (is the trained generator needed).
+  4. `cifar10_cifar100_matched_synthetic_epochs`: GeFL-F and FedDF with T_s = 10.
+- The paper's text for these results is written with conditional slots (GUIDE.md E5, E6, E6b) and appears when the
+  results return.

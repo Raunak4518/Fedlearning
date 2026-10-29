@@ -28,7 +28,14 @@ def test_fill_sorts_and_writes(tmp_path, monkeypatch):
     res = tmp_path / "results"
     runs = {"NB10_main_cifar10_part1of3": [rec(m, "cifar10", s, b + 0.01 * s) for s in (3, 4, 5)
                                            for m, b in (("FedECS-LT", 0.40), ("GeFL-F", 0.30), ("FedDF", 0.35))],
-            "NB31_components_cifar10": [rec("FedECS-LT w/o moment correction", "cifar10", s, 0.38) for s in (3, 4, 5)],
+            "cifar10_cifar100_components_of_fedecs_lt": [rec(m, "cifar10", s, 0.38) for s in (3, 4, 5) for m in
+                                                         ("FedECS-LT w/o moment correction",
+                                                          "FedECS-LT w/ Gaussian sampler")],
+            "cifar10_cifar100_gefl_f_variants": [rec("GeFL-F + AdamW", "cifar10", s, 0.32) for s in (3, 4, 5)],
+            "cifar10_cifar100_matched_synthetic_epochs": [rec("GeFL-F (T_s=10)", "cifar10", s, 0.33)
+                                                          for s in (3, 4, 5)],
+            "cifar10_cifar100_fresh_seeds_6_to_8": [rec(m, "cifar10", s, b) for s in (6, 7, 8)
+                                                    for m, b in (("FedECS-LT", 0.10), ("GeFL-F", 0.05))],
             "NB40_sweep_cifar10_a0.1": [rec(m, "cifar10", s, 0.2, alpha=0.1) for s in (3, 4, 5)
                                         for m in ("FedECS-LT", "GeFL-F")]}
     for name, rs in runs.items():
@@ -39,11 +46,28 @@ def test_fill_sorts_and_writes(tmp_path, monkeypatch):
     monkeypatch.setattr(sys, "argv", ["fill.py"])
     fill.main()
     nums = (tmp_path / "generated" / "numbers.tex").read_text()
-    assert r"\defnum{main/cifar10/FedECS-LT/bal}{44.0 $\pm$ 1.0}" in nums     # the sweep run (20.0) did not enter
-    assert r"\defnum{main/cifar10/margin}{+5.0}" in nums                     # over FedDF
-    assert r"\defnum{main/cifar10/diff/GeFL-F}{+10.0}" in nums
-    assert r"\defnum{sweep/Dirichlet0.1/FedECS-LT/bal}{20.0 $\pm$ 0.0}" in nums
+    # FedECS-LT is reported with its readout (er_bal = final_bal + 0.1 here); its heads as trained are a second row.
+    # Neither the sweep runs (20.0) nor the fresh seeds 6-8 (10.0) entered the main setting.
+    assert r"\defnum{main/cifar10/FedECS-LT/bal}{54.0 $\pm$ 1.0}" in nums
+    assert r"\defnum{main/cifar10/FedECS-LT (heads only)/bal}{44.0 $\pm$ 1.0}" in nums
+    assert r"\defnum{main/cifar10/margin}{+15.0}" in nums                    # over FedDF as published
+    assert r"\defnum{main/cifar10/heads_margin}{+5.0}" in nums               # the heads alone
+    assert r"\defnum{main/cifar10/er_margin}{+5.0}" in nums                  # every method with the readout
+    assert r"\defnum{main/cifar10/diff/GeFL-F}{+20.0}" in nums
+    assert r"\defnum{main/cifar10/FedECS-LT/gain_er}{+10.0}" in nums
+    assert r"\defnum{main/cifar10/strongest}{FedDF}" in nums                 # the heads-only row is not a rival
+    assert r"\defnum{sweep/Dirichlet0.1/FedECS-LT/bal}{30.0 $\pm$ 0.0}" in nums
+    assert r"\defnum{fresh/cifar10/FedECS-LT/bal}{20.0 $\pm$ 0.0}" in nums
+    assert r"\defnum{fresh/cifar10/diff/GeFL-F}{+15.0}" in nums
     tables = tmp_path / "generated" / "tables"
     assert (tables / "main_bal.tex").exists() and (tables / "robust.tex").exists()
     comp = (tables / "abl_components.tex").read_text()
-    assert "FedECS-LT (full)" in comp and "w/o moment correction" in comp
+    assert "FedECS-LT (full)" in comp and "w/o moment correction" in comp and "w/ Gaussian sampler" in comp
+    assert "44.0" in comp and "54.0" in comp                                    # full: as trained and with readout
+    abl = (tables / "abl_bal.tex").read_text()
+    assert "GeFL-F + AdamW" in abl and "GeFL-F (T\\_s=10)" in abl and "FedECS-LT (heads only)" in abl
+    assert r"\defnum{abl/cifar10/GeFL-F + AdamW/gain}{-2.0}" in nums                # against GeFL-F (34.0)
+    assert r"\defnum{abl/cifar10/heads_vs/GeFL-F (T_s=10)}{+11.0}" in nums
+    assert r"\defnum{comp/cifar10/w/ Gaussian sampler/er_drop}{+6.0}" in nums       # full 54.0 with the readout
+    assert r"\defnum{comp/cifar10/w/ Gaussian sampler/drop}{+6.0}" in nums          # heads 44.0 as trained
+    assert r"\defnum{comp/n_variants}{two}" in nums

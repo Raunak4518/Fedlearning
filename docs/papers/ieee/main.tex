@@ -23,7 +23,7 @@
 \newcommand{\genpath}{../generated}
 \input{../content/macros.tex}
 \input{../content/declarations.tex}
-% \finalslotstrue   % uncomment for the submission build: any unfilled result slot becomes an error
+\ifdefined\finalbuild\finalslotstrue\fi   % build.sh final: submission build, results that have not come back are left out
 
 \begin{document}
 

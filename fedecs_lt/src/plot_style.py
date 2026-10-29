@@ -58,7 +58,8 @@ OURS = "FedECS-LT"
 # Order of the methods in tables and legends: the main comparison, the ablations, then the one-shared-model baselines
 ORDER = ["FedECS-LT", "FedECS-LT (200 extractor rounds)", "GeFL-F", "Balanced Softmax", "FedLC", "FedRS", "FedDF", "Local",
          "FedProto", "FedTGP", "FedGen", "FedGH", "LG-FedAvg", "FedMRL",
-         "GeFL-F w/o generator", "GeFL-F + LA", "GeFL-F w/ Gaussian generator + LA", "FedDF + LA",
+         "GeFL-F w/o generator", "GeFL-F + AdamW", "GeFL-F + LA", "GeFL-F w/ Gaussian generator + LA", "FedDF + LA",
+         "FedECS-LT w/ Gaussian sampler", "GeFL-F (T_s=10)", "FedDF (T_s=10)",
          "FedAvg", "FedProx", "FedALA", "AvgKD", "MOON", "CCVR", "CReFF", "FedETF", "Fed-GraB", "FedLoGe", "FedYoYo",
          "RUCR", "CLIP2FL", "FedNH", "FedVLS"]
 # Colour and marker index of every method (18 of each): unique among the methods one report can show together
@@ -72,7 +73,10 @@ STYLE_INDEX = {m: i for i, m in enumerate(["FedECS-LT", "GeFL-F", "Balanced Soft
                                            "FedECS-LT (200 extractor rounds)"])}
 STYLE_INDEX.update({"FedAvg": 13, "FedProx": 14, "CCVR": 15, "FedETF": 16, "FedALA": 17, "AvgKD": 18, "MOON": 5,
                     "CReFF": 7, "Fed-GraB": 10, "FedLoGe": 11, "FedYoYo": 12, "RUCR": 2, "CLIP2FL": 4, "FedNH": 6,
-                    "FedVLS": 9})
+                    "FedVLS": 9,
+                    # the reviewer-requested notebooks (unique within each notebook's report)
+                    "GeFL-F + AdamW": 17, "FedECS-LT w/ Gaussian sampler": 18, "GeFL-F (T_s=10)": 13,
+                    "FedDF (T_s=10)": 14})
 
 
 def style(method):

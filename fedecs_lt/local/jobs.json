@@ -4375,7 +4375,7 @@
   ]
  },
  "NB20_track2_cifar100_IF100_s3_part1of2": {
-  "folder": "2_one_shared_model_IF100_and_ablations",
+  "folder": "2_one_shared_model_IF100",
   "title": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 3 (part 1 of 2)",
   "what": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 3: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 1 of 2: FedYoYo (LongTailLib), Fed-GraB (LongTailLib), RUCR (LongTailLib), CCVR (LongTailLib), FedLC (LongTailLib), FedECS-LT; seed 3.",
   "kaggle_hours": 6.5,
@@ -4437,7 +4437,7 @@
   ]
  },
  "NB20_track2_cifar100_IF100_s3_part2of2": {
-  "folder": "2_one_shared_model_IF100_and_ablations",
+  "folder": "2_one_shared_model_IF100",
   "title": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 3 (part 2 of 2)",
   "what": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 3: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 2 of 2: MOON (LongTailLib), CReFF (LongTailLib), FedLoGe (LongTailLib), FedProx (LongTailLib), FedAvg (LongTailLib), FedETF (LongTailLib); seed 3.",
   "kaggle_hours": 7.1,
@@ -4499,7 +4499,7 @@
   ]
  },
  "NB20_track2_cifar100_IF100_s4_part1of2": {
-  "folder": "2_one_shared_model_IF100_and_ablations",
+  "folder": "2_one_shared_model_IF100",
   "title": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 4 (part 1 of 2)",
   "what": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 4: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 1 of 2: FedYoYo (LongTailLib), Fed-GraB (LongTailLib), RUCR (LongTailLib), CCVR (LongTailLib), FedLC (LongTailLib), FedECS-LT; seed 4.",
   "kaggle_hours": 6.5,
@@ -4561,7 +4561,7 @@
   ]
  },
  "NB20_track2_cifar100_IF100_s4_part2of2": {
-  "folder": "2_one_shared_model_IF100_and_ablations",
+  "folder": "2_one_shared_model_IF100",
   "title": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 4 (part 2 of 2)",
   "what": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 4: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 2 of 2: MOON (LongTailLib), CReFF (LongTailLib), FedLoGe (LongTailLib), FedProx (LongTailLib), FedAvg (LongTailLib), FedETF (LongTailLib); seed 4.",
   "kaggle_hours": 7.1,
@@ -4623,7 +4623,7 @@
   ]
  },
  "NB20_track2_cifar100_IF100_s5_part1of2": {
-  "folder": "2_one_shared_model_IF100_and_ablations",
+  "folder": "2_one_shared_model_IF100",
   "title": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 5 (part 1 of 2)",
   "what": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 5: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 1 of 2: FedYoYo (LongTailLib), Fed-GraB (LongTailLib), RUCR (LongTailLib), CCVR (LongTailLib), FedLC (LongTailLib), FedECS-LT; seed 5.",
   "kaggle_hours": 6.5,
@@ -4685,7 +4685,7 @@
   ]
  },
  "NB20_track2_cifar100_IF100_s5_part2of2": {
-  "folder": "2_one_shared_model_IF100_and_ablations",
+  "folder": "2_one_shared_model_IF100",
   "title": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 5 (part 2 of 2)",
   "what": "One shared model (FedLTLib protocol): CIFAR-100-LT, imbalance ratio 100, 20 clients, 40% per round, seed 5: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 2 of 2: MOON (LongTailLib), CReFF (LongTailLib), FedLoGe (LongTailLib), FedProx (LongTailLib), FedAvg (LongTailLib), FedETF (LongTailLib); seed 5.",
   "kaggle_hours": 7.1,
@@ -4994,7 +4994,7 @@
   ]
  },
  "NB20_track2_cifar10_IF100_s3_part1of2": {
-  "folder": "2_one_shared_model_IF100_and_ablations",
+  "folder": "2_one_shared_model_IF100",
   "title": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 3 (part 1 of 2)",
   "what": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 3: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 1 of 2: FedYoYo (LongTailLib), Fed-GraB (LongTailLib), RUCR (LongTailLib), CCVR (LongTailLib), FedLC (LongTailLib), FedECS-LT (extractor 200 rounds); seed 3.",
   "kaggle_hours": 7.7,
@@ -5059,7 +5059,7 @@
   ]
  },
  "NB20_track2_cifar10_IF100_s3_part2of2": {
-  "folder": "2_one_shared_model_IF100_and_ablations",
+  "folder": "2_one_shared_model_IF100",
   "title": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 3 (part 2 of 2)",
   "what": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 3: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 2 of 2: 7 methods; seed 3.",
   "kaggle_hours": 8.1,
@@ -5130,7 +5130,7 @@
   ]
  },
  "NB20_track2_cifar10_IF100_s4_part1of2": {
-  "folder": "2_one_shared_model_IF100_and_ablations",
+  "folder": "2_one_shared_model_IF100",
   "title": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 4 (part 1 of 2)",
   "what": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 4: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 1 of 2: FedYoYo (LongTailLib), Fed-GraB (LongTailLib), RUCR (LongTailLib), CCVR (LongTailLib), FedLC (LongTailLib), FedECS-LT; seed 4.",
   "kaggle_hours": 7.4,
@@ -5192,7 +5192,7 @@
   ]
  },
  "NB20_track2_cifar10_IF100_s4_part2of2": {
-  "folder": "2_one_shared_model_IF100_and_ablations",
+  "folder": "2_one_shared_model_IF100",
   "title": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 4 (part 2 of 2)",
   "what": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 4: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 2 of 2: MOON (LongTailLib), CReFF (LongTailLib), FedLoGe (LongTailLib), FedProx (LongTailLib), FedAvg (LongTailLib), FedETF (LongTailLib); seed 4.",
   "kaggle_hours": 8.1,
@@ -5254,7 +5254,7 @@
   ]
  },
  "NB20_track2_cifar10_IF100_s5_part1of2": {
-  "folder": "2_one_shared_model_IF100_and_ablations",
+  "folder": "2_one_shared_model_IF100",
   "title": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 5 (part 1 of 2)",
   "what": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 5: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 1 of 2: FedYoYo (LongTailLib), Fed-GraB (LongTailLib), RUCR (LongTailLib), CCVR (LongTailLib), FedLC (LongTailLib), FedECS-LT; seed 5.",
   "kaggle_hours": 7.4,
@@ -5316,7 +5316,7 @@
   ]
  },
  "NB20_track2_cifar10_IF100_s5_part2of2": {
-  "folder": "2_one_shared_model_IF100_and_ablations",
+  "folder": "2_one_shared_model_IF100",
   "title": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 5 (part 2 of 2)",
   "what": "One shared model (FedLTLib protocol): CIFAR-10-LT, imbalance ratio 100, 20 clients, 40% per round, seed 5: FedECS-LT against 11 long-tail FL methods run with their authors' code (LongTailLib). Part 2 of 2: MOON (LongTailLib), CReFF (LongTailLib), FedLoGe (LongTailLib), FedProx (LongTailLib), FedAvg (LongTailLib), FedETF (LongTailLib); seed 5.",
   "kaggle_hours": 8.1,
@@ -5464,518 +5464,6 @@
     "alpha": 0.5,
     "K": 20,
     "pfrac": 0.4
-   }
-  ]
- },
- "NB30_ablation_cifar10": {
-  "folder": "2_one_shared_model_IF100_and_ablations",
-  "title": "Ablations on CIFAR-10-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5",
-  "what": "Ablations on CIFAR-10-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: GeFL-F without its generator, with logit adjustment, with a Gaussian generator, and FedDF with logit adjustment; seeds 3-5. FedECS-LT and GeFL-F, the references, come from the main notebook of this dataset (same client splits and seeds).",
-  "kaggle_hours": 4.6,
-  "runs": [
-   {
-    "label": "GeFL-F w/o generator",
-    "ds": "cifar10",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "GeFL-F + LA",
-    "ds": "cifar10",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "GeFL-F w/ Gaussian generator + LA",
-    "ds": "cifar10",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedDF + LA",
-    "ds": "cifar10",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "GeFL-F w/o generator",
-    "ds": "cifar10",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "GeFL-F + LA",
-    "ds": "cifar10",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "GeFL-F w/ Gaussian generator + LA",
-    "ds": "cifar10",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedDF + LA",
-    "ds": "cifar10",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "GeFL-F w/o generator",
-    "ds": "cifar10",
-    "seed": 5,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "GeFL-F + LA",
-    "ds": "cifar10",
-    "seed": 5,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "GeFL-F w/ Gaussian generator + LA",
-    "ds": "cifar10",
-    "seed": 5,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedDF + LA",
-    "ds": "cifar10",
-    "seed": 5,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   }
-  ]
- },
- "NB30_ablation_cifar100": {
-  "folder": "2_one_shared_model_IF100_and_ablations",
-  "title": "Ablations on CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5",
-  "what": "Ablations on CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: GeFL-F without its generator, with logit adjustment, with a Gaussian generator, and FedDF with logit adjustment; seeds 3-5. FedECS-LT and GeFL-F, the references, come from the main notebook of this dataset (same client splits and seeds).",
-  "kaggle_hours": 3.0,
-  "runs": [
-   {
-    "label": "GeFL-F w/o generator",
-    "ds": "cifar100",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "GeFL-F + LA",
-    "ds": "cifar100",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "GeFL-F w/ Gaussian generator + LA",
-    "ds": "cifar100",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedDF + LA",
-    "ds": "cifar100",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "GeFL-F w/o generator",
-    "ds": "cifar100",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "GeFL-F + LA",
-    "ds": "cifar100",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "GeFL-F w/ Gaussian generator + LA",
-    "ds": "cifar100",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedDF + LA",
-    "ds": "cifar100",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "GeFL-F w/o generator",
-    "ds": "cifar100",
-    "seed": 5,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "GeFL-F + LA",
-    "ds": "cifar100",
-    "seed": 5,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "GeFL-F w/ Gaussian generator + LA",
-    "ds": "cifar100",
-    "seed": 5,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedDF + LA",
-    "ds": "cifar100",
-    "seed": 5,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   }
-  ]
- },
- "NB31_components_cifar10": {
-  "folder": "2_one_shared_model_IF100_and_ablations",
-  "title": "Components of FedECS-LT on CIFAR-10-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5",
-  "what": "Components of FedECS-LT on CIFAR-10-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: FedECS-LT with one component changed at a time (class rows with CCWA or flat averaging instead of the gate, without moment correction, without consensus soft labels, without logit adjustment, one synthetic epoch); seeds 3-5. The full FedECS-LT comes from the main notebook of this dataset (same client splits and seeds).",
-  "kaggle_hours": 7.8,
-  "runs": [
-   {
-    "label": "FedECS-LT w/ class rows (CCWA)",
-    "ds": "cifar10",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/ class rows (flat averaging)",
-    "ds": "cifar10",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/o moment correction",
-    "ds": "cifar10",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/ class rows (CCWA)",
-    "ds": "cifar10",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/ class rows (flat averaging)",
-    "ds": "cifar10",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/o moment correction",
-    "ds": "cifar10",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/ class rows (CCWA)",
-    "ds": "cifar10",
-    "seed": 5,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/ class rows (flat averaging)",
-    "ds": "cifar10",
-    "seed": 5,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/o moment correction",
-    "ds": "cifar10",
-    "seed": 5,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/o consensus soft labels",
-    "ds": "cifar10",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/o logit adjustment",
-    "ds": "cifar10",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/ one synthetic epoch",
-    "ds": "cifar10",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/o consensus soft labels",
-    "ds": "cifar10",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/o logit adjustment",
-    "ds": "cifar10",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/ one synthetic epoch",
-    "ds": "cifar10",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/o consensus soft labels",
-    "ds": "cifar10",
-    "seed": 5,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/o logit adjustment",
-    "ds": "cifar10",
-    "seed": 5,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/ one synthetic epoch",
-    "ds": "cifar10",
-    "seed": 5,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   }
-  ]
- },
- "NB31_components_cifar100": {
-  "folder": "2_one_shared_model_IF100_and_ablations",
-  "title": "Components of FedECS-LT on CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5",
-  "what": "Components of FedECS-LT on CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: FedECS-LT with one component changed at a time (class rows with CCWA or flat averaging instead of the gate, without moment correction, without consensus soft labels, without logit adjustment, one synthetic epoch); seeds 3-5. The full FedECS-LT comes from the main notebook of this dataset (same client splits and seeds).",
-  "kaggle_hours": 5.3,
-  "runs": [
-   {
-    "label": "FedECS-LT w/ class rows (CCWA)",
-    "ds": "cifar100",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/ class rows (flat averaging)",
-    "ds": "cifar100",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/o moment correction",
-    "ds": "cifar100",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/ class rows (CCWA)",
-    "ds": "cifar100",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/ class rows (flat averaging)",
-    "ds": "cifar100",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/o moment correction",
-    "ds": "cifar100",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/ class rows (CCWA)",
-    "ds": "cifar100",
-    "seed": 5,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/ class rows (flat averaging)",
-    "ds": "cifar100",
-    "seed": 5,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/o moment correction",
-    "ds": "cifar100",
-    "seed": 5,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/o consensus soft labels",
-    "ds": "cifar100",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/o logit adjustment",
-    "ds": "cifar100",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/ one synthetic epoch",
-    "ds": "cifar100",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/o consensus soft labels",
-    "ds": "cifar100",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/o logit adjustment",
-    "ds": "cifar100",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/ one synthetic epoch",
-    "ds": "cifar100",
-    "seed": 4,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/o consensus soft labels",
-    "ds": "cifar100",
-    "seed": 5,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/o logit adjustment",
-    "ds": "cifar100",
-    "seed": 5,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
-   },
-   {
-    "label": "FedECS-LT w/ one synthetic epoch",
-    "ds": "cifar100",
-    "seed": 5,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 10
    }
   ]
  },
@@ -7760,6 +7248,910 @@
     "IF": 0.01,
     "alpha": 0.5,
     "K": 50
+   }
+  ]
+ },
+ "cifar10_cifar100_components_of_fedecs_lt_part1of2": {
+  "folder": "8_reviewer_requested_runs",
+  "title": "Components of FedECS-LT: one component changed at a time; CIFAR-10-LT and CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5 (part 1 of 2)",
+  "what": "FedECS-LT with one component changed at a time (class rows with CCWA or with flat averaging instead of the gate, without moment correction, without consensus soft labels, without logit adjustment, one synthetic epoch), each as trained and with the exact readout; seeds 3-5 (same client splits and seeds as the main notebooks, whose FedECS-LT and GeFL-F runs are the references). Part 1 of 2: FedECS-LT w/ class rows (CCWA), FedECS-LT w/ class rows (flat averaging), FedECS-LT w/o moment correction; seeds 3, 4, 5.",
+  "kaggle_hours": 9.1,
+  "runs": [
+   {
+    "label": "FedECS-LT w/ class rows (CCWA)",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (flat averaging)",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o moment correction",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (CCWA)",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (flat averaging)",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o moment correction",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (CCWA)",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (flat averaging)",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o moment correction",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (CCWA)",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (flat averaging)",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o moment correction",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (CCWA)",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (flat averaging)",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o moment correction",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (CCWA)",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (flat averaging)",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o moment correction",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "cifar10_cifar100_components_of_fedecs_lt_part2of2": {
+  "folder": "8_reviewer_requested_runs",
+  "title": "Components of FedECS-LT: one component changed at a time; CIFAR-10-LT and CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5 (part 2 of 2)",
+  "what": "FedECS-LT with one component changed at a time (class rows with CCWA or with flat averaging instead of the gate, without moment correction, without consensus soft labels, without logit adjustment, one synthetic epoch), each as trained and with the exact readout; seeds 3-5 (same client splits and seeds as the main notebooks, whose FedECS-LT and GeFL-F runs are the references). Part 2 of 2: FedECS-LT w/o consensus soft labels, FedECS-LT w/o logit adjustment, FedECS-LT w/ one synthetic epoch; seeds 3, 4, 5.",
+  "kaggle_hours": 5.9,
+  "runs": [
+   {
+    "label": "FedECS-LT w/o consensus soft labels",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o consensus soft labels",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o consensus soft labels",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o consensus soft labels",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o consensus soft labels",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o consensus soft labels",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o logit adjustment",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ one synthetic epoch",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o logit adjustment",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ one synthetic epoch",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o logit adjustment",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ one synthetic epoch",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o logit adjustment",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ one synthetic epoch",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o logit adjustment",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ one synthetic epoch",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o logit adjustment",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ one synthetic epoch",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "cifar10_cifar100_fresh_seeds_6_to_8": {
+  "folder": "8_reviewer_requested_runs",
+  "title": "Fresh seeds 6-8 (new client splits, never used in the development of FedECS-LT); CIFAR-10-LT and CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5",
+  "what": "FedECS-LT, GeFL-F, FedDF and Balanced Softmax on seeds 6-8, which no earlier run used: a check of the main comparison that its settings could not have been tuned on.",
+  "kaggle_hours": 7.3,
+  "runs": [
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 6,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 6,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 6,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 7,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 7,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 7,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar10",
+    "seed": 8,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar10",
+    "seed": 8,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar10",
+    "seed": 8,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar100",
+    "seed": 6,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar100",
+    "seed": 6,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar100",
+    "seed": 6,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar100",
+    "seed": 7,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar100",
+    "seed": 7,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar100",
+    "seed": 7,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar100",
+    "seed": 8,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar100",
+    "seed": 8,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar100",
+    "seed": 8,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 6,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 7,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar10",
+    "seed": 8,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar100",
+    "seed": 6,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar100",
+    "seed": 7,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar100",
+    "seed": 8,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "cifar10_cifar100_gefl_f_variants": {
+  "folder": "8_reviewer_requested_runs",
+  "title": "Variants of GeFL-F and a Gaussian sampler for FedECS-LT; CIFAR-10-LT and CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5",
+  "what": "GeFL-F without its generator, with decoupled weight decay (AdamW) alone, with AdamW and logit adjustment, with class Gaussians and logit adjustment; FedDF with logit adjustment; FedECS-LT with its generator replaced by class Gaussians with the exact class means and covariances; seeds 3-5 (same client splits and seeds as the main notebooks, whose FedECS-LT and GeFL-F runs are the references).",
+  "kaggle_hours": 8.3,
+  "runs": [
+   {
+    "label": "GeFL-F w/o generator",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F + LA",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/ Gaussian generator + LA",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF + LA",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ Gaussian sampler",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/o generator",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F + LA",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/ Gaussian generator + LA",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF + LA",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ Gaussian sampler",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/o generator",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F + LA",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/ Gaussian generator + LA",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF + LA",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ Gaussian sampler",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/o generator",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F + LA",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/ Gaussian generator + LA",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF + LA",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ Gaussian sampler",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/o generator",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F + LA",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/ Gaussian generator + LA",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF + LA",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ Gaussian sampler",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/o generator",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F + LA",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/ Gaussian generator + LA",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF + LA",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ Gaussian sampler",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F + AdamW",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F + AdamW",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F + AdamW",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F + AdamW",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F + AdamW",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F + AdamW",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "cifar10_cifar100_matched_synthetic_epochs": {
+  "folder": "8_reviewer_requested_runs",
+  "title": "GeFL-F and FedDF with ten synthetic epochs per round, as FedECS-LT; CIFAR-10-LT and CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5",
+  "what": "GeFL-F and FedDF with T_s = 10 synthetic epochs per round instead of 1; seeds 3-5 (same client splits and seeds as the main notebooks, whose FedECS-LT and GeFL-F runs are the references).",
+  "kaggle_hours": 6.7,
+  "runs": [
+   {
+    "label": "GeFL-F (T_s=10)",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F (T_s=10)",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F (T_s=10)",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F (T_s=10)",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F (T_s=10)",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F (T_s=10)",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF (T_s=10)",
+    "ds": "cifar10",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF (T_s=10)",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF (T_s=10)",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF (T_s=10)",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF (T_s=10)",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF (T_s=10)",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
    }
   ]
  },

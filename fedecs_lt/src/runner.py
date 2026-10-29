@@ -56,6 +56,16 @@ COMPONENTS = {
 }
 for _name, _change in COMPONENTS.items():
     PIPELINE[_name] = dict(PIPELINE["FedECS-LT"], **_change)
+# Runs requested by the reviews of the paper (user, 29 Oct 2026; notebooks in 8_reviewer_requested_runs):
+# - GeFL-F with decoupled weight decay (AdamW) and nothing else changed (cross-entropy heads): the decay diagnosis
+#   alone, without logit adjustment ("GeFL-F + LA" changes both);
+# - FedECS-LT with its generator replaced by class Gaussians with the exact class means and covariances (from plain
+#   sums of h h^T, more than FedECS-LT releases), everything else as FedECS-LT: is a trained generator needed;
+# - GeFL-F and FedDF with ten synthetic epochs per round, as FedECS-LT: is the gain only the longer synthetic phase.
+PIPELINE["GeFL-F + AdamW"] = dict(PIPELINE["GeFL-F"], gen=dict(PIPELINE["GeFL-F"]["gen"], opt="adamw"))
+PIPELINE["FedECS-LT w/ Gaussian sampler"] = dict(PIPELINE["FedECS-LT"], gen=dict(type="gauss"))
+PIPELINE["GeFL-F (T_s=10)"] = dict(PIPELINE["GeFL-F"], head=dict(PIPELINE["GeFL-F"]["head"], ts=10))
+PIPELINE["FedDF (T_s=10)"] = dict(PIPELINE["FedDF"], head=dict(PIPELINE["FedDF"]["head"], ts=10))
 
 
 def method_spec(label):

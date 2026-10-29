@@ -44,7 +44,8 @@ from baselines import GROUPED  # noqa: E402
 OURS = "FedECS-LT"
 SIG = {}   # (group, setting) -> margin over the strongest other method significant after Holm (unrounded p)
 DIAG = "FedECS-LT (200 extractor rounds)"
-HEADS = "FedECS-LT (heads only)"   # FedECS-LT before its last step: the heads as trained, without the exact readout
+HEADS = "FedECS-LT (heads only)"
+MATCHED = ("GeFL-F (T_s=10)", "FedDF (T_s=10)")   # as many synthetic epochs per round as FedECS-LT   # FedECS-LT before its last step: the heads as trained, without the exact readout
 NOTEST = {DIAG, HEADS}   # shown in the tables, never in the test family, "best", "strongest" or the baseline counts
 # references, not competitors: shown in the tables, never "best", "strongest" or counted among the baselines
 REFS = {"Centralised (pooled data)"}
@@ -76,10 +77,12 @@ def group_of(r):
     lab, ds = r["label"], r["dataset"]
     if DATASETS.get(ds, {}).get("track") == 2:
         return "t2"
+    if main_setting(r) and r["seed"] in bn.FRESH_SEEDS:
+        return "fresh" if lab in bn.FRESH_METHODS else None   # the check on new client splits (seeds 6-8)
     if not main_setting(r):
         return "sweep" if lab in bn.SWEEP_METHODS else None
-    if lab in bn.ABLATIONS or lab == "FedDF + LA":
-        return "abl"
+    if lab in bn.GEFL_VARIANTS + bn.MATCHED_TS and not lab.startswith("FedECS-LT w"):
+        return "abl"   # variants of GeFL-F and FedDF (the Gaussian sampler variant of FedECS-LT is a component)
     if lab.startswith("FedECS-LT w"):
         return "comp"
     if lab in bn.TRACK1_MAIN:
@@ -470,7 +473,16 @@ def fill_group(g, E, nums, made, status):
     if sr:   # generated over exact within-class spread after the moment correction, every class and run
         nums[f"{g}/mc_spread_lo"], nums[f"{g}/mc_spread_med"], nums[f"{g}/mc_spread_hi"] = (
             f"{np.min(sr):.2f}", f"{np.median(sr):.2f}", f"{np.max(sr):.2f}")
+    for S in settings:   # rank of FedECS-LT by calibration error among every method of the setting (1 = best)
+        ece = {m: mean_of(E, m, "final_ece", S) for m in E.methods if m not in NOTEST and m not in REFS}
+        ece = {m: v for m, v in ece.items() if not np.isnan(v)}
+        if OURS in ece:
+            nums[f"{g}/{sid(S)}/ece_rank"] = str(1 + sum(1 for v in ece.values() if v < ece[OURS]))
+            nums[f"{g}/{sid(S)}/ece_n"] = word(len(ece))
     with_ours = [S for S in settings if not np.isnan(mean_of(E, OURS, "final_bal", S))]
+    one = [S for S in with_ours if len(E.of(OURS, S)) == 1]
+    nums[f"{g}/one_seed"] = tex(and_list([pt.column_name(S, settings) for S in one])) if one else "none"
+    nums[f"{g}/n_one_seed"] = word(len(one))
     nums[f"{g}/nsettings"] = str(len(with_ours))
     nums[f"{g}/nsettings_w"] = word(len(with_ours))
     nums[f"{g}/datasets"] = tex(and_list([pt.column_name(S, with_ours) for S in with_ours])) if with_ours else "none"
@@ -490,6 +502,27 @@ def fill_group(g, E, nums, made, status):
     nb, ns = int(nums[f"{g}/nbest"]), len(with_ours)   # "all six", "both", "5 of the six", "none of the six"
     nums[f"{g}/nbest_of"] = ("both" if ns == 2 else f"all {word(ns)}") if nb == ns and ns > 1 else \
         (("neither" if ns == 2 else f"none of the {word(ns)}") if nb == 0 else f"{nb} of the {word(ns)}")
+    if g == "main":   # generator fidelity: the referee's per-class accuracy on generated features (server.fidelity)
+        from settings import class_groups
+        rows = []
+        for S in settings:
+            for m in E.methods:
+                for key, what in (("fidelity", "generator"), ("fidelity_mc", "after moment correction")):
+                    fs = [r[key] for r in E.of(m, S) if r.get(key)]
+                    if not fs or m == HEADS:
+                        continue
+                    F = np.array(fs)   # seeds x classes, classes in order of decreasing training size
+                    hd, md, tl = class_groups(F.shape[1])
+                    cells = []
+                    for grp, idx in (("all", slice(None)), ("head", hd), ("medium", md), ("tail", tl)):
+                        v = F[:, idx].mean(1)
+                        cells.append(report.fmt(v.mean(), v.std(ddof=1) if len(v) > 1 else float("nan"),
+                                                "final_bal", len(v)))
+                        nums[f"{g}/{sid(S)}/{m}/{key}_{grp}"] = tex(cells[-1])
+                    rows.append([pt.column_name(S, settings), f"{m} ({what})"] + cells)
+        if rows:
+            made.append(write_table("fidelity", ["Dataset", "Generator", "All", "Head", "Medium", "Tail"], rows,
+                                    set()))
     # tables
     for suffix, key in ACROSS:
         h, rows, bold = across_table(E, settings, key, [m for m in E.methods if m != DIAG], key in LOWER)
@@ -523,7 +556,7 @@ def fill_extras(E_by, nums, made):
         rows_all = sorted({name(r) for r in T if r.get("gate_branch") == "rows"})
         nums["gate/rows_all"] = tex(and_list(rows_all)) if rows_all else "none of them"
     labels = {r["label"] for E in allE for r in E.runs}
-    published = labels - {OURS, "Local"} - NOTEST - REFS - set(bn.ABLATIONS) - {"FedDF + LA"}
+    published = labels - {OURS, "Local"} - NOTEST - REFS - set(bn.GEFL_VARIANTS) - set(bn.MATCHED_TS)
     nums["count/methods"] = str(len(published))
     nums["count/datasets"] = str(len({r["dataset"].replace("_t2", "") for r in ours_runs}))
     nums["count/datasets_w"] = word(len({r["dataset"].replace("_t2", "") for r in ours_runs}))
@@ -533,8 +566,18 @@ def fill_extras(E_by, nums, made):
         for S in ordered(E):
             s = sid(S)
             g, la, us = (mean_of(E, m, "final_bal", S) for m in ("GeFL-F", "GeFL-F + LA", HEADS))   # as trained
-            if not (np.isnan(g) or np.isnan(la)):
-                nums[f"abl/{s}/GeFL-F + LA/gain"] = signed(100 * (la - g))
+            for m in E.methods:   # each variant against the method it changes (FedDF's against FedDF), both ways
+                base = "FedDF" if m.startswith("FedDF") else "GeFL-F"
+                if m in (base, OURS) or m in NOTEST or m.startswith("FedECS-LT"):
+                    continue
+                for key, pre in (("final_bal", ""), ("er_bal", "er_")):
+                    a, b = mean_of(E, m, key, S), mean_of(E, base, key, S)
+                    if not (np.isnan(a) or np.isnan(b)):
+                        nums[f"abl/{s}/{m}/{pre}gain"] = signed(100 * (a - b))
+            for m in MATCHED:   # FedECS-LT's heads against GeFL-F and FedDF with as many synthetic epochs
+                o = mean_of(E, m, "final_bal", S)
+                if not (np.isnan(o) or np.isnan(us)):
+                    nums[f"abl/{s}/heads_vs/{m}"] = signed(100 * (us - o))
             if not (np.isnan(us) or np.isnan(la)):
                 nums[f"abl/{s}/rest"] = signed(100 * (us - la))
         h, rows, bold = across_table(E, ordered(E), "final_bal")
@@ -554,13 +597,17 @@ def fill_extras(E_by, nums, made):
         for S in ordered(E):
             s = sid(S)
             for key, short in (("time_s", "time_ratio"), ("comm_mb_per_client", "comm_ratio")):
-                a, b = mean_of(E, OURS, key, S), mean_of(E, "GeFL-F", key, S)
-                if not (np.isnan(a) or np.isnan(b)) and b > 0:
-                    nums[f"cost/{s}/{short}"] = f"{a / b:.2f}"
+                for ref, suf in (("GeFL-F", ""), ("Balanced Softmax", "_bsm")):   # Balanced Softmax: no generator
+                    a, b = mean_of(E, OURS, key, S), mean_of(E, ref, key, S)
+                    if not (np.isnan(a) or np.isnan(b)) and b > 0:
+                        nums[f"cost/{s}/{short}{suf}"] = f"{a / b:.2f}" if a / b < 10 else f"{a / b:.0f}"
             if s == "cifar10":
                 keys = [k for k in report.SYSTEM if k[0] in ("comm_mb_per_client", "time_s", "fwd_mflops",
                                                            "train_gflops_round")]
                 rows, bold = pt.metric_rows(E, S, keys)
+                keep = [i for i, r in enumerate(rows) if r[0] != HEADS]   # one run: its cost is FedECS-LT's
+                bold = {(keep.index(i), j) for i, j in bold if i in keep}
+                rows = [rows[i] for i in keep]
                 if rows:
                     made.append(write_table("cost", ["Method"] + [n for _, n in keys], rows, bold))
     E = E_by.get("comp")
@@ -579,6 +626,24 @@ def fill_extras(E_by, nums, made):
                 rows.append([("FedECS-LT (full)" if m == OURS else m.replace("FedECS-LT ", ""))] + cells)
         if rows:
             made.append(write_table("abl_components", header, rows, set()))
+        variants = [m for m in E.methods if m.startswith("FedECS-LT w")]
+        nums["comp/n_variants"] = word(len(variants))
+        for S in sets:   # what each change costs the full method (with the readout) and its heads as trained
+            s, drop = sid(S), {}
+            for m in variants:
+                for key, ref, pre in (("er_bal", "er_bal", "er_"), ("final_bal", "heads_final_bal", "")):
+                    a, b = mean_of(E, m, key, S), mean_of(E, OURS, ref, S)
+                    if not (np.isnan(a) or np.isnan(b)):
+                        nums[f"comp/{s}/{m.replace('FedECS-LT ', '')}/{pre}drop"] = signed(100 * (b - a))
+                        if pre == "er_":
+                            drop[m] = 100 * (b - a)
+            if drop:
+                big = max(drop, key=drop.get)
+                nums[f"comp/{s}/largest"] = tex(big.replace("FedECS-LT ", ""))
+                nums[f"comp/{s}/largest_drop"] = signed(drop[big])
+                fl = nums.get("repeat/er/floor")
+                if fl:
+                    nums[f"comp/{s}/n_small"] = word(sum(1 for v in drop.values() if abs(v) < float(fl)))
     E = E_by.get("sweep")
     if E is not None:   # robustness: rows = methods, columns = the changed setting
         sets = ordered(E)
@@ -735,13 +800,13 @@ def main():
               "(NB00 excluded). Slots not listed under 'filled' still show a red placeholder.", ""]
     E_by = {}
     with tempfile.TemporaryDirectory() as tmp:
-        for g in ("main", "nat", "t2", "abl", "comp", "sweep", "k50"):
+        for g in ("main", "nat", "t2", "abl", "comp", "sweep", "k50", "fresh"):
             E_by[g] = exp_of(by[g], tmp, g) if by.get(g) else None
-            if E_by[g] is not None and g in ("main", "nat", "t2", "k50"):
+            if E_by[g] is not None and g in ("main", "nat", "t2", "k50", "fresh"):
                 fill_group(g, E_by[g], nums, made, status)
+        repeat_numbers(nums)   # first: the noise floor is used by fill_extras
         fill_extras(E_by, nums, made)
     reproduction_numbers(nums)
-    repeat_numbers(nums)
     if "--figures" in sys.argv:
         status.append("## Figures\n")
         fill_figures(made, status, nums)

@@ -147,9 +147,16 @@ order of the notebooks do not matter:
 | `main` | main setting (10 clients, Dirichlet 0.5, ratio 100) on MNIST, Fashion-MNIST, SVHN, CIFAR-10, CIFAR-100; the 13 main methods | Tables main, paired, readout, tail; appendix tables |
 | `nat` | the same setting on the seven datasets with natural imbalance | Table natural |
 | `t2` | one shared ResNet-8 (FedLTLib protocol), any ratio | Table shared |
-| `abl` | GeFL-F variants (NB30) + FedECS-LT, GeFL-F, FedDF of the same datasets | Table ablation |
-| `comp` | FedECS-LT component variants (NB31) + the full FedECS-LT of the same datasets | Table components |
+| `abl` | GeFL-F and FedDF variants (folder 8: `cifar10_cifar100_gefl_f_variants`, `cifar10_cifar100_matched_synthetic_epochs`) + FedECS-LT, its heads only, GeFL-F, FedDF of the same datasets | Table ablation |
+| `comp` | FedECS-LT component variants, the Gaussian sampler included (folder 8: `cifar10_cifar100_components_of_fedecs_lt`, and the Gaussian-sampler arm of `cifar10_cifar100_gefl_f_variants`) + the full FedECS-LT of the same datasets | Table components |
+| `fresh` | FedECS-LT, GeFL-F, FedDF, Balanced Softmax on seeds 6-8 (folder 8: `cifar10_cifar100_fresh_seeds_6_to_8`) | paragraph "New client splits" (Section 7.1) |
 | `sweep` | FedECS-LT, GeFL-F, FedDF, Balanced Softmax with one setting changed (NB40) | Table robustness |
+
+**FedECS-LT ends with its exact readout (user, 29 Oct 2026).** `fill.py` therefore reports a FedECS-LT run with its
+readout metrics (`final_* = er_*` of the same run) and adds a second row, `FedECS-LT (heads only)`, with its heads as
+trained. Every comparison (`margin`, `strongest`, `diff/...`, `best`) is FedECS-LT with its readout against every
+other method as published; `heads_margin`, `heads_strongest` are its heads alone; `er_*` slots give every method of
+the GeFL-F pipeline with the same readout added. The heads-only row is never a rival or in a Holm family.
 
 A run counts once. If the same run came back twice, the later folder in alphabetical order wins; `STATUS.md` shows
 the seeds per setting.
@@ -250,31 +257,36 @@ Always keep:
 - **If folder 4 is not run:** delete "50 and 10" from the caption and Section 6.2, keep ratio 100 only, and say
   "at imbalance ratio 100".
 
-### E5. Variants of GeFL-F (folder 2: `NB30_ablation_cifar10`, `NB30_ablation_cifar100`)
+### E5. Variants of GeFL-F and FedDF (folder 8: `cifar10_cifar100_gefl_f_variants`, `cifar10_cifar100_matched_synthetic_epochs`)
 
-- **Paper:** `tab:ablation` (`abl_bal`) and the numbers `abl/cifar10/GeFL-F + LA/gain` and `abl/cifar10/rest`
-  (Section 7.5).
-- **State:** not run. The references (FedECS-LT, GeFL-F, FedDF) come from E1's part 1 automatically.
-- **What to write:** "Removing the coupled decay and adding logit adjustment (GeFL-F + LA) recovers G points; FedECS-LT
-  adds R points on top." If R is small or negative, say so. It means the decay fix is most of the gain on that
-  dataset, which the analysis of Section 4.1 predicts.
+- **Arms:** GeFL-F without its generator; GeFL-F + AdamW (decoupled decay alone, cross-entropy: the direct test of the
+  decay diagnosis); GeFL-F + LA (AdamW and logit adjustment); GeFL-F with class Gaussians + LA; FedDF + LA; FedECS-LT
+  with its generator replaced by class Gaussians with the exact class means and covariances (goes to `comp`); GeFL-F
+  and FedDF with T_s = 10 synthetic epochs (matched to FedECS-LT). Seeds 3-5, same splits as the main notebooks. They
+  replace NB30, whose results never came back.
+- **Paper:** `tab:ablation` (`abl_bal`), Section 7.5 "Variants of GeFL-F"; numbers `abl/<ds>/<method>/gain` (against
+  GeFL-F, or FedDF for the FedDF arms; `er_gain` with the readout), `abl/<ds>/heads_vs/<T_s=10 arm>` and
+  `abl/<ds>/rest`. The sentences are written and appear when the slots fill; Section 4.1 and the threats switch
+  their wording through `\numelse`.
+- **What to write after they return:** check the blue sentences. If GeFL-F + AdamW does not raise the tail recall,
+  say that the decay diagnosis is not supported causally and soften highlight 1.
 
-### E6. Components of FedECS-LT (folder 2: `NB31_components_cifar10`, `NB31_components_cifar100`)
+### E6. Components of FedECS-LT (folder 8: `cifar10_cifar100_components_of_fedecs_lt`, two parts)
 
-- **Variants**, each changing one component:
-  - class rows averaged by CCWA instead of the gate;
-  - class rows averaged flat (GeFL-F's generator);
-  - without moment correction;
-  - without consensus soft labels;
-  - without logit adjustment;
-  - one synthetic epoch instead of ten.
-- **Paper:** `tab:components` (`abl_components`: as trained and with the exact readout), Section 7.5, paragraph
-  "Components of FedECS-LT". Replace the bracketed blue sentence there with the findings.
-- **State:** not run (built 27 Oct 2026). The full FedECS-LT comes from E1.
-- **What to write:** for each component, the drop when it is removed, as trained and with the readout. Components
-  that matter only as trained (typically logit adjustment) act on the last layer. Components that matter with the
-  readout improve the representation. Name which is which. A component whose removal changes nothing within the seed
-  spread is "not needed on this dataset". Say it, and consider removing it from the method in the next revision.
+- **Variants**, each changing one component: class rows by CCWA instead of the gate; class rows averaged flat; without
+  moment correction; without consensus soft labels; without logit adjustment; one synthetic epoch instead of ten;
+  and (from E5's notebook) a Gaussian sampler instead of the trained generator. They replace NB31.
+- **Paper:** `tab:components` (`abl_components`: heads as trained and with the readout), Section 7.5 "Components of
+  FedECS-LT"; numbers `comp/<ds>/<variant>/er_drop` and `/drop`, `comp/<ds>/largest`, `comp/<ds>/n_small` (changes
+  within the readout noise floor). The conclusion's sentence "not yet measured" disappears by itself.
+- **What to write:** check the blue sentence; name the components whose removal stays within the noise floor as
+  "not needed on this dataset".
+
+### E6b. Fresh seeds 6-8 (folder 8: `cifar10_cifar100_fresh_seeds_6_to_8`)
+
+- FedECS-LT, GeFL-F, FedDF and Balanced Softmax on new client splits, never used in development (seeds 0-5 were).
+- **Paper:** paragraph "New client splits" in Section 7.1 (slots `fresh/<ds>/margin`, `er_margin`, `strongest`); the
+  tuning threat in Section 6 switches its wording by itself.
 
 ### E7. Robustness sweeps (folder 6: `NB40_sweep_cifar10_a0.1`, `a1.0`, `K50`, `K100`, `IF050`, `IF010`)
 

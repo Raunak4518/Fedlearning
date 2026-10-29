@@ -30,3 +30,13 @@ AUTHOR_DECISION_REQUIRED. Severity P0 (validity/integrity) to P3 (editorial).
 | B-N2..N7, C4..C12, C15..C17 | 0 | P2-P3 | sec2, sec4, sec5, sec6, sec7 | AFL, DFL-FS, Fisher, FedGen count weights, AvgKD/FedDF target form; invariance credited; CReFF settings and forced ResNet-8; HtFLlib, FedFTG, FedVTC, FedRS, FedLTLib, collapse, CAS wording; positioning table; "than ours" | accept | RESOLVED_UNVERIFIED (v04) | - |
 | C-9, C-11, C-20, C-26, C-27, C-29, C-30, C-32, C-36, D-15 | 0 | P2-P3 | sec1, sec3-5, appendix | Adam bound, alternation conditions, Flower scope, contraction wording, holder gradient, clipping and <3 clients, prototype scores, sample size, spread definition, GeFL-setting configuration | accept | RESOLVED_UNVERIFIED (v04) | - |
 | C-16 | 0 | P2 | appendix | HtFLlib port and FedDF deviations | accept | RESOLVED_UNVERIFIED (v04: appendix paragraphs) | - |
+| E-1 | 1 | P0 | build | draft PDF prints conditional statements | build.sh final (\finalslotstrue via -jobname main_final) | RESOLVED_UNVERIFIED (final PDF: no slot names) | verifier |
+| E-2, E-3, E-4 | 1 | P1 | abstract, sec5, sec7 | readout carries the gain; method vs analysis; statistics framing | readout is part of FedECS-LT (user); abstract lists which parts use statistics | RESOLVED_UNVERIFIED (v05) | verifier |
+| E-5, E-6 | 1 | P1 | sec4, highlights | decay diagnosis not causal; fidelity unreported | fidelity table, softened text; AdamW-only arm built | text RESOLVED_UNVERIFIED; run BLOCKED (folder 8) | verifier |
+| E-7, E-26 | 1 | P1 | sec6 | selection on the test sets | development count and untouched datasets stated; fresh seeds 6-8 built | text RESOLVED_UNVERIFIED; run BLOCKED (folder 8) | verifier |
+| E-8, E-25 | 1 | P1 | sec7 | compute/distillation confound; gate branch | T_s = 10 arms, component notebook built | BLOCKED (folder 8) | - |
+| E-9, E-10 | 1 | P1 | sec3, sec5 | every client runs every head; K = 10 one client per architecture | assumption paragraph in sec3; privacy sentence corrected | RESOLVED_UNVERIFIED | verifier |
+| E-11..E-17, E-19, E-21..E-23 | 1 | P1-P3 | highlights, abstract, sec1, sec3, sec4, sec7, appendix, fill.py | highlights, one-seed note, conclusion, post-hoc LA, lemmas, "only", FedDF in GeFL measure, counts, ECE rank, spread caveat, number format | accept | RESOLVED_UNVERIFIED | verifier |
+| E-18, E-20 | 1 | P2 | sec8 | weak baselines; small extractor | limitations | RESOLVED_UNVERIFIED (text); experiment not planned | - |
+| E-24 | 1 | P3 | front matter | placeholders | user gives names and URL | AUTHOR_DECISION_REQUIRED | - |
+| F-* | 1 | P1-P3 | all | editorial review | applied by the editor agent | IN_PROGRESS | F_applied.md |

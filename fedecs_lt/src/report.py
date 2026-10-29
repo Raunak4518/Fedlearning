@@ -102,7 +102,7 @@ def fmt(mu, sd, key, n=2):
         return "-"
     spread = n > 1 and not np.isnan(sd)
     if key in NOT_PCT:
-        if abs(mu) >= 1000:   # times in seconds, bytes: whole numbers, no exponent
+        if abs(mu) >= 100 or (spread and sd >= 100):   # times, bytes, FLOPs: whole numbers, never an exponent
             return f"{mu:,.0f} ± {sd:,.0f}" if spread and sd > 0 else f"{mu:,.0f}"
         return f"{mu:.3g} ± {sd:.2g}" if spread and sd > 0 else f"{mu:.3g}"
     return f"{100 * mu:.1f} ± {100 * sd:.1f}" if spread else f"{100 * mu:.1f}"
