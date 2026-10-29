@@ -1154,11 +1154,13 @@ def f34(E, S, out):
     for m in sorted({r[0] for r in rows}):
         rr = [r for r in rows if r[0] == m]
         st = ps.style(m)
-        ax.plot([r[1] for r in rr], [r[2] for r in rr], label=f"{m}: clients holding the class (growth)", **st)
-        ax.plot([r[1] for r in rr], [r[3] for r in rr], label=f"{m}: clients lacking the class (shrinkage)", **dict(st, linestyle=":"))
+        ax.plot([r[1] for r in rr], [r[2] for r in rr], label=f"{m}: holders (growth)", **st)
+        ax.plot([r[1] for r in rr], [r[3] for r in rr], label=f"{m}: non-holders (shrinkage)", **dict(st, linestyle=":"))
     ax.set_xlabel("Round")
     ax.set_ylabel("Change of the row norm per round")
-    ax.legend()
+    # short labels (the caption says what holders are), below the axes: long method names (component variants)
+    # otherwise push the legend over the tick labels
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.22), ncol=1)
     p = ps.save(f, out, "fig_34_holder_gain_vs_shrink", rows, ["method", "round", "holder_gain", "nonholder_shrink"])
     return [(p, cap.simple(34, E, S, "Mean change of a class row's norm in one round of local training: growth on "
                                      "clients that hold the class against shrinkage on clients that do not (class-row "
