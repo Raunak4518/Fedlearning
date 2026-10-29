@@ -2,7 +2,9 @@
 
 Model-heterogeneous methods differ in what the clients exchange: predictions on shared inputs (FedDF, FedMD), class
 means of internal representations (FedProto, FedTGP), a shared part of the network (LG-FedAvg, FedGH, FedMRL), or a
-generator of synthetic data (FedGen, GeFL). The paper builds on GeFL-F, the feature-level variant of GeFL. It splits
+generator of synthetic data (FedGen, GeFL). One of them returns throughout this text: in FedDF the server, after
+every round, distils each architecture toward the mean prediction of all architectures on shared inputs. The paper
+builds on GeFL-F, the feature-level variant of GeFL. It splits
 every client's network into two parts, a small \emph{extractor} that all clients share and a \emph{head} that is
 specific to the client's architecture, and lets the clients share a generator of extractor outputs. Training runs in
 three stages (\cref{fig:s-pipeline}).
@@ -22,7 +24,8 @@ server in each round of every stage. Stage I averages the extractor over all cli
 its architecture); Stage II averages the generator over all clients; Stage III averages each head over the clients of
 its architecture, which does nothing when every architecture has one client.};
 \end{tikzpicture}
-\caption{GeFL-F's three stages. The extractor and the generator are shared by all clients; the heads are not.}
+\caption{GeFL-F's three stages. The extractor and the generator are shared by all clients; the heads are not. Look
+at what crosses each arrow: after Stage I only features, after Stage II only the generator.}
 \label{fig:s-pipeline}
 \end{figure}
 
@@ -32,18 +35,40 @@ can be averaged. On CIFAR it is two $3\times3$ convolutions with three and ten o
 batch normalisation and ReLU, and a $2\times2$ max pooling. A $32\times32$ image becomes a $10\times16\times16$ array,
 the \emph{feature} $h=\phi(x)$, with $d=2560$ numbers. After Stage I the extractor is frozen, and every client computes
 the features of its images once, without augmentation. From then on, every client works on features, not images.
+Freezing is what makes the later stages possible: the generator of Stage II learns the distribution of the
+extractor's outputs, so that target must not move while the generator is trained and used, and the heads of all
+architectures must read the same kind of input.
 
 \paragraph{The heads} Client $k$ trains a head of its own architecture, one of ten convolutional networks CNN-1 to
-CNN-10 with one to four convolutional blocks of different widths. Each head has two parts. Its \emph{body}, the
-convolutional blocks, maps a feature $h$ to an \emph{embedding} $e$; its \emph{last layer} is linear and maps $e$ to
-the $C$ logits $f=We+b$. In the main setting there are ten clients and client $k$ trains architecture $k$, so each
-architecture has exactly one client.
+CNN-10 with one to four convolutional blocks of different widths (\cref{tab:s-heads}). Each head has two parts. Its
+\emph{body}, the convolutional blocks, maps a feature $h$ to an \emph{embedding} $e$ of dimension $d_e$; its
+\emph{last layer} is linear and maps $e$ to the $C$ logits $f=We+b$. In the main setting there are ten clients and
+client $k$ trains architecture $k$, so each architecture has exactly one client.
+
+\begin{table}[t]
+\centering\small
+\caption{The ten head architectures on CIFAR (from \texttt{settings.HEADER\_WIDTHS} and \texttt{models.PaperHeader}
+in \texttt{fedecs\_lt/src}): output channels of each $3\times3$ convolutional block (each followed by batch
+normalisation, ReLU and $2\times2$ max pooling), embedding dimension $d_e$ and number of parameters with $C=10$. Look
+at $d_e$: it falls as the heads get deeper, so the deepest heads have the smallest embeddings.}
+\label{tab:s-heads}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lcccccccccc}\toprule
+Head & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10\\\midrule
+Blocks & 16 & 16,32 & 20,40 & 10,20 & 16,32,64 & 20,40,80 & 10,20,40 & 16,\dots,128 & 20,\dots,100 & 10,\dots,80\\
+$d_e$ & 1024 & 512 & 640 & 320 & 256 & 320 & 160 & 128 & 100 & 80\\
+Parameters & 11.7k & 11.3k & 15.6k & 6.0k & 27.4k & 41.4k & 11.7k & 100.2k & 111.5k & 40.0k\\\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
 
 \paragraph{Stage II: the shared generator} The clients train a conditional variational autoencoder $G(h\mid y)$ on
 their features, again by FedAvg, for $T_{\mathrm{II}}=200$ rounds, with the Adam optimiser and coupled weight decay
-(an L2 penalty $\lambda\|\theta\|^2/2$ added to the loss). The generator takes a class label $y$ and random noise $z$
+(an L2 penalty $\lambda\|\theta\|^2/2$ on the parameters $\theta$, added to the loss). The generator takes a class label $y$ and random noise $z$
 and outputs a feature $\tilde h$ that should look like a real feature of class $y$. The label enters through a linear
-projection of the one-hot vector $e_y$; the weights that multiply class $c$ form a vector $r_c$, the \emph{class row}.
+projection of the one-hot vector $\mathbf 1_y$; the weights that multiply class $c$ form a vector $r_c$, the
+\emph{class row}. (The paper also writes $G$ for the number of architectures; this text writes ``ten architectures''
+instead, so $G$ always means the generator.)
 The class rows are the only parameters of the generator that belong to one class: everything the generator knows that
 distinguishes class $c$ from the others must pass through $r_c$.
 
@@ -60,10 +85,11 @@ generator that was trained partly on client 7's 63 images of that class. If the 
 real ones, client 2's head learns class 9 without ever seeing a class-9 image. Whether they do look like real ones is
 the central question of \cref{ch:diagnosis}.
 
-\paragraph{What goes wrong} GeFL-F was designed and evaluated on balanced clients. Under the long tail of the running
-example it reaches \R{main/cifar10/GeFL-F/bal} balanced accuracy on CIFAR-10-LT, about the level of Local, in which
+\paragraph{What goes wrong} GeFL-F was designed and evaluated on balanced clients. On CIFAR-10-LT (mean over seeds 3--5, of which the running
+example is the first) it reaches \R{main/cifar10/GeFL-F/bal} balanced accuracy on CIFAR-10-LT, about the level of Local, in which
 every client trains alone (\R{main/cifar10/Local/bal}). On the tail classes, the 40\% least frequent (classes 6--9),
 its recall is \R{main/cifar10/GeFL-F/tail}. On CIFAR-100-LT it reaches \R{main/cifar100/GeFL-F/bal}, against
-\R{main/cifar100/Local/bal} for Local. Federation through the generator brings almost nothing.
+\R{main/cifar100/Local/bal} for Local. On these benchmarks GeFL-F ends close to training alone.
 
-Where, inside these three stages, are the rare classes lost?
+Before looking for where GeFL-F loses the rare classes, one question narrows the search: what can bias a class-level
+quantity in a federation at all?

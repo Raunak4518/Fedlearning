@@ -19,7 +19,7 @@ features (\cref{ch:gefl}).
 of one class and none of another.
 \item \emph{A global long tail}: over the whole federation, a few classes are frequent and many are rare.
 \end{itemize}
-The paper builds both in a controlled way. The class sizes follow
+The paper builds both in a controlled way. For a dataset with $C$ classes the class sizes follow
 \[
 n_c\propto\rho^{-c/(C-1)},\qquad c=0,\dots,C-1,
 \]
@@ -30,7 +30,8 @@ $k$ receives a fraction $p_{kc}$ of the class. A small concentration $\alpha$ gi
 $\alpha=0.5$.
 
 \paragraph{The running example} The text returns to one concrete case throughout: CIFAR-10-LT with $\rho=100$, $K=10$
-clients and $\alpha=0.5$, split with seed 3. The run logs give its class sizes,
+clients and $\alpha=0.5$, split with seed 3. The run logs (the field \texttt{client\_counts} of the CIFAR-10-LT
+runs in \nolinkurl{fedecs_lt/results/NB10_main_cifar10_*/runs.jsonl}) give its class sizes,
 \[
 (n_0,\dots,n_9)=(4800,\,4800,\,3620,\,2170,\,1301,\,779,\,467,\,280,\,168,\,100),
 \]
@@ -59,22 +60,24 @@ whatever its size. It is the paper's primary metric. The test sets of CIFAR-10 a
 With ten client models, one per architecture, the paper reports the mean over the ten models of each model's balanced
 accuracy,
 \[
-\text{balanced accuracy}=\frac1G\sum_{g=1}^{G}\frac1C\sum_{c=1}^{C}r_{gc},
+\text{balanced accuracy}=\frac1{10}\sum_{g=1}^{10}\frac1C\sum_{c=0}^{C-1}\mathrm{rec}_{gc},
 \]
-where $r_{gc}$ is the recall of class $c$ by the model of architecture $g$ and $G=10$ is the number of architectures.
+where $\mathrm{rec}_{gc}$ is the recall of class $c$ (the share of its test images predicted as $c$) by the model of
+architecture $g$.
 
 \begin{table}[t]
 \centering\small
 \caption{The datasets as used in the paper (the paper's dataset table): number of classes, training images held by
 the clients, test images, and the realised ratio between the largest and the smallest class. The first two are the
-long-tailed benchmarks built with $\rho=100$; the others keep their own class sizes.}
+long-tailed benchmarks built with $\rho=100$; the others keep their own class sizes. Look at the last column: the
+realised ratios differ from the target 100, and three natural datasets are only mildly imbalanced.}
 \label{tab:s-datasets}
 \slottab{datasets}{}
 \end{table}
 
 \paragraph{Two protocols} The paper tests its method in two settings.
 \begin{itemize}
-\item \emph{Different client models}, the setting the method is built for: ten clients, each with its own head
+\item \emph{Different client models}, the setting the method is built for: ten clients, each with its own network
 architecture, on the long-tailed benchmarks CIFAR-10-LT and CIFAR-100-LT and on six datasets whose classes are
 naturally imbalanced (\cref{tab:s-datasets}).
 \item \emph{One shared model}, the standard protocol of federated long-tail research: twenty clients train one
@@ -82,4 +85,4 @@ ResNet-8 together. Here the specialised long-tail methods of the literature appl
 method compares with them outside its own design.
 \end{itemize}
 
-The question the rest of this text builds on is how clients that run different models can share knowledge at all.
+How can clients that run different models share knowledge at all?

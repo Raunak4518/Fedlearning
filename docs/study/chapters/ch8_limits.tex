@@ -34,11 +34,13 @@ aggregation against an honest-but-curious server (\cref{sec:s-privacy}).
 \item \textbf{Low absolute accuracy.} GeFL's own authors attribute GeFL-F's lower accuracy on CIFAR-10 to its small
 extractor and heads. In GeFL's balanced setting the paper's earlier implementation of GeFL-F reaches
 \R{repro/cifar10/GeFL-F/final}\% on CIFAR-10, close to GeFL's published value of about \R{repro/cifar10/published}\%,
-so the low numbers are those of the setting, not of a faulty re-implementation. They are not comparable with
+and the Flower implementation used for every reported run was checked against that earlier one (the same splits, and
+the same client training steps in unit tests). So the low numbers are those of the setting, not of a faulty
+re-implementation. A reference trained on all data pooled, which would give the ceiling of this design, is pending. They are not comparable with
 centralised long-tail results for ResNet-32 and larger networks.
 \end{itemize}
 
-\paragraph{The trade-offs} Four costs come with the method, and a reader deciding whether to use it should weigh each.
+\paragraph{The trade-offs} Four costs come with the method.
 \begin{itemize}
 \item \textbf{Each client's own accuracy.} Balanced accuracy and the readout's equal priors serve the federation's
 rare classes at the expense of each client's own frequent ones. On the clients' own class mixes FedECS-LT is below
@@ -46,19 +48,15 @@ most other methods (\cref{ch:results}).
 \item \textbf{Communication and time.} \R{cost/cifar10/comm_ratio_bsm} times the communication and
 \R{cost/cifar10/time_ratio_bsm} times the time of Balanced Softmax on CIFAR-10-LT, for a same-readout margin of
 \R{main/cifar10/er_diff/Balanced Softmax} points that is not resolved.
-\item \textbf{Every client runs every head.} The consensus needs every client to run every architecture's head on the
-generated pool each round, and the readout every body once. This is forward computation only, no training, but it
-assumes every client can store and run the largest head. The motivation of model heterogeneity, that clients run
-different networks because their hardware differs, is therefore only partly kept: the clients still train different
-networks, but each must be able to evaluate all of them. The architectures are not secret.
-\item \textbf{Released class means.} The server and every client learn the federation's class means and spreads. For a
-class held by one client, that is the client's own statistic; for a small class, the mean says more about each image.
-With a shallow extractor a class mean is close to a mean image at half resolution.
+\item \textbf{Every client runs every head} (\cref{sec:s-heads,sec:s-readout}), forward only, which assumes every
+client can store and run the largest head. The motivation of model heterogeneity, that clients run different networks
+because their hardware differs, is therefore only partly kept: the clients still train different networks, but each
+must be able to evaluate all of them, and the architectures are not secret.
+\item \textbf{Released class means}, which reveal the most about singly held and small classes (\cref{sec:s-privacy}).
 \end{itemize}
 
-\paragraph{What follows and what does not} It follows that the exact readout raises every method of this setting to which it was
-added, by far more than the other differences between them, for one extra round of communication. It follows that
-FedECS-LT as a whole has the highest measured balanced accuracy when clients have different models. It does not follow that exact class statistics in the generator are what makes FedECS-LT work: that is
+\paragraph{What does not follow} The readout's gain is measured on the CIFAR benchmarks for every method of the
+pipeline, and FedECS-LT's margin over every method as published is measured on all eight datasets. It does not follow that exact class statistics in the generator are what makes FedECS-LT work: that is
 the question of the pending ablations. It does not follow that the decay diagnosis is a cause: that is the question
 of the AdamW run. And it does not follow that the result holds with several clients per architecture.
 

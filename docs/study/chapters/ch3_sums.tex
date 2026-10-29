@@ -1,6 +1,6 @@
 \section{What federation can and cannot bias}\label{ch:sums}
 
-Before locating the loss, one fact narrows the search. It is also the idea on which the whole method rests.
+One fact answers most of this question, and the whole method rests on it.
 
 \paragraph{A client split is a pure label shift} The Dirichlet split of \cref{ch:problem} decides \emph{how many}
 images of each class a client gets, but within a class it picks the images uniformly at random. So the class-9 images
@@ -25,17 +25,20 @@ where $D_{kc}$ is client $k$'s set of class-$c$ images and $n_{kc}$ its size. If
 and its sum $S^{(1)}_{kc}$, the server obtains $\mu_c$ exactly, whatever the split. For class 9 of the running
 example, client 7 sends 63 and the sum of its 63 features, client 9 sends 14 and the sum of its 14, and so on; the
 server divides the total sum by the total count, 100, and gets the same mean it would get from the 100 images in one
-place. The paper states this as a lemma.
+place. In numbers, for one coordinate of the feature and for illustration: if client 7's 63 values sum to 31.5 and
+the other holders' 37 values sum to 18.5, the server computes $(31.5+18.5)/(63+37)=0.5$, which is what the 100 values in
+one place give. The paper states this as a lemma.
 
 \begin{lemma*}[partition invariance]
-An estimator that is a function of a sum $S=\sum_k\sum_{i\in D_k}T(x_i,y_i)$, with $T$ fixed in advance, takes the same
-value for every partition of the pooled data, and equals the centralised estimator.
+An estimator that is a function of a sum $S=\sum_k\sum_{i\in D_k}\psi(x_i,y_i)$, with the map $\psi$ fixed in
+advance, takes the same value for every partition of the pooled data, and equals the centralised estimator.
 \end{lemma*}
 
 The proof is that addition does not depend on the order or grouping of its terms. The lemma is simple, and the paper
 says that it is known for closed-form federated classifiers (Fed3R, AFL, FedCOF). Its use here is that it tells which
-quantities a federated method can compute \emph{without} the bias of \cref{sec:s-routes}: those that are functions of
-per-client sums. The class spread is one. With $S^{(2)}_{kc}=\sum_{i\in D_{kc}}\|h_i\|^2$,
+quantities a federated method can compute \emph{without any bias from the split}: those that are functions of
+per-client sums. It does not remove the bias that a small sample causes in any estimator, centralised or not; that
+bias is the fourth route at the end of this chapter. The class spread is one. With $S^{(2)}_{kc}=\sum_{i\in D_{kc}}\|h_i\|^2$,
 \[
 V_c=\frac{\sum_k S^{(2)}_{kc}}{n_c}-\|\mu_c\|^2=\E\big[\|h-\mu_c\|^2\,\big|\,y=c\big],
 \]
@@ -45,11 +48,16 @@ the mean squared distance of a class-$c$ feature from the class mean, is also ex
 feature sums. \emph{Secure aggregation} is a cryptographic protocol that lets the server learn the sum over clients of
 vectors and nothing else about any single vector. The basic idea: every pair of clients agrees on a random mask; one
 adds it to its vector, the other subtracts it; each masked vector looks random to the server, but in the sum the masks
-cancel. The paper uses Flower's SecAgg+, a variant that tolerates clients dropping out.
+cancel. With three clients holding the numbers 5, 2 and 4: clients 1 and 2 agree on the mask 17, clients 1 and 3 on
+9, clients 2 and 3 on 30. Client 1 sends $5+17+9=31$, client 2 sends $2-17+30=15$, client 3 sends $4-9-30=-35$. The
+server sees 31, 15 and $-35$, which say nothing about 5, 2 and 4, and their sum is $11=5+2+4$. With only two clients
+the protocol would protect nothing: each client could subtract its own number from the published sum and obtain the
+other's. The paper uses Flower's SecAgg+, a variant that tolerates clients dropping out.
 
 The protocol works on integers, so each vector is divided by a public bound and quantised to 30 bits with unbiased
-stochastic rounding. The error is at most $1.5\times10^{-8}$ of the bound per client and coordinate. Values beyond
-eight times the bound would be clipped, and with fewer than three participants the protocol cannot run and the sum is
+stochastic rounding. The quantiser covers the range from $-8$ to $+8$ bounds, 16 bounds in all, with $2^{30}$
+levels, so its step, the largest rounding error, is $16/2^{30}\approx1.5\times10^{-8}$ of the bound per client and
+coordinate. Values beyond eight times the bound would be clipped, and with fewer than three participants the protocol cannot run and the sum is
 computed in clear. The paper calls the statistics \emph{exact} in this sense: exact up to this quantisation. The
 bounds come from a small validation set that the server holds (200 images per class on CIFAR-10, held out from the
 training data), never from the clients' data.
