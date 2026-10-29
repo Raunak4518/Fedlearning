@@ -1,0 +1,9 @@
+Dataset,Generator,All,Head,Medium,Tail
+CIFAR-10,FedECS-LT (generator),25.9 ± 2.1,11.0 ± 2.2,16.7 ± 13.0,44.1 ± 5.0
+CIFAR-10,FedECS-LT (after moment correction),28.9 ± 4.6,23.5 ± 6.6,19.2 ± 12.4,40.3 ± 2.8
+CIFAR-10,GeFL-F (generator),12.9 ± 2.4,9.4 ± 0.9,11.2 ± 7.6,16.8 ± 0.3
+CIFAR-10,FedDF (generator),12.8 ± 2.2,9.2 ± 1.2,10.3 ± 7.2,17.3 ± 0.7
+CIFAR-100,FedECS-LT (generator),8.8 ± 1.2,5.9 ± 1.8,8.2 ± 0.8,11.5 ± 1.2
+CIFAR-100,FedECS-LT (after moment correction),8.8 ± 0.4,7.2 ± 0.8,9.0 ± 0.8,9.9 ± 0.6
+CIFAR-100,GeFL-F (generator),1.1 ± 0.1,1.1 ± 0.2,1.1 ± 0.2,1.2 ± 0.2
+CIFAR-100,FedDF (generator),1.1 ± 0.1,1.2 ± 0.2,1.0 ± 0.2,1.1 ± 0.2

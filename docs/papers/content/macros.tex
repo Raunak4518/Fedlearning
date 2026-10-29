@@ -53,6 +53,8 @@
 \newcommand{\whentab}[2]{\iffinalslots\IfFileExists{\genpath/tables/#1.tex}{#2}{}\else#2\fi}
 \newcommand{\whenfig}[2]{\iffinalslots\IfFileExists{\genpath/figures/#1.pdf}{#2}{}\else#2\fi}
 \newcommand{\whennum}[2]{\iffinalslots\ifcsname num@#1\endcsname#2\fi\else#2\fi}
+% \numelse{key}{text when the number exists}{text until it exists}: chosen in both modes
+\newcommand{\numelse}[3]{\ifcsname num@#1\endcsname#2\else#3\fi}
 \newif\ifslot@any
 \newcommand{\whenanytab}[2]{\iffinalslots\slot@anyfalse
   \@for\slot@x:=#1\do{\IfFileExists{\genpath/tables/\slot@x.tex}{\global\slot@anytrue}{}}%

@@ -18,9 +18,9 @@ GeFL-F was evaluated on balanced clients. Under long-tailed label skew we find t
 the rare classes, and we ask where.
 
 \paragraph{Where the rare classes are lost.} Because a client partition is a pure label shift, federation cannot
-bias class-conditional quantities by itself (\cref{sec:setting}); it can lose rare classes only through the optimiser,
-through parameters tied to a client's label prior, and through sample size. We locate three such losses
-(\cref{sec:analysis}).
+bias class-conditional quantities by itself (\cref{sec:setting}). We examine how it can still lose rare classes:
+through the optimiser, through parameters tied to a client's label prior, through the synthetic data and through
+sample size. We locate three such losses (\cref{sec:analysis}).
 \begin{enumerate}
 \item \emph{The generator.} With Adam~\cite{kingma2015adam} and coupled weight decay, a client that lacks a class moves
 the generator's class-specific conditioning parameters toward zero at Adam's full step size, while the clients that
@@ -61,12 +61,13 @@ metric is logged per class.
 
 \paragraph{Contributions.}
 \begin{enumerate}
-\item A long-tail evaluation of generator-based model-heterogeneous FL and a stage-by-stage account of where it loses
-rare classes, with short exact results checked against measurements (\cref{sec:analysis}).
+\item A long-tail evaluation of generator-based model-heterogeneous FL and a measured, stage-by-stage diagnosis of
+where it loses rare classes, supported by elementary lemmas (\cref{sec:analysis}).
 \item \ours, which uses exact, securely aggregated class statistics in the generator, the heads and the readout
 (\cref{sec:method}).
-\item A comparison against \R{count/methods_w} published methods on \R{count/datasets_w} datasets in two protocols,
-run on the same client splits, with paired statistics, per-class metrics and the cost of every
+\item A comparison against \R{count/methods_w} published methods in two protocols: \R{main/nbaselines_w} on
+\R{count/datasets_w} datasets with different client models, and \R{t2/nbaselines_w} on two benchmarks with one shared
+model (in the authors' LongTailLib code), each protocol on the same client splits, with paired statistics, per-class metrics and the cost of every
 method (\cref{sec:results}). Every method of the GeFL-F pipeline is also evaluated with the readout of \ours added,
 which separates the readout's gain from that of the rest of the method. \claim{With different client models, \ours
 has the highest mean balanced accuracy on \R{main/nbest_of} long-tailed benchmarks and \R{nat/nbest_of} naturally

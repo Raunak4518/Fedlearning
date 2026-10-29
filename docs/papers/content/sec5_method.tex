@@ -82,8 +82,9 @@ where $e_y$ is the one-hot generated label and $f_g$ the current head of archite
 prediction on that feature, the target form of AvgKD~\cite{afonin2022avgkd} and FedDF's ensemble
 distillation~\cite{lin2020feddf}, here computed on generated features through one secure sum~\cite{menon2021distill}. Every client regenerates the same pool of synthetic features from a
 seed sent by the server and returns $w_k\,\mathrm{softmax}(f_{a(k)}(\tilde h))$ with $w_k=1/(G\,|\{j:a(j)=a(k)\}|)$; the
-secure sum over clients is the average in \cref{eq:csl}. Since the server holds every head and sends every architecture's current head
-to every client, this hides nothing beyond what FedAvg already reveals; it only makes the consensus one secure sum. Heads of
+secure sum over clients is the average in \cref{eq:csl}. Every client thus receives every architecture's current
+head, which FedAvg within an architecture does not reveal (\cref{sec:setting}); secure aggregation only hides each
+client's predictions from the server. Heads of
 the same architecture are averaged as in GeFL-F.
 
 \subsection{Exact readout}\label{sec:method-readout}

@@ -14,6 +14,9 @@ for heads trained on one client each.
 \begin{itemize}
 \item The extractor is small and frozen, as in GeFL-F, and shared by all clients, so the clients' architectures
 differ only in their heads; we did not study pre-trained or larger extractors, or clients with different backbones.
+\item No published method addresses both different client models and a long tail, so the comparison is with
+long-tail losses applied per client, with FedDF and with model-heterogeneous methods designed for label skew; the
+long-tail methods CCVR and FedETF enter only GeFL's grouped protocol, within each architecture.
 \item The splits are pure label skew (\cref{sec:setting}); feature and concept shift between clients are not tested.
 \item Three seeds per setting give fragile intervals and paired tests; the tests are reported with Holm's correction,
 and differences of about a point should be read with that in mind.
@@ -26,8 +29,9 @@ closely. \ours should not be called privacy-preserving beyond that protocol guar
 \item \ours costs more than GeFL-F (\cref{tab:cost}): its extra time is mostly in the longer synthetic phase of
 Stage III, and its extra communication mostly in the training of the generator, which with its projection of the
 class means is larger than GeFL-F's. We did not compare the methods at
-matched computation or communication; the ablation with one synthetic epoch shows how much \ours depends on the
-longer phase, not what the other methods would reach with it.
+matched communication or wall-clock time; the ablation with one synthetic epoch shows how much \ours depends on the
+longer phase\numelse{abl/cifar10/heads_vs/GeFL-F (T_s=10)}{, and GeFL-F and FedDF were also run with ten synthetic
+epochs}{, not what the other methods would reach with it}.
 \item The gate threshold $F_0$ and the other settings of \cref{tab:hyper} were chosen on earlier runs of the same
 benchmarks, partly with the same seeds and client splits and on the same test sets; they were fixed before these runs
 and not swept, and the baselines were not tuned (\cref{sec:setup-threats}).
@@ -49,10 +53,11 @@ are not comparable with centralised long-tail results for ResNet-32 and larger n
 
 \section{Conclusion}\label{sec:conclusion}
 
-Generator-based model-heterogeneous federated learning loses rare classes in three places: the optimiser's treatment
-of clients that lack a class, a last layer fitted to one client's prior, and synthetic features that do not carry
-their label. Each can be described precisely, and each can be repaired with class statistics that secure aggregation
-computes up to its quantisation. \claim{\ours, which applies these repairs together and ends with an exact readout of every last layer, improves
+Generator-based model-heterogeneous federated learning loses rare classes in at least three places: the optimiser's
+treatment of clients that lack a class, a last layer fitted to one client's prior, and synthetic features that do not
+carry their label. Each is addressed by a component of \ours that uses class statistics computed by secure
+aggregation or, for the heads, logit adjustment and consensus soft labels.\numelse{comp/cifar10/largest}{}{ Which of
+these components carry the effect beyond the readout is not yet measured.} \claim{\ours, which applies these repairs together and ends with an exact readout of every last layer, improves
 balanced accuracy over the published methods when clients have different models, on CIFAR-10-LT mostly through the
 recall of the tail classes. Most of the gain is the readout's: added to every method of the GeFL-F pipeline, it
 leaves \ours a lead that three seeds do not resolve. With one model shared by all clients, the strongest long-tail

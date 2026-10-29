@@ -1,6 +1,6 @@
 \section{Where generator-based heterogeneous FL loses rare classes}\label{sec:analysis}
 
-This section locates the three losses that \ours repairs. Each comes with a short exact statement (proofs in
+This section locates the three losses that \ours addresses. Each comes with a short elementary lemma (proofs in
 \cref{app:proofs}) and a measurement on the GeFL-F runs of \cref{sec:results}.
 
 \subsection{The generator: coupled decay shrinks rare classes' conditioning rows}\label{sec:analysis-gen}
@@ -9,10 +9,10 @@ In one round, client $k$ starts from the global row $r_c$, runs local Adam steps
 $\Delta_k=\|r_{k,c}\|-\|r_c\|$, let $\bar G_c$ be the mean of $\Delta_k$ over the holders $H_c$ and $\bar D_c$ the mean
 of $-\Delta_k$ over the other clients, and $p_c=m_c/K$.
 
-\begin{proposition}[contraction under flat averaging]\label{prop:contraction}
+\begin{lemma}[contraction under flat averaging]\label{prop:contraction}
 Under $r_c^+=\frac1K\sum_k r_{k,c}$, $\|r_c^+\|\le\|r_c\|+p_c\bar G_c-(1-p_c)\bar D_c$, with equality if and only if
 all $r_{k,c}$ are non-negative multiples of one another. The row contracts whenever $p_c<\bar D_c/(\bar G_c+\bar D_c)$.
-\end{proposition}
+\end{lemma}
 
 The bound only describes the measured changes; the optimiser decides how large $\bar D_c$ is.
 
@@ -37,7 +37,15 @@ harmless, because Adam's second-moment estimate for $r_c$ is dominated by data g
 more often than the estimate forgets.
 
 \whenfig{fig_rows}{\claim{\Cref{fig:rows} shows the effect on GeFL-F: after Stage II the conditioning rows of the
-rarest classes are several times shorter than those of the most frequent classes.}} Two remedies follow. Decoupling the decay removes the
+rarest classes are several times shorter than those of the most frequent classes.}} Shorter rows are not yet a
+cause of the rare classes' loss. \claim{A classifier trained by the server on real validation features (the
+referee, \cref{app:fidelity}) recognises GeFL-F's generated CIFAR-10-LT features at \R{main/cifar10/GeFL-F/fidelity_all}
+on average, with \R{main/cifar10/GeFL-F/fidelity_head} on the head classes and \R{main/cifar10/GeFL-F/fidelity_tail}
+on the tail classes, and at \R{main/cifar100/GeFL-F/fidelity_all} on CIFAR-100-LT, about chance: the generator carries
+little class information for any class, not only for the rare ones.} The row shrinkage is therefore one measured
+property of GeFL-F's generator, not a demonstrated cause of its rare-class loss; \numelse{abl/cifar10/GeFL-F + AdamW/gain}{the
+arm with decoupled decay alone (\cref{sec:res-ablation}) tests it directly.}{an arm with decoupled decay alone would
+test it directly.} Two remedies follow. Decoupling the decay removes the
 shrinkage. Averaging each row over its holders only, with weights that grow with the holder's count (class-count
 weighted averaging, CCWA), removes the non-holders' term $\bar D_c$ from \cref{prop:contraction} and keeps coupled
 decay:
@@ -62,7 +70,7 @@ most to the least frequent (CIFAR-10-LT, imbalance ratio 100, 10 clients, Dirich
 
 \subsection{The last layer: logit corrections are reparametrisations}\label{sec:analysis-head}
 
-\begin{proposition}[logit corrections are reparametrisations]\label{prop:reparam}
+\begin{lemma}[logit corrections are reparametrisations]\label{prop:reparam}
 Let a head have a free last-layer bias $b$, trained by SGD without decay on $b$, and let $a_k\in\Rset^C$ be a constant
 of client $k$, as in logit adjustment ($a_k=\tau\log\pi_k$)~\cite{menon2021la}, FedLC~\cite{zhang2022fedlc} or Balanced
 Softmax~\cite{ren2020bsm}. Training with the loss $\ell(f+a_k,y)$ from $(\theta_0,b_0)$ produces exactly the trajectory
@@ -70,20 +78,20 @@ of training with $\ell(f,y)$ from $(\theta_0,b_0+a_k)$: every parameter except $
 which scales the logits of absent classes by $\alpha\in(0,1]$~\cite{li2021fedrs}, is cross-entropy in the rescaled
 last-layer variables $\alpha w_c,\alpha b_c$ of those classes, trained with the smaller learning rate $\alpha^2\eta$:
 it changes the initialisation and the step size of the absent classes' rows, not what the client knows about them.
-\end{proposition}
+\end{lemma}
 
 For a head trained on one client's real data, a logit shift (logit adjustment, FedLC, Balanced Softmax) is therefore
-equivalent to a different
-initialisation of the last-layer bias. This does not mean the representation is the one plain training from the same
-bias would learn: the logits, and hence the gradients reaching the body, differ along the way. What the proposition
+equivalent to plain training from the shifted bias $b_0+a_k$ followed by subtracting $a_k$ from the logits at test
+time, which is post-hoc logit adjustment~\cite{menon2021la} of a head trained from a shifted initial bias. This does not mean the representation is the one plain training from the same
+bias would learn: the logits, and hence the gradients reaching the body, differ along the way. What the lemma
 does show is that the correction adds no information about the classes the client lacks; its effect on the body is
 measured by removing logit adjustment from \ours with and without the readout below\whentab{abl_components}{
 (\cref{tab:components})}. The readout itself can be computed exactly.
 
-\begin{proposition}[partition invariance]\label{prop:invariance}
+\begin{lemma}[partition invariance]\label{prop:invariance}
 An estimator that is a function of a sum $S=\sum_k\sum_{i\in D_k}T(x_i,y_i)$, with $T$ fixed in advance, takes the same
 value for every partition of the pooled data, and equals the centralised estimator.
-\end{proposition}
+\end{lemma}
 This property is known for closed-form federated classifiers~\cite{fani2024fed3r,he2025afl,goswami2025fedcof}; we
 state it because the method relies on it in several places.
 
@@ -98,15 +106,16 @@ collapse~\cite{fang2021minority}: for the classes the client lacks, the imbalanc
 
 \subsection{The synthetic data: label-free features penalise the logits' spread}\label{sec:analysis-syn}
 
-\begin{proposition}[label-free synthetic data]\label{prop:variance}
+\begin{lemma}[label-free synthetic data]\label{prop:variance}
 If the synthetic label $y$ is uniform on $\{1,\dots,C\}$ and independent of the generated feature, then for every logit
 vector $f$, $\E_y\,\ell(f,y)=\LSE(f)-\bar f=\log C+\KL(u\,\|\,\mathrm{softmax}f)
 =\log C+\frac1{2C}\sum_c(f_c-\bar f)^2+O(\|f-\bar f\|^3)$, where $\bar f$ is the mean logit and $u$ the uniform
 distribution.
-\end{proposition}
+\end{lemma}
 
 When generated features carry little information about their label, the synthetic phase therefore pulls the logits
-together instead of teaching the classes a client lacks. Alternating it with the real phase decides what survives:
+together instead of teaching the classes a client lacks. GeFL-F's generated features are of this kind (the fidelity
+above). Alternating it with the real phase decides what survives:
 in an illustrative model with quadratic losses (the heads are nonlinear and trained with cross-entropy) the round map
 converges to a point where the synthetic data alone decide the directions that the client's real loss leaves free
 (\cref{app:proofs}). For a head trained on one client's real data, the directions of the absent classes are nearly
@@ -114,7 +123,8 @@ free in this sense, but not exactly: cross-entropy still pushes their logits dow
 adjustment keeps the real phase from pushing the absent classes' logits down without bound~\cite{soudry2018implicit}.
 \whenfig{fig_spread}{\claim{\Cref{fig:spread} shows the first effect on the real pipeline: in every round on CIFAR-10-LT the
 synthetic phase reduces the spread of the heads' logits on the clients' real features, and it reduces it less for
-\ours than for GeFL-F.}}
+\ours than for GeFL-F.} \ours also differs from GeFL-F in the number of synthetic epochs, the soft targets and logit
+adjustment, so this comparison does not isolate the effect of features that carry their label.}
 
 \whenfig{fig_spread}{%
 \begin{figure}[t]

@@ -80,6 +80,13 @@ $\R{main/cifar100/er_p/FedDF}$). Most of the margin over the published methods i
 three seeds do not show whether the other components of \ours also train a better body than the strongest other
 method.}
 
+\whennum{fresh/cifar10/margin}{\whennum{fresh/cifar100/margin}{\paragraph{New client splits.} The settings of \ours were
+developed on seeds 0--5 (\cref{sec:setup-threats}). Seeds 6--8 draw new client splits that no earlier run used, and we
+ran \ours, GeFL-F, FedDF and Balanced Softmax on them. \claim{There \ours is \R{fresh/cifar10/margin} and
+\R{fresh/cifar100/margin} points ahead of the strongest of the three as published (\R{fresh/cifar10/strongest} and
+\R{fresh/cifar100/strongest}), and \R{fresh/cifar10/er_margin} and \R{fresh/cifar100/er_margin} points when all have the
+readout (\R{fresh/cifar10/er_strongest} and \R{fresh/cifar100/er_strongest}).}}}
+
 \begin{widetable}[t]
 \centering\small
 \caption{Balanced accuracy (\%) with every architecture's last layer set by the exact class-balanced readout
@@ -157,7 +164,8 @@ ratio 100, 10 clients; heads as trained, before the readout of \ours; each point
 (\R{nat/datasets}). \claim{\ours has the highest mean balanced accuracy on \R{nat/nbest_of}, with margins of \R{nat/margin_lo}
 (\R{nat/margin_lo_ds}) to \R{nat/margin_hi} points (\R{nat/margin_hi_ds}) over the strongest other method as
 published; the margin is significant after Holm's correction on \R{nat/n_sig} of the \R{nat/n_sig_of} datasets with
-three seeds. With the same readout for every method of the GeFL-F pipeline the margins are \R{nat/er_margin_lo}
+three seeds (\R{nat/one_seed} has one seed). These datasets were not used in the development of \ours. With the
+same readout for every method of the GeFL-F pipeline the margins are \R{nat/er_margin_lo}
 (\R{nat/er_margin_lo_ds}) to \R{nat/er_margin_hi} points (\R{nat/er_margin_hi_ds}), close to the noise floor of
 \R{repeat/er/floor} points of \cref{sec:setup-stats}.} \claim{The
 separation gate chose the class-row generator on \R{gate/rows}, where the class means are too close for an anchor.}
@@ -233,9 +241,17 @@ the head.}
 \whenanytab{abl_bal,abl_components,robust}{\subsection{Ablations}\label{sec:res-ablation}}
 
 \whentab{abl_bal}{\paragraph{Variants of GeFL-F.} \Cref{tab:ablation} isolates what each change to GeFL-F contributes, on CIFAR-10-LT and
-CIFAR-100-LT with the same splits and seeds: GeFL-F without its generator (heads on real features only), with logit
-adjustment and decoupled weight decay, with its generator replaced by class Gaussians from the exact class
-statistics, and FedDF with logit adjustment. \claim{Removing the coupled decay and adding logit adjustment recovers
+CIFAR-100-LT with the same splits and seeds: GeFL-F without its generator (heads on real features only), with
+decoupled weight decay alone, with decoupled weight decay and logit adjustment, with its generator replaced by class
+Gaussians from the exact class statistics, FedDF with logit adjustment, and GeFL-F and FedDF with ten synthetic epochs
+per round, as \ours. \whennum{abl/cifar10/GeFL-F + AdamW/gain}{\claim{Decoupled weight decay alone changes GeFL-F's
+balanced accuracy by \R{abl/cifar10/GeFL-F + AdamW/gain} points on CIFAR-10-LT and
+\R{abl/cifar100/GeFL-F + AdamW/gain} on CIFAR-100-LT, a direct test of the decay diagnosis of
+\cref{sec:analysis-gen}.}} \whennum{abl/cifar10/heads_vs/GeFL-F (T_s=10)}{\claim{With ten synthetic epochs per round,
+GeFL-F changes by \R{abl/cifar10/GeFL-F (T_s=10)/gain} points on CIFAR-10-LT and FedDF by
+\R{abl/cifar10/FedDF (T_s=10)/gain}; the heads of \ours remain \R{abl/cifar10/heads_vs/GeFL-F (T_s=10)} and
+\R{abl/cifar10/heads_vs/FedDF (T_s=10)} points ahead of them (CIFAR-100-LT: \R{abl/cifar100/heads_vs/GeFL-F (T_s=10)} and
+\R{abl/cifar100/heads_vs/FedDF (T_s=10)}), against a noise floor of \R{repeat/bal/floor} points.}} \claim{Removing the coupled decay and adding logit adjustment recovers
 \R{abl/cifar10/GeFL-F + LA/gain} points of GeFL-F's deficit on CIFAR-10-LT; the heads of \ours add
 \R{abl/cifar10/rest} points on top, before the readout.}}
 
@@ -248,12 +264,17 @@ statistics, and FedDF with logit adjustment. \claim{Removing the coupled decay a
 \slottab{abl_bal}{\begin{tabular}{lcc}\toprule
 Method & CIFAR-10-LT & CIFAR-100-LT\\\midrule
 \phrow{FedECS-LT}{2}\phrow{FedECS-LT (heads only)}{2}\phrow{GeFL-F}{2}\phrow{GeFL-F w/o generator}{2}\phrow{GeFL-F + LA}{2}
-\phrow{GeFL-F w/ Gaussian generator + LA}{2}\phrow{FedDF}{2}\phrow{FedDF + LA}{2}\bottomrule\end{tabular}}
+\phrow{GeFL-F + AdamW}{2}\phrow{GeFL-F w/ Gaussian generator + LA}{2}\phrow{GeFL-F (T\_s=10)}{2}\phrow{FedDF}{2}
+\phrow{FedDF + LA}{2}\phrow{FedDF (T\_s=10)}{2}\bottomrule\end{tabular}}
 \end{table}}
 
 \whentab{abl_components}{\paragraph{Components of \ours.} \Cref{tab:components} removes one component of \ours at a time.
-\claim{[Write once the component ablation has been run (GUIDE.md, section 4, experiment E7): which components matter
-most, with and without the exact readout.]}}
+\claim{With the readout, the largest loss on CIFAR-10-LT comes from the change
+``\R{comp/cifar10/largest}'' (\R{comp/cifar10/largest_drop} points) and on CIFAR-100-LT from
+``\R{comp/cifar100/largest}'' (\R{comp/cifar100/largest_drop}); \R{comp/cifar10/n_small} and \R{comp/cifar100/n_small}
+of the \R{comp/n_variants} changes stay within the noise floor of \R{repeat/er/floor} points.} Replacing the trained
+generator by class Gaussians with the exact class means and covariances (``w/ Gaussian sampler'') tests whether a
+trained generator is needed at all.}
 
 \whentab{abl_components}{%
 \begin{table}[t]
@@ -266,7 +287,7 @@ method) when one component is removed; mean $\pm$ standard deviation over seeds 
 Variant & as trained & \ER & as trained & \ER\\\midrule
 \phrow{FedECS-LT (full)}{4}\phrow{w/o mean anchor (class rows, CCWA)}{4}\phrow{w/o CCWA (flat averaging)}{4}
 \phrow{w/o moment correction}{4}\phrow{w/o consensus soft labels}{4}\phrow{w/o logit adjustment}{4}
-\phrow{$T_s=1$ instead of 10}{4}\bottomrule\end{tabular}}
+\phrow{w/ one synthetic epoch}{4}\phrow{w/ Gaussian sampler}{4}\bottomrule\end{tabular}}
 \end{table}}
 
 \whentab{robust}{\paragraph{Robustness.} \Cref{tab:robust} varies the label skew, the number of clients and the imbalance ratio.
@@ -322,10 +343,13 @@ interpretable.}
 
 \claim{The expected calibration error of \ours is \R{main/cifar10/FedECS-LT/ece} on CIFAR-10-LT against
 \R{main/cifar10/GeFL-F/ece} for GeFL-F and \R{main/cifar10/strongest/ece} for
-\R{main/cifar10/strongest}, the strongest other method; the weakest architecture of \ours reaches \R{main/cifar10/FedECS-LT/worst_arch}
+\R{main/cifar10/strongest}, the strongest other method; it ranks \R{main/cifar10/ece_rank} of \R{main/cifar10/ece_n}
+methods on CIFAR-10-LT and \R{main/cifar100/ece_rank} on CIFAR-100-LT (\cref{tab:app-calib}); the weakest architecture of \ours reaches \R{main/cifar10/FedECS-LT/worst_arch}
 balanced accuracy (\cref{app:more}).} \Cref{tab:cost} reports the cost on CIFAR-10-LT. \claim{\ours takes
 \R{cost/cifar10/time_ratio} times the wall-clock time of GeFL-F and \R{cost/cifar10/comm_ratio} times its
-communication.}
+communication. Against Balanced Softmax, which trains its heads locally on real features, \ours
+communicates \R{cost/cifar10/comm_ratio_bsm} times as much and takes \R{cost/cifar10/time_ratio_bsm} times as long;
+with the readout for both, it is \R{main/cifar10/er_diff/Balanced Softmax} points ahead.}
 
 \begin{table}[t]
 \centering\small

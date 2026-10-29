@@ -34,33 +34,33 @@ discriminant of \cref{eq:er} is computed exactly by one round of secure aggregat
 $\KL(u\|\mathrm{softmax}f)=-\log C+\LSE(f)-\bar f$; expanding $\LSE$ around constant logits gives the quadratic term.
 \hfill$\square$
 
-\begin{proposition}[alternation, quadratic losses]\label{prop:alternation}
+\begin{lemma}[alternation, quadratic losses]\label{prop:alternation}
 Let the synthetic and real losses be quadratic with Hessians $H_s,H_r\succeq0$ and minimisers $\theta_s,\theta_r$, and
 let $P_s=(I-\eta H_s)^{S_s}$, $P_r=(I-\eta H_r)^{S_r}$ for $S_s$ synthetic and $S_r$ real steps per round. Let $0\le\eta\lambda\le1$ for every eigenvalue $\lambda$ of $H_s$ and $H_r$. If
 $\|P_rP_s\|<1$, the rounds converge to $\theta^\star=\theta_r+\Omega(\theta_s-\theta_r)$ with
 $\Omega=(I-P_rP_s)^{-1}P_r(I-P_s)$. For commuting Hessians the synthetic weight along eigendirection $i$ is
 $\omega_i=\rho_{r,i}(1-\rho_{s,i})/(1-\rho_{r,i}\rho_{s,i})\le\rho_{r,i}$, which equals one along directions that the real loss
 leaves free and the synthetic loss does not.
-\end{proposition}
+\end{lemma}
 \emph{Proof.} One round is the affine map $\theta\mapsto P_rP_s\theta+P_r(I-P_s)\theta_s+(I-P_r)\theta_r$, a contraction
 when $\|P_rP_s\|<1$; its fixed point has the stated form. With commuting Hessians all matrices are diagonal in a common
 eigenbasis. \hfill$\square$
 
-\begin{proposition}[what a mean anchor can express]\label{prop:w1}
+\begin{lemma}[what a mean anchor can express]\label{prop:w1}
 Let the class-$c$ sampler be $X_c=\mathrm{ReLU}(\mu_c+g(Z,A\mu_c))$ with $Z$ shared across classes and $g$
 $L$-Lipschitz in its second argument. Then $W_1(G_c,G_{c'})\le(1+L\|A\|_2)\|\mu_c-\mu_{c'}\|$.
-\end{proposition}
+\end{lemma}
 \emph{Proof.} Couple both classes through the same $Z$; ReLU is 1-Lipschitz. \hfill$\square$
 
 In units of the root-mean-square within-class spread, two class means are on average $\sqrt{2FC/(C-1)}$ apart (over
 distinct pairs). When $F$ is small the anchor carries little class information, and the factor $1+L\|A\|_2$ is not
 controlled; this is why the gate of \cref{sec:method-gen} falls back to class rows.
 
-\begin{proposition}[least-displacement moment correction]\label{prop:mc}
+\begin{lemma}[least-displacement moment correction]\label{prop:mc}
 Among all maps $T$ with $\E\,T(X)=\mu_c$ and $\E\|T(X)-\mu_c\|^2=V_c$, where $X$ has mean $\tilde\mu_c$ and spread $\tilde V_c$,
 the map $T^\star(x)=\mu_c+\sqrt{V_c/\tilde V_c}\,(x-\tilde\mu_c)$ minimises $\E\|T(X)-X\|^2$. With exact covariances instead of
 spreads the minimiser is the linear map attaining the Gelbrich bound~\cite{gelbrich1990}.
-\end{proposition}
+\end{lemma}
 \emph{Proof.} With $Y=T(X)$, $\E\|Y-X\|^2=V_c+\tilde V_c+\|\mu_c-\tilde\mu_c\|^2-2\E\langle Y-\mu_c,X-\tilde\mu_c\rangle$, and the
 Cauchy--Schwarz inequality bounds the last expectation by $\sqrt{V_c\tilde V_c}$, with equality if and only if
 $Y-\mu_c=\sqrt{V_c/\tilde V_c}(X-\tilde\mu_c)$. The deployed map adds a final ReLU and clips the scale, so it matches the
@@ -133,12 +133,36 @@ Method & Bal. acc. & Macro-F1 & Precision & MCC & G-mean & Tail rec. & Worst rec
 \phrow{FedECS-LT}{8}\phrow{GeFL-F}{8}\phrow{[every other method]}{8}\bottomrule\end{tabular}}
 \end{widetable}
 
+\whentab{fidelity}{%
+\subsection{Fidelity of the generated features}\label{app:fidelity}
+
+After Stage I the server trains a referee classifier (CNN-5 head, Adam, 40 epochs) on the features of its validation
+images, which no client holds, and measures for each class the share of 300 generated features of that class that the
+referee assigns to it. \Cref{tab:fidelity} gives the mean over the classes of each group. Chance is 10\% on
+CIFAR-10-LT and 1\% on CIFAR-100-LT. The referee's accuracy on held-out real features was not logged, so the values
+compare generators with each other, not with real data.
+
+\begin{table}[t]
+\centering\small
+\caption{Generator fidelity (\%): the referee's per-class accuracy on generated features, mean over the classes of each
+group (head: 30\% most frequent, tail: 40\% least frequent); mean $\pm$ standard deviation over seeds 3--5. FedDF uses
+GeFL-F's generator, trained in its own runs.}
+\label{tab:fidelity}
+\begin{adjustbox}{max width=\linewidth}
+\slottab{fidelity}{\begin{tabular}{llcccc}\toprule
+Dataset & Generator & All & Head & Medium & Tail\\\midrule
+\phrow{CIFAR-10}{5}\bottomrule\end{tabular}}
+\end{adjustbox}
+\end{table}}
+
 \begin{widetable}[t]
 \centering\small
 \caption{GeFL's measure on the long-tailed benchmarks: each client model's best test accuracy (\%) at GeFL's
 evaluation rounds of the head stage (the first, every tenth and the last), averaged over the ten models, as in GeFL's
 code; mean $\pm$ standard deviation over seeds 3--5. The main tables report the last round instead. For \ours
-only its heads: the readout is computed once, after the last round.}
+only its heads: the readout is computed once, after the last round. FedDF: its client heads before the server's
+distillation step, since the per-round logs hold no distilled heads; its value can therefore be below its last-round
+value in \cref{tab:main}.}
 \label{tab:app-gefl}
 \slottab{main_gefl}{\begin{tabular}{lccccc}\toprule
 Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule

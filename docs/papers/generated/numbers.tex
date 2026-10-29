@@ -1,8 +1,12 @@
 % written by docs/papers/fill.py; do not edit
 \defnum{cost/cifar10/comm_ratio}{1.30}
+\defnum{cost/cifar10/comm_ratio_bsm}{185}
 \defnum{cost/cifar10/time_ratio}{1.13}
+\defnum{cost/cifar10/time_ratio_bsm}{15}
 \defnum{cost/cifar100/comm_ratio}{1.46}
+\defnum{cost/cifar100/comm_ratio_bsm}{127}
 \defnum{cost/cifar100/time_ratio}{1.40}
+\defnum{cost/cifar100/time_ratio_bsm}{5.80}
 \defnum{count/datasets}{8}
 \defnum{count/datasets_w}{eight}
 \defnum{count/methods}{21}
@@ -33,6 +37,10 @@
 \defnum{main/cifar10/FedDF/er_bal}{51.0 $\pm$ 1.2}
 \defnum{main/cifar10/FedDF/er_tail}{48.1 $\pm$ 1.1}
 \defnum{main/cifar10/FedDF/f1}{30.6 $\pm$ 1.4}
+\defnum{main/cifar10/FedDF/fidelity_all}{12.8 $\pm$ 2.2}
+\defnum{main/cifar10/FedDF/fidelity_head}{9.2 $\pm$ 1.2}
+\defnum{main/cifar10/FedDF/fidelity_medium}{10.3 $\pm$ 7.2}
+\defnum{main/cifar10/FedDF/fidelity_tail}{17.3 $\pm$ 0.7}
 \defnum{main/cifar10/FedDF/gain_er}{+13.5}
 \defnum{main/cifar10/FedDF/gefl}{35.6 $\pm$ 1.2}
 \defnum{main/cifar10/FedDF/gefl_drop}{0.6 $\pm$ 0.2}
@@ -60,6 +68,14 @@
 \defnum{main/cifar10/FedECS-LT/er_bal}{52.6 $\pm$ 1.3}
 \defnum{main/cifar10/FedECS-LT/er_tail}{50.3 $\pm$ 1.5}
 \defnum{main/cifar10/FedECS-LT/f1}{52.3 $\pm$ 1.3}
+\defnum{main/cifar10/FedECS-LT/fidelity_all}{25.9 $\pm$ 2.1}
+\defnum{main/cifar10/FedECS-LT/fidelity_head}{11.0 $\pm$ 2.2}
+\defnum{main/cifar10/FedECS-LT/fidelity_mc_all}{28.9 $\pm$ 4.6}
+\defnum{main/cifar10/FedECS-LT/fidelity_mc_head}{23.5 $\pm$ 6.6}
+\defnum{main/cifar10/FedECS-LT/fidelity_mc_medium}{19.2 $\pm$ 12.4}
+\defnum{main/cifar10/FedECS-LT/fidelity_mc_tail}{40.3 $\pm$ 2.8}
+\defnum{main/cifar10/FedECS-LT/fidelity_medium}{16.7 $\pm$ 13.0}
+\defnum{main/cifar10/FedECS-LT/fidelity_tail}{44.1 $\pm$ 5.0}
 \defnum{main/cifar10/FedECS-LT/gain_er}{+9.8}
 \defnum{main/cifar10/FedECS-LT/gmean}{51.4 $\pm$ 1.3}
 \defnum{main/cifar10/FedECS-LT/local}{59.2 $\pm$ 1.8}
@@ -163,6 +179,10 @@
 \defnum{main/cifar10/GeFL-F/er_bal}{50.3 $\pm$ 1.2}
 \defnum{main/cifar10/GeFL-F/er_tail}{47.5 $\pm$ 1.1}
 \defnum{main/cifar10/GeFL-F/f1}{26.9 $\pm$ 1.4}
+\defnum{main/cifar10/GeFL-F/fidelity_all}{12.9 $\pm$ 2.4}
+\defnum{main/cifar10/GeFL-F/fidelity_head}{9.4 $\pm$ 0.9}
+\defnum{main/cifar10/GeFL-F/fidelity_medium}{11.2 $\pm$ 7.6}
+\defnum{main/cifar10/GeFL-F/fidelity_tail}{16.8 $\pm$ 0.3}
 \defnum{main/cifar10/GeFL-F/gain_er}{+16.6}
 \defnum{main/cifar10/GeFL-F/gefl}{34.7 $\pm$ 1.3}
 \defnum{main/cifar10/GeFL-F/gefl_drop}{1.0 $\pm$ 0.1}
@@ -223,6 +243,8 @@
 \defnum{main/cifar10/diff/GeFL-F}{+18.9}
 \defnum{main/cifar10/diff/LG-FedAvg}{+21.3}
 \defnum{main/cifar10/diff/Local}{+20.5}
+\defnum{main/cifar10/ece_n}{thirteen}
+\defnum{main/cifar10/ece_rank}{3}
 \defnum{main/cifar10/er_ci/Balanced Softmax}{[-0.7, +3.6]}
 \defnum{main/cifar10/er_ci/FedDF}{[-1.1, +4.3]}
 \defnum{main/cifar10/er_ci/FedLC}{[-0.6, +3.5]}
@@ -423,6 +445,10 @@
 \defnum{main/cifar100/FedDF/er_bal}{15.8 $\pm$ 0.3}
 \defnum{main/cifar100/FedDF/er_tail}{6.8 $\pm$ 0.3}
 \defnum{main/cifar100/FedDF/f1}{6.1 $\pm$ 0.3}
+\defnum{main/cifar100/FedDF/fidelity_all}{1.1 $\pm$ 0.1}
+\defnum{main/cifar100/FedDF/fidelity_head}{1.2 $\pm$ 0.2}
+\defnum{main/cifar100/FedDF/fidelity_medium}{1.0 $\pm$ 0.2}
+\defnum{main/cifar100/FedDF/fidelity_tail}{1.1 $\pm$ 0.2}
 \defnum{main/cifar100/FedDF/gain_er}{+5.8}
 \defnum{main/cifar100/FedDF/gefl}{9.8 $\pm$ 0.5}
 \defnum{main/cifar100/FedDF/gefl_drop}{0.3 $\pm$ 0.0}
@@ -450,6 +476,14 @@
 \defnum{main/cifar100/FedECS-LT/er_bal}{18.7 $\pm$ 0.2}
 \defnum{main/cifar100/FedECS-LT/er_tail}{8.2 $\pm$ 0.2}
 \defnum{main/cifar100/FedECS-LT/f1}{16.3 $\pm$ 0.3}
+\defnum{main/cifar100/FedECS-LT/fidelity_all}{8.8 $\pm$ 1.2}
+\defnum{main/cifar100/FedECS-LT/fidelity_head}{5.9 $\pm$ 1.8}
+\defnum{main/cifar100/FedECS-LT/fidelity_mc_all}{8.8 $\pm$ 0.4}
+\defnum{main/cifar100/FedECS-LT/fidelity_mc_head}{7.2 $\pm$ 0.8}
+\defnum{main/cifar100/FedECS-LT/fidelity_mc_medium}{9.0 $\pm$ 0.8}
+\defnum{main/cifar100/FedECS-LT/fidelity_mc_tail}{9.9 $\pm$ 0.6}
+\defnum{main/cifar100/FedECS-LT/fidelity_medium}{8.2 $\pm$ 0.8}
+\defnum{main/cifar100/FedECS-LT/fidelity_tail}{11.5 $\pm$ 1.2}
 \defnum{main/cifar100/FedECS-LT/gain_er}{+4.4}
 \defnum{main/cifar100/FedECS-LT/gmean}{10.5 $\pm$ 0.2}
 \defnum{main/cifar100/FedECS-LT/local}{28.3 $\pm$ 0.3}
@@ -553,6 +587,10 @@
 \defnum{main/cifar100/GeFL-F/er_bal}{14.9 $\pm$ 0.2}
 \defnum{main/cifar100/GeFL-F/er_tail}{6.4 $\pm$ 0.4}
 \defnum{main/cifar100/GeFL-F/f1}{4.7 $\pm$ 0.3}
+\defnum{main/cifar100/GeFL-F/fidelity_all}{1.1 $\pm$ 0.1}
+\defnum{main/cifar100/GeFL-F/fidelity_head}{1.1 $\pm$ 0.2}
+\defnum{main/cifar100/GeFL-F/fidelity_medium}{1.1 $\pm$ 0.2}
+\defnum{main/cifar100/GeFL-F/fidelity_tail}{1.2 $\pm$ 0.2}
 \defnum{main/cifar100/GeFL-F/gain_er}{+7.2}
 \defnum{main/cifar100/GeFL-F/gefl}{8.4 $\pm$ 0.4}
 \defnum{main/cifar100/GeFL-F/gefl_drop}{0.8 $\pm$ 0.0}
@@ -613,6 +651,8 @@
 \defnum{main/cifar100/diff/GeFL-F}{+11.0}
 \defnum{main/cifar100/diff/LG-FedAvg}{+12.4}
 \defnum{main/cifar100/diff/Local}{+10.7}
+\defnum{main/cifar100/ece_n}{thirteen}
+\defnum{main/cifar100/ece_rank}{5}
 \defnum{main/cifar100/er_ci/Balanced Softmax}{[+0.6, +2.4]}
 \defnum{main/cifar100/er_ci/FedDF}{[+2.1, +3.6]}
 \defnum{main/cifar100/er_ci/FedLC}{[+0.6, +2.4]}
@@ -807,6 +847,7 @@
 \defnum{main/mc_spread_hi}{0.98}
 \defnum{main/mc_spread_lo}{0.73}
 \defnum{main/mc_spread_med}{0.86}
+\defnum{main/n_one_seed}{zero}
 \defnum{main/n_sig}{two}
 \defnum{main/n_sig_of}{two}
 \defnum{main/nbaselines_w}{eleven}
@@ -815,6 +856,7 @@
 \defnum{main/nlt_w}{one}
 \defnum{main/nsettings}{2}
 \defnum{main/nsettings_w}{two}
+\defnum{main/one_seed}{none}
 \defnum{nat/bloodmnist/Balanced Softmax/bal}{69.9 $\pm$ 3.8}
 \defnum{nat/bloodmnist/Balanced Softmax/ece}{20.3 $\pm$ 3.7}
 \defnum{nat/bloodmnist/Balanced Softmax/er_bal}{82.9 $\pm$ 1.2}
@@ -1025,6 +1067,8 @@
 \defnum{nat/bloodmnist/diff/GeFL-F}{+7.8}
 \defnum{nat/bloodmnist/diff/LG-FedAvg}{+20.4}
 \defnum{nat/bloodmnist/diff/Local}{+22.7}
+\defnum{nat/bloodmnist/ece_n}{thirteen}
+\defnum{nat/bloodmnist/ece_rank}{1}
 \defnum{nat/bloodmnist/er_ci/Balanced Softmax}{[+2.8, +4.1]}
 \defnum{nat/bloodmnist/er_ci/FedDF}{[-2.0, +1.9]}
 \defnum{nat/bloodmnist/er_ci/FedLC}{[+2.6, +4.2]}
@@ -1417,6 +1461,8 @@
 \defnum{nat/dermamnist/diff/GeFL-F}{+18.1}
 \defnum{nat/dermamnist/diff/LG-FedAvg}{+18.6}
 \defnum{nat/dermamnist/diff/Local}{+20.1}
+\defnum{nat/dermamnist/ece_n}{thirteen}
+\defnum{nat/dermamnist/ece_rank}{1}
 \defnum{nat/dermamnist/er_ci/Balanced Softmax}{[-0.2, +5.4]}
 \defnum{nat/dermamnist/er_ci/FedDF}{[-3.7, +5.2]}
 \defnum{nat/dermamnist/er_ci/FedLC}{[-0.4, +5.2]}
@@ -1783,6 +1829,8 @@
 \defnum{nat/emnist/Local/worst_arch}{36.9}
 \defnum{nat/emnist/above_list}{none}
 \defnum{nat/emnist/best}{FedECS-LT}
+\defnum{nat/emnist/ece_n}{thirteen}
+\defnum{nat/emnist/ece_rank}{3}
 \defnum{nat/emnist/er_margin}{+0.8}
 \defnum{nat/emnist/er_strongest}{FedDF}
 \defnum{nat/emnist/heads_margin}{+12.3}
@@ -2023,6 +2071,8 @@
 \defnum{nat/fer2013/diff/GeFL-F}{+11.7}
 \defnum{nat/fer2013/diff/LG-FedAvg}{+14.4}
 \defnum{nat/fer2013/diff/Local}{+14.0}
+\defnum{nat/fer2013/ece_n}{thirteen}
+\defnum{nat/fer2013/ece_rank}{3}
 \defnum{nat/fer2013/er_ci/Balanced Softmax}{[+0.4, +6.6]}
 \defnum{nat/fer2013/er_ci/FedDF}{[+0.7, +2.3]}
 \defnum{nat/fer2013/er_ci/FedLC}{[+0.8, +6.4]}
@@ -2211,6 +2261,7 @@
 \defnum{nat/mc_spread_hi}{0.96}
 \defnum{nat/mc_spread_lo}{0.76}
 \defnum{nat/mc_spread_med}{0.88}
+\defnum{nat/n_one_seed}{one}
 \defnum{nat/n_sig}{three}
 \defnum{nat/n_sig_of}{five}
 \defnum{nat/nbaselines_w}{eleven}
@@ -2219,6 +2270,7 @@
 \defnum{nat/nlt_w}{one}
 \defnum{nat/nsettings}{6}
 \defnum{nat/nsettings_w}{six}
+\defnum{nat/one_seed}{EMNIST (ByClass)}
 \defnum{nat/organamnist/Balanced Softmax/bal}{68.1 $\pm$ 4.8}
 \defnum{nat/organamnist/Balanced Softmax/ece}{21.3 $\pm$ 4.8}
 \defnum{nat/organamnist/Balanced Softmax/er_bal}{79.0 $\pm$ 1.4}
@@ -2429,6 +2481,8 @@
 \defnum{nat/organamnist/diff/GeFL-F}{+6.4}
 \defnum{nat/organamnist/diff/LG-FedAvg}{+20.7}
 \defnum{nat/organamnist/diff/Local}{+19.9}
+\defnum{nat/organamnist/ece_n}{thirteen}
+\defnum{nat/organamnist/ece_rank}{1}
 \defnum{nat/organamnist/er_ci/Balanced Softmax}{[+4.1, +4.5]}
 \defnum{nat/organamnist/er_ci/FedDF}{[+0.6, +1.8]}
 \defnum{nat/organamnist/er_ci/FedLC}{[+4.1, +4.4]}
@@ -2819,6 +2873,8 @@
 \defnum{nat/pathmnist/diff/GeFL-F}{+18.4}
 \defnum{nat/pathmnist/diff/LG-FedAvg}{+20.2}
 \defnum{nat/pathmnist/diff/Local}{+24.3}
+\defnum{nat/pathmnist/ece_n}{thirteen}
+\defnum{nat/pathmnist/ece_rank}{1}
 \defnum{nat/pathmnist/er_ci/Balanced Softmax}{[+0.9, +5.1]}
 \defnum{nat/pathmnist/er_ci/FedDF}{[-0.1, +1.6]}
 \defnum{nat/pathmnist/er_ci/FedLC}{[+0.5, +5.2]}
@@ -3167,6 +3223,8 @@
 \defnum{t2/cifar10-r100/diff/FedYoYo}{-19.8}
 \defnum{t2/cifar10-r100/diff/MOON}{-0.5}
 \defnum{t2/cifar10-r100/diff/RUCR}{+4.4}
+\defnum{t2/cifar10-r100/ece_n}{eleven}
+\defnum{t2/cifar10-r100/ece_rank}{11}
 \defnum{t2/cifar10-r100/head_ci/CCVR}{[-2.7, +1.2]}
 \defnum{t2/cifar10-r100/head_ci/CReFF}{[-35.9, +49.7]}
 \defnum{t2/cifar10-r100/head_ci/FedAvg}{[-29.4, +21.8]}
@@ -3403,6 +3461,8 @@
 \defnum{t2/cifar100-r100/RUCR/worst_arch}{32.9 $\pm$ 0.2}
 \defnum{t2/cifar100-r100/above_list}{FedYoYo, FedLoGe and CCVR}
 \defnum{t2/cifar100-r100/best}{FedYoYo}
+\defnum{t2/cifar100-r100/ece_n}{eleven}
+\defnum{t2/cifar100-r100/ece_rank}{11}
 \defnum{t2/cifar100-r100/heads_margin}{-8.9}
 \defnum{t2/cifar100-r100/heads_strongest}{FedYoYo}
 \defnum{t2/cifar100-r100/margin}{-9.0}
@@ -3429,6 +3489,7 @@
 \defnum{t2/mc_spread_hi}{0.88}
 \defnum{t2/mc_spread_lo}{0.50}
 \defnum{t2/mc_spread_med}{0.59}
+\defnum{t2/n_one_seed}{one}
 \defnum{t2/n_sig}{zero}
 \defnum{t2/n_sig_of}{one}
 \defnum{t2/nbaselines_w}{eleven}
@@ -3437,5 +3498,6 @@
 \defnum{t2/nlt_w}{eight}
 \defnum{t2/nsettings}{2}
 \defnum{t2/nsettings_w}{two}
+\defnum{t2/one_seed}{CIFAR-100}
 \defnum{t2/r100/strongest_phrase}{the strongest method, FedYoYo, is 19.8 and 9.0 points ahead of}
 \defnum{t2/ratios}{100}

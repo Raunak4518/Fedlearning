@@ -210,8 +210,10 @@ counts, and FedRS ($\alpha=0.5$) with the classes the client lacks;
 \end{itemize}
 The settings of \ours (\cref{tab:hyper}) were fixed during its development, on earlier runs of the same benchmarks
 with seeds 0 to 5. These included seeds 3 to 5 with the same client splits as the reported runs, and every earlier
-run was evaluated on the same test sets. The settings were not changed for the runs reported here. This can favour
-\ours over methods that were not tuned (\cref{sec:setup-threats}).
+run was evaluated on the same test sets. The development compared about 36 configurations of the method and its
+variants on CIFAR-10-LT and 17 on CIFAR-100-LT (\texttt{experiments/LEDGER.md}), and runs on MNIST, Fashion-MNIST and
+SVHN; it never used the six datasets with natural class imbalance. The settings were not changed for the runs
+reported here. This can favour \ours over methods that were not tuned (\cref{sec:setup-threats}).
 
 \begin{table}[t]
 \centering\small
@@ -382,11 +384,14 @@ two-run value above; we treat differences smaller than twice that, \R{repeat/bal
 \begin{itemize}
 \item \textbf{Tuning.} The settings of \ours were chosen on earlier runs of the same benchmarks, partly with the same
 seeds and client splits and always on the same test sets, while the baselines were not tuned. The reported numbers
-may therefore favour \ours; there is no held-out test set that the development never saw.
+may therefore favour \ours; the test sets are the official ones, which the development also saw.
+\numelse{fresh/cifar100/margin}{Seeds 6--8, never used before, check the main comparison on new client splits
+(\cref{sec:res-main}).}{There are no client splits that the development never saw.}
 \item \textbf{Compute.} \ours trains its heads for ten synthetic epochs per round, against one for GeFL-F and FedDF
 and none for the methods without a generator (\cref{tab:fairness}), and it communicates more (\cref{tab:cost}). The
-ablation with one synthetic epoch shows how much of the result of \ours depends on the longer phase; it does not show
-what GeFL-F or FedDF would reach with ten.
+ablation with one synthetic epoch shows how much of the result of \ours depends on the longer phase;
+\numelse{abl/cifar10/heads_vs/GeFL-F (T_s=10)}{GeFL-F and FedDF were also run with ten
+(\cref{sec:res-ablation}).}{it does not show what GeFL-F or FedDF would reach with ten.}
 \item \textbf{Missing runs.} With one shared model, runs of \ours failed on some seeds and imbalance ratios where the
 baselines finished, so the missing runs are not random; \cref{tab:shared} gives the seeds that came back.
 \item \textbf{Timing.} Wall-clock times were measured with a second run on the same GPU in most notebooks and are

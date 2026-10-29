@@ -23,12 +23,21 @@ uniformly drawn labels and then for $T_r$ epochs on its real features; heads of 
 random. So for every client $k$ and class $c$ with $n_{kc}>0$, the client's class-$c$ samples are a uniformly random
 subset of all class-$c$ samples, and $P_k(x\mid y)=P(x\mid y)$; the same holds for the features $h=\phi(x)$, since
 $\phi$ is shared. Every client's data therefore point at the centralised target of any class-conditional quantity: a
-class mean, a class's conditioning row, a readout. Federation can make such a quantity noisier or slower to learn,
-but it can make it \emph{biased} only through (i)~the optimiser, (ii)~parameters coupled to a client's label prior,
-such as biases and last layers, (iii)~what the synthetic data teach, and (iv)~sample size, which biases nonlinear
-estimates such as a spread or an inverse covariance in small classes. \Cref{sec:analysis} locates each.
+class mean, a class's conditioning row, a readout. Federation can make such a quantity noisier or slower to learn.
+We examine four ways in which it can also make it \emph{biased}: (i)~the optimiser, (ii)~parameters coupled to a
+client's label prior, such as biases and last layers, (iii)~what the synthetic data teach, and (iv)~sample size, which
+biases nonlinear estimates such as a spread or an inverse covariance in small classes. \Cref{sec:analysis} locates the
+first three in GeFL-F; we do not claim that the list is complete (the drift of the shared extractor in Stage I, for
+example, is not covered).
 
 \paragraph{Secure aggregation.} Secure aggregation~\cite{bonawitz2017secagg,bell2020secaggplus} lets the server learn
 the sum of the clients' vectors and nothing else about any single vector. A statistic that is a sum over clients of
 per-class quantities is therefore computed exactly, and equals its value on the pooled data, whatever the partition.
 \ours uses only such statistics.
+
+\paragraph{What every client must run.} \ours lets clients use the heads of other
+architectures: each client receives every architecture's current head in Stage III (for the consensus soft labels)
+and runs every architecture's body once on its own features (for the readout). We therefore assume that every client
+can store and evaluate every head, though it trains only its own, and that the architectures are not secret. Clients
+whose hardware cannot evaluate the largest head are outside this setting. In the main setting each architecture has
+one client ($K=G=10$), so heads are never averaged within an architecture there.
