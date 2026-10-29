@@ -82,6 +82,35 @@ $\R{main/cifar100/er_p/FedDF}$). Most of the margin over the published methods i
 three seeds do not show whether the other components of \ours also train a better body than the strongest other
 method.}
 
+\whentab{k50_bal}{\paragraph{Several clients per architecture} With $K=10$ each architecture has one client, so heads
+are never averaged within an architecture. \Cref{tab:k50} repeats the comparison with 50 clients, five per
+architecture (GeFL's second setting), on the same images. \claim{With 50 clients \ours is \R{k50/cifar10/margin} points
+ahead of the strongest other method without the readout on CIFAR-10-LT (\R{k50/cifar10/strongest}) and
+\R{k50/cifar100/margin} on CIFAR-100-LT (\R{k50/cifar100/strongest}), and \R{k50/cifar10/er_margin} and
+\R{k50/cifar100/er_margin} points when every method of the GeFL-F pipeline has the readout.}\whenfig{fig_clients}{
+\Cref{fig:clients} sets every method at 10 and at 50 clients side by side.}}
+
+\whentab{k50_bal}{%
+\begin{widetable}[t]
+\centering\small
+\caption{Balanced accuracy (\%) with 50 clients, five per head architecture (otherwise as \cref{tab:main}); \ours with
+its readout, its heads only, every other method without the readout; mean $\pm$ standard deviation over seeds 3--5.}
+\label{tab:k50}
+\slottab{k50_bal}{\begin{tabular}{lcc}\toprule
+Method & CIFAR-10 & CIFAR-100\\\midrule
+\phrow{FedECS-LT}{2}\phrow{FedECS-LT (heads only)}{2}\phrow{GeFL-F}{2}\phrow{[every other method]}{2}\bottomrule\end{tabular}}
+\end{widetable}}
+
+\whenfig{fig_clients}{%
+\begin{widefigure}[t]
+\centering
+\slotfig{fig_clients}{wide}{Balanced accuracy of every method at 10 and at 50 clients (docs/papers/fill.py).}
+\caption{Balanced accuracy (\%) at 10 clients (one per architecture) and at 50 clients (five per architecture), mean
+$\pm$ standard deviation over seeds 3--5; \ours with its readout, every other method without it. Long-tailed
+benchmarks, imbalance ratio 100, Dirichlet $\alpha=0.5$.}
+\label{fig:clients}
+\end{widefigure}}
+
 \whennum{fresh/cifar10/margin}{\whennum{fresh/cifar100/margin}{\paragraph{New client splits} The settings of \ours were
 developed on seeds 0--5 (\cref{sec:setup-threats}). Seeds 6--8 draw new client splits that no earlier run used, and we
 ran \ours, GeFL-F, FedDF and Balanced Softmax on them. \claim{There \ours is \R{fresh/cifar10/margin} and
@@ -230,6 +259,17 @@ Method & CIFAR-10-LT & CIFAR-100-LT\\\midrule
 \phrow{FedDF + LA}{2}\phrow{FedDF (10 synthetic epochs)}{2}\bottomrule\end{tabular}}
 \end{table}}
 
+\whenfig{fig_variants}{%
+\begin{widefigure}[t]
+\centering
+\slotfig{fig_variants}{wide}{Balanced accuracy of the variants of GeFL-F and FedDF, as trained and with the readout
+(docs/papers/fill.py, from the variant runs).}
+\caption{Variants of GeFL-F and FedDF: balanced accuracy (\%), mean $\pm$ standard deviation over seeds 3--5. Grey:
+heads as trained (for \ours its heads before the readout); blue: with the exact readout. Imbalance ratio 100,
+10 clients, Dirichlet $\alpha=0.5$.}
+\label{fig:variants}
+\end{widefigure}}
+
 \whentab{abl_components}{\paragraph{Components of \ours} \Cref{tab:components} removes one component of \ours at a time.
 \claim{With the readout, the largest loss on CIFAR-10-LT comes from the change
 ``\R{comp/cifar10/largest}'' (\R{comp/cifar10/largest_drop} points) and on CIFAR-100-LT from
@@ -251,6 +291,17 @@ Variant & as trained & \ER & as trained & \ER\\\midrule
 \phrow{w/o moment correction}{4}\phrow{w/o consensus soft labels}{4}\phrow{w/o logit adjustment}{4}
 \phrow{w/ one synthetic epoch}{4}\phrow{w/ Gaussian sampler}{4}\bottomrule\end{tabular}}
 \end{table}}
+
+\whenfig{fig_components}{%
+\begin{widefigure}[t]
+\centering
+\slotfig{fig_components}{wide}{Drop in balanced accuracy of each component variant of FedECS-LT against the full method,
+heads as trained and with the readout (docs/papers/fill.py, from the component runs).}
+\caption{Components of \ours: drop in balanced accuracy (points) when one component is changed, against the full
+method on the same seeds; mean over seeds 3--5 of the paired differences, error bars one standard deviation. Grey:
+heads as trained; blue: with the exact readout. Imbalance ratio 100, 10 clients, Dirichlet $\alpha=0.5$.}
+\label{fig:components}
+\end{widefigure}}
 
 \whentab{robust}{\paragraph{Other settings} \Cref{tab:robust} varies the label skew, the number of clients and the imbalance ratio.
 \claim{[Write once the sweeps have been run (GUIDE.md, section 4, experiment E8).]}}

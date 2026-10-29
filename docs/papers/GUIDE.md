@@ -152,6 +152,16 @@ order of the notebooks do not matter:
 | `fresh` | FedECS-LT, GeFL-F, FedDF, Balanced Softmax on seeds 6-8 (folder 8: `cifar10_cifar100_fresh_seeds_6_to_8`) | paragraph "New client splits" (Section 7.1) |
 | `sweep` | FedECS-LT, GeFL-F, FedDF, Balanced Softmax with one setting changed (NB40) | Table robustness |
 
+**Figures drawn from the runs (29 Oct 2026).** Three figure slots need no results zip: `fill.py` draws them from
+`runs.jsonl` on every run and deletes them when their runs are missing, so they appear (and the final build shows
+them) as soon as the results are fetched:
+- `fig_components` (group `comp`, Section 7.5): the drop of each component variant against the full FedECS-LT, heads
+  as trained and with the readout;
+- `fig_variants` (group `abl`, Section 7.5): GeFL-F, FedDF and their variants, as trained and with the readout;
+- `fig_clients` (groups `main` and `k50`, Section 7.1): every method at 10 and at 50 clients.
+The 50-client table `tab:k50` (`k50_bal`) and its paragraph "Several clients per architecture" (Section 7.1) fill
+from folder 7 and `NB40_sweep_cifar10_K50` together: the latter holds FedECS-LT, GeFL-F, FedDF and Balanced Softmax.
+
 **FedECS-LT ends with its exact readout (user, 29 Oct 2026).** `fill.py` therefore reports a FedECS-LT run with its
 readout metrics (`final_* = er_*` of the same run) and adds a second row, `FedECS-LT (heads only)`, with its heads as
 trained. Every comparison (`margin`, `strongest`, `diff/...`, `best`) is FedECS-LT with its readout against every

@@ -37,7 +37,9 @@ def test_fill_sorts_and_writes(tmp_path, monkeypatch):
             "cifar10_cifar100_fresh_seeds_6_to_8": [rec(m, "cifar10", s, b) for s in (6, 7, 8)
                                                     for m, b in (("FedECS-LT", 0.10), ("GeFL-F", 0.05))],
             "NB40_sweep_cifar10_a0.1": [rec(m, "cifar10", s, 0.2, alpha=0.1) for s in (3, 4, 5)
-                                        for m in ("FedECS-LT", "GeFL-F")]}
+                                        for m in ("FedECS-LT", "GeFL-F")],
+            "NB40_sweep_cifar10_K50": [rec(m, "cifar10", s, b, K=50) for s in (3, 4, 5)
+                                       for m, b in (("FedECS-LT", 0.30), ("GeFL-F", 0.25))]}
     for name, rs in runs.items():
         (res / name).mkdir(parents=True)
         (res / name / "runs.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rs))
@@ -71,3 +73,7 @@ def test_fill_sorts_and_writes(tmp_path, monkeypatch):
     assert r"\defnum{comp/cifar10/w/ Gaussian sampler/er_drop}{+6.0}" in nums       # full 54.0 with the readout
     assert r"\defnum{comp/cifar10/w/ Gaussian sampler/drop}{+6.0}" in nums          # heads 44.0 as trained
     assert r"\defnum{comp/n_variants}{two}" in nums
+    assert r"\defnum{k50/cifar10/margin}{+15.0}" in nums                     # 50 clients: 40.0 vs GeFL-F 25.0
+    figs = tmp_path / "generated" / "figures"
+    for f in ("fig_components", "fig_variants", "fig_clients"):              # drawn from the runs on every fill
+        assert (figs / f"{f}.pdf").exists(), f

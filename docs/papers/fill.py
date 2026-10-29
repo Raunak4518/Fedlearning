@@ -762,6 +762,113 @@ def fill_figures(made, status, nums):
                     nums["repr/cifar10/knn_cells"] = str(len(common))
 
 
+# figure slots drawn here from runs.jsonl (no results zip needed): written on every fill, removed when their runs are gone
+RUN_FIGS = ("fig_components", "fig_variants", "fig_clients")
+
+
+def bar_panels(name, panels, series, xlabel, status, made, height_per_row=0.2):
+    """Horizontal grouped bars, one panel per dataset. panels: [(dataset label, [row label], {series: [(mean, sd)]})];
+    series: [(series label, colour)]. Saved with the paper's plot style and layout check."""
+    import plot_style as ps
+    ps.apply()
+    order = list(dict.fromkeys(lab for _, labs, _ in panels for lab in labs))   # the same rows in every panel
+    nan = (float("nan"), float("nan"))
+    panels = [(ds, order, {sl: [dict(zip(labs, v)).get(lab, nan) for lab in order] for sl, v in vals.items()})
+              for ds, labs, vals in panels]
+    rows = len(order)
+    fig, axes = ps.figure("page", height_per_row * rows * len(series) / 2 + 1.1, ncols=len(panels), sharey=False)
+    axes = np.atleast_1d(axes)
+    data = []
+    for i, (ax, (ds, labels, vals)) in enumerate(zip(axes, panels)):
+        y = np.arange(len(labels))
+        h = 0.8 / len(series)
+        for j, (sl, col) in enumerate(series):
+            mu = [0.0 if np.isnan(v[0]) else v[0] for v in vals[sl]]   # a method without runs here: no bar
+            sd = [0 if np.isnan(v[1]) else v[1] for v in vals[sl]]
+            ax.barh(y + (j - (len(series) - 1) / 2) * h, mu, h, xerr=sd, color=col, label=sl, edgecolor="black",
+                    linewidth=0.3, error_kw=dict(lw=0.6))
+            data += [[ds, lab, sl, m, s_] for lab, m, s_ in zip(labels, mu, sd)]
+        ax.set_yticks(y)
+        ax.set_yticklabels(labels if i == 0 else [""] * len(labels))
+        ax.invert_yaxis()
+        ax.set_xlabel(f"{ds}: {xlabel}")
+        ax.axvline(0, color="black", lw=0.5)
+    axes[0].legend(loc="upper center", bbox_to_anchor=(0.5 * len(panels) + 0.1 * (len(panels) - 1), -0.18),
+                   ncol=len(series))
+    before = len(ps.LAYOUT_PROBLEMS)
+    ps.save(fig, os.path.join(GEN, "figures"), name, data, ["dataset", "row", "series", "mean", "sd"])
+    for p_ in ps.LAYOUT_PROBLEMS[before:]:
+        status.append(f"- `{name}`: layout problem {p_[1]}")
+    made.append(name)
+
+
+def fill_run_figures(E_by, made, status):
+    import plot_style as ps
+    out = os.path.join(GEN, "figures")
+    for name in RUN_FIGS:   # a slot whose runs are not (or no longer) there must not keep an old file
+        for ext in (".pdf", ".png", ".csv"):
+            if os.path.exists(os.path.join(out, name + ext)):
+                os.remove(os.path.join(out, name + ext))
+    TRAINED, READOUT = ("heads as trained", ps.PALETTE[8]), ("with the exact readout", ps.PALETTE[0])
+
+    def ms(v):
+        v = [x for x in v if x is not None and not np.isnan(x)]
+        return (float(np.mean(v)), float(np.std(v, ddof=1)) if len(v) > 1 else float("nan")) if v else (np.nan, np.nan)
+    E = E_by.get("comp")
+    if E is not None:   # what each change costs the full method, paired over seeds
+        panels = []
+        for S in ordered(E):
+            full = {r["seed"]: r for r in E.of(OURS, S)}
+            var = [m for m in E.methods if m.startswith("FedECS-LT w")]
+            vals = {TRAINED[0]: [], READOUT[0]: []}
+            keep = []
+            for m in var:
+                rs = {r["seed"]: r for r in E.of(m, S)}
+                common = sorted(set(full) & set(rs))
+                if not common:
+                    continue
+                keep.append(m.replace("FedECS-LT ", ""))
+                vals[TRAINED[0]].append(ms([100 * (full[x].get("heads_final_bal", np.nan) - rs[x]["final_bal"])
+                                            for x in common]))
+                vals[READOUT[0]].append(ms([100 * (full[x]["er_bal"] - rs[x].get("er_bal", np.nan)) for x in common]))
+            if keep:
+                panels.append((pt.column_name(S, ordered(E)), keep, vals))
+        if panels:
+            bar_panels("fig_components", panels, [TRAINED, READOUT], "Drop in balanced accuracy (points)", status, made)
+    E = E_by.get("abl")
+    if E is not None:   # variants of GeFL-F and FedDF, as trained and with the readout
+        panels = []
+        for S in ordered(E):
+            labels, vals = [], {TRAINED[0]: [], READOUT[0]: []}
+            for m in E.methods:
+                if m in NOTEST or m == "Local" or not E.of(m, S):
+                    continue
+                labels.append(m)
+                tk = "heads_final_bal" if m == OURS else "final_bal"   # FedECS-LT: its heads, then its readout
+                vals[TRAINED[0]].append(ms([100 * r.get(tk, np.nan) for r in E.of(m, S)]))
+                vals[READOUT[0]].append(ms([100 * r.get("er_bal", np.nan) for r in E.of(m, S)]))
+            if labels:
+                panels.append((pt.column_name(S, ordered(E)), labels, vals))
+        if panels:
+            bar_panels("fig_variants", panels, [TRAINED, READOUT], "Balanced accuracy (%)", status, made)
+    E10, E50 = E_by.get("main"), E_by.get("k50")
+    if E10 is not None and E50 is not None:   # every method at 10 and at 50 clients (FedECS-LT with its readout)
+        panels = []
+        for S50 in ordered(E50):
+            S10 = next((S for S in E10.settings if S[0] == S50[0]), None)
+            if S10 is None:
+                continue
+            labels = [m for m in E50.methods if m not in NOTEST and m not in REFS and E50.of(m, S50) and E10.of(m, S10)]
+            if not labels:
+                continue
+            vals = {"10 clients": [ms([100 * r["final_bal"] for r in E10.of(m, S10)]) for m in labels],
+                    "50 clients": [ms([100 * r["final_bal"] for r in E50.of(m, S50)]) for m in labels]}
+            panels.append((pt.column_name(S50, ordered(E50)), labels, vals))
+        if panels:
+            bar_panels("fig_clients", panels, [("10 clients", ps.PALETTE[8]), ("50 clients", ps.PALETTE[1])],
+                       "Balanced accuracy (%)", status, made)
+
+
 def content_files():
     return [p for p in glob.glob(os.path.join(HERE, "content", "*.tex")) if not p.endswith("macros.tex")]
 
@@ -815,6 +922,7 @@ def main():
                 fill_group(g, E_by[g], nums, made, status)
         repeat_numbers(nums)   # first: the noise floor is used by fill_extras
         fill_extras(E_by, nums, made)
+        fill_run_figures(E_by, made, status)
     reproduction_numbers(nums)
     if "--figures" in sys.argv:
         status.append("## Figures\n")
