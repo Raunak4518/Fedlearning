@@ -182,7 +182,7 @@ its balanced accuracy on CIFAR-10-LT by \R{t2/cifar10-r100/fe200_diff} points.}}
 model after the last round. Against FedYoYo's evaluation in the same protocol~\cite{yan2025fedyoyo}, which trains
 300 rounds, most methods are within about three points of the published values (e.g.\ FedAvg 58.2, CCVR 68.1,
 FedETF 68.3, FedYoYo 81.5 on CIFAR-10-LT). FedLTLib~\cite{lin2026fedltlib} reports the best round and gives higher
-values for every method. Three methods are clearly below the published values on CIFAR-10-LT in our runs: CReFF
+values than ours for every method. Three methods are clearly below the published values on CIFAR-10-LT in our runs: CReFF
 (70.5 in~\cite{yan2025fedyoyo}), Fed-GraB (70.6) and FedLC (69.0). They run in the benchmark's code with its common
 settings (learning rate 0.1, batch size 32, ten local epochs), which differ from those in the methods' own papers; we
 did not tune them and report them as obtained. FedYoYo's evaluation trains 300 rounds and ours 200.

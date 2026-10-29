@@ -25,7 +25,8 @@ subset of all class-$c$ samples, and $P_k(x\mid y)=P(x\mid y)$; the same holds f
 $\phi$ is shared. Every client's data therefore point at the centralised target of any class-conditional quantity: a
 class mean, a class's conditioning row, a readout. Federation can make such a quantity noisier or slower to learn,
 but it can make it \emph{biased} only through (i)~the optimiser, (ii)~parameters coupled to a client's label prior,
-such as biases and last layers, and (iii)~what the synthetic data teach. \Cref{sec:analysis} locates each.
+such as biases and last layers, (iii)~what the synthetic data teach, and (iv)~sample size, which biases nonlinear
+estimates such as a spread or an inverse covariance in small classes. \Cref{sec:analysis} locates each.
 
 \paragraph{Secure aggregation.} Secure aggregation~\cite{bonawitz2017secagg,bell2020secaggplus} lets the server learn
 the sum of the clients' vectors and nothing else about any single vector. A statistic that is a sum over clients of

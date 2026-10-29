@@ -100,9 +100,9 @@ Head optimiser (each phase, each round) & SGD, learning rate 0.1, no momentum\\
 
 \subsection{Datasets and client splits}\label{sec:setup-data}
 
-\paragraph{Long-tailed benchmarks.} \R{main/datasets_cite} are made long-tailed as in GeFL-F's
-code~\cite{kang2025gefl}. A fraction of the training set is divided over the classes by the profile of
-\cref{sec:setting} with $\rho=100$. The fraction is GeFL-F's on MNIST, Fashion-MNIST and SVHN (0.1) and on CIFAR-10
+\paragraph{Long-tailed benchmarks.} \R{main/datasets_cite} are made long-tailed by our construction: GeFL-F's
+fraction of the training set~\cite{kang2025gefl} is divided over the classes by the profile of \cref{sec:setting}
+with $\rho=100$ (GeFL's own splits are balanced). The fraction is GeFL-F's on MNIST, Fashion-MNIST and SVHN (0.1) and on CIFAR-10
 (0.5). GeFL does not use CIFAR-100; there we take 0.22, which gives the usual CIFAR-100-LT shape. No class receives more
 images than remain after the validation images are held out. On CIFAR-10-LT and CIFAR-100-LT the profile asks for more
 than that for the largest classes, which are therefore capped. So the realised ratio between the largest and the
@@ -146,7 +146,8 @@ architecture. The rounds of the three stages are GeFL-F's: 50, 200 and 100 on CI
 a given dataset and seed: Stage I is computed once and reused.\whentab{k50_bal}{ GeFL's second setting has $K=50$
 clients, five per architecture (\cref{sec:res-main}); every method of the main comparison is run there too.}
 
-\paragraph{One shared model.} We follow the FedLTLib protocol~\cite{lin2026fedltlib}: CIFAR-10-LT and CIFAR-100-LT with
+\paragraph{One shared model.} We follow the FedLTLib protocol~\cite{lin2026fedltlib}, whose training settings come
+from CReFF~\cite{shang2022creff}: CIFAR-10-LT and CIFAR-100-LT with
 the standard profile $n_c=\lfloor n_{\max}\rho^{-c/(C-1)}\rfloor$ at $\rho\in\{100,50,10\}$, where $n_{\max}$ is the
 number of images per class left after 200 per class (20 on CIFAR-100) are held out for validation. Rounding down gives
 the smallest CIFAR-100 class 4 images at $\rho=100$.
@@ -154,7 +155,9 @@ the smallest CIFAR-100 class 4 images at $\rho=100$.
 There are 20 clients, Dirichlet $\alpha=0.5$, and 8 clients (40\%) take part in each round. All share one
 ResNet-8~\cite{he2016resnet}, trained for 200 rounds of 10 local epochs with batch size 32 and SGD (learning rate 0.1,
 momentum 0.9, decay 0.99 per round). The baselines run the authors' LongTailLib training code unchanged, on our
-splits; we evaluate them every fifth round and score Fed-GraB with its trained classifier.
+splits, with the backbone set to ResNet-8 for every method (the library defaults to ResNet-18 or ResNet-20 for
+FedLoGe, Fed-GraB, FedYoYo and FedETF); we evaluate them every fifth round and score Fed-GraB with its trained
+classifier.
 
 For \ours the ResNet-8 is split after its second stage into a frozen extractor and a head. The extractor is trained
 for 100 rounds with the protocol's local updates, the generator for 100 rounds, and the head for 100 rounds with 10
@@ -171,16 +174,16 @@ library draws its own, so participation is not paired between \ours and the base
 method of the main setting exchanges and computes. The methods fall into six groups, each chosen for one question.
 \begin{itemize}
 \item \textbf{GeFL-F}, the method \ours extends: the difference to it answers RQ2 directly.
-\item \textbf{FedDF}~\cite{lin2020feddf}, ensemble distillation on the server. The distillation runs on generated
-features instead of public data, so FedDF uses GeFL-F's generator without changing it.
+\item \textbf{FedDF}~\cite{lin2020feddf}, ensemble distillation on the server. GeFL distils on public data; we
+run FedDF's distillation on GeFL-F's generated features instead, so that no method uses extra data.
 \item \textbf{Per-client long-tail losses}: Balanced Softmax~\cite{ren2020bsm}, FedLC~\cite{zhang2022fedlc} and
 FedRS~\cite{li2021fedrs}. They test whether a correction of the loss alone repairs the long tail. They are applied
 to GeFL-F without its generator. At $K=10$ each architecture has one client, so their heads train on that client's
 real features only and exchange nothing in Stage III.
-\item \textbf{GeFL's grouped baselines}: FedAvg~\cite{mcmahan2017fedavg},
-FedProx~\cite{li2020fedprox}, FedALA~\cite{zhang2023fedala} and AvgKD~\cite{afonin2022avgkd} run within each
-architecture group, as GeFL compares them~\cite{kang2025gefl}. CCVR~\cite{luo2021ccvr} and FedETF~\cite{li2023fedetf},
-two long-tail methods, are applied the same way. At $K=10$ each group has one client, so FedAvg, FedProx and FedALA
+\item \textbf{GeFL's baselines}: FedAvg~\cite{mcmahan2017fedavg}, FedProx~\cite{li2020fedprox} and
+FedALA~\cite{zhang2023fedala} run within each architecture group, and AvgKD~\cite{afonin2022avgkd} distils across all
+architectures, as GeFL compares them~\cite{kang2025gefl}. CCVR~\cite{luo2021ccvr} and FedETF~\cite{li2023fedetf}, two
+long-tail methods, are applied within each group. At $K=10$ each group has one client, so FedAvg, FedProx and FedALA
 exchange nothing in Stage III; AvgKD and CCVR still use the other clients' predictions or statistics.
 \item \textbf{Model-heterogeneous methods from HtFLlib}~\cite{zhang2025htfllib}: prototypes (FedProto, FedTGP), a
 generator of embeddings (FedGen), a shared global head (FedGH), shared last layers (LG-FedAvg) and shared
@@ -217,7 +220,7 @@ LongTailLib~\cite{lin2026fedltlib} methods run in the authors' code, downloaded 
 AvgKD of the main setting follow GeFL's code~\cite{kang2025gefl} (MIT).}
 \label{tab:baselines}
 \def\groupedrows{}\whennum{main/cifar10/FedAvg/bal}{\def\groupedrows{FedAvg, FedProx (grouped)~\cite{mcmahan2017fedavg,li2020fedprox} & & different models & GeFL's code, within each architecture\\
-AvgKD (grouped)~\cite{afonin2022avgkd} & ICLR 2022 & different models & GeFL's code\\
+AvgKD~\cite{afonin2022avgkd} & ICLR 2022 & different models & GeFL's code, across architectures\\
 FedALA (grouped)~\cite{zhang2023fedala} & AAAI 2023 & different models & authors' ALA module, within each architecture\\
 CCVR, FedETF (grouped)~\cite{luo2021ccvr,li2023fedetf} & & different models & LongTailLib's version, within each architecture\\}}
 \begin{adjustbox}{max width=\linewidth}
@@ -267,7 +270,7 @@ FedDF & GeFL-F's (200) & 1 / 5 & server distillation & yes & cross-entropy\\
 Balanced Softmax, FedLC, FedRS & none & 0 / 5 & none at $K=10$ & yes & per-client correction\\
 HtFLlib methods & FedGen: in every batch & 0 / 5 & prototypes, heads or sub-networks & no & method's own\\
 Grouped FedAvg, FedProx, FedALA & none & 0 / 5 & heads (none at $K=10$) & no & method's own\\
-Grouped AvgKD, CCVR, FedETF & none & 0 / 5 & predictions or statistics & no & method's own\\
+AvgKD; grouped CCVR, FedETF & none & 0 / 5 & predictions or statistics & no & method's own\\
 Local & none & alone: $5T_{\mathrm{FE}}+5T_{\mathrm{TN}}$ epochs & none & no & cross-entropy\\
 \bottomrule
 \end{tabular}
@@ -279,8 +282,8 @@ Local & none & alone: $5T_{\mathrm{FE}}+5T_{\mathrm{TN}}$ epochs & none & no & c
 Let $r_{gc}$ be the recall of class $c$ by the model of architecture $g$ on the official test set. The test set is
 balanced on Fashion-MNIST, CIFAR-10 and CIFAR-100 and imbalanced on MNIST, SVHN and the naturally imbalanced
 datasets; balanced accuracy weights every class equally in either case. The primary metric is the balanced accuracy, $\frac1G\sum_g\frac1C\sum_c r_{gc}$: the mean
-over the $G=10$ client models of each model's mean class recall. GeFL~\cite{kang2025gefl} reports the mean over the
-ten models in the same way. It is reported with the heads as trained and, for the methods of the GeFL-F pipeline,
+over the $G=10$ client models of each model's mean class recall. GeFL~\cite{kang2025gefl} also averages over the
+ten models, with top-1 accuracy at each model's best round. It is reported with the heads as trained and, for the methods of the GeFL-F pipeline,
 with the exact readout. The second number answers RQ3.
 
 The other metrics are:
@@ -344,7 +347,7 @@ main comparison.
 \begin{itemize}
 \item \textbf{Variants of GeFL-F} test the diagnosis: GeFL-F without its generator (what the generator adds at all),
 GeFL-F with decoupled decay and logit adjustment (the cheapest repair of the first two losses), GeFL-F with a
-Gaussian class-conditional generator from the exact statistics, and FedDF with logit adjustment.
+Gaussian class-conditional generator from the exact statistics (a CCVR-style sampler~\cite{luo2021ccvr}), and FedDF with logit adjustment.
 \item \textbf{\ours with one component changed} measures each component's share:
 \begin{itemize}
 \item class rows with CCWA, or with flat averaging, instead of the gate;

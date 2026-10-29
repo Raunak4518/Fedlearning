@@ -34,7 +34,7 @@ when their models can be averaged.
 because of the lower performance of its feature extractor and target networks there~\cite{kang2025gefl}. In GeFL's
 own setting (a balanced training set divided evenly among 10 clients) our earlier implementation of GeFL-F reaches
 \R{repro/cifar10/GeFL-F/final}\% on CIFAR-10 (\R{repro/cifar10/GeFL-F/best}\% with GeFL's best-round measure;
-GeFL reports \R{repro/cifar10/published}\%) but only \R{repro/cifar100/GeFL-F/final}\% on CIFAR-100, so on CIFAR-100
+GeFL's Fig.~4 shows about \R{repro/cifar10/published}\%) but only \R{repro/cifar100/GeFL-F/final}\% on CIFAR-100, so on CIFAR-100
 the level is set by the design and the data budget, and on CIFAR-10 the long tail, together with the smaller training set it leaves, costs most of the
 difference\whennum{main/cifar100/Centralised (pooled data)/bal}{, and the same architectures, trained with cross-entropy on all
 the training data pooled (extractor and heads, no generator, no long-tail correction), reach \R{main/cifar10/Centralised (pooled data)/bal} on CIFAR-10-LT and

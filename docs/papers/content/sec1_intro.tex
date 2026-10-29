@@ -44,12 +44,13 @@ trained with logit adjustment and with consensus soft labels, the averaged predi
 generated feature. After training, every architecture's last layer is replaced by a class-balanced linear readout
 computed from aggregated sums of its embeddings. None of these statistics is new on its own: aggregated class
 statistics underlie classifier calibration~\cite{luo2021ccvr}, closed-form federated
-classifiers~\cite{fani2024fed3r,legate2023fedncm} and prototype methods~\cite{tan2022fedproto}, and statistics-conditioned
+classifiers~\cite{fani2024fed3r,legate2023fedncm,goswami2025fedcof}, including an LDA-type classifier from class
+statistics~\cite{goswami2025fedcof}, and prototype methods~\cite{tan2022fedproto}, and statistics-conditioned
 generators have been proposed for heterogeneous clients~\cite{niu2026fedvtc}. What we add is the diagnosis of
 \emph{which} parameters fail under a long tail and the use of exact statistics at exactly those places, including a
 readout per architecture that needs statistics pooled across architectures.
 
-\paragraph{Evaluation.} We re-implemented the pipeline and every comparison in the Flower framework~\cite{beutel2020flower},
+\paragraph{Evaluation.} We re-implemented the pipeline and every comparison of \cref{sec:results} in the Flower framework~\cite{beutel2020flower},
 with the published methods taken from their authors' or library code (HtFLlib~\cite{zhang2025htfllib},
 LongTailLib/FedLTLib~\cite{lin2026fedltlib}). We evaluate in two protocols: the model-heterogeneous setting of
 GeFL-F (ten client architectures; long-tailed \R{main/datasets} and, with natural class imbalance,

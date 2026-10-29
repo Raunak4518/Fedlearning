@@ -11,11 +11,13 @@ unchanged when the whole gradient sequence is multiplied by $a>0$, up to the $\e
 depend on $\lambda$ while $\lambda|r_{c,j}|\gg\epsilon$. A client keeps its Adam state across rounds while its
 parameters are reset to the global ones, so a single step can exceed $\eta$. \hfill$\square$
 
-\paragraph{The step ratio (\cref{eq:kappa}).} Per coordinate an Adam step is $\eta\psi$ with $\psi=\hat m/\sqrt{\hat
-v}\in[-1,1]$. A non-holder sees a decay gradient of constant sign, so $\psi=\mathrm{sign}(r_{c,j})$ on each of its
-$\tau_k$ steps. A holder moves the row only on the $\tau_kf_{kc}$ steps whose batch contains class $c$, with
-$|\psi|\le1$. Under flat averaging the drift per round is
-$\Delta r_{c,j}=\frac{\eta}{K}\big[\psi_h\sum_{k\in H_c}\tau_kf_{kc}-\mathrm{sign}(r_{c,j})\sum_{k\notin H_c}\tau_k\big]$,
+\paragraph{The step ratio (\cref{eq:kappa}), a heuristic.} Per coordinate an Adam step is $\eta\psi$ with
+$\psi=\hat m/\sqrt{\hat v}$. For a gradient of constant sign $\psi$ tends to that sign; in general
+$|\psi|\le(1-\beta_1)/\sqrt{1-\beta_2}$, about 3.2 for the default $\beta_1,\beta_2$~\cite{kingma2015adam}. A non-holder
+sees a decay gradient of constant sign, so $\psi\approx\mathrm{sign}(r_{c,j})$ on each of its $q_k$ steps. Assume that
+a holder moves the row only on the $q_kf_{kc}$ steps whose batch contains class $c$, with $|\psi|\le1$, and neglect
+its other steps. Under flat averaging the drift per round is
+$\Delta r_{c,j}=\frac{\eta}{K}\big[\psi_h\sum_{k\in H_c}q_kf_{kc}-\mathrm{sign}(r_{c,j})\sum_{k\notin H_c}q_k\big]$,
 which points toward zero for every coordinate and every holder direction when $\kappa_c<1$. The approximation neglects
 momentum carried between sparse holder steps and the drift of $\hat v$. \hfill$\square$
 
@@ -34,11 +36,11 @@ $\KL(u\|\mathrm{softmax}f)=-\log C+\LSE(f)-\bar f$; expanding $\LSE$ around cons
 
 \begin{proposition}[alternation, quadratic losses]\label{prop:alternation}
 Let the synthetic and real losses be quadratic with Hessians $H_s,H_r\succeq0$ and minimisers $\theta_s,\theta_r$, and
-let $P_s=(I-\eta H_s)^{S_s}$, $P_r=(I-\eta H_r)^{S_r}$ for $S_s$ synthetic and $S_r$ real steps per round. If
+let $P_s=(I-\eta H_s)^{S_s}$, $P_r=(I-\eta H_r)^{S_r}$ for $S_s$ synthetic and $S_r$ real steps per round. Let $0\le\eta\lambda\le1$ for every eigenvalue $\lambda$ of $H_s$ and $H_r$. If
 $\|P_rP_s\|<1$, the rounds converge to $\theta^\star=\theta_r+\Omega(\theta_s-\theta_r)$ with
 $\Omega=(I-P_rP_s)^{-1}P_r(I-P_s)$. For commuting Hessians the synthetic weight along eigendirection $i$ is
-$\omega_i=\rho_{r,i}(1-\rho_{s,i})/(1-\rho_{r,i}\rho_{s,i})\le\rho_{r,i}$, which equals one along directions the real loss
-leaves free.
+$\omega_i=\rho_{r,i}(1-\rho_{s,i})/(1-\rho_{r,i}\rho_{s,i})\le\rho_{r,i}$, which equals one along directions that the real loss
+leaves free and the synthetic loss does not.
 \end{proposition}
 \emph{Proof.} One round is the affine map $\theta\mapsto P_rP_s\theta+P_r(I-P_s)\theta_s+(I-P_r)\theta_r$, a contraction
 when $\|P_rP_s\|<1$; its fixed point has the stated form. With commuting Hessians all matrices are diagonal in a common
@@ -92,15 +94,21 @@ public data instead.
 \paragraph{GeFL's own setting.} In GeFL's setting (balanced training data divided evenly among 10 clients,
 \R{repro/cifar10/GeFL-F/seeds} seeds, our earlier implementation), GeFL-F reaches \R{repro/cifar10/GeFL-F/final}\% on
 CIFAR-10 after the last round and \R{repro/cifar10/GeFL-F/best}\% with GeFL's measure, against
-\R{repro/cifar10/published}\% reported by GeFL~\cite{kang2025gefl}; \ours reaches \R{repro/cifar10/FedECS-LT/final}\% and
-\R{repro/cifar10/FedECS-LT/best}\%. On CIFAR-100, which GeFL does not report, GeFL-F reaches
-\R{repro/cifar100/GeFL-F/final}\% and \ours \R{repro/cifar100/FedECS-LT/final}\%.
+\R{repro/cifar10/published}\% read from GeFL's Fig.~4~\cite{kang2025gefl}, which reports each model's best round. An
+earlier configuration of \ours (one synthetic epoch per round and an older head training) reaches
+\R{repro/cifar10/FedECS-LT/final}\% and \R{repro/cifar10/FedECS-LT/best}\%. On CIFAR-100, which GeFL does not report,
+GeFL-F reaches \R{repro/cifar100/GeFL-F/final}\% and that configuration \R{repro/cifar100/FedECS-LT/final}\%.
 
 \paragraph{Evaluation.} Models are evaluated every five rounds on the test set before and after aggregation; the final
 model is the one after the last round (no selection on the test or the validation set). Methods with personal
 heads (LG-FedAvg, FedGH, FedGen and the other HtFLlib methods) are scored with each client's head after its last local
 training; HtFLlib scores LG-FedAvg, FedGH and FedGen right after the server's update instead. FedProto and FedTGP classify by the distance to
-class prototypes; their probabilities for the calibration metrics are a softmax of the negative distances.
+class prototypes; their probabilities for the calibration metrics are a softmax of the negative mean squared distances.
+
+\paragraph{HtFLlib ports.} Every client keeps the frozen Stage-I extractor and starts from its Stage-I head body,
+followed by a parameter-free pooling to 512 dimensions and a linear layer, as in HtFLlib's models. Training uses
+HtFLlib's run-script settings (SGD, learning rate 0.01, batch 10) with 5 local epochs per round for the rounds of the
+head stage; personal models persist across rounds. FedGen's label counts are the federation's class counts.
 
 \section{Further results}\label{app:more}
 

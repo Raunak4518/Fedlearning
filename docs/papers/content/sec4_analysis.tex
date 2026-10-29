@@ -11,7 +11,7 @@ of $-\Delta_k$ over the other clients, and $p_c=m_c/K$.
 
 \begin{proposition}[contraction under flat averaging]\label{prop:contraction}
 Under $r_c^+=\frac1K\sum_k r_{k,c}$, $\|r_c^+\|\le\|r_c\|+p_c\bar G_c-(1-p_c)\bar D_c$, with equality if and only if
-all $r_{k,c}$ are parallel. The row contracts whenever $p_c<\bar D_c/(\bar G_c+\bar D_c)$.
+all $r_{k,c}$ are non-negative multiples of one another. The row contracts whenever $p_c<\bar D_c/(\bar G_c+\bar D_c)$.
 \end{proposition}
 
 The bound only describes the measured changes; the optimiser decides how large $\bar D_c$ is.
@@ -20,16 +20,16 @@ The bound only describes the measured changes; the optimiser decides how large $
 On a client without class $c$, the gradient of the loss with coupled L2 regularisation $\lambda$ with respect to $r_c$
 is exactly $\lambda r_c$. Since Adam is invariant to a positive rescaling of the gradient sequence up to its
 $\epsilon$, each step of such a client moves every coordinate of $r_c$ toward zero by about the learning rate $\eta$,
-independently of $\lambda$, as long as $\lambda|r_{c,j}|\gg\epsilon$. With $\lambda=0$, or with decoupled weight
-decay~\cite{loshchilov2019adamw}, this shrinkage vanishes.
+independently of $\lambda$, as long as $\lambda|r_{c,j}|\gg\epsilon$. With $\lambda=0$ this shrinkage vanishes; with decoupled weight
+decay~\cite{loshchilov2019adamw} it becomes a factor $1-\eta\lambda$ per step, which is negligible here.
 \end{lemma}
 
-A holder's data gradient fits the row and need not increase its norm, so $\bar G_c\ll\bar D_c$ and rare classes' rows
-contract even when most clients hold the class; a threshold on $m_c$ alone cannot decide it. Counting Adam steps gives
-a predictor that uses only the class counts and the number of local steps $\tau_k$: with $f_{kc}$ the probability that
+A holder's data gradient fits the row and need not increase its norm, so $\bar G_c$ can be much smaller than
+$\bar D_c$, and rare classes' rows can contract even when most clients hold the class; a threshold on $m_c$ alone cannot decide it. Counting Adam steps gives
+a predictor that uses only the class counts and the number of local steps $q_k$: with $f_{kc}$ the probability that
 a batch of client $k$ contains class $c$,
 \begin{equation}\label{eq:kappa}
-\kappa_c=\frac{\sum_{k\in H_c}\tau_k f_{kc}}{\sum_{k\notin H_c}\tau_k},
+\kappa_c=\frac{\sum_{k\in H_c}q_k f_{kc}}{\sum_{k\notin H_c}q_k},
 \end{equation}
 and the row drifts toward zero in every coordinate when $\kappa_c<1$. This count of Adam steps is a heuristic, not
 a bound: it ignores the moments Adam carries between rounds (\cref{app:proofs}). Centrally the same decay is
@@ -84,9 +84,12 @@ measured by removing logit adjustment from \ours with and without the readout be
 An estimator that is a function of a sum $S=\sum_k\sum_{i\in D_k}T(x_i,y_i)$, with $T$ fixed in advance, takes the same
 value for every partition of the pooled data, and equals the centralised estimator.
 \end{proposition}
+This property is known for closed-form federated classifiers~\cite{fani2024fed3r,he2025afl,goswami2025fedcof}; we
+state it because the method relies on it in several places.
 
 The class-balanced linear discriminant used by \ours (\cref{sec:method-readout}) is such an estimator, and so are
-Fed3R~\cite{fani2024fed3r}, FedNCM~\cite{legate2023fedncm} and CCVR~\cite{luo2021ccvr} when computed over all clients.
+Fed3R~\cite{fani2024fed3r}, FedNCM~\cite{legate2023fedncm}, FedCOF~\cite{goswami2025fedcof} and, for a fixed sampling
+seed, CCVR's virtual features~\cite{luo2021ccvr} when computed over all clients.
 The last layer then stops being a source of loss relative to the same readout computed centrally on the same
 bodies, and the accuracy with this readout compares the bodies. \claim{The readout alone raises GeFL-F's balanced
 accuracy by \R{main/cifar10/GeFL-F/gain_er} points on CIFAR-10-LT and \R{main/cifar100/GeFL-F/gain_er} on
@@ -105,8 +108,9 @@ distribution.
 When generated features carry little information about their label, the synthetic phase therefore pulls the logits
 together instead of teaching the classes a client lacks. Alternating it with the real phase decides what survives:
 in an illustrative model with quadratic losses (the heads are nonlinear and trained with cross-entropy) the round map
-converges to a point where the synthetic data decide exactly the directions that
-the client's real loss leaves free (\cref{app:proofs}), which are the directions of the absent classes. Logit
+converges to a point where the synthetic data alone decide the directions that the client's real loss leaves free
+(\cref{app:proofs}). For a head trained on one client's real data, the directions of the absent classes are nearly
+free in this sense, but not exactly: cross-entropy still pushes their logits down. Logit
 adjustment keeps the real phase from pushing the absent classes' logits down without bound~\cite{soudry2018implicit}.
 \whenfig{fig_spread}{\claim{\Cref{fig:spread} shows the first effect on the real pipeline: in every round on CIFAR-10-LT the
 synthetic phase reduces the spread of the heads' logits on the clients' real features, and it reduces it less for
@@ -117,7 +121,8 @@ synthetic phase reduces the spread of the heads' logits on the clients' real fea
 \centering
 \slotfig{fig_spread}{col}{Fig.~75 of the CIFAR-10-LT report: logit spread before and after the synthetic phase, per
 round, GeFL-F and FedECS-LT (or Fig.~76: retention of the synthetic phase's change).}
-\caption{Change of the logit spread of the clients' heads on their own real features during the synthetic phase
+\caption{Change of the logit spread (the mean over images of the standard deviation of the logits over classes) of
+the clients' heads on their own real features during the synthetic phase
 of each head-training round (after minus before; negative: the synthetic phase pulled the logits together), per
 round (CIFAR-10-LT, imbalance ratio 100, 10 clients; mean over clients and seeds 3--5, band one standard
 deviation).}

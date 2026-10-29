@@ -29,7 +29,9 @@ means and spreads
 \end{equation}
 These equal the values on the pooled data (\cref{prop:invariance}) up to the quantisation of secure aggregation:
 each client's contribution is divided by a public bound and quantised to 30 bits with unbiased stochastic rounding,
-an error of at most $1.5\times10^{-8}$ of the bound per client and coordinate. We call the statistics exact in this
+an error of at most $1.5\times10^{-8}$ of the bound per client and coordinate. Values beyond the bound would be clipped,
+and with fewer than three participants the sum is computed in clear, since secure aggregation needs at least three.
+We call the statistics exact in this
 sense. Each client uploads them once, $C(d+2)$ numbers for features of dimension $d$.
 
 \subsection{Generator}\label{sec:method-gen}
@@ -77,7 +79,8 @@ target is a \emph{consensus soft label}
 t(\tilde h)=(1-\omega)\,e_y+\omega\,\frac1G\sum_{g=1}^G\mathrm{softmax}\big(f_g(\tilde h)\big),\qquad \omega=0.5,
 \end{equation}
 where $e_y$ is the one-hot generated label and $f_g$ the current head of architecture $g$: the federation's averaged
-prediction on that feature~\cite{menon2021distill}. Every client regenerates the same pool of synthetic features from a
+prediction on that feature, the target form of AvgKD~\cite{afonin2022avgkd} and FedDF's ensemble
+distillation~\cite{lin2020feddf}, here computed on generated features through one secure sum~\cite{menon2021distill}. Every client regenerates the same pool of synthetic features from a
 seed sent by the server and returns $w_k\,\mathrm{softmax}(f_{a(k)}(\tilde h))$ with $w_k=1/(G\,|\{j:a(j)=a(k)\}|)$; the
 secure sum over clients is the average in \cref{eq:csl}. Since the server holds every head and sends every architecture's current head
 to every client, this hides nothing beyond what FedAvg already reveals; it only makes the consensus one secure sum. Heads of
