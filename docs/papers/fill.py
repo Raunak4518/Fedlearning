@@ -351,7 +351,8 @@ def fill_group(g, E, nums, made, status):
             b, e = mean_of(E, m, "final_bal", S), mean_of(E, m, "er_bal", S)
             if not (np.isnan(b) or np.isnan(e)):
                 nums[f"{g}/{s}/{m}/gain_er"] = signed(100 * (e - b))
-        for key, pre in (("final_bal", ""), ("er_bal", "er_")):
+        for key, pre in (("final_bal", ""), ("er_bal", "er_"), ("final_head", "head_"), ("final_medium", "med_"),
+                         ("final_tail", "tail_"), ("er_tail", "ertail_")):
             for m, (n, d, half, p, ph) in paired(E, S, key).items():
                 nums[f"{g}/{s}/{pre}diff/{m}"] = signed(d)
                 nums[f"{g}/{s}/{pre}ci/{m}"] = f"[{d - half:+.1f}, {d + half:+.1f}]"
@@ -364,6 +365,11 @@ def fill_group(g, E, nums, made, status):
         elif means:
             nums[f"{g}/{s}/best"] = tex(max(means, key=means.get))
         others = {m: v for m, v in d.items() if m != "Local"}
+        if others:   # which methods are above / below FedECS-LT on the seeds both have (for statements of scope)
+            ab = sorted((m for m in others if others[m][0] < 0), key=lambda m: others[m][0])
+            nums[f"{g}/{s}/above_list"] = tex(and_list([m.replace(" (LongTailLib)", "") for m in ab])) if ab else "none"
+            nums[f"{g}/{s}/n_above"] = str(len(ab))
+            nums[f"{g}/{s}/n_below"] = str(sum(1 for m in others if others[m][0] > 0))
         if others:
             st = min(others, key=lambda m: others[m][0])
             nums[f"{g}/{s}/strongest"] = tex(st)
@@ -407,6 +413,10 @@ def fill_group(g, E, nums, made, status):
             nums["t2/r100/strongest_phrase"] = tex(who) + " " + gap
     above = None   # methods above FedECS-LT on their clients' own class mixes in every setting (common seeds)
     for S in settings:
+        loc = matched(E, S, "final_local", exclude=("Local",))
+        if loc:   # how many other federated methods are above FedECS-LT on the own mixes, in this setting
+            nums[f"{g}/{sid(S)}/local_n_above"] = str(sum(1 for v, _ in loc.values() if v < 0))
+            nums[f"{g}/{sid(S)}/local_n_other"] = str(len(loc))
         d = {m for m, (v, _) in matched(E, S, "final_local").items() if v < 0}
         above = d if above is None else above & d
     if above is not None:
@@ -428,6 +438,9 @@ def fill_group(g, E, nums, made, status):
     if g == "t2":
         ratios = sorted({int(round(1 / S[1])) for S in settings}, reverse=True)
         nums["t2/ratios"] = and_list([str(x) for x in ratios])
+    sig = [S for S in with_ours if f"{g}/{sid(S)}/strongest_p" in nums and float(nums[f"{g}/{sid(S)}/strongest_p"]) < 0.05]
+    nums[f"{g}/n_sig"] = word(len(sig))   # settings whose margin over the strongest other method is significant (Holm)
+    nums[f"{g}/n_sig_of"] = word(sum(1 for S in with_ours if f"{g}/{sid(S)}/strongest_p" in nums))
     nums[f"{g}/nbest"] = str(sum(1 for S in with_ours if ours_best(E, S)))
     nb, ns = int(nums[f"{g}/nbest"]), len(with_ours)   # "all six", "both", "5 of the six", "none of the six"
     nums[f"{g}/nbest_of"] = ("both" if ns == 2 else f"all {word(ns)}") if nb == ns and ns > 1 else \
@@ -611,17 +624,22 @@ def fill_figures(made, status, nums):
         E = cache.get(("cifar10", 0.01))
         if E is not None:
             import representation as rp
-            for m in (OURS, "GeFL-F"):
-                accs = []
+            cells = {}   # (method) -> {(seed, architecture): leave-one-out 10-NN accuracy of the embeddings}
+            for m in (OURS, "GeFL-F", "FedDF"):
+                cells[m] = {}
                 for r in E.of(m):
                     d = E.pred(r)
-                    if d is None:
+                    if d is None or "y" not in d.files:
                         continue
-                    keys = sorted(k for k in d.files if k.startswith("embed_"))
-                    if keys and "y" in d.files:
-                        accs.append(rp.knn_correct(d[keys[0]].astype(np.float64), d["y"]).mean())
-                if accs:
-                    nums[f"repr/cifar10/{m}/knn"] = tex(f"{100 * np.mean(accs):.1f}%")
+                    for k in sorted(k for k in d.files if k.startswith("embed_")):   # every architecture
+                        cells[m][(r["seed"], k)] = rp.knn_correct(d[k].astype(np.float64), d["y"]).mean()
+                if cells[m]:
+                    nums[f"repr/cifar10/{m}/knn"] = tex(f"{100 * np.mean(list(cells[m].values())):.1f}%")
+            for m in ("GeFL-F", "FedDF"):
+                common = sorted(set(cells.get(OURS, {})) & set(cells.get(m, {})))
+                if common:   # architecture x seed cells in which FedECS-LT's embeddings are better
+                    nums[f"repr/cifar10/knn_wins/{m}"] = str(sum(cells[OURS][c] > cells[m][c] for c in common))
+                    nums["repr/cifar10/knn_cells"] = str(len(common))
 
 
 def content_files():

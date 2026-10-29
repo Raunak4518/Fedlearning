@@ -3,7 +3,8 @@
 \paragraph{What the gains consist of.} A large part of what any method of the GeFL-F family loses under a long tail is
 in its last layer, and an exact readout recovers it for every member of the family (\cref{tab:readout}).
 \claim{The difference between \ours and the strongest baseline is therefore smaller with the readout than without it;
-we report both, and the comparison with the readout is the one that measures the representation.}
+we report both. The comparison with the readout is closer to a comparison of the bodies, but the readout is the
+same linear classifier for every body, so it does not measure every property of a representation.}
 
 \paragraph{Limitations.}
 \begin{itemize}
@@ -18,11 +19,15 @@ per architecture are covered only by \cref{tab:robust}}.
 federation-level sums are not differentially private: for classes with few samples they describe those samples
 closely. \ours should not be called privacy-preserving beyond that protocol guarantee.
 \item \claim{Some settings were run with fewer than three seeds; their tables say so and carry no interval.}
-\item \ours costs more than GeFL-F (\cref{tab:cost}), mainly through the longer synthetic phase, and we did not
-compare the methods at matched computation or communication.
-\item The gate threshold $F_0$ and the other settings of \cref{tab:hyper} were fixed before these runs and not swept.
-\item With one model shared by all clients, end-to-end long-tail methods such as FedYoYo, FedLoGe and CCVR are
-clearly stronger (\cref{tab:shared}); \ours is designed for clients with different models and has no advantage
+\item \ours costs more than GeFL-F (\cref{tab:cost}): its extra time is mostly in the longer synthetic phase of
+Stage III and its extra communication mostly in the training of the generator. We did not compare the methods at
+matched computation or communication; the ablation with one synthetic epoch separates the effect of the longer
+synthetic phase.
+\item The gate threshold $F_0$ and the other settings of \cref{tab:hyper} were chosen on earlier runs of the same
+benchmarks with other seeds, fixed before these runs and not swept; the baselines were not tuned
+(\cref{sec:setup-threats}).
+\item With one model shared by all clients, the strongest long-tail methods (\R{t2/cifar10-r100/above_list} on
+CIFAR-10-LT) are better (\cref{tab:shared}); \ours is designed for clients with different models and has no advantage
 when their models can be averaged.
 \item The absolute accuracy of the main setting is low. GeFL's authors note that GeFL-F is less effective on CIFAR-10
 because of the lower performance of its feature extractor and target networks there~\cite{kang2025gefl}. In GeFL's
@@ -42,7 +47,7 @@ are not comparable with centralised long-tail results for ResNet-32 and larger n
 Generator-based model-heterogeneous federated learning loses rare classes in three places: the optimiser's treatment
 of clients that lack a class, a last layer fitted to one client's prior, and synthetic features that do not carry
 their label. Each can be described precisely, and each can be repaired with class statistics that secure aggregation
-computes up to its quantisation. \claim{\ours, which applies these repairs together, improves balanced accuracy and in
-particular the recall of the rarest classes when clients have different models; with one model shared by all
-clients, end-to-end long-tail methods remain stronger.} Its code, logs and every figure's
+computes up to its quantisation. \claim{\ours, which applies these repairs together, improves balanced accuracy when clients
+have different models, on CIFAR-10-LT mostly through the recall of the tail classes; with one model shared by all
+clients, the strongest long-tail methods remain better.} Its code, logs and every figure's
 data are public.

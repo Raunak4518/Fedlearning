@@ -12,6 +12,6 @@ class-balanced readout computed from aggregated sums. With ten client architectu
 \R{main/cifar10/FedECS-LT/bal} balanced accuracy on CIFAR-10-LT and \R{main/cifar100/FedECS-LT/bal} on CIFAR-100-LT,
 \R{main/cifar10/margin} and \R{main/cifar100/margin} points above the strongest of \R{main/nbaselines_w} other methods
 (paired tests: significant on CIFAR-100-LT, not on CIFAR-10-LT); when every method of the GeFL-F pipeline is given the same exact readout,
-the margins shrink to \R{main/cifar10/er_margin} and \R{main/cifar100/er_margin} points and are not significant. It also has the highest balanced accuracy on \R{nat/nbest_of}
-datasets with natural class imbalance. With one model shared by all clients, end-to-end long-tail
-methods are stronger. All methods share the same client splits.
+the margins shrink to \R{main/cifar10/er_margin} and \R{main/cifar100/er_margin} points and are not significant. It also has the highest mean balanced accuracy on \R{nat/nbest_of}
+datasets with natural class imbalance (significant on \R{nat/n_sig}). With one model shared by all clients, the strongest long-tail
+methods are better than FedECS-LT. All methods share the same client splits.
