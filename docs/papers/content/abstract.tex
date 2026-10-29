@@ -3,13 +3,13 @@ Federated learning across clients that run different architectures and hold long
 loses most of its accuracy on rare classes. We study generator-based model-heterogeneous federated learning, where
 clients share a frozen extractor and a federated conditional feature generator, and each architecture trains its own
 head. The loss has three sources: Adam with coupled weight decay shrinks the generator's class-specific
-parameters where a class is absent; each head's last layer fits one client's label prior; and synthetic
-features that do not carry their label penalise the spread of the logits. We propose FedECS-LT, which replaces these
+parameters where a class is absent; each head's last layer fits one client's label prior; and generated
+features that do not carry their label penalise the spread of the logits. We propose FedECS-LT, which replaces failing
 estimates by class statistics that secure aggregation sums exactly: a generator anchored to the class means, moment
 correction of generated features, and, as its last step, a class-balanced linear readout that sets every
 architecture's last layer from aggregated embedding sums. Its heads train with logit adjustment and consensus soft
-labels. With ten architectures, FedECS-LT reaches \R{main/cifar10/FedECS-LT/bal} balanced accuracy on
-CIFAR-10-LT and \R{main/cifar100/FedECS-LT/bal} on CIFAR-100-LT, \R{main/cifar10/margin} and \R{main/cifar100/margin}
+labels. With ten architectures, FedECS-LT reaches a balanced accuracy of \R{main/cifar10/FedECS-LT/bal}\,\% on
+CIFAR-10-LT and \R{main/cifar100/FedECS-LT/bal}\,\% on CIFAR-100-LT, \R{main/cifar10/margin} and \R{main/cifar100/margin}
 points above the strongest of \R{main/nbaselines_w} other methods as published (Holm-corrected
 $p=\R{main/cifar10/strongest_p}$ and $\R{main/cifar100/strongest_p}$). Most of this margin is the readout's: with the
 same readout added to every method of the GeFL-F pipeline, FedECS-LT leads GeFL-F by \R{main/cifar10/er_diff/GeFL-F}

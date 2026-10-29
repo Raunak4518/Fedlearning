@@ -1,6 +1,6 @@
 \section{Related work}\label{sec:related}
 
-\paragraph{Model-heterogeneous federated learning.} When clients run different architectures, their parameters cannot
+\paragraph{Model-heterogeneous federated learning} When clients run different architectures, their parameters cannot
 be averaged and knowledge is exchanged in another form. Distillation methods exchange predictions on public or
 synthetic inputs (FedMD~\cite{li2019fedmd}, FedDF~\cite{lin2020feddf}). Prototype methods exchange class means of
 embeddings (FedProto~\cite{tan2022fedproto}) or learn global prototypes on the server (FedTGP~\cite{zhang2024fedtgp}).
@@ -15,16 +15,16 @@ personalised evaluation on each client's test split and the best round, but not 
 distribution. \ours keeps GeFL-F's three-stage design and
 changes how its class-specific quantities are estimated.
 
-\paragraph{Federated learning under label skew and long tails.} With one shared model, the classifier is the most
+\paragraph{Federated learning under label skew and long tails} With one shared model, the classifier is the most
 biased part under label skew. Classifier calibration re-trains it on virtual features drawn from aggregated class
-statistics (CCVR~\cite{luo2021ccvr}) or on federated features learned on the server (CReFF~\cite{shang2022creff});
-closed-form classifiers are computed from aggregated sums of pre-trained features
+statistics (CCVR~\cite{luo2021ccvr}) or on federated features learned on the server (CReFF~\cite{shang2022creff}).
+Closed-form classifiers are computed from aggregated sums of pre-trained features
 (Fed3R~\cite{fani2024fed3r}, a ridge-regression classifier; AFL~\cite{he2025afl}, a least-squares head;
 FedNCM~\cite{legate2023fedncm}, nearest class means; FedCOF~\cite{goswami2025fedcof}, an LDA-type classifier with a
 shrunk within-class covariance estimated from class means). These works also note that such sums do not depend on the
 partition. Our readout is the shared-covariance discriminant of the same family, with equal class priors, computed for
-each architecture on trained rather than pre-trained bodies; every client therefore runs every architecture's body
-on its own features; FedETF fixes the classifier to a simplex equiangular tight
+each architecture on trained rather than pre-trained bodies, so every client runs every architecture's body on its
+own features. FedETF fixes the classifier to a simplex equiangular tight
 frame~\cite{li2023fedetf}. Loss corrections use each client's label frequencies (FedLC~\cite{zhang2022fedlc},
 FedRoD~\cite{chen2022fedrod}) or the set of classes it holds (FedRS~\cite{li2021fedrs}), and long-tail methods re-balance gradients
 (Fed-GraB~\cite{xiao2023fedgrab}), decouple a generic and a local head (FedLoGe~\cite{xiao2024fedloge}), combine prototype
@@ -33,10 +33,9 @@ alignment with classifier rectification (RUCR~\cite{huang2024rucr}) or distil be
 the one-shared-model setting. Sampling features from Gaussians with the pooled class moments, as in CCVR and
 DFL-FS~\cite{chen2024dflfs}, is the closest prior to our moment correction, which instead maps a learned generator's
 samples onto the same moments. Class-specific weights are also known to degrade when clients lack classes
-(FedAwS~\cite{yu2020fedaws}, FedRS). These methods assume one architecture; their readout ideas apply to each of our
-architectures only if the statistics are pooled across architectures, which \ours does.
+(FedAwS~\cite{yu2020fedaws}, FedRS).
 
-\paragraph{Long-tailed learning, optimisers and synthetic data.} \ours builds on logit adjustment~\cite{menon2021la},
+\paragraph{Long-tailed learning, optimisers and synthetic data} \ours builds on logit adjustment~\cite{menon2021la},
 effective numbers of samples~\cite{cui2019cb} and the decoupling of representation and
 classifier~\cite{kang2020decoupling}. The generator analysis rests on the difference between coupled L2 regularisation
 and decoupled weight decay in Adam~\cite{loshchilov2019adamw,kingma2015adam}. Class-conditional generators can collapse when

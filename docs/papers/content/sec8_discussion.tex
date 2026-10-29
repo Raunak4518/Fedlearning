@@ -1,65 +1,42 @@
-\section{Discussion and limitations}\label{sec:discussion}
+\section{Limitations}\label{sec:discussion}
 
-\paragraph{What the gains consist of.} A large part of what any method of the GeFL-F family loses under a long tail is
-in its last layer, and the exact readout recovers it for every member of the family (\cref{tab:readout}). This is why
-the readout is part of \ours, and why most of its margin over the published methods is the readout's.
-\claim{When every method of the pipeline has the readout, \ours keeps a lead of \R{main/er_margin_lo} to
-\R{main/er_margin_hi} points over the strongest of them on the CIFAR benchmarks, not resolved with three seeds, and a
-significant lead over GeFL-F on CIFAR-100-LT.} The comparison with the readout is closer to a comparison of the
-bodies, but the readout is the same linear classifier for every body, so it does not measure every property of a
-representation. With one shared model the readout lowers the accuracy of \ours (\cref{sec:res-shared}); it is meant
-for heads trained on one client each.
-
-\paragraph{Limitations.}
+The threats to the validity of the study design are discussed in \cref{sec:setup-threats}; this section lists the
+limits of what the study covers.
 \begin{itemize}
 \item The extractor is small and frozen, as in GeFL-F, and shared by all clients, so the clients' architectures
 differ only in their heads; we did not study pre-trained or larger extractors, or clients with different backbones.
 \item No published method addresses both different client models and a long tail, so the comparison is with
 long-tail losses applied per client, with FedDF and with model-heterogeneous methods designed for label skew; the
 long-tail methods CCVR and FedETF enter only GeFL's grouped protocol, within each architecture.
-\item The splits are pure label skew (\cref{sec:setting}); feature and concept shift between clients are not tested.
-\item Three seeds per setting give fragile intervals and paired tests; the tests are reported with Holm's correction,
-and differences of about a point should be read with that in mind.
+\item The client splits are a pure label shift (\cref{sec:setting}); feature shift and concept shift between clients
+are not tested.
 \item In the main setting each architecture has one client ($K=10$)\whentab{robust}{; settings with several clients
 per architecture are covered only by \cref{tab:robust}}.
-\item Secure aggregation hides each client's contribution from an honest-but-curious server, but the released
-federation-level sums are not differentially private: for classes with few samples they describe those samples
-closely. \ours should not be called privacy-preserving beyond that protocol guarantee.
-\item \claim{Some settings were run with fewer than three seeds; their tables say so and carry no interval.}
+\item The released class statistics are not differentially private (\cref{sec:method-cost}); \ours should not be
+called privacy-preserving beyond the guarantee of secure aggregation against an honest-but-curious server.
 \item \ours costs more than GeFL-F (\cref{tab:cost}): its extra time is mostly in the longer synthetic phase of
 Stage III, and its extra communication mostly in the training of the generator, which with its projection of the
-class means is larger than GeFL-F's. We did not compare the methods at
-matched communication or wall-clock time; the ablation with one synthetic epoch shows how much \ours depends on the
-longer phase\numelse{abl/cifar10/heads_vs/GeFL-F (T_s=10)}{, and GeFL-F and FedDF were also run with ten synthetic
-epochs}{, not what the other methods would reach with it}.
-\item The gate threshold $F_0$ and the other settings of \cref{tab:hyper} were chosen on earlier runs of the same
-benchmarks, partly with the same seeds and client splits and on the same test sets; they were fixed before these runs
-and not swept, and the baselines were not tuned (\cref{sec:setup-threats}).
-\item With one model shared by all clients, the strongest long-tail methods (\R{t2/cifar10-r100/above_list} on
-CIFAR-10-LT) are better (\cref{tab:shared}); \ours is designed for clients with different models and has no advantage
-when their models can be averaged.
-\item The absolute accuracy of the main setting is low. GeFL's authors note that GeFL-F is less effective on CIFAR-10
-because of the lower performance of its feature extractor and target networks there~\cite{kang2025gefl}. In GeFL's
-own setting (a balanced training set divided evenly among 10 clients) our earlier implementation of GeFL-F reaches
+class means is larger than GeFL-F's.
+\item The absolute accuracy of the main setting is low. GeFL's authors attribute GeFL-F's lower accuracy on CIFAR-10
+to its feature extractor and target networks (their term for the heads)~\cite{kang2025gefl}. In GeFL's own setting
+(a balanced training set divided evenly among 10 clients) our earlier implementation of GeFL-F reaches
 \R{repro/cifar10/GeFL-F/final}\% on CIFAR-10 (\R{repro/cifar10/GeFL-F/best}\% with GeFL's best-round measure;
-GeFL's Fig.~4 shows about \R{repro/cifar10/published}\%) but only \R{repro/cifar100/GeFL-F/final}\% on CIFAR-100, so on CIFAR-100
-the level is set by the design and the data budget, and on CIFAR-10 the long tail, together with the smaller training set it leaves, costs most of the
-difference\whennum{main/cifar100/Centralised (pooled data)/bal}{, and the same architectures, trained with cross-entropy on all
-the training data pooled (extractor and heads, no generator, no long-tail correction), reach \R{main/cifar10/Centralised (pooled data)/bal} on CIFAR-10-LT and
+GeFL's Fig.~4 shows about \R{repro/cifar10/published}\%) and \R{repro/cifar100/GeFL-F/final}\% on CIFAR-100
+(\cref{app:protocol}).\whennum{main/cifar100/Centralised (pooled data)/bal}{ The pooled-data reference
+(\cref{sec:setup-methods}) reaches \R{main/cifar10/Centralised (pooled data)/bal} on CIFAR-10-LT and
 \R{main/cifar100/Centralised (pooled data)/bal} on CIFAR-100-LT (\R{main/cifar10/Centralised (pooled data)/er_bal} and
-\R{main/cifar100/Centralised (pooled data)/er_bal} with the exact readout)}. These numbers
-are not comparable with centralised long-tail results for ResNet-32 and larger networks.
+\R{main/cifar100/Centralised (pooled data)/er_bal} with the exact readout).} These numbers are not comparable with
+centralised long-tail results for ResNet-32 and larger networks.
 \end{itemize}
 
 \section{Conclusion}\label{sec:conclusion}
 
-Generator-based model-heterogeneous federated learning loses rare classes in at least three places: the optimiser's
-treatment of clients that lack a class, a last layer fitted to one client's prior, and synthetic features that do not
-carry their label. Each is addressed by a component of \ours that uses class statistics computed by secure
+Generator-based model-heterogeneous federated learning loses rare classes in at least three places: coupled weight
+decay under Adam on clients that lack a class, a last layer fitted to one client's label prior, and generated features
+that do not carry their label. Each is addressed by a component of \ours that uses class statistics computed by secure
 aggregation or, for the heads, logit adjustment and consensus soft labels.\numelse{comp/cifar10/largest}{}{ Which of
 these components carry the effect beyond the readout is not yet measured.} \claim{\ours, which applies these repairs together and ends with an exact readout of every last layer, improves
 balanced accuracy over the published methods when clients have different models, on CIFAR-10-LT mostly through the
 recall of the tail classes. Most of the gain is the readout's: added to every method of the GeFL-F pipeline, it
-leaves \ours a lead that three seeds do not resolve. With one model shared by all clients, the strongest long-tail
-methods remain better.} Its code, logs and every figure's
-data are public.
+leaves \ours a lead over the strongest other method that three seeds do not resolve. With one model shared by all clients, the strongest long-tail
+methods remain better.}

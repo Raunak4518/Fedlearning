@@ -39,4 +39,4 @@ AUTHOR_DECISION_REQUIRED. Severity P0 (validity/integrity) to P3 (editorial).
 | E-11..E-17, E-19, E-21..E-23 | 1 | P1-P3 | highlights, abstract, sec1, sec3, sec4, sec7, appendix, fill.py | highlights, one-seed note, conclusion, post-hoc LA, lemmas, "only", FedDF in GeFL measure, counts, ECE rank, spread caveat, number format | accept | RESOLVED_UNVERIFIED | verifier |
 | E-18, E-20 | 1 | P2 | sec8 | weak baselines; small extractor | limitations | RESOLVED_UNVERIFIED (text); experiment not planned | - |
 | E-24 | 1 | P3 | front matter | placeholders | user gives names and URL | AUTHOR_DECISION_REQUIRED | - |
-| F-* | 1 | P1-P3 | all | editorial review | applied by the editor agent | IN_PROGRESS | F_applied.md |
+| F-* | 1 | P1-P3 | all | editorial review | applied by the editor agent (skips listed) | RESOLVED_UNVERIFIED | F_applied.md |

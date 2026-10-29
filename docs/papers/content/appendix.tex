@@ -1,17 +1,17 @@
 \section{Proofs}\label{app:proofs}
 
-\paragraph{\Cref{prop:contraction}.} By the triangle inequality,
+\paragraph{\Cref{prop:contraction}} By the triangle inequality,
 $\|\frac1K\sum_k r_{k,c}\|\le\frac1K\sum_k\|r_{k,c}\|=\|r_c\|+\frac1K\big(\sum_{k\in H_c}\Delta_k+\sum_{k\notin
 H_c}\Delta_k\big)$, and the two sums are $m_c\bar G_c$ and $-(K-m_c)\bar D_c$. Equality holds if and only if all vectors
 are non-negative multiples of one another. \hfill$\square$
 
-\paragraph{\Cref{lem:adam}.} A non-holder's batches contain no sample of class $c$, so its data loss does not depend on
+\paragraph{\Cref{lem:adam}} A non-holder's batches contain no sample of class $c$, so its data loss does not depend on
 $r_c$ and the gradient of the regularised loss is $\lambda r_c$. Adam's update $\eta\hat m/(\sqrt{\hat v}+\epsilon)$ is
 unchanged when the whole gradient sequence is multiplied by $a>0$, up to the $\epsilon$ term, so the step does not
 depend on $\lambda$ while $\lambda|r_{c,j}|\gg\epsilon$. A client keeps its Adam state across rounds while its
 parameters are reset to the global ones, so a single step can exceed $\eta$. \hfill$\square$
 
-\paragraph{The step ratio (\cref{eq:kappa}), a heuristic.} Per coordinate an Adam step is $\eta\psi$ with
+\paragraph{The step ratio (\cref{eq:kappa}), a heuristic} Per coordinate an Adam step is $\eta\psi$ with
 $\psi=\hat m/\sqrt{\hat v}$. For a gradient of constant sign $\psi$ tends to that sign; in general
 $|\psi|\le(1-\beta_1)/\sqrt{1-\beta_2}$, about 3.2 for the default $\beta_1,\beta_2$~\cite{kingma2015adam}. A non-holder
 sees a decay gradient of constant sign, so $\psi\approx\mathrm{sign}(r_{c,j})$ on each of its $q_k$ steps. Assume that
@@ -21,16 +21,16 @@ $\Delta r_{c,j}=\frac{\eta}{K}\big[\psi_h\sum_{k\in H_c}q_kf_{kc}-\mathrm{sign}(
 which points toward zero for every coordinate and every holder direction when $\kappa_c<1$. The approximation neglects
 momentum carried between sparse holder steps and the drift of $\hat v$. \hfill$\square$
 
-\paragraph{\Cref{prop:reparam}.} (1)~$f+a_k=Wu(h)+(b+a_k)$, and $b\mapsto b+a_k$ is a translation with identity
+\paragraph{\Cref{prop:reparam}} (1)~$f+a_k=Wu(h)+(b+a_k)$, and $b\mapsto b+a_k$ is a translation with identity
 Jacobian, so the gradients agree at corresponding points; induct over the steps. (2)~$\alpha f_c=\tilde w_c^\top
 u+\tilde b_c$ with $\tilde w_c=\alpha w_c$, $\tilde b_c=\alpha b_c$; the gradient in $\tilde w_c$ is $1/\alpha$ times
 that in $w_c$, so a step of size $\eta$ on $w_c$ is a step of $\eta\alpha^2$ on $\tilde w_c$, and the body sees the
 same logits. \hfill$\square$
 
-\paragraph{\Cref{prop:invariance}.} Addition is associative and commutative. In particular the class-balanced linear
+\paragraph{\Cref{prop:invariance}} Addition is associative and commutative. In particular the class-balanced linear
 discriminant of \cref{eq:er} is computed exactly by one round of secure aggregation. \hfill$\square$
 
-\paragraph{\Cref{prop:variance}.} $\frac1C\sum_c(\LSE(f)-f_c)=\LSE(f)-\bar f$ and
+\paragraph{\Cref{prop:variance}} $\frac1C\sum_c(\LSE(f)-f_c)=\LSE(f)-\bar f$ and
 $\KL(u\|\mathrm{softmax}f)=-\log C+\LSE(f)-\bar f$; expanding $\LSE$ around constant logits gives the quadratic term.
 \hfill$\square$
 
@@ -68,30 +68,35 @@ moments only approximately. \hfill$\square$
 
 \section{Experimental details}\label{app:protocol}
 
-\paragraph{Models.} The extractor, the ten head architectures (CNN-1 to CNN-10) and GeFL-F's conditional VAE follow
-GeFL-F~\cite{kang2025gefl}; heads are trained by SGD with learning rate 0.1. Rounds of the three stages: 20/100/50 on
-MNIST and Fashion-MNIST, 50/100/100 on SVHN and 50/200/100 on CIFAR-10 and CIFAR-100; with natural imbalance,
+\paragraph{Models} The extractor, the ten head architectures (CNN-1 to CNN-10) and GeFL-F's conditional VAE follow
+GeFL-F~\cite{kang2025gefl}; heads are trained by SGD with learning rate 0.1. The extractor is one convolutional block
+followed by $2\times2$ max pooling: one $3\times3$ convolution with three output channels on\whennum{main/mnist/FedECS-LT/bal}{ MNIST,}\whennum{main/fmnist/FedECS-LT/bal}{
+Fashion-MNIST,}\whennum{main/svhn/FedECS-LT/bal}{ SVHN,} OrganAMNIST, EMNIST and FER-2013, and two convolutions with three and ten output
+channels on CIFAR-10, CIFAR-100, DermaMNIST, BloodMNIST\whennum{nat/gtsrb/FedECS-LT/bal}{, GTSRB} and PathMNIST, each
+convolution followed by batch normalisation and ReLU. Rounds of the three stages ($T_{\mathrm{I}}$/$T_{\mathrm{II}}$/$T_{\mathrm{III}}$):\whennum{main/mnist/FedECS-LT/bal}{
+20/100/50 on MNIST,}\whennum{main/fmnist/FedECS-LT/bal}{ 20/100/50 on Fashion-MNIST,}\whennum{main/svhn/FedECS-LT/bal}{ 50/100/100 on SVHN,} 50/200/100 on CIFAR-10 and CIFAR-100; with natural imbalance,
 20/100/50 on OrganAMNIST and EMNIST and 50/100/100 on DermaMNIST, BloodMNIST, PathMNIST\whennum{nat/gtsrb/FedECS-LT/bal}{,
 GTSRB} and FER-2013.
 
-\paragraph{Reproduction check.} Before the comparison, the Flower implementation was checked against our earlier,
+\paragraph{Reproduction check} Before the comparison, the Flower implementation was checked against our earlier,
 single-process implementation (which follows GeFL's code) on MNIST-LT and CIFAR-10-LT with seed 3. The client splits
 were identical (every client's class counts), every client training step matched weight for weight in unit tests, and
 the balanced accuracy of GeFL-F and \ours was within the larger of two points and three seed standard deviations of
 the earlier runs. The earlier CIFAR-10 reference of \ours was an older configuration, so its tolerance was three
 points.
 
-\paragraph{Head architectures.} CNN-1 to CNN-10 have convolutional blocks of widths (16), (16, 32), (20, 40), (10, 20),
-(16, 32, 64), (20, 40, 80), (10, 20, 40), (16, 32, 64, 128), (20, 40, 80, 100) and (10, 20, 40, 80). Each block is a
-$3\times3$ convolution, batch normalisation (Fashion-MNIST, SVHN and the naturally imbalanced datasets only), ReLU and
-$2\times2$ max pooling, followed by a linear last layer.
+\paragraph{Head architectures} CNN-1 to CNN-10 have convolutional blocks of widths (16), (16, 32), (20, 40), (10, 20),
+(16, 32, 64), (20, 40, 80), (10, 20, 40), (16, 32, 64, 128), (20, 40, 80, 100) and (10, 20, 40, 80); the widths do
+not increase monotonically from CNN-1 to CNN-10. Each block is a $3\times3$ convolution, batch normalisation (the
+naturally imbalanced datasets\whennum{main/fmnist/FedECS-LT/bal}{, Fashion-MNIST}\whennum{main/svhn/FedECS-LT/bal}{, SVHN} only), ReLU and $2\times2$ max pooling, followed by
+a linear last layer.
 
-\paragraph{FedDF.} After each head round the server distils every architecture for 20 SGD steps (batch 128, learning
+\paragraph{FedDF} After each Stage-III round the server distils every architecture for 20 SGD steps (batch 128, learning
 rate 0.05, no momentum) on fresh generated features with uniformly drawn labels; the target is the mean softmax of
 the ten architectures, and batch-normalisation statistics are kept. FedDF's original method distils on unlabelled
 public data instead.
 
-\paragraph{GeFL's own setting.} In GeFL's setting (balanced training data divided evenly among 10 clients,
+\paragraph{GeFL's own setting} In GeFL's setting (balanced training data divided evenly among 10 clients,
 \R{repro/cifar10/GeFL-F/seeds} seeds, our earlier implementation), GeFL-F reaches \R{repro/cifar10/GeFL-F/final}\% on
 CIFAR-10 after the last round and \R{repro/cifar10/GeFL-F/best}\% with GeFL's measure, against
 \R{repro/cifar10/published}\% read from GeFL's Fig.~4~\cite{kang2025gefl}, which reports each model's best round. An
@@ -99,20 +104,35 @@ earlier configuration of \ours (one synthetic epoch per round and an older head 
 \R{repro/cifar10/FedECS-LT/final}\% and \R{repro/cifar10/FedECS-LT/best}\%. On CIFAR-100, which GeFL does not report,
 GeFL-F reaches \R{repro/cifar100/GeFL-F/final}\% and that configuration \R{repro/cifar100/FedECS-LT/final}\%.
 
-\paragraph{Evaluation.} Models are evaluated every five rounds on the test set before and after aggregation; the final
+\paragraph{Evaluation} Models are evaluated every five rounds on the test set before and after aggregation; the final
 model is the one after the last round (no selection on the test or the validation set). Methods with personal
 heads (LG-FedAvg, FedGH, FedGen and the other HtFLlib methods) are scored with each client's head after its last local
 training; HtFLlib scores LG-FedAvg, FedGH and FedGen right after the server's update instead. FedProto and FedTGP classify by the distance to
 class prototypes; their probabilities for the calibration metrics are a softmax of the negative mean squared distances.
 
-\paragraph{HtFLlib ports.} Every client keeps the frozen Stage-I extractor and starts from its Stage-I head body,
+\paragraph{Cost} Communication is the bytes of the model and statistics messages per client, with a secure sum
+counted as eight bytes per summed value and client, without the protocol's key and share messages and without the
+test evaluation; the readout's sums are included. Time is the wall-clock time of a run on a T4 GPU, which in most
+notebooks ran a second run at the same time. Computation is the forward floating-point operations per image, with
+training counted as three forward passes.
+
+\paragraph{Software and hardware} \ours and every method of the main setting run in Flower
+1.42~\cite{beutel2020flower}, a simulation with the Ray backend, one simulation per run. All runs used Kaggle notebooks
+with two NVIDIA T4 GPUs, in most notebooks with two runs per GPU at a time.
+
+\paragraph{HtFLlib ports} Every client keeps the frozen Stage-I extractor and starts from its Stage-I head body,
 followed by a parameter-free pooling to 512 dimensions and a linear layer, as in HtFLlib's models. Training uses
-HtFLlib's run-script settings (SGD, learning rate 0.01, batch 10) with 5 local epochs per round for the rounds of the
-head stage; personal models persist across rounds. FedGen's label counts are the federation's class counts.
+HtFLlib's run-script settings (SGD, learning rate 0.01, batch 10) with 5 local epochs per round for the rounds of
+Stage III; personal models persist across rounds. FedGen's label counts are the federation's class counts.
 
 \section{Further results}\label{app:more}
 
 Per-dataset tables of every metric are generated from the same runs (\cref{tab:app-cifar10,tab:app-cifar100}).
+Besides the metrics of \cref{sec:setup-metrics} they give macro-F1, macro precision, the multi-class Matthews
+correlation coefficient~\cite{gorodkin2004mcc}, the geometric mean of the class recalls (each floored at 1\%, computed
+for each model and then averaged) and macro AUC-PR; the class-wise form of the calibration
+error~\cite{kull2019classwise} is logged as well. The figures of this appendix show further views of the same runs
+(\cref{sec:results} cites each).
 
 \begin{widetable}[t]
 \centering\small
@@ -132,6 +152,58 @@ Method & Bal. acc. & Macro-F1 & Precision & MCC & G-mean & Tail rec. & Worst rec
 Method & Bal. acc. & Macro-F1 & Precision & MCC & G-mean & Tail rec. & Worst rec. & AUC-PR\\\midrule
 \phrow{FedECS-LT}{8}\phrow{GeFL-F}{8}\phrow{[every other method]}{8}\bottomrule\end{tabular}}
 \end{widetable}
+
+\whenfig{fig_forest}{%
+\begin{figure}[t]
+\centering
+\slotfig{fig_forest}{col}{Fig.~39 of the CIFAR-10-LT report: difference of each method to FedECS-LT with 95\% CI.}
+\caption{Balanced accuracy of \ours minus that of each method on CIFAR-10-LT (points; heads as trained for every
+method, \ours included; mean of the paired
+differences over seeds 3--5 with 95\% $t$ confidence interval; right of the dotted line \ours is better).
+Imbalance ratio 100, 10 clients, Dirichlet $\alpha=0.5$.}
+\label{fig:forest}
+\end{figure}}
+
+\whenfig{fig_recall_size}{%
+\begin{figure}[t]
+\centering
+\slotfig{fig_recall_size}{col}{Fig.~10 of the CIFAR-100-LT report: per-class recall against the class's training
+images.}
+\caption{Recall of every class against its number of training images in the federation (CIFAR-100-LT, imbalance
+ratio 100, 10 clients, Dirichlet $\alpha=0.5$; heads as trained, before the readout of \ours; each point is one class, mean over seeds 3--5).}
+\label{fig:recall-size}
+\end{figure}}
+
+\whenfig{fig_hmt}{%
+\begin{figure}[t]
+\centering
+\slotfig{fig_hmt}{col}{Fig.~14 of the CIFAR-10-LT report: head / medium / tail recall per method.}
+\caption{Recall of the head (30\% most frequent), medium (the next 30\%) and tail (40\% least frequent) classes, per
+method (CIFAR-10-LT, imbalance ratio 100, 10 clients, Dirichlet $\alpha=0.5$; heads as trained, before the readout of
+\ours; mean $\pm$ standard deviation over seeds 3--5).}
+\label{fig:hmt}
+\end{figure}}
+
+\whenfig{fig_shared_rounds}{%
+\begin{figure}[t]
+\centering
+\slotfig{fig_shared_rounds}{col}{Fig.~71 of the CIFAR-100-LT (ratio 100) one-shared-model report: balanced accuracy
+over the rounds.}
+\caption{Test balanced accuracy over the communication rounds with one shared ResNet-8 (CIFAR-100-LT, imbalance ratio
+100, 20 clients, 40\% per round, Dirichlet $\alpha=0.5$; mean over seeds 3--5). For \ours the rounds are those of the extractor and then of
+the head.}
+\label{fig:shared-rounds}
+\end{figure}}
+
+\whenfig{fig_realgen}{%
+\begin{figure}[t]
+\centering
+\slotfig{fig_realgen}{col}{Fig.~22 of the CIFAR-10-LT report: t-SNE of real and generated validation features of
+FedECS-LT.}
+\caption{Real validation features (circles) and features generated by \ours (crosses) on CIFAR-10-LT, embedded
+together by t-SNE (seed 3; same settings and caveats as \cref{fig:tsne}).}
+\label{fig:realgen}
+\end{figure}}
 
 \whentab{fidelity}{%
 \subsection{Fidelity of the generated features}\label{app:fidelity}
@@ -158,7 +230,7 @@ Dataset & Generator & All & Head & Medium & Tail\\\midrule
 \begin{widetable}[t]
 \centering\small
 \caption{GeFL's measure on the long-tailed benchmarks: each client model's best test accuracy (\%) at GeFL's
-evaluation rounds of the head stage (the first, every tenth and the last), averaged over the ten models, as in GeFL's
+evaluation rounds of Stage III (the first, every tenth and the last), averaged over the ten models, as in GeFL's
 code; mean $\pm$ standard deviation over seeds 3--5. The main tables report the last round instead. For \ours
 only its heads: the readout is computed once, after the last round. FedDF: its client heads before the server's
 distillation step, since the per-round logs hold no distilled heads; its value can therefore be below its last-round
@@ -188,8 +260,10 @@ heads only, other methods as published; mean $\pm$ standard deviation over seeds
 \slottab{main_ece}{\begin{tabular}{lccccc}\toprule
 Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
 \phrow{FedECS-LT}{5}\phrow{FedECS-LT (heads only)}{5}\phrow{GeFL-F}{5}\phrow{[every other method]}{5}\bottomrule\end{tabular}}
+\end{widetable}
 
-\vspace{6pt}
+\begin{widetable}[t]
+\centering\small
 \caption{Fairness across clients on the long-tailed benchmarks: balanced accuracy (\%) of the weakest head
 architecture; \ours with its readout, its heads only, other methods as published; mean $\pm$ standard deviation over seeds 3--5.}
 \label{tab:app-worstarch}

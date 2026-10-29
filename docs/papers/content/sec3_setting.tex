@@ -1,6 +1,6 @@
 \section{Problem setting}\label{sec:setting}
 
-\paragraph{Clients and data.} There are $K$ clients and $C$ classes. Client $k$ holds a dataset $D_k$ with $n_{kc}$
+\paragraph{Clients and data} There are $K$ clients and $C$ classes. Client $k$ holds a dataset $D_k$ with $n_{kc}$
 samples of class $c$; $n_k=\sum_c n_{kc}$, $n_c=\sum_k n_{kc}$ and $N=\sum_c n_c$. The global class sizes follow a
 long tail, $n_c\propto \rho^{-c/(C-1)}$ with imbalance ratio $\rho=n_0/n_{C-1}$, and each class is divided among
 the clients by a Dirichlet draw with concentration $\alpha$~\cite{hsu2019dirichlet}. $H_c=\{k: n_{kc}>0\}$ is the
@@ -8,34 +8,38 @@ set of the $m_c=|H_c|$ clients that hold class $c$. Client $k$ trains a model of
 architectures. The goal is a model per architecture with high \emph{balanced} accuracy, the mean recall over classes,
 on a test set in which every class is equally important.
 
-\paragraph{The pipeline of GeFL-F.} GeFL-F~\cite{kang2025gefl} trains in three stages.
+\paragraph{The pipeline of GeFL-F} GeFL-F~\cite{kang2025gefl} trains in three stages.
 \begin{enumerate}
-\item \emph{Stage I.} A small feature extractor $\phi$ is trained together with the heads by FedAvg and then frozen.
+\item \emph{Stage I.} A small feature extractor $\phi$ is trained together with the heads by FedAvg for
+$T_{\mathrm{I}}$ rounds and then frozen.
 Every client maps its images to features $h=\phi(x)$.
 \item \emph{Stage II.} A conditional variational autoencoder~\cite{sohn2015cvae} $G(h\mid y)$ is trained on the
-features by FedAvg, with Adam and coupled weight decay. The label enters through a linear projection whose $c$-th
-column, the \emph{conditioning row} $r_c$, is the only class-specific parameter.
-\item \emph{Stage III.} In every round each client trains its head for $T_s$ epochs on generated features with
-uniformly drawn labels and then for $T_r$ epochs on its real features; heads of the same architecture are averaged.
+features by FedAvg for $T_{\mathrm{II}}$ rounds, with Adam and coupled weight decay. The label enters through a linear
+projection; its weights for class $c$, which we call the \emph{class row} $r_c$, are the only class-specific
+parameter.
+\item \emph{Stage III.} In each of $T_{\mathrm{III}}$ rounds every client trains its head for $T_s$ epochs on
+generated features with uniformly drawn labels and then for $T_r$ epochs on its real features; heads of the same
+architecture are averaged. Each head consists of a \emph{body} of convolutional blocks, which maps $h$ to an
+embedding $e$, and a linear last layer.
 \end{enumerate}
 
-\paragraph{A client split is a pure label shift.} Within a class, the split assigns samples to clients uniformly at
+\paragraph{A client split is a pure label shift} Within a class, the split assigns samples to clients uniformly at
 random. So for every client $k$ and class $c$ with $n_{kc}>0$, the client's class-$c$ samples are a uniformly random
 subset of all class-$c$ samples, and $P_k(x\mid y)=P(x\mid y)$; the same holds for the features $h=\phi(x)$, since
-$\phi$ is shared. Every client's data therefore point at the centralised target of any class-conditional quantity: a
-class mean, a class's conditioning row, a readout. Federation can make such a quantity noisier or slower to learn.
+$\phi$ is shared. A class-conditional quantity, such as a class mean, a class row or a readout, therefore has the
+same target on every client as on the pooled data. Federation can make such a quantity noisier or slower to learn.
 We examine four ways in which it can also make it \emph{biased}: (i)~the optimiser, (ii)~parameters coupled to a
 client's label prior, such as biases and last layers, (iii)~what the synthetic data teach, and (iv)~sample size, which
 biases nonlinear estimates such as a spread or an inverse covariance in small classes. \Cref{sec:analysis} locates the
 first three in GeFL-F; we do not claim that the list is complete (the drift of the shared extractor in Stage I, for
 example, is not covered).
 
-\paragraph{Secure aggregation.} Secure aggregation~\cite{bonawitz2017secagg,bell2020secaggplus} lets the server learn
+\paragraph{Secure aggregation} Secure aggregation~\cite{bonawitz2017secagg,bell2020secaggplus} lets the server learn
 the sum of the clients' vectors and nothing else about any single vector. A statistic that is a sum over clients of
 per-class quantities is therefore computed exactly, and equals its value on the pooled data, whatever the partition.
 \ours uses only such statistics.
 
-\paragraph{What every client must run.} \ours lets clients use the heads of other
+\paragraph{What every client must run} \ours lets clients use the heads of other
 architectures: each client receives every architecture's current head in Stage III (for the consensus soft labels)
 and runs every architecture's body once on its own features (for the readout). We therefore assume that every client
 can store and evaluate every head, though it trains only its own, and that the architectures are not secret. Clients

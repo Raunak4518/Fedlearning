@@ -1,20 +1,18 @@
 \section{FedECS-LT}\label{sec:method}
 
 \ours keeps the three stages of GeFL-F and the frozen extractor, adds a closing step that sets every last layer, and
-changes how every class-specific quantity is obtained. Wherever the data decide a class's result, it uses a statistic that secure aggregation computes exactly
-instead of a parameter that FedAvg estimates. \Cref{alg:fedecs} lists the pipeline\whenfig{fig_overview}{ and \cref{fig:overview} shows it}.
+changes how every class-specific quantity is obtained. For every quantity specific to one class, it uses a statistic
+that secure aggregation computes exactly instead of a parameter estimated by FedAvg. \Cref{alg:fedecs} lists the pipeline\whenfig{fig_overview}{ and \cref{fig:overview} shows it}.
 
 \whenfig{fig_overview}{%
 \begin{widefigure}[t]
 \centering
 \slotfig{fig_overview}{wide}{Overview of the pipeline (docs/papers/overview_figure.py).}
-\caption{Overview of \ours, stage by stage. C: computed by every client with its own head architecture; S: computed by
-the server; SA: summed over the clients by secure aggregation. After Stage I the clients release exact per-class
-statistics, from which the server computes the class means and spreads and the gate $F$. The gate chooses the
-generator: anchored to the class means, or class rows averaged by CCWA. The moment correction is computed once after
-Stage II. In every round of Stage III the heads train on corrected synthetic features with consensus soft labels and
-on real features with logit adjustment. Last, every architecture's last layer is set by the exact readout, computed
-from aggregated sums of its embeddings.}
+\caption{Overview of \ours. C: computed by each client; S: computed by the server; SA: summed over the clients by
+secure aggregation. The class statistics released after Stage I give the class means and spreads and the gate $F$,
+which chooses the generator of Stage II. The moment correction is computed once after Stage II. In Stage III the heads
+train on corrected generated features with consensus soft labels and on real features with logit adjustment. Last,
+the exact readout sets every architecture's last layer from aggregated sums of its embeddings.}
 \label{fig:overview}
 \end{widefigure}}
 
@@ -36,19 +34,18 @@ sense. Each client uploads them once, $C(d+2)$ numbers for features of dimension
 
 \subsection{Generator}\label{sec:method-gen}
 
-\paragraph{Separation gate.} A generator anchored to the class means separates two classes by at most a constant times
+\paragraph{Separation gate} A generator anchored to the class means separates two classes by at most a constant times
 the distance between their means (\cref{prop:w1} in \cref{app:proofs}). When the means are close relative to the
 within-class spread, the anchor alone carries little class information. The server therefore computes the class
 separation
 \begin{equation}\label{eq:gate}
 F=\frac{\frac1C\sum_c\|\mu_c-\bar\mu\|^2}{\frac1C\sum_c V_c},\qquad \bar\mu=\frac1C\sum_c\mu_c,
 \end{equation}
-from the released statistics. If $F\ge F_0=0.05$ (a threshold fixed during the method's development, before the runs reported here, and not
-swept) it uses the mean-anchored generator; otherwise it uses GeFL-F's
+from the released statistics. If $F\ge F_0=0.05$ (fixed before the reported runs and not swept; \cref{sec:setup-threats}) it uses the mean-anchored generator; otherwise it uses GeFL-F's
 generator with class rows averaged by CCWA (\cref{eq:ccwa}). \claim{On our datasets $F$ ranges from \R{gate/F/min_all}
 to \R{gate/F/max_all}; the gate chose class rows on \R{gate/rows_all}.}
 
-\paragraph{Mean anchor.} The anchored generator models only the within-class residual around the exact mean,
+\paragraph{Mean anchor} The anchored generator models only the within-class residual around the exact mean,
 \begin{equation}\label{eq:anchor}
 \tilde h=\mathrm{ReLU}\big(\mu_y+\mathrm{dec}(z,\,A\mu_y)\big),\qquad z\sim\mathcal N(0,I),
 \end{equation}
@@ -56,7 +53,7 @@ where the class enters only through its mean and a projection $A$ shared by all 
 class-specific parameter, so \cref{prop:contraction} has nothing to shrink. It is trained by FedAvg with Adam, as
 GeFL-F's generator.
 
-\paragraph{Moment correction.} After Stage II the server draws $500$ samples per class from the generator, measures
+\paragraph{Moment correction} After Stage II the server draws $500$ samples per class from the generator, measures
 their mean $\tilde\mu_c$ and spread $\tilde V_c$, and corrects every later sample of class $c$ to the exact moments,
 \begin{equation}\label{eq:mc}
 \tilde h\leftarrow\mathrm{ReLU}\big(\mu_c+s_c(\tilde h-\tilde\mu_c)\big),\qquad s_c=\mathrm{clip}\Big(\sqrt{V_c/\tilde V_c},\,0.1,\,10\Big).
@@ -69,7 +66,7 @@ draw corrected samples themselves.
 
 \subsection{Heads}\label{sec:method-heads}
 
-Each round, client $k$ first takes $T_s\lfloor n_k/B\rfloor$ SGD steps on batches of $B$ corrected synthetic features
+Each round, client $k$ first takes $T_s\lfloor n_k/B\rfloor$ SGD steps on batches of $B$ corrected generated features
 ($T_s=10$ synthetic epochs of the size of its real data; GeFL-F uses $T_s=1$) and then trains $T_r=5$ epochs on its
 real features, each phase with a fresh SGD optimiser. The real phase uses logit adjustment with the client's own prior~\cite{menon2021la},
 $\ell(f+\tau\log\hat\pi_k,y)$ with $\tau=1$ and the add-one smoothed class frequencies $\hat\pi_k$ of the client. The
@@ -80,7 +77,7 @@ t(\tilde h)=(1-\omega)\,e_y+\omega\,\frac1G\sum_{g=1}^G\mathrm{softmax}\big(f_g(
 \end{equation}
 where $e_y$ is the one-hot generated label and $f_g$ the current head of architecture $g$: the federation's averaged
 prediction on that feature, the target form of AvgKD~\cite{afonin2022avgkd} and FedDF's ensemble
-distillation~\cite{lin2020feddf}, here computed on generated features through one secure sum~\cite{menon2021distill}. Every client regenerates the same pool of synthetic features from a
+distillation~\cite{lin2020feddf}, here computed on generated features through one secure sum~\cite{menon2021distill}. Every client regenerates the same pool of generated features from a
 seed sent by the server and returns $w_k\,\mathrm{softmax}(f_{a(k)}(\tilde h))$ with $w_k=1/(G\,|\{j:a(j)=a(k)\}|)$; the
 secure sum over clients is the average in \cref{eq:csl}. Every client thus receives every architecture's current
 head, which FedAvg within an architecture does not reveal (\cref{sec:setting}); secure aggregation only hides each
@@ -90,20 +87,25 @@ the same architecture are averaged as in GeFL-F.
 \subsection{Exact readout}\label{sec:method-readout}
 
 The last layer is where GeFL-F loses most of the rare classes (\cref{sec:analysis-head}), and it is the one part of a
-head that class statistics determine in closed form. \ours therefore ends with a readout step. After Stage III, the server broadcasts every architecture's body; each client computes, for every architecture $g$, the
+head that class statistics determine in closed form. \ours therefore ends with the \emph{exact readout} (\ER), a
+class-balanced linear discriminant computed from securely aggregated sums. After Stage III, the server broadcasts every architecture's body; each client computes, for every architecture $g$, the
 per-class counts, the sums $\sum e$ and the second moment $\sum ee^\top$ of the embeddings $e$ of its real features, and
 secure aggregation sums them over all clients. With the class means $\nu_c$ and the pooled within-class covariance
 $\Sigma$ shrunk to $\Sigma_\gamma=(1-\gamma)\Sigma+\gamma\frac{\mathrm{tr}\,\Sigma}{d_e}I$, $\gamma=0.1$, the last layer of
-architecture $g$ becomes the class-balanced linear discriminant
+architecture $g$ becomes
 \begin{equation}\label{eq:er}
 w_c=\Sigma_\gamma^{-1}\nu_c,\qquad b_c=-\tfrac12\,\nu_c^\top\Sigma_\gamma^{-1}\nu_c,
 \end{equation}
 with $b_c=-10^4$ for a class no client holds. By \cref{prop:invariance} it equals the same estimator computed
-centrally on the pooled embeddings of the same body (not a last layer trained centrally by SGD). With the population
+centrally on the pooled embeddings of the same body (not a last layer trained centrally by SGD).
+
+With the population
 means and covariance and $\gamma=0$ it would be the Bayes classifier for equally likely classes when the embeddings of
-each class are Gaussian with a shared covariance. Computed from the sums, with the shrinkage and a pseudo-inverse, it
-is a plug-in estimate of that classifier, and otherwise a statistics-based linear classifier without an optimality
-guarantee. It needs one extra round and
+each class are Gaussian with a shared covariance. Computed from the sums with shrinkage and a pseudo-inverse, it is a
+plug-in estimate of that classifier; when the embeddings are not Gaussian with a shared covariance, it is a linear
+classifier without an optimality guarantee.
+
+The readout needs one extra round and
 $C(d_e+1)+d_e^2$ numbers per architecture and client, and every client must run a forward pass (no training) of
 every architecture's body on its own features once; a client that cannot do so would be left out of the sums. The
 readout does not use the head's trained last layer, only its body, so it can be added to any method whose heads have
@@ -120,9 +122,10 @@ separates the gain of the readout from that of the rest of the method.
 \State \textbf{Stage II:} \textbf{if} $F\ge F_0$ train the anchored generator (\cref{eq:anchor}) by FedAvg
 \textbf{else} train GeFL-F's generator, class rows by CCWA (\cref{eq:ccwa})
 \State server measures $\tilde\mu_c,\tilde V_c$ and sends the moment correction $(\mu_c,\tilde\mu_c,s_c)$ (\cref{eq:mc})
-\For{round $t=1,\dots,T_{\mathrm{TN}}$} \Comment{Stage III}
-  \State server sends heads and a pool seed; clients return the secure sum of consensus predictions (\cref{eq:csl})
-  \State each client: $T_s$ epochs on corrected synthetic features with soft targets $t(\tilde h)$, then $T_r$ epochs on
+\For{round $t=1,\dots,T_{\mathrm{III}}$} \Comment{Stage III}
+  \State server sends heads and a pool seed; clients return their predictions, summed by secure aggregation, for the
+  consensus soft labels (\cref{eq:csl})
+  \State each client: $T_s$ epochs on corrected generated features with consensus soft labels $t(\tilde h)$, then $T_r$ epochs on
   real features with logit adjustment
   \State server averages heads of the same architecture
 \EndFor
@@ -134,9 +137,10 @@ separates the gain of the readout from that of the rest of the method.
 \subsection{Cost and privacy}\label{sec:method-cost}
 
 Beyond GeFL-F, \ours sends the class statistics once, the moment correction once, one vector of $C$ consensus
-probabilities per synthetic feature per round, and the readout sums once. \claim{\Cref{tab:cost} reports the measured
+probabilities per generated feature per round, and the readout sums once. \claim{\Cref{tab:cost} reports the measured
 communication and time of every method.} The server, and through the generator and the moment correction every
 client, learns the federation-level class means and spreads. For a class that one client holds, these equal that
-client's own statistics, and they still describe rare classes held by few samples: a class mean over a handful of images reveals more about them than a mean over thousands.
+client's own statistics, and for a class with few images, they reveal more about each image than a mean over
+thousands would.
 Formal differential privacy for the released statistics is possible with the Gaussian mechanism but is not part of the
 results reported here, and it would not cover the FedAvg training of the generator and heads.
