@@ -265,7 +265,7 @@ Beyond GeFL-F, FedECS-LT sends the class statistics once, the moment correction 
 probabilities per generated feature per round, and the readout sums once. The measured totals are in
 \cref{ch:results}.
 
-What is revealed? Secure aggregation hides each client's own vectors. The server, and through the generator and the
+\paragraph{What is revealed} Secure aggregation hides each client's own vectors. The server, and through the generator and the
 moment correction every client, learns the federation-level class means and spreads. For a class that one client
 holds, these equal that client's own statistics. For a class with few images they reveal more about each image than a mean over
 thousands would: each of class 9's 100 images moves its class mean by a hundredth of its own value. The features come from a shallow extractor, two convolutions and a
