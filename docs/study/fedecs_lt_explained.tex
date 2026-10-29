@@ -1,0 +1,48 @@
+% FedECS-LT explained: a study text for the submitting author (docs/study/README.md, PROMPT.md).
+% Every result number is a slot of the paper (\R{key}, ../papers/generated/numbers.tex), so the text follows the paper
+% when new results arrive. Build: pdflatex fedecs_lt_explained.tex (three passes).
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=2.7cm]{geometry}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{graphicx}
+\usepackage[export]{adjustbox}
+\usepackage{booktabs}
+\usepackage{xcolor,etoolbox,xspace}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit}
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf}
+\usepackage[colorlinks,linkcolor=black,citecolor=black,urlcolor=black]{hyperref}
+\usepackage[capitalise,nameinlink]{cleveref}
+
+\newtheorem{lemma}{Lemma}
+\newtheorem*{lemma*}{Lemma}
+\newcommand{\genpath}{../papers/generated}
+\input{../papers/content/macros.tex}
+\finalslotstrue   % every number must be filled: a missing slot is an error
+
+\setlength{\parskip}{0.35em}
+\linespread{1.08}
+\renewcommand{\paragraph}[1]{\par\medskip\noindent\textbf{#1.}\enspace}
+
+\begin{document}
+
+\begin{center}
+{\Large\bfseries FedECS-LT, from the problem to the defence}
+\end{center}
+\medskip
+
+\input{chapters/ch1_problem}
+\input{chapters/ch2_gefl}
+\input{chapters/ch3_sums}
+\input{chapters/ch4_diagnosis}
+\input{chapters/ch5_method}
+\input{chapters/ch6_design}
+\input{chapters/ch7_results}
+\input{chapters/ch8_limits}
+\input{chapters/ch9_defence}
+
+\end{document}

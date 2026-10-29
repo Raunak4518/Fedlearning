@@ -1,0 +1,65 @@
+\section{What the evidence supports, and its limits}\label{ch:limits}
+
+\paragraph{What is established} In generator-based learning with different client models and a long tail, the runs
+show three properties of GeFL-F: its generator's rare class rows are shorter, its generated features carry little class
+information, and its last layers lose most of what an exact readout recovers (\cref{ch:diagnosis}). The runs show that
+FedECS-LT, ending with that readout, has a higher mean than every published method of the setting on both CIFAR
+benchmarks and on all six naturally imbalanced datasets, by margins that are large and significant on both CIFAR
+benchmarks and on three of the five natural datasets with three seeds; on CIFAR-10-LT the gain is mostly in the recall
+of the rare classes (\cref{sec:s-main,sec:s-natural}). They also show that most of this margin is the readout's:
+added to the other methods of the GeFL-F pipeline, it leaves FedECS-LT a lead of \R{main/cifar10/er_margin} and
+\R{main/cifar100/er_margin} points on the CIFAR benchmarks and at most \R{nat/er_margin_hi} on the natural datasets,
+which three seeds do not resolve (\cref{sec:s-same-readout}). The scope of all of this is one client per architecture, a small frozen extractor shared
+by all clients, a label shift between clients, and three seeds.
+
+\paragraph{The limits of the study} The paper's limitations section lists what the study does not cover. Each item
+limits what may be claimed.
+\begin{itemize}
+\item \textbf{A small, frozen, shared extractor.} The architectures differ only in their heads. The results say
+nothing about pre-trained or larger extractors, or about clients whose whole networks differ. A stronger extractor
+would raise every method, and whether it would change the ranking is not known.
+\item \textbf{No method built for this exact problem exists.} The comparison is with long-tail losses applied per
+client, with FedDF, and with model-heterogeneous methods designed for label skew without a long tail. A margin over
+methods built for another problem is weaker evidence than a margin over a direct competitor would be.
+\item \textbf{Label shift only.} The splits differ between clients only in their class proportions
+(\cref{ch:sums}). The key fact behind the method, that every client's class-$c$ samples point at the same target,
+fails under feature shift (the same class looks different on different clients) or concept shift. Those cases are not
+tested, and the exactness argument does not cover them.
+\item \textbf{One client per architecture} in every reported result. The 50-client runs are pending
+(\cref{sec:s-pending}).
+\item \textbf{No differential privacy.} The method can be called privacy-preserving only in the sense of secure
+aggregation against an honest-but-curious server (\cref{sec:s-privacy}).
+\item \textbf{Cost.} FedECS-LT costs more than GeFL-F and far more than per-client long-tail losses
+(\cref{tab:s-cost}).
+\item \textbf{Low absolute accuracy.} GeFL's own authors attribute GeFL-F's lower accuracy on CIFAR-10 to its small
+extractor and heads. In GeFL's balanced setting the paper's earlier implementation of GeFL-F reaches
+\R{repro/cifar10/GeFL-F/final}\% on CIFAR-10, close to GeFL's published value of about \R{repro/cifar10/published}\%,
+so the low numbers are those of the setting, not of a faulty re-implementation. They are not comparable with
+centralised long-tail results for ResNet-32 and larger networks.
+\end{itemize}
+
+\paragraph{The trade-offs} Four costs come with the method, and a reader deciding whether to use it should weigh each.
+\begin{itemize}
+\item \textbf{Each client's own accuracy.} Balanced accuracy and the readout's equal priors serve the federation's
+rare classes at the expense of each client's own frequent ones. On the clients' own class mixes FedECS-LT is below
+most other methods (\cref{ch:results}).
+\item \textbf{Communication and time.} \R{cost/cifar10/comm_ratio_bsm} times the communication and
+\R{cost/cifar10/time_ratio_bsm} times the time of Balanced Softmax on CIFAR-10-LT, for a same-readout margin of
+\R{main/cifar10/er_diff/Balanced Softmax} points that is not resolved.
+\item \textbf{Every client runs every head.} The consensus needs every client to run every architecture's head on the
+generated pool each round, and the readout every body once. This is forward computation only, no training, but it
+assumes every client can store and run the largest head. The motivation of model heterogeneity, that clients run
+different networks because their hardware differs, is therefore only partly kept: the clients still train different
+networks, but each must be able to evaluate all of them. The architectures are not secret.
+\item \textbf{Released class means.} The server and every client learn the federation's class means and spreads. For a
+class held by one client, that is the client's own statistic; for a small class, the mean says more about each image.
+With a shallow extractor a class mean is close to a mean image at half resolution.
+\end{itemize}
+
+\paragraph{What follows and what does not} It follows that the exact readout raises every method of this setting to which it was
+added, by far more than the other differences between them, for one extra round of communication. It follows that
+FedECS-LT as a whole has the highest measured balanced accuracy when clients have different models. It does not follow that exact class statistics in the generator are what makes FedECS-LT work: that is
+the question of the pending ablations. It does not follow that the decay diagnosis is a cause: that is the question
+of the AdamW run. And it does not follow that the result holds with several clients per architecture.
+
+Which questions will a reviewer ask, and what are the honest answers?

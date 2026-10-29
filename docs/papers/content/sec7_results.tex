@@ -167,8 +167,11 @@ Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
 the readout; the margin is significant after Holm's correction on \R{nat/n_sig} of the \R{nat/n_sig_of} datasets with
 three seeds (\R{nat/one_seed} has one seed). These datasets were not used in the development of \ours. With the
 same readout for every method of the GeFL-F pipeline the margins are \R{nat/er_margin_lo}
-(\R{nat/er_margin_lo_ds}, against \R{nat/er_margin_lo_who}) to \R{nat/er_margin_hi} points (\R{nat/er_margin_hi_ds}),
-within the noise floor of \R{repeat/er/floor} points of \cref{sec:setup-stats}; on \R{nat/er_n_behind} of the
+(\R{nat/er_margin_lo_ds}, against \R{nat/er_margin_lo_who}) to \R{nat/er_margin_hi} points (\R{nat/er_margin_hi_ds}).
+None of them is significant after Holm's correction on the datasets with three seeds (the smallest $p$ is
+\R{nat/organamnist/er_strongest_p}, on OrganAMNIST); all but the smallest exceed the noise floor of
+\R{repeat/er/floor} points of \cref{sec:setup-stats}, which is necessary but not sufficient for a resolved
+difference. On \R{nat/er_n_behind} of the
 datasets a method with the readout has the higher mean (\cref{tab:app-nat-er}). The readout changes the balanced
 accuracy of \ours by \R{nat/organamnist/FedECS-LT/gain_er} points on OrganAMNIST and by
 \R{nat/pathmnist/FedECS-LT/gain_er} on PathMNIST.} \claim{The

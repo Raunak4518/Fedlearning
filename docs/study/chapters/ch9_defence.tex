@@ -1,0 +1,167 @@
+\section{Defending the paper}\label{ch:defence}
+
+Three internal reviews of the paper raised the objections below. Each is stated as a reviewer would put it, followed
+by the honest answer, the evidence, and the experiment that would settle it with its status. An honest answer
+concedes what the evidence does not show; a reviewer who finds a concession in the paper is less likely to find an
+overclaim.
+
+\subsection*{1. ``Isn't the whole gain just the readout?''}
+
+\paragraph{Answer} Mostly, yes, and the paper says so. Without the readout for the others, FedECS-LT leads the
+strongest other method by \R{main/cifar10/margin} and \R{main/cifar100/margin} points. With the readout for every
+method of the GeFL-F pipeline it leads by \R{main/cifar10/er_margin} \R{main/cifar10/er_strongest_ci} and
+\R{main/cifar100/er_margin} \R{main/cifar100/er_strongest_ci}, not significant after Holm's correction
+($p=\R{main/cifar10/er_strongest_p}$ and $\R{main/cifar100/er_strongest_p}$), and by at most \R{nat/er_margin_hi} on the
+natural datasets (\cref{sec:s-same-readout,sec:s-natural}). Balanced Softmax, which has no generator, comes within
+\R{main/cifar10/er_diff/Balanced Softmax} points once it has the readout.
+
+\paragraph{Why the readout is still part of the method} The readout follows from the diagnosis: \cref{sec:s-lastlayer}
+shows that no per-client correction of the loss can give a last layer information about absent classes, and the
+readout is the repair that does. The paper therefore defines FedECS-LT as ending with it, credits the family it
+belongs to (Fed3R, FedNCM, FedCOF), and reports every method of the pipeline with it added, so the reader can see
+exactly how much is the readout's. What the paper must not claim is that the generator side has a demonstrated effect
+beyond the readout.
+
+\paragraph{Settled by} The component ablation (RQ5) and the variants of GeFL-F, both pending (\cref{sec:s-pending}).
+
+\subsection*{2. ``The name says exact class statistics, but half the components do not use them''}
+
+\paragraph{Answer} Correct, and the paper now says which do. Three components use the secure statistics: the
+anchored generator (or CCWA), the moment correction and the readout. Logit adjustment uses each client's own class
+frequencies, consensus soft labels use the heads' predictions, and ten synthetic epochs are computation
+(\cref{sec:s-recipe}). The name describes the first group and the readout, which carries most of the effect.
+
+\subsection*{3. ``Is the weight-decay diagnosis causal?''}
+
+\paragraph{Answer} Not shown. What is measured is that the rare classes' rows are several times shorter
+(\cref{fig:s-rows}), as the contraction lemma predicts. Against a causal reading: GeFL-F's generated features are
+recognised at \R{main/cifar10/GeFL-F/fidelity_all} on CIFAR-10-LT, \R{main/cifar10/GeFL-F/fidelity_head} on the head
+classes and \R{main/cifar10/GeFL-F/fidelity_tail} on the tail classes, and at chance on CIFAR-100-LT
+(\R{main/cifar100/GeFL-F/fidelity_all}). If the shrinkage were what loses the rare classes, the head classes, whose rows
+are long, would be recognised; they are not. The row lengths also do not fall monotonically with class size. The
+step-count heuristic $\kappa_c$ was not checked against the rows. The paper calls the shrinkage a measured property
+of the generator, not a demonstrated cause.
+
+\paragraph{Settled by} GeFL-F with decoupled weight decay alone (AdamW), pending. If it raises GeFL-F's tail recall by
+more than the noise floor, the diagnosis gains a causal test; if not, the paper should say the shrinkage has no
+measured consequence for accuracy.
+
+\subsection*{4. ``The other diagnoses: do generated features without labels, and the moment correction, matter?''}
+
+\paragraph{Answer} The label-free lemma is exact, but its size in the pipeline is not settled. The synthetic phase
+does reduce the logit spread, and less for FedECS-LT than for GeFL-F; but FedDF, on GeFL-F's own generator, loses less
+spread than FedECS-LT (\cref{sec:s-spread}), so the spread change is not decided by whether the features carry their
+label. The moment correction brings the generated spreads to \R{main/mc_spread_lo} to
+\R{main/mc_spread_hi} times the exact ones (\cref{sec:s-mc}), but its fidelity result is mixed: on CIFAR-10-LT it raises the mean fidelity from
+\R{main/cifar10/FedECS-LT/fidelity_all} to \R{main/cifar10/FedECS-LT/fidelity_mc_all} and lowers the tail classes'
+from \R{main/cifar10/FedECS-LT/fidelity_tail} to \R{main/cifar10/FedECS-LT/fidelity_mc_tail}; on CIFAR-100-LT the mean
+is unchanged (\R{main/cifar100/FedECS-LT/fidelity_mc_all}). Its value for accuracy is unmeasured.
+
+\paragraph{Settled by} The component ablation (``w/o moment correction'', ``w/o consensus soft labels''), pending.
+
+\subsection*{5. ``Were the settings tuned on the test sets?''}
+
+\paragraph{Answer} The development used the same splits (seeds 3--5) and the same test sets as the reported runs,
+comparing about 36 configurations on CIFAR-10-LT and 17 on CIFAR-100-LT; the baselines were not tuned
+(\cref{sec:s-development}). The CIFAR margins may therefore favour FedECS-LT. Two things limit the damage. The six
+naturally imbalanced datasets were never used in development, and there the pattern repeats: large margins without the
+readout for the others, small ones with it (\cref{sec:s-natural}). And every setting is the same on every dataset;
+nothing was set per dataset.
+
+\paragraph{Settled by} The run on new splits, seeds 6--8, pending.
+
+\subsection*{6. ``Is the heads' advantage just more computation and ensemble distillation?''}
+
+\paragraph{Answer} It may be. FedECS-LT trains ten synthetic epochs per round against one for GeFL-F and FedDF, with
+consensus soft labels, which are a form of ensemble distillation; its training costs about two and a half times the
+GFLOPs per round of GeFL-F (\cref{tab:s-cost}). The heads-only margin over FedDF, \R{main/cifar10/heads_margin} on
+CIFAR-10-LT, is not significant ($p=\R{main/cifar10/heads_strongest_p}$) and has not been separated from this extra
+computation.
+
+\paragraph{Settled by} GeFL-F and FedDF with ten synthetic epochs, and FedDF with logit adjustment, pending.
+
+\subsection*{7. ``With one client per architecture nothing is averaged; does the result hold with several?''}
+
+\paragraph{Answer} Unknown. In every reported result each architecture has one client, so Stage III averages nothing,
+and the per-client loss methods become purely local training. That is exactly the case in which the readout helps
+most, because each last layer then fits one client's prior. With several clients per architecture, heads are
+averaged and the readout may matter less.
+
+\paragraph{Settled by} The 50-client runs (five per architecture), pending; their first attempt ran out of host
+memory and was rebuilt.
+
+\subsection*{8. ``If every client runs every head, why have different models at all?''}
+
+\paragraph{Answer} The clients still \emph{train} different networks; but the consensus needs each client to run every
+architecture's head on the generated pool every round, and the readout every body once. This is forward computation
+only, and the paper states it as an assumption of the setting (\cref{ch:limits}). It does weaken the hardware
+motivation of model heterogeneity: a client must be able to store and evaluate the largest head. It also means the
+architectures are not secret.
+
+\subsection*{9. ``Why is it worse than FedAvg with one shared model?''}
+
+\paragraph{Answer} Because the setting removes the problem FedECS-LT addresses. With one shared model, FedAvg carries
+every client's knowledge into every model, so a generator is not needed; and the last layer is trained by every
+client, so the readout has nothing to repair and lowers accuracy (\R{t2/cifar10-r100/FedECS-LT/gain_er} points on
+CIFAR-10-LT). FedECS-LT also trains its head on frozen features of unaugmented images while the baselines train end
+to end with augmentation. \R{t2/cifar10-r100/above_list} are above it on CIFAR-10-LT (\cref{sec:s-shared}). The paper
+reports this protocol as a test of scope, and the honest conclusion is that FedECS-LT is a method for clients with
+different models only. Why the readout lowers accuracy here was not tested.
+
+\subsection*{10. ``Is a small gain worth \R{cost/cifar10/comm_ratio_bsm} times the communication?''}
+
+\paragraph{Answer} Against Balanced Softmax with the readout, on CIFAR-10-LT, the measured gain is
+\R{main/cifar10/er_diff/Balanced Softmax} points, not resolved, for \R{cost/cifar10/comm_ratio_bsm} times the
+communication and \R{cost/cifar10/time_ratio_bsm} times the time. On this evidence, a practitioner who only needs
+balanced accuracy should use per-client Balanced Softmax plus the exact readout, which needs no generator. FedECS-LT's
+extra cost is justified only if the pending ablations show that its generator side adds accuracy, or in settings,
+such as several clients per architecture, where it may add more. Against GeFL-F, the base it extends, the overhead is
+\R{cost/cifar10/comm_ratio} times the communication and \R{cost/cifar10/time_ratio} times the time.
+
+\subsection*{11. ``What do the released statistics leak?''}
+
+\paragraph{Answer} Secure aggregation hides each client's own sums, not the federation's. The server and every client
+learn each class's mean and spread. For a class held by one client these are that client's statistics; for a small
+class each image moves the mean noticeably; and with a two-convolution extractor a class mean is close to a mean image
+at half resolution (\cref{sec:s-privacy}). The paper did not test an inversion of the means and has no differential
+privacy, so it claims nothing beyond secure aggregation against an honest-but-curious server.
+
+\paragraph{Settled by} An inversion test on the smallest classes, or a differentially private release with its
+accuracy cost; neither is planned.
+
+\subsection*{12. ``Why are the absolute accuracies so low?''}
+
+\paragraph{Answer} Because the setting is GeFL-F's: a two-convolution extractor with 3 and 10 channels, frozen after
+Stage I, and small heads, under a long tail with ten clients. GeFL's authors attribute GeFL-F's lower accuracy to
+this extractor and these heads. In GeFL's own balanced setting the paper's earlier implementation of GeFL-F reaches
+\R{repro/cifar10/GeFL-F/final}\% on CIFAR-10, against about \R{repro/cifar10/published}\% in GeFL's paper, so the
+implementation is not the cause. A stronger or pre-trained extractor was not studied.
+
+\paragraph{Settled by} The reference trained on all data pooled, planned for GeFL's 50-client setting and pending,
+would give the ceiling of this extractor.
+
+\subsection*{13. ``How is this different from FedCOF, Fed3R or CCVR?''}
+
+\paragraph{Answer} The readout belongs to the same family as Fed3R (ridge regression), FedNCM (nearest class means) and
+FedCOF (an LDA-type classifier); these also note that their sums do not depend on the partition. The difference is
+where it is applied: per architecture, on bodies trained in the federation rather than pre-trained, with statistics
+from every client, including clients of other architectures, which requires every client to run every body. CCVR
+samples features from Gaussians with the pooled class moments to retrain a shared classifier; the moment correction
+instead maps a learned generator's samples onto those moments. The pending ``w/ Gaussian sampler'' run compares the
+two directly. The paper does not claim the readout or partition invariance as new.
+
+\subsection*{14. ``Why only three seeds?''}
+
+\paragraph{Answer} Compute: each configuration takes hours on a Kaggle GPU, and the study has several hundred runs.
+Three seeds give little power. A sign-flip permutation test cannot go below $p=0.25$ with three pairs, so every
+significant result rests on the $t$-test's normality assumption, and a difference of one to two points cannot be
+resolved against a noise floor of \R{repeat/er/floor} (\cref{sec:s-stats-design}). The paper therefore reports
+intervals, applies Holm's correction, calls small differences unresolved rather than absent, and adds three new seeds
+for the main comparison (pending).
+
+\subsection*{The position to defend}
+
+The defensible claims are: three measured properties of GeFL-F under a long tail; a
+method that, ending with an exact readout, has the highest balanced accuracy of the setting by a large margin; and the
+finding that the readout, added to every method, carries most of that margin. Every other claim waits on a pending
+run, and the paper says which.

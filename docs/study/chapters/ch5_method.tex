@@ -1,0 +1,279 @@
+\section{FedECS-LT, component by component}\label{ch:method}
+
+FedECS-LT (Exact Class Statistics for Long-Tailed federated learning) keeps GeFL-F's three stages and its frozen
+extractor. It changes how the class-specific quantities of the generator and the last layer are obtained, using
+statistics that secure aggregation computes exactly (\cref{ch:sums}) instead of parameters estimated by FedAvg. It
+also changes how the heads are trained, and it adds a last step that sets every last layer. \Cref{fig:s-overview} is
+the paper's overview; this chapter takes the components in pipeline order.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{\genpath/figures/fig_overview.pdf}
+\caption{The paper's overview of FedECS-LT. C: computed by each client; S: computed by the server; SA: summed over
+the clients by secure aggregation. Read it left to right: statistics after Stage I, the generator chosen by the gate
+(Stage II), the moment correction, the heads (Stage III), and the exact readout last.}
+\label{fig:s-overview}
+\end{figure}
+
+\subsection{Statistics release}\label{sec:s-stats}
+
+\paragraph{What it answers} Every later component needs the class means and spreads of the features. They are
+functions of sums, so they can be computed exactly (\cref{ch:sums}).
+
+\paragraph{How it works} After Stage I, client $k$ computes for every class $c$ its count $n_{kc}$, its feature sum
+$S^{(1)}_{kc}$ and its sum of squared feature norms $S^{(2)}_{kc}$. Secure aggregation returns the totals, and the
+server forms
+\[
+\mu_c=S^{(1)}_c/n_c,\qquad V_c=S^{(2)}_c/n_c-\|\mu_c\|^2 .
+\]
+$\mu_c$ is the mean feature of class $c$ and $V_c$ its spread, the mean squared distance of a class-$c$ feature from
+$\mu_c$.
+
+\paragraph{Cost} Each client sends $C(d+2)$ numbers once: for each class, one count, one number for the sum of squared
+norms, and $d$ for the feature sum. On CIFAR-10 that is $10\cdot2562=25{,}620$ numbers.
+
+\subsection{The generator}\label{sec:s-gen}
+
+\paragraph{The separation gate} The anchored generator below builds each class around its exact mean. That only helps
+if the means are far enough apart to tell the classes apart. The paper's appendix makes this precise: a generator of
+the form below separates two classes, in the Wasserstein distance between their generated distributions, by at most
+$(1+L\|A\|_2)\|\mu_c-\mu_{c'}\|$, a constant times the distance between their means. So the server first measures how
+separated the means are, relative to the spread:
+\[
+F=\frac{\frac1C\sum_c\|\mu_c-\bar\mu\|^2}{\frac1C\sum_c V_c},\qquad \bar\mu=\frac1C\sum_c\mu_c .
+\]
+The numerator is the spread of the class means around their centre, the denominator the average spread within a class.
+This is a trace form of Fisher's discriminant ratio. If $F\ge F_0=0.05$, the server uses the mean-anchored generator;
+otherwise it falls back to GeFL-F's generator, with class rows averaged by CCWA. The threshold was fixed during the
+method's development and not swept.
+
+How small these numbers are is worth seeing. Over pairs of distinct classes, two class means are on average
+$\sqrt{2FC/(C-1)}$ root-mean-square spreads apart (an appendix identity). The running example has $F\approx0.080$ (seed 3,
+from the run logs), so two CIFAR-10 class means are on average about $\sqrt{2\cdot0.080\cdot10/9}\approx0.42$ spreads
+apart: in the frozen feature space, the classes overlap heavily. Across all the paper's runs $F$ ranges from
+\R{gate/F/min_all} to \R{gate/F/max_all}, and the gate chose class rows on \R{gate/rows_all}.
+
+\paragraph{The mean-anchored generator} This is the default branch. It generates a class-$y$ feature as
+\[
+\tilde h=\mathrm{ReLU}\big(\mu_y+\mathrm{dec}(z,\,A\mu_y)\big),\qquad z\sim\mathcal N(0,I),
+\]
+where $\mathrm{dec}$ is the decoder network and $A$ a projection shared by all classes. The exact mean $\mu_y$ is
+added directly, and the decoder only has to model the deviation from it. The class enters only through $\mu_y$, a
+number the server computed exactly, and through $A$, which every class shares. The generator therefore has no class
+row and no other class-specific parameter: the contraction of \cref{sec:s-decay} has nothing to shrink. It is trained
+by FedAvg with Adam, like GeFL-F's.
+
+\paragraph{The fallback: class rows with CCWA} When the gate finds the means too close, the generator keeps GeFL-F's
+class rows, but the server averages each row only over the clients that hold the class, weighted by how much of it
+they hold:
+\[
+r_c\leftarrow\frac{\sum_k E(n_{kc})\,r_{k,c}}{\sum_k E(n_{kc})},\qquad E(n)=\frac{1-\beta^n}{1-\beta},\quad\beta=0.999 .
+\]
+$E(n)$ is the \emph{effective number of samples}. It is zero for a client without the class, so non-holders drop out
+and the term $\bar D$ of the contraction lemma disappears. It is close to $n$ for small $n$ and saturates at
+$1/(1-\beta)=1000$, so one large client cannot dominate a class. For class 9 of the running example, client 7 (63
+images) gets weight $E(63)\approx61.1$, client 1 (4 images) gets $E(4)\approx4.0$, and clients 2 and 5 get zero. For
+class 1, client 7's 2,803 images give $E(2803)\approx940$, not 2,803. Both sums are computed by secure aggregation, so
+the server never sees a single client's counts.
+
+\subsection{Moment correction}\label{sec:s-mc}
+
+\paragraph{What it answers} Even a generator anchored to the right mean can produce features with the wrong spread,
+too concentrated or too dispersed, and a class-rows generator can drift in mean too. The server knows the exact mean
+$\mu_c$ and spread $V_c$, so it can correct the generated features to match them.
+
+\paragraph{How it works} After Stage II the server draws 500 features per class from the generator, measures their
+mean $\tilde\mu_c$ and spread $\tilde V_c$, and from then on corrects every generated feature of class $c$ by
+\[
+\tilde h\leftarrow\mathrm{ReLU}\big(\mu_c+s_c(\tilde h-\tilde\mu_c)\big),\qquad
+s_c=\mathrm{clip}\Big(\sqrt{V_c/\tilde V_c},\;0.1,\;10\Big).
+\]
+The map first moves the generated class to its exact mean, then rescales the deviations so that their spread becomes
+the exact one. A toy example: if a class's generated spread is a quarter of the real one, $\tilde V_c=V_c/4$, then
+$s_c=2$ and every generated feature's deviation from the mean is doubled.
+
+\paragraph{Why this map} Without the final ReLU and the clipping, this is the map that reaches the exact mean and
+spread while moving the generated features as little as possible (an appendix lemma; the proof is a Cauchy--Schwarz
+bound on $\E\langle T(X)-\mu_c,\,X-\tilde\mu_c\rangle$). The ReLU keeps features non-negative, as real features after a
+ReLU are, and the clipping prevents extreme rescaling, so in practice the moments match only approximately. Across every
+class and run of the long-tailed benchmarks, the corrected spread is \R{main/mc_spread_lo} to \R{main/mc_spread_hi}
+times the exact one (median \R{main/mc_spread_med}).
+
+\paragraph{Cost} The server sends $(\mu_c,\tilde\mu_c,s_c)$ to the clients once; each client holds the generator and
+corrects its own samples.
+
+\paragraph{What the evidence says} Matching moments is not the same as making features recognisable. The fidelity
+table (\cref{tab:s-fidelity}) shows that on CIFAR-10-LT the correction raises the referee's accuracy on the head
+classes from \R{main/cifar10/FedECS-LT/fidelity_head} to \R{main/cifar10/FedECS-LT/fidelity_mc_head} and lowers it on
+the tail classes from \R{main/cifar10/FedECS-LT/fidelity_tail} to \R{main/cifar10/FedECS-LT/fidelity_mc_tail}. Whether
+it improves accuracy is a question for the component ablation, which has not returned yet.
+
+\subsection{The heads}\label{sec:s-heads}
+
+Each Stage-III round, client $k$ first takes $T_s\lfloor n_k/B\rfloor$ SGD steps on batches of $B$ corrected generated
+features ($B=128$ on CIFAR), that is, $T_s$ epochs of the size of its real data, and then trains $T_r=5$ epochs on its
+real features. Each phase starts a fresh SGD optimiser (learning rate 0.1, no momentum). Three things differ from
+GeFL-F.
+
+\paragraph{Logit adjustment in the real phase} The real phase uses $\ell(f+\tau\log\hat\pi_k,y)$ with $\tau=1$ and the
+client's add-one smoothed class frequencies $\hat\pi_k$. \Cref{sec:s-lastlayer} showed that this adds no information
+about absent classes to the last layer, and the method still uses it, for two reasons the paper gives. Without it,
+cross-entropy keeps pushing the absent classes' logits down during the real phase (\cref{sec:s-spread}). And it can
+change what the body learns. Note that $\hat\pi_k$ is the client's own frequencies, not a secure statistic. How much
+logit adjustment contributes is one of the pending component ablations.
+
+\paragraph{Consensus soft labels in the synthetic phase} The synthetic phase still draws labels uniformly, but the
+target is no longer the one-hot label alone. For a generated feature $\tilde h$ with label $y$,
+\[
+t(\tilde h)=(1-\omega)\,e_y+\omega\,\frac1G\sum_{g=1}^G\mathrm{softmax}\big(f_g(\tilde h)\big),\qquad\omega=0.5,
+\]
+where $e_y$ is the one-hot vector of $y$ and $f_g$ the current head of architecture $g$. The second term is the
+federation's averaged prediction on that feature, the target form used by AvgKD and FedDF. If a generated "class 9"
+feature looks to the federation's heads like class 3 with probability 0.4 and like class 9 with 0.05, its target puts
+$0.5+0.5\cdot0.05=0.525$ on class 9 and $0.2$ on class 3. The target follows what the feature actually carries
+instead of forcing a label it may not support, and every head learns from the ensemble of all ten architectures.
+
+The average is computed by one secure sum. Every client regenerates the same pool of generated features from a seed
+the server sends, and returns $w_k\,\mathrm{softmax}(f_{a(k)}(\tilde h))$, with $w_k=1/(G\cdot|\{j:a(j)=a(k)\}|)$, the
+inverse of the number of architectures times the number of clients of its own architecture. The secure sum of these
+is the average above. For this every client receives every architecture's current head, which FedAvg within an
+architecture would not reveal; secure aggregation hides only each client's predictions from the server.
+
+\paragraph{Ten synthetic epochs} $T_s=10$ instead of GeFL-F's 1. This is more computation, not a statistic, and the
+paper lists it as one of the method's changes.
+
+\subsection{The exact readout}\label{sec:s-readout}
+
+This is the most important component, because the results will show that it carries most of the gain.
+
+\paragraph{What it answers} \Cref{sec:s-lastlayer} showed that a last layer trained on one client knows nothing about
+the classes the client lacks, and that a last layer computed from sums over all clients equals the one computed on
+pooled data. The exact readout is such a last layer: after Stage III, every architecture's trained last layer is
+replaced by a classifier computed from aggregated statistics of the embeddings.
+
+\paragraph{The classifier} Suppose the embeddings $e$ of each class $c$ are Gaussian with mean $\nu_c$ and a covariance
+$\Sigma$ shared by all classes, and every class is equally likely. Then the most probable class for an embedding $e$
+maximises
+\[
+\log p(e\mid c)=-\tfrac12(e-\nu_c)^\top\Sigma^{-1}(e-\nu_c)+\text{const}
+= e^\top\Sigma^{-1}\nu_c-\tfrac12\nu_c^\top\Sigma^{-1}\nu_c-\tfrac12e^\top\Sigma^{-1}e+\text{const}.
+\]
+The term $-\frac12e^\top\Sigma^{-1}e$ is the same for every class, so it does not affect which class wins. What is left
+is linear in $e$: the logit of class $c$ is $w_c^\top e+b_c$ with
+\[
+w_c=\Sigma^{-1}\nu_c,\qquad b_c=-\tfrac12\,\nu_c^\top\Sigma^{-1}\nu_c .
+\]
+This is linear discriminant analysis (LDA). The usual LDA adds $\log\pi_c$, the class prior, to $b_c$, which favours
+frequent classes. Leaving it out makes the classifier \emph{class-balanced}: it treats every class as equally likely,
+which is what balanced accuracy rewards. The classifier is the nearest class mean in the Mahalanobis distance
+$(e-\nu_c)^\top\Sigma^{-1}(e-\nu_c)$, a distance that measures each direction in units of the spread along it.
+
+\paragraph{A two-dimensional example} Take two classes with means $\nu_A=(1,1)$ and $\nu_B=(0,0)$ and the shared
+covariance $\Sigma=\mathrm{diag}(1,\,0.25)$: the second coordinate is four times less noisy than the first. Then
+$\Sigma^{-1}=\mathrm{diag}(1,4)$, $w_A=(1,4)$, $b_A=-\frac12(1+4)=-2.5$, $w_B=0$, $b_B=0$, and class A wins when
+$x+4y>2.5$. The nearest-mean rule would instead decide by $x+y>1$. For the point $e=(1.2,\,0.3)$ the nearest-mean rule
+says A, since $1.5>1$, but LDA says B, since $1.2+1.2=2.4<2.5$. The point is far from A along the precise coordinate
+and close to B there, and LDA trusts that coordinate more (\cref{fig:s-lda}).
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[scale=1.55,font=\small]
+\draw[->] (-0.9,0) -- (2.2,0) node[right]{$x$};
+\draw[->] (0,-0.75) -- (0,1.75) node[above]{$y$};
+\foreach \cx/\cy/\col in {1/1/blue!60,0/0/red!60}{
+  \draw[\col,thick] (\cx,\cy) ellipse (0.9 and 0.45);
+  \draw[\col] (\cx,\cy) ellipse (0.45 and 0.225);}
+\fill[blue!70] (1,1) circle (0.035) node[above right]{$\nu_A$};
+\fill[red!70] (0,0) circle (0.035) node[below left]{$\nu_B$};
+\draw[gray,dashed,thick] (-0.6,1.6) -- (1.75,-0.75) node[below,black]{nearest mean};
+\draw[black,thick] (-0.9,0.85) -- (2.1,0.1) node[right]{LDA};
+\fill (1.2,0.3) circle (0.035) node[below]{$e$};
+\end{tikzpicture}
+\caption{Illustration of the readout's decision rule (made-up numbers, not data). Ellipses: equal-density contours of
+two classes with a shared covariance that is narrow in $y$. Dashed: the nearest-mean boundary $x+y=1$. Solid: the LDA
+boundary $x+4y=2.5$. The point $e$ is on A's side of the dashed line but on B's side of the solid one.}
+\label{fig:s-lda}
+\end{figure}
+
+\paragraph{Shrinkage} In practice $\Sigma$ is estimated, and the embedding dimension $d_e$ is large: from the code,
+$d_e$ ranges from 80 (CNN-10) to 1024 (CNN-1). An estimated covariance in high dimension has small eigenvalues that are
+too small, and inverting it amplifies noise. The readout therefore uses
+\[
+\Sigma_\gamma=(1-\gamma)\Sigma+\gamma\,\frac{\mathrm{tr}\,\Sigma}{d_e}\,I,\qquad\gamma=0.1,
+\]
+a mix of the estimate with a multiple of the identity that has the same average variance. In the example above
+$\Sigma_\gamma=0.9\,\mathrm{diag}(1,0.25)+0.1\cdot0.625\,I=\mathrm{diag}(0.9625,\,0.2875)$: the two directions are pulled
+toward each other, and the inverse is stable. The paper's version also uses a pseudo-inverse, and sets $b_c=-10^4$ for a
+class that no client holds, so that it is never predicted.
+
+\paragraph{How it is computed from sums} After Stage III the server sends every architecture's body to every client.
+Each client passes its real features through every body and computes, per architecture, its per-class counts, the
+per-class sums $\sum e$ of the embeddings, and the second moment $\sum ee^\top$. Secure aggregation sums them. From
+these the server gets the class means $\nu_c$ and the pooled within-class covariance, which is the total second moment
+minus $\sum_c n_c\nu_c\nu_c^\top$, divided by the number of images minus the number of classes. Everything is a
+function of sums, so by partition invariance the readout equals the same estimator computed centrally on the pooled
+embeddings of the same body. It is not the same as a last layer trained centrally by SGD.
+
+\paragraph{What it is and is not} With the true means and covariance and $\gamma=0$, and if the embeddings really
+were Gaussian with a shared covariance, this would be the Bayes classifier for equally likely classes. Computed from
+data with shrinkage, it is a plug-in estimate of that classifier. When the embeddings are not Gaussian with a shared
+covariance, which is the usual case, it is a linear classifier with no optimality guarantee. It belongs to a known
+family of closed-form federated classifiers: Fed3R (a ridge-regression classifier), FedNCM (nearest class means) and
+FedCOF (an LDA-type classifier with a covariance estimated from class means). What the paper adds is computing it
+\emph{per architecture} with statistics from \emph{all} clients, including those of other architectures. That is
+possible only because every client runs every architecture's body.
+
+\paragraph{Cost} One extra round. Each client sends $C(d_e+1)+d_e^2$ numbers per architecture: $C$ counts, $C$
+class sums of length $d_e$, and the $d_e\times d_e$ second moment. For CNN-1 with $d_e=1024$ the second moment alone is
+about a million numbers. Every client must run a forward pass (no training) of every architecture's body on its own
+features once; a client that cannot do so would be left out of the sums.
+
+\paragraph{It can be added to other methods} The readout uses only a head's body, never its trained last layer, so it
+can be added to any method whose heads have a body and a linear last layer. The paper uses this to separate the
+readout's gain from the rest of the method: it reports every method of the GeFL-F pipeline both without the readout
+and with it added (``ER''). This is the comparison on which \cref{ch:results} turns.
+
+\subsection{The whole recipe}\label{sec:s-recipe}
+
+The paper's Algorithm 1 in words, one run:
+\begin{enumerate}
+\item \textbf{Stage I}: train the extractor $\phi$ and the heads by FedAvg; freeze $\phi$; every client computes
+$h=\phi(x)$.
+\item \textbf{Statistics release}: clients send $n_{kc},S^{(1)}_{kc},S^{(2)}_{kc}$ by secure aggregation; the server
+forms $\mu_c,V_c$ and the gate $F$.
+\item \textbf{Stage II}: if $F\ge F_0$, train the anchored generator by FedAvg; otherwise GeFL-F's generator with class
+rows averaged by CCWA.
+\item \textbf{Moment correction}: the server measures $\tilde\mu_c,\tilde V_c$ and sends $(\mu_c,\tilde\mu_c,s_c)$.
+\item \textbf{Stage III}, for $T_{\mathrm{III}}$ rounds: the server sends the heads and a pool seed; the clients
+return their predictions on the pool by secure aggregation, giving the consensus soft labels; each client trains
+$T_s$ epochs on corrected generated features with consensus soft labels, then $T_r$ epochs on real features with logit
+adjustment; the server averages heads of the same architecture.
+\item \textbf{Exact readout}: clients send embedding sums per architecture by secure aggregation; the server sets
+every last layer to the class-balanced LDA.
+\end{enumerate}
+The settings are the same on every dataset: $F_0=0.05$, $\beta=0.999$, 500 samples for the moment correction with
+$s_c\in[0.1,10]$, $T_s=10$, $T_r=5$, $\tau=1$, $\omega=0.5$, $\gamma=0.1$; the generator uses Adam with learning rate
+$10^{-3}$ and coupled decay $10^{-3}$, as in GeFL-F.
+
+\paragraph{Which component uses what} Only three components use the secure statistics: the anchored generator (or
+CCWA), the moment correction, and the readout. Logit adjustment uses the client's own frequencies, consensus soft
+labels use the heads' predictions, and $T_s=10$ is computation. The method's name describes its first group.
+
+\subsection{Cost and privacy}\label{sec:s-privacy}
+
+Beyond GeFL-F, FedECS-LT sends the class statistics once, the moment correction once, one vector of $C$ consensus
+probabilities per generated feature per round, and the readout sums once. The measured totals are in
+\cref{ch:results}.
+
+What is revealed? Secure aggregation hides each client's own vectors. The server, and through the generator and the
+moment correction every client, learns the federation-level class means and spreads. For a class that one client
+holds, these equal that client's own statistics. For a class with few images they reveal more about each image than a mean over
+thousands would: each of class 9's 100 images moves its class mean by a hundredth of its own value. The features come from a shallow extractor, two convolutions and a
+pooling, so a class mean is close to a mean image at half resolution. The paper did not test how much of the images
+an inversion of the released means recovers. Formal differential privacy, adding calibrated noise to the sums, is
+possible but not part of the results, and it would not cover the FedAvg training of the generator and heads. The
+paper therefore says FedECS-LT should not be called privacy-preserving beyond what secure aggregation guarantees
+against an honest-but-curious server. Every client also receives every architecture's head (consensus) and body
+(readout), so the architectures are not secret.
+
+How is such a method tested, and against what?

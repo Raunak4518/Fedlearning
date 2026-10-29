@@ -35,3 +35,6 @@ docs/papers/*/*.bbl
 docs/papers/*/*.blg
 docs/papers/*/*.out
 docs/papers/*/*.spl
+docs/study/*.aux
+docs/study/*.log
+docs/study/*.out

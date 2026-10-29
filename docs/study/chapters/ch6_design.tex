@@ -1,0 +1,178 @@
+\section{The study design}\label{ch:design}
+
+The experiments have to show three things: that the losses of \cref{ch:diagnosis} occur, that FedECS-LT recovers
+them, and which part of FedECS-LT does so. Every choice below serves one of these, or protects the comparison against
+a way of being unfair.
+
+\subsection{The research questions}\label{sec:s-rq}
+
+\begin{itemize}
+\item \textbf{RQ1, diagnosis.} Do the three losses occur in GeFL-F's own runs? Answered by the class rows, the readout
+gain and the logit spread (\cref{ch:diagnosis}).
+\item \textbf{RQ2, effect.} Does FedECS-LT, ending with its readout, raise balanced accuracy over GeFL-F and the other
+model-heterogeneous methods, each as it is without the readout? Answered by the main comparison (\cref{sec:s-main}).
+\item \textbf{RQ3, body or last layer.} How much of the difference remains when every method of the GeFL-F pipeline
+gets the same readout, so that only the heads' bodies differ? Answered by the readout comparison
+(\cref{sec:s-same-readout}).
+\item \textbf{RQ4, scope.} Does the effect hold with natural class imbalance and in the protocol with one shared
+model? Answered in \cref{sec:s-natural,sec:s-shared}.
+\item \textbf{RQ5, components.} Which changes carry the effect? Answered by the ablations, whose runs are pending
+(\cref{sec:s-pending}).
+\end{itemize}
+RQ3 is the question that decides how the paper's claim must be worded, as \cref{ch:results} shows.
+
+\subsection{Datasets and splits}
+
+\paragraph{The long-tailed benchmarks} CIFAR-10-LT and CIFAR-100-LT are built by the paper with $\rho=100$. GeFL-F
+uses half of CIFAR-10's training set, so the profile is applied to that half (and to 22\% of CIFAR-100, which gives the
+usual CIFAR-100-LT shape). As \cref{ch:problem} showed, the largest classes are capped, so the realised ratios are 48
+and 96 (\cref{tab:s-datasets}). The class index orders classes from the most to the least frequent, so the tail
+classes are the same in every run. MNIST, Fashion-MNIST and SVHN belong to the same benchmark set; their runs had not
+returned when this text was written.
+
+\paragraph{The naturally imbalanced datasets} Six datasets keep their own class sizes, with training sets capped at
+20,000 images: DermaMNIST, OrganAMNIST, BloodMNIST and PathMNIST (medical images), EMNIST ByClass (handwritten
+characters, 62 classes) and FER-2013 (facial expressions). Their realised ratios range from 2 to 75. On OrganAMNIST,
+BloodMNIST and PathMNIST the ratio is 5 or less, so there the results speak to label skew more than to a long tail.
+These six datasets were never used while the method was being developed, which makes them the cleanest evidence in
+the paper.
+
+\paragraph{Splits} Each class is divided among $K=10$ clients by a Dirichlet draw with $\alpha=0.5$. The draw is
+repeated, at most 100 times, until every client holds at least ten images. A held-out block of training images that
+no client holds, 200 per class on CIFAR-10, forms the server's validation set. It has two uses only: it trains the
+referee of the fidelity measurement, and it sets the public bounds of secure aggregation. It is never used to select a
+model or a setting. Every reported number is on the official test set. The paper checked that every client's class
+counts are identical across methods for every dataset and seed.
+
+\paragraph{Seeds} Every configuration runs with seeds 3, 4 and 5. A seed fixes the split and every method's
+initialisation, so two methods with the same seed see exactly the same clients: their results are \emph{paired}.
+
+\subsection{The two protocols}
+
+\paragraph{Different client models} The main setting is GeFL-F's: 10 clients, one per architecture, with GeFL-F's
+rounds ($T_{\mathrm I},T_{\mathrm{II}},T_{\mathrm{III}}=50,200,100$ on CIFAR). All federated methods of this setting
+share the same Stage-I extractor for a given dataset and seed, so they differ only in what they do after Stage I.
+
+\paragraph{One shared model} The second protocol is the one used by federated long-tail research, taken from the
+FedLTLib benchmark, whose settings come from CReFF: CIFAR-10-LT and CIFAR-100-LT at $\rho=100$, 20 clients, 8 of them
+(40\%) in each round, Dirichlet $\alpha=0.5$, one ResNet-8 shared by all, 200 rounds of 10 local epochs (batch 32, SGD
+with learning rate 0.1, momentum 0.9, decay 0.99 per round). The baselines run their authors' LongTailLib code
+unchanged on the paper's splits, with ResNet-8 for every method.
+
+FedECS-LT is fitted into this protocol by splitting the ResNet-8 after its second stage into a frozen extractor and a
+head. The extractor trains for 100 rounds, the generator for 100, and the head for 100 with 10 real epochs per round;
+so FedECS-LT uses the baselines' 200 training rounds plus 100 generator rounds. Two differences matter later: its head
+trains on frozen features of unaugmented images, while the baselines train the whole network end to end with
+augmentation; and with a single architecture the consensus soft label is just the shared model's own prediction.
+
+\subsection{The methods compared}\label{sec:s-methods}
+
+Each group of methods answers a specific question.
+\begin{itemize}
+\item \textbf{GeFL-F}, the method FedECS-LT extends: the difference to it is the effect of the changes.
+\item \textbf{FedDF}, ensemble distillation on the server: after each round the server distils every architecture
+toward the ten architectures' mean prediction, for 20 steps. FedDF originally distils on public data; here it distils
+on GeFL-F's generated features, so that no method uses data that no client holds. It is the strongest generator-based
+competitor.
+\item \textbf{Per-client long-tail losses}: Balanced Softmax, FedLC and FedRS, applied to the heads with \emph{no
+generator}. They test whether correcting the loss alone repairs the long tail. By the reparametrisation lemma they
+should behave alike, and \cref{ch:diagnosis} showed that they do once the readout is added.
+\item \textbf{Model-heterogeneous methods from the HtFLlib library}: prototypes (FedProto, FedTGP), a generator of
+embeddings (FedGen), a shared global head (FedGH), shared last layers (LG-FedAvg) and shared sub-networks (FedMRL). They
+represent the other ways of sharing knowledge between different models. They were designed for label skew without a
+global long tail and are ported to the frozen extractor with HtFLlib's settings.
+\item \textbf{Local}: each client trains its extractor and head alone. It is the reference without federation.
+\item \textbf{One-shared-model methods}: FedAvg, FedProx, MOON, FedLC, CCVR, CReFF, FedETF, Fed-GraB, FedLoGe, FedYoYo
+and RUCR, in the second protocol only.
+\end{itemize}
+Two further groups, GeFL's own grouped baselines and a reference trained on all data pooled, are planned for GeFL's
+50-client setting and had not returned when this text was written.
+
+\paragraph{Fairness of the comparison} The paper's fairness table records what each method spends and exchanges.
+FedECS-LT trains 10 synthetic epochs per round against 1 for GeFL-F and FedDF and none for the methods without a
+generator; it exchanges consensus soft labels; and it ends with the readout. GeFL-F, FedDF and the three losses are
+also reported with the readout added. The HtFLlib methods are not, so FedECS-LT's margin over them includes the
+readout's gain. No baseline was tuned on the paper's data.
+
+\subsection{Metrics}
+
+The primary metric is balanced accuracy averaged over the ten client models (\cref{ch:problem}). The others each answer
+a narrower question:
+\begin{itemize}
+\item \textbf{tail recall}, the mean recall of the 40\% least frequent classes (classes 6--9 of CIFAR-10): are the rare
+classes recovered?
+\item \textbf{worst-class recall}, the lowest class recall after averaging over the models: is any class abandoned?
+\item \textbf{classes with zero recall for every model}: how many classes does the federation fail completely?
+\item \textbf{accuracy on each client's own class mix}: the test accuracy re-weighted to the class frequencies of the
+model's own client. It measures how well a model serves its own client, which balanced accuracy deliberately ignores.
+\item \textbf{expected calibration error} (15 bins): do the predicted probabilities match the observed frequencies?
+\item \textbf{the weakest architecture's balanced accuracy}: does the mean over ten models hide a poor one?
+\item \textbf{GeFL's measure}, each model's best test accuracy over the evaluated rounds, given in the appendix for
+comparison with GeFL's paper. The main tables report the model after the last round, which involves no selection on
+the test set.
+\item \textbf{cost}: communication per client, wall-clock time (on a shared T4 GPU, so only indicative) and
+floating-point operations.
+\end{itemize}
+
+\subsection{Statistics}\label{sec:s-stats-design}
+
+\paragraph{Paired differences} A difference between FedECS-LT and a method is the mean of the per-seed differences
+over the seeds both have, with a 95\% $t$ interval and a paired $t$-test. Pairing removes the variation that comes from
+the split, because both methods see the same split on each seed.
+
+A worked example with the run logs: with the readout, FedECS-LT minus Balanced Softmax on CIFAR-10-LT is $0.65$,
+$1.30$ and $2.34$ points on seeds 3, 4 and 5. The mean is $1.43$ and the standard deviation $0.86$. The $t$ statistic
+is $1.43/(0.86/\sqrt3)=2.89$ with 2 degrees of freedom, giving an uncorrected two-sided $p=0.10$. The 95\% interval is
+$1.43\pm4.30\cdot0.86/\sqrt3$, which is \R{main/cifar10/er_ci/Balanced Softmax}: it contains zero.
+
+\paragraph{Holm's correction} A table compares FedECS-LT with many methods at once, and with many tests some will look
+significant by chance. Holm's procedure controls this. Sort the $m$ $p$-values from smallest to largest, multiply the
+smallest by $m$, the next by $m-1$, and so on, and keep each adjusted value at least as large as the one before. A
+difference is called significant only if its adjusted $p$ is below $0.05$. The family is every other method of the
+same table and setting. In the example, after correction over the five methods of the pipeline, Balanced Softmax's
+$p$ becomes \R{main/cifar10/er_p/Balanced Softmax}.
+
+\paragraph{Why three seeds are weak} Three paired differences give little power. A sign-flip permutation test, which
+assumes nothing about the distribution, cannot go below $p=0.25$ with three pairs: of the $2^3=8$ ways to flip the
+signs, the observed pattern and its mirror are always 2 of the 8. The $t$-test reaches smaller values only because it
+assumes normally distributed differences. A result near $p=0.05$ can also depend on which methods are in the Holm
+family.
+
+\paragraph{The noise floor} GPU computation is not bit-reproducible, so two runs with the same seed differ. The paper
+measured this by running the BloodMNIST notebook twice with the same run list (\R{repeat/bal/n} runs). The standard
+deviation of the difference between the two runs of one configuration is \R{repeat/bal/sd} points as trained and
+\R{repeat/er/sd} with the readout. For a mean of three paired differences that gives about half of these values, and
+the paper treats differences smaller than twice that, \R{repeat/bal/floor} points as trained and \R{repeat/er/floor}
+with the readout, as unresolved. Exceeding the floor is necessary, not sufficient: a difference above it counts as
+resolved only if its Holm-corrected test is also significant.
+
+\subsection{What the development saw}\label{sec:s-development}
+
+The settings of FedECS-LT were fixed during its development, before the reported runs. The development used seeds 0 to
+5, including seeds 3 to 5 with the same client splits as the reported runs, and every run was evaluated on the same
+official test sets. It compared about 36 configurations of the method and its variants on CIFAR-10-LT and 17 on
+CIFAR-100-LT, plus runs on MNIST, Fashion-MNIST and SVHN. It never used the six naturally imbalanced datasets. The
+baselines were not tuned. So on the CIFAR benchmarks the reported numbers may favour FedECS-LT through this selection,
+which is why the natural datasets matter, and why a run on new seeds 6--8 was added (pending).
+
+\subsection{Threats to validity}
+
+The paper lists these threats in its design section. Each one changes how a result may be read.
+\begin{itemize}
+\item \textbf{Compute.} FedECS-LT trains longer and communicates more. Its gain is therefore not shown to come from the
+statistics rather than from the extra computation until the matched-epoch runs return.
+\item \textbf{Missing runs.} Some settings have fewer than three seeds (EMNIST, and CIFAR-100-LT with one shared model),
+and those values carry no interval. With one shared model some runs of FedECS-LT failed where the baselines finished,
+so the missing runs are not random.
+\item \textbf{Ports.} The HtFLlib methods run on a frozen extractor with settings meant for end-to-end training, which
+may not suit them.
+\item \textbf{The mean over models.} Balanced accuracy averages ten models of different sizes, so a large gain on small
+heads and a small one on large heads give the same number; the weakest architecture is reported for this reason.
+\item \textbf{The readout comparison.} The readout is the same linear classifier on every body, so accuracy with it
+measures the bodies only through that classifier.
+\item \textbf{The validation set.} The server holds a small validation set for the diagnostics and the bounds; a
+deployment without such data would need another source for the bounds.
+\item \textbf{The long tail is synthetic} on the benchmarks, with the same tail classes in every run.
+\end{itemize}
+
+What do the results show?

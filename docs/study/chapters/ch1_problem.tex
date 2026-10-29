@@ -1,0 +1,85 @@
+\section{The problem}\label{ch:problem}
+
+\paragraph{Federated learning} In federated learning, data stay on the devices or institutions that own them, the
+\emph{clients}. A \emph{server} coordinates training. In each \emph{round} the server sends a model to the clients,
+each client trains it for a while on its own data, and the server combines the returned models into a new one. The
+standard way of combining is FedAvg: the server averages the clients' parameters, coordinate by coordinate. No raw
+data leave a client; only parameters or other summaries do.
+
+\paragraph{Different models} FedAvg needs every client to train the same network, because only then do the $j$-th
+parameters of two clients mean the same thing. In practice clients run different hardware, so they may run different
+networks: a phone runs a small convolutional network, a hospital server a larger one. This is
+\emph{model-heterogeneous} federated learning. Parameters of different architectures cannot be averaged, so the
+clients must share knowledge in another form. The paper studies one such form, a shared generator of synthetic
+features (\cref{ch:gefl}).
+
+\paragraph{Skewed and long-tailed labels} The second difficulty is in the labels. Two properties combine.
+\begin{itemize}
+\item \emph{Label skew}: clients hold different classes in different proportions. A client may have hundreds of images
+of one class and none of another.
+\item \emph{A global long tail}: over the whole federation, a few classes are frequent and many are rare.
+\end{itemize}
+The paper builds both in a controlled way. The class sizes follow
+\[
+n_c\propto\rho^{-c/(C-1)},\qquad c=0,\dots,C-1,
+\]
+so class $0$ is the largest, class $C-1$ the smallest, and the \emph{imbalance ratio} $\rho=n_0/n_{C-1}$ fixes how
+steep the tail is. The paper uses $\rho=100$. Each class is then divided among the $K$ clients by a Dirichlet draw: for
+class $c$ a vector of shares $(p_{1c},\dots,p_{Kc})$ is drawn from $\mathrm{Dirichlet}(\alpha,\dots,\alpha)$, and client
+$k$ receives a fraction $p_{kc}$ of the class. A small concentration $\alpha$ gives very uneven shares; the paper uses
+$\alpha=0.5$.
+
+\paragraph{The running example} The text returns to one concrete case throughout: CIFAR-10-LT with $\rho=100$, $K=10$
+clients and $\alpha=0.5$, split with seed 3. The run logs give its class sizes,
+\[
+(n_0,\dots,n_9)=(4800,\,4800,\,3620,\,2170,\,1301,\,779,\,467,\,280,\,168,\,100),
+\]
+18,485 training images in all. The profile asks for more than 4,800 images of classes 0 and 1, but CIFAR-10 has only
+5,000 per class and 200 are held out for validation, so these two classes are capped. The realised ratio is
+therefore $4800/100=48$, not 100. The paper still names the setting by its target ratio $\rho=100$ and gives the
+realised ratio in its dataset table (\cref{tab:s-datasets}).
+
+The rare class 9 shows what the split does to a rare class. Of its 100 images, client 7 holds 63. The other holders
+have between 1 and 14 each, and clients 2 and 5 have none. (Clients are numbered 1 to 10 here; in the run logs they
+are 0 to 9.) A class that is rare in the federation is held by few clients, and most of them see it only a few
+times.
+
+\paragraph{How the loss is measured} Plain accuracy hides what happens to rare classes. Take a model that recognises
+classes 0--4 with recall 90\% and classes 5--9 with recall 10\%. On a test set with the training proportions above,
+its accuracy is
+\begin{align*}
+&\frac{0.9\cdot(4800+4800+3620+2170+1301)+0.1\cdot(779+467+280+168+100)}{18485}\\
+&\qquad=\frac{15021.9+179.4}{18485}\approx82\%,
+\end{align*}
+because the first five classes hold 90\% of the images. Yet the model fails on half of the classes. \emph{Balanced
+accuracy} is the mean of the per-class recalls, here $(5\cdot0.9+5\cdot0.1)/10=50\%$: every class counts equally,
+whatever its size. It is the paper's primary metric. The test sets of CIFAR-10 and CIFAR-100 are balanced (1,000 and
+100 images per class), so there the two measures coincide; on the naturally imbalanced datasets they do not.
+
+With ten client models, one per architecture, the paper reports the mean over the ten models of each model's balanced
+accuracy,
+\[
+\text{balanced accuracy}=\frac1G\sum_{g=1}^{G}\frac1C\sum_{c=1}^{C}r_{gc},
+\]
+where $r_{gc}$ is the recall of class $c$ by the model of architecture $g$ and $G=10$ is the number of architectures.
+
+\begin{table}[t]
+\centering\small
+\caption{The datasets as used in the paper (the paper's dataset table): number of classes, training images held by
+the clients, test images, and the realised ratio between the largest and the smallest class. The first two are the
+long-tailed benchmarks built with $\rho=100$; the others keep their own class sizes.}
+\label{tab:s-datasets}
+\slottab{datasets}{}
+\end{table}
+
+\paragraph{Two protocols} The paper tests its method in two settings.
+\begin{itemize}
+\item \emph{Different client models}, the setting the method is built for: ten clients, each with its own head
+architecture, on the long-tailed benchmarks CIFAR-10-LT and CIFAR-100-LT and on six datasets whose classes are
+naturally imbalanced (\cref{tab:s-datasets}).
+\item \emph{One shared model}, the standard protocol of federated long-tail research: twenty clients train one
+ResNet-8 together. Here the specialised long-tail methods of the literature apply, so this setting shows how the
+method compares with them outside its own design.
+\end{itemize}
+
+The question the rest of this text builds on is how clients that run different models can share knowledge at all.

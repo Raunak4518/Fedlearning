@@ -1,0 +1,395 @@
+\section{The results, read table by table}\label{ch:results}
+
+This chapter goes through the paper's results in the order of its results section. For each table or figure it says
+which question it answers, how to read it, what it shows and what it does not. Unless a caption says otherwise, a cell
+is the mean $\pm$ standard deviation over seeds 3--5, a difference is FedECS-LT minus the other method, paired over
+the same seeds, and ``significant'' means $p<0.05$ after Holm's correction (\cref{sec:s-stats-design}). The noise
+floor is \R{repeat/bal/floor} points without the readout and \R{repeat/er/floor} with it.
+
+Two labels recur. \emph{FedECS-LT} is the full method, ending with the exact readout. \emph{FedECS-LT (heads only)} is
+the same run before the readout, the heads as Stage III left them. Every other method appears \emph{without the
+readout} in the main tables, as its authors defined it; in \cref{sec:s-same-readout} the readout is added to the
+methods that can take it.
+
+\subsection{The main comparison}\label{sec:s-main}
+
+\paragraph{The question} Does FedECS-LT raise balanced accuracy over every published method when clients have
+different models and the training set has a long tail? This is RQ2.
+
+\paragraph{How to read the tables} \Cref{tab:s-main} is the paper's main table: one row per method, one column per
+benchmark, the best mean in each column in bold. \Cref{tab:s-paired} is its paired-difference table: each cell is FedECS-LT
+minus the row's method, with the 95\% interval in brackets, bold where the difference is significant. A difference
+whose interval excludes zero but is not bold passed the uncorrected test and failed Holm's correction.
+
+\begin{table}[t]
+\centering\small
+\caption{Balanced accuracy (\%), the paper's main table. Look at the first three rows: the full method, its heads before
+the readout, and GeFL-F; then at the strongest other method in each column.}
+\label{tab:s-main}
+\slottab{main_bal}{}
+\end{table}
+
+\begin{table}[t]
+\centering\small
+\caption{FedECS-LT minus each method (points), paired over seeds 3--5, with the 95\% $t$ interval; bold: significant
+after Holm's correction. The paper's paired-difference table. Look at the smallest difference in each column:
+it belongs to the strongest other method.}
+\label{tab:s-paired}
+\slottab{main_paired}{}
+\end{table}
+
+\paragraph{The numbers} On CIFAR-10-LT FedECS-LT reaches \R{main/cifar10/FedECS-LT/bal}, against
+\R{main/cifar10/strongest/bal} for the strongest other method, \R{main/cifar10/strongest}: a margin of
+\R{main/cifar10/margin} points with Holm-corrected $p=\R{main/cifar10/strongest_p}$. On CIFAR-100-LT it reaches
+\R{main/cifar100/FedECS-LT/bal} against \R{main/cifar100/strongest/bal} for \R{main/cifar100/strongest}, a margin of
+\R{main/cifar100/margin} with $p=\R{main/cifar100/strongest_p}$. Against GeFL-F the differences are
+\R{main/cifar10/diff/GeFL-F} \R{main/cifar10/ci/GeFL-F} and \R{main/cifar100/diff/GeFL-F}
+\R{main/cifar100/ci/GeFL-F}. On CIFAR-100-LT no class has zero recall for all ten models of FedECS-LT
+(\R{main/cifar100/FedECS-LT/nzero}), while \R{main/cifar100/strongest_nzero} classes on average are recognised by none
+of the models of \R{main/cifar100/strongest}.
+
+\paragraph{The heads alone} Before the readout the heads of FedECS-LT reach
+\R{main/cifar10/FedECS-LT (heads only)/bal} and \R{main/cifar100/FedECS-LT (heads only)/bal}. That is
+\R{main/cifar10/heads_margin} points ahead of \R{main/cifar10/heads_strongest} on CIFAR-10-LT, with
+$p=\R{main/cifar10/heads_strongest_p}$, not significant, and \R{main/cifar100/heads_margin} ahead on CIFAR-100-LT, with
+$p=\R{main/cifar100/heads_strongest_p}$, significant. The readout itself adds \R{main/cifar10/FedECS-LT/gain_er} and
+\R{main/cifar100/FedECS-LT/gain_er} points to the heads. Of the \R{main/cifar10/margin}-point margin on CIFAR-10-LT,
+therefore, about a third comes from the heads and two thirds from the readout.
+
+\paragraph{What it shows} The measured statement is narrow: the full method, with its readout, is above every
+published method of this setting as that method was published, by a large and significant margin on both benchmarks.
+The heads alone are also ahead, by less, and the CIFAR-10-LT part of that is not resolved by three seeds.
+
+\paragraph{What it does not show} It does not show that the generator side of FedECS-LT is what helps. Every other
+method in this table lacks the readout, and the readout is a known kind of classifier (\cref{sec:s-readout}) that can be
+added to most of them. The comparison that answers this follows in \cref{sec:s-same-readout}.
+
+\subsection{The other model-heterogeneous methods}
+
+\paragraph{The question} Do the methods that share prototypes, a generator of embeddings or a shared sub-network do
+better than the generator-based ones under a long tail?
+
+\paragraph{The answer} No. In \cref{tab:s-main} FedProto, FedTGP, FedGen, FedGH, LG-FedAvg and FedMRL are close to or
+below Local. None of them gives an architecture any information about the classes its own clients lack: a prototype of
+class 9 is only useful to a head that already predicts class 9. FedProto, FedTGP and FedGen also decline during
+training. They are best in the first rounds and lose \R{main/cifar10/FedProto/gefl_drop},
+\R{main/cifar10/FedTGP/gefl_drop} and \R{main/cifar10/FedGen/gefl_drop} points by the last round on CIFAR-10-LT. The
+heads of FedECS-LT decline too, by \R{main/cifar10/FedECS-LT (heads only)/gefl_drop} points on CIFAR-10-LT. The paper's
+appendix gives every method's best round, the measure GeFL reports; the readout is computed once, after the last round,
+so it has no best round.
+
+\paragraph{What it does not show} These methods run as ports onto the frozen extractor with settings from their
+library, meant for end-to-end training (\cref{ch:design}, threats). Their low numbers may partly be the port. The paper
+did not run a check of the ports.
+
+\subsection{Accuracy on the clients' own class mixes}
+
+\paragraph{The question} Balanced accuracy weights every class equally. What happens to the accuracy each client
+actually sees, on test images drawn with its own class frequencies?
+
+\paragraph{The numbers} FedECS-LT reaches \R{main/cifar10/FedECS-LT/local} on CIFAR-10-LT and
+\R{main/cifar100/FedECS-LT/local} on CIFAR-100-LT, and its heads alone \R{main/cifar10/FedECS-LT (heads only)/local}
+and \R{main/cifar100/FedECS-LT (heads only)/local}. GeFL-F reaches \R{main/cifar10/GeFL-F/local} on CIFAR-10-LT and
+Local \R{main/cifar10/Local/local}. FedECS-LT is below \R{main/cifar10/local_n_above} of the
+\R{main/cifar10/local_n_other} other federated methods on CIFAR-10-LT and \R{main/cifar100/local_n_above} of
+\R{main/cifar100/local_n_other} on CIFAR-100-LT.
+
+\paragraph{Why} This is the price of balanced accuracy and of the readout, and it follows from their definitions. A
+client whose test images are mostly class 0 is best served by a last layer that favours class 0. Logit adjustment and
+the readout's equal class priors remove exactly that preference. The readout, which treats all classes as equally
+likely, lowers this metric by about nine points on CIFAR-10-LT. A deployment that cares about each client's own
+accuracy could add each client's own log-prior back to the readout's biases at prediction time, the reverse of
+\cref{sec:s-lastlayer}; the paper did not test this.
+
+\subsection{The same readout for every method}\label{sec:s-same-readout}
+
+\paragraph{The question} How much of FedECS-LT's margin remains when every method of the GeFL-F pipeline gets the same
+readout? This is RQ3, and its answer decides how the paper's claim must be worded.
+
+\paragraph{Why this is the fair comparison of the bodies} With the readout, every last layer is replaced by the same
+estimator, computed from the same kind of pooled statistics, through the same procedure. What still differs between two
+methods is the body that produced the embeddings. So the difference with the readout measures what FedECS-LT's
+other components (the anchored generator, the moment correction, consensus soft labels, logit adjustment and ten
+synthetic epochs) do to the bodies, read through one linear classifier. The comparison without the readout measures
+the methods as published. A reader needs both: the first says whether FedECS-LT beats what exists; the second says
+whether its parts beyond a known classifier contribute.
+
+\begin{table}[t]
+\centering\small
+\caption{Balanced accuracy (\%) with every last layer set by the exact readout, the paper's readout table. Methods of the
+GeFL-F pipeline only. Compare each row with its value in \cref{tab:s-main}: the readout raises every method.}
+\label{tab:s-er}
+\slottab{main_er}{}
+\end{table}
+
+\begin{table}[t]
+\centering\small
+\caption{FedECS-LT minus each method, both with the readout (points), paired over seeds 3--5, with the 95\% $t$
+interval; bold: significant after Holm's correction. From the paper's appendix. Look at whether the intervals contain
+zero.}
+\label{tab:s-er-paired}
+\slottab{main_er_paired}{}
+\end{table}
+
+\paragraph{The numbers} With the readout (\cref{tab:s-er,tab:s-er-paired}) FedECS-LT is \R{main/cifar10/er_diff/GeFL-F}
+points \R{main/cifar10/er_ci/GeFL-F} ahead of GeFL-F on CIFAR-10-LT and \R{main/cifar100/er_diff/GeFL-F}
+\R{main/cifar100/er_ci/GeFL-F} on CIFAR-100-LT. Against the strongest other method with the readout,
+\R{main/cifar10/er_strongest} on CIFAR-10-LT and \R{main/cifar100/er_strongest} on CIFAR-100-LT, the margins are
+\R{main/cifar10/er_margin} \R{main/cifar10/er_strongest_ci} and \R{main/cifar100/er_margin}
+\R{main/cifar100/er_strongest_ci}, with Holm-corrected $p=\R{main/cifar10/er_strongest_p}$ and
+$\R{main/cifar100/er_strongest_p}$. On CIFAR-100-LT the uncorrected interval excludes zero but the corrected test does
+not reach $0.05$. The differences to GeFL-F and FedDF on CIFAR-100-LT stay significant
+($p=\R{main/cifar100/er_p/GeFL-F}$ and $\R{main/cifar100/er_p/FedDF}$).
+
+\paragraph{What it shows} Three things. First, the readout raises every method by a large amount: Balanced Softmax
+gains \R{main/cifar10/Balanced Softmax/gain_er} points on CIFAR-10-LT, GeFL-F \R{main/cifar10/GeFL-F/gain_er}. Second,
+once every method has it, the methods are close. Third, Balanced Softmax with the readout reaches
+\R{main/cifar10/Balanced Softmax/er_bal} on CIFAR-10-LT. With one client per architecture, Balanced Softmax trains every
+head on its own client's data with no generator and no exchange after Stage I. So a body trained alone, plus the
+federated readout, comes within \R{main/cifar10/er_diff/Balanced Softmax} points of the full method. Most of the margin
+of \cref{sec:s-main} is the readout's.
+
+\paragraph{What it does not show} It does not show that the other components do nothing: a gain of 1.5 points with
+three seeds and a noise floor of \R{repeat/er/floor} is neither shown nor ruled out. It also does not show the
+components' effect without the readout, which is the subject of the pending ablations (\cref{sec:s-pending}). And
+because the readout is one fixed linear classifier, a body that is better for another last layer would not show
+it here.
+
+\subsection{Rare classes}
+
+\paragraph{The question} Where among the classes does the gain sit? If FedECS-LT addresses the long tail, the gain
+should be largest on the rare classes.
+
+\paragraph{How to read it} \Cref{tab:s-tail} gives the mean recall of the tail classes (the 40\% least frequent:
+classes 6--9 on CIFAR-10-LT, 60--99 on CIFAR-100-LT). \Cref{fig:s-recall-size} plots each class's recall against its
+number of training images on CIFAR-100-LT.
+
+\begin{table}[t]
+\centering\small
+\caption{Recall (\%) of the tail classes, the 40\% least frequent; FedECS-LT with its readout, other methods without
+it. From the paper's tail table. Compare FedECS-LT with its heads only and with GeFL-F.}
+\label{tab:s-tail}
+\slottab{main_tail}{}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\slotfig{fig_recall_size}{col}{Recall of every class against its training size, CIFAR-100-LT.}
+\caption{Recall of each class of CIFAR-100-LT against its number of training images in the federation (logarithmic
+axis); each point is one class, mean over seeds 3--5. Look at the left side of the plot, the rarest classes, where the
+methods separate.}
+\label{fig:s-recall-size}
+\end{figure}
+
+\paragraph{The numbers} Against GeFL-F on CIFAR-10-LT, FedECS-LT gains \R{main/cifar10/tail_diff/GeFL-F} points on
+the tail classes, \R{main/cifar10/med_diff/GeFL-F} on the medium ones and \R{main/cifar10/head_diff/GeFL-F} on the head
+classes. Its tail recall is \R{main/cifar10/FedECS-LT/tail} against \R{main/cifar10/GeFL-F/tail}. Against FedDF it
+gains \R{main/cifar10/tail_diff/FedDF} on the tail and loses \R{main/cifar10/head_diff/FedDF} on the head classes. On
+CIFAR-100-LT the gain over GeFL-F is spread over the three groups (head \R{main/cifar100/head_diff/GeFL-F}, medium
+\R{main/cifar100/med_diff/GeFL-F}, tail \R{main/cifar100/tail_diff/GeFL-F}). There the tail recall is
+\R{main/cifar100/FedECS-LT/tail} against \R{main/cifar100/GeFL-F/tail}, and the worst-class recall
+\R{main/cifar100/FedECS-LT/worst} against \R{main/cifar100/GeFL-F/worst}: some class is still lost on CIFAR-100-LT.
+
+\paragraph{With the readout for every method} The tail gain over the loss-only methods disappears. FedECS-LT minus
+Balanced Softmax, both with the readout, is \R{main/cifar10/ertail_diff/Balanced Softmax} points of tail recall on
+CIFAR-10-LT and \R{main/cifar100/ertail_diff/Balanced Softmax} on CIFAR-100-LT. Against GeFL-F with the readout a tail
+gain remains, \R{main/cifar10/ertail_diff/GeFL-F} \R{main/cifar10/ertail_ci/GeFL-F} on CIFAR-10-LT and
+\R{main/cifar100/ertail_diff/GeFL-F} \R{main/cifar100/ertail_ci/GeFL-F} on CIFAR-100-LT, significant on CIFAR-100-LT
+($p=\R{main/cifar100/ertail_p/GeFL-F}$).
+
+\paragraph{What it shows and does not} The long-tail gain is real and sits where it should, on the rare classes; its
+trade is head-class recall against FedDF. The same-readout numbers say where it comes from: from the last layer. The
+part that remains against GeFL-F is consistent with the generator side helping the bodies of GeFL-F's own pipeline,
+but against a body trained without any generator it is zero.
+
+\subsection{Natural class imbalance}\label{sec:s-natural}
+
+\paragraph{The question} Does the result carry over to datasets whose imbalance is their own, which played no part in
+the development of the method? This is the first half of RQ4, and it is the cleanest test in the paper
+(\cref{sec:s-development}).
+
+\begin{table}[t]
+\centering\small
+\caption{Balanced accuracy (\%) on the six naturally imbalanced datasets, the paper's natural-imbalance table; FedECS-LT with its
+readout, other methods without it. A value without $\pm$ is from one seed. Look at the gap between the first row and
+the rest.}
+\label{tab:s-natural}
+\slottab{nat_bal}{}
+\end{table}
+
+\begin{table}[t]
+\centering\small
+\caption{The same datasets with the exact readout for every method of the GeFL-F pipeline, from the paper's appendix.
+Look at how close the rows are.}
+\label{tab:s-natural-er}
+\slottab{nat_er}{}
+\end{table}
+
+\paragraph{The numbers} Without the readout for the others (\cref{tab:s-natural}), FedECS-LT has the highest mean on
+\R{nat/nbest_of} datasets. Its margin over the strongest other method runs from \R{nat/margin_lo}
+(\R{nat/margin_lo_ds}) to \R{nat/margin_hi} points (\R{nat/margin_hi_ds}), significant on \R{nat/n_sig} of the
+\R{nat/n_sig_of} datasets with three seeds; \R{nat/one_seed} has one seed, so no test. With the readout for every method
+of the pipeline (\cref{tab:s-natural-er}), the margins run from \R{nat/er_margin_lo} (\R{nat/er_margin_lo_ds}, against
+\R{nat/er_margin_lo_who}) to \R{nat/er_margin_hi} (\R{nat/er_margin_hi_ds}). None is significant after Holm's
+correction (the smallest $p$, on OrganAMNIST, is \R{nat/organamnist/er_strongest_p}). All but the BloodMNIST margin
+exceed the noise floor of \R{repeat/er/floor} points, which is necessary but not sufficient for a resolved difference.
+On BloodMNIST, FedDF with the readout has the higher mean. The readout changes FedECS-LT itself by
+\R{nat/pathmnist/FedECS-LT/gain_er} points on PathMNIST and by \R{nat/organamnist/FedECS-LT/gain_er} on OrganAMNIST,
+where it slightly lowers the heads' accuracy. On \R{gate/rows} the gate chose the generator with class rows.
+
+\paragraph{What it shows} On data the development never saw, the pattern of the CIFAR benchmarks repeats: a large
+margin as published, a small and unresolved one once every method has the readout. That the pattern repeats is evidence
+that the CIFAR result is not an artefact of tuning. That the same-readout margin stays small is evidence that the
+readout carries the result here too.
+
+\paragraph{What it does not show} On OrganAMNIST, BloodMNIST and PathMNIST the realised imbalance ratio is 5 or less
+(\cref{ch:design}), so these three test label skew more than a long tail.
+
+\subsection{One shared model}\label{sec:s-shared}
+
+\paragraph{The question} When all clients can run the same model, how does FedECS-LT compare with the federated
+long-tail methods? This is the second half of RQ4. It is a test of scope, outside the setting the method was built for.
+
+\begin{table}[t]
+\centering\small
+\caption{Balanced accuracy (\%) with one ResNet-8 shared by all clients (FedLTLib protocol), imbalance ratio 100; the
+paper's shared-model table. A value without $\pm$ is from one seed. Look at how many rows are above the first one.}
+\label{tab:s-shared}
+\slottab{t2_bal}{}
+\end{table}
+
+\paragraph{The numbers} \R{t2/cifar10-r100/above_list} are above FedECS-LT on CIFAR-10-LT, and
+\R{t2/cifar100-r100/above_list} on CIFAR-100-LT (\cref{tab:s-shared}). FedECS-LT reaches \R{t2/cifar10-r100/FedECS-LT/bal}
+on CIFAR-10-LT against \R{t2/cifar10-r100/FedAvg/bal} for plain FedAvg and \R{t2/cifar10-r100/FedYoYo/bal} for
+FedYoYo; its heads alone reach \R{t2/cifar10-r100/FedECS-LT (heads only)/bal}. The readout changes the heads by
+\R{t2/cifar10-r100/FedECS-LT/gain_er} points on CIFAR-10-LT and \R{t2/cifar100-r100/FedECS-LT/gain_er} on
+CIFAR-100-LT. The CIFAR-100-LT values of FedECS-LT are from one seed, because runs of FedECS-LT failed there where the
+baselines finished; the missing runs are not random.
+
+\paragraph{Why the readout does not help here} The readout repairs a last layer fitted to one client's prior
+(\cref{sec:s-lastlayer}). With one shared model, the head is trained by every client in turn and averaged by FedAvg, so
+its last layer already sees every client's classes. There is nothing left for the readout to repair, and a linear
+discriminant on non-Gaussian embeddings can be worse than a trained last layer. The paper states that it did not test
+why the readout lowers the accuracy.
+
+\paragraph{Why the generator does not help here} With one shared model, FedAvg itself carries every client's
+knowledge into every client's model, which is the job the generator does when models differ. FedECS-LT also trains its
+head on frozen features of unaugmented images, while the baselines train the whole network end to end on augmented
+images (\cref{ch:design}). The paper offers the second difference as a possible explanation and states that it did not
+test it.
+
+\paragraph{The published numbers} The baselines run in their authors' library on the paper's splits and report the
+model after the last round. Against FedYoYo's own evaluation in the same protocol, most of them are within about three
+points of the published values. Three (CReFF, Fed-GraB, FedLC) are further below; they run with the library's common
+settings, which differ from those of their own papers, and were not tuned.
+
+\paragraph{What it shows} FedECS-LT is a method for clients with different models. When the clients can share one
+model, a plain FedAvg is better on CIFAR-10-LT, and the long-tail methods built for that setting are much better.
+
+\subsection{Representations}
+
+\paragraph{The question} Do the bodies of FedECS-LT separate the classes better than those of GeFL-F, independently of
+any last layer?
+
+\paragraph{The measurement} The leave-one-out 10-nearest-neighbour accuracy of the test embeddings classifies each
+test image by the majority class of its ten nearest other test embeddings. It uses no last layer at all. It is
+\R{repr/cifar10/FedECS-LT/knn} for FedECS-LT, \R{repr/cifar10/GeFL-F/knn} for GeFL-F and \R{repr/cifar10/FedDF/knn}
+for FedDF on CIFAR-10-LT, averaged over the ten architectures and three seeds. FedECS-LT is higher in
+\R{repr/cifar10/knn_wins/GeFL-F} of the \R{repr/cifar10/knn_cells} architecture--seed pairs against GeFL-F and in
+\R{repr/cifar10/knn_wins/FedDF} against FedDF. \Cref{fig:s-tsne} shows a t-SNE map of the embeddings of one
+architecture.
+
+\begin{figure}[t]
+\centering
+\slotfig{fig_tsne}{wide}{t-SNE of GeFL-F and FedECS-LT embeddings.}
+\caption{t-SNE of the test embeddings of one architecture on the same 2,000 CIFAR-10-LT test images, (a) GeFL-F and (b)
+FedECS-LT; tail classes drawn larger. Look only at which points group together: in a t-SNE map the sizes of clusters
+and the distances between them carry no meaning.}
+\label{fig:s-tsne}
+\end{figure}
+
+\paragraph{What it shows and does not} The bodies of FedECS-LT separate the classes a little better, consistently
+across architectures and seeds. The difference is a few points, which agrees with the small same-readout margin of
+\cref{sec:s-same-readout}. A t-SNE map is an illustration; it cannot carry a quantitative claim.
+
+\subsection{Calibration, the weakest architecture and cost}
+
+\paragraph{Calibration} The expected calibration error of FedECS-LT is \R{main/cifar10/FedECS-LT/ece} on CIFAR-10-LT,
+against \R{main/cifar10/GeFL-F/ece} for GeFL-F and \R{main/cifar10/strongest/ece} for \R{main/cifar10/strongest}; it
+ranks \R{main/cifar10/ece_rank} of \R{main/cifar10/ece_n} methods there. On CIFAR-100-LT it ranks
+\R{main/cifar100/ece_rank}, with \R{main/cifar100/FedECS-LT/ece} against \R{main/cifar100/GeFL-F/ece} for GeFL-F and
+\R{main/cifar100/FedDF/ece} for FedDF. So calibration is not an advantage on CIFAR-100-LT.
+
+\paragraph{The weakest architecture} Balanced accuracy averages ten models. The weakest architecture of FedECS-LT
+reaches \R{main/cifar10/FedECS-LT/worst_arch} on CIFAR-10-LT and \R{main/cifar100/FedECS-LT/worst_arch} on
+CIFAR-100-LT, so the mean does not hide a failed model.
+
+\begin{table}[t]
+\centering\small
+\caption{Cost on CIFAR-10-LT, from the paper's cost table: communication per client over the whole training, wall-clock time
+of a run (on a shared T4 GPU, so indicative only), forward MFLOPs per image and training GFLOPs per round. Compare the
+first row with Balanced Softmax.}
+\label{tab:s-cost}
+\slottab{cost}{}
+\end{table}
+
+\paragraph{Cost} \Cref{tab:s-cost} gives the measured cost. FedECS-LT takes \R{cost/cifar10/time_ratio} times the
+wall-clock time of GeFL-F and \R{cost/cifar10/comm_ratio} times its communication. Most of the extra time is the longer
+synthetic phase ($T_s=10$), and most of the extra communication is the generator, which is larger than GeFL-F's
+because of its projection of the class means. Against Balanced Softmax, which trains its heads locally, FedECS-LT
+communicates \R{cost/cifar10/comm_ratio_bsm} times as much and takes \R{cost/cifar10/time_ratio_bsm} times as long,
+for \R{main/cifar10/er_diff/Balanced Softmax} points when both have the readout. This is the trade a reader must weigh,
+and \cref{ch:defence} returns to it.
+
+\subsection{The experiments still pending}\label{sec:s-pending}
+
+Five experiments asked for by the reviews were built as Flower notebooks and had not returned when this text was
+written. The paper's text for each is already written and appears by itself once the results are filled in. For each,
+here is the question, what result would support or weaken the paper, and what changes.
+
+\paragraph{Several clients per architecture} The paper's 50-client setting has five clients per architecture, so heads
+of one architecture are averaged in Stage III. The question: is the readout's dominance an artefact of one client per
+architecture? With averaging, Balanced Softmax's heads would no longer be purely local, and their last layers would no
+longer fit one client's prior, so the readout should matter less. The paper is supported if FedECS-LT stays ahead of
+every method with the readout by more than the noise floor; it is weakened if the margins fall to zero, because then
+FedECS-LT's case would rest on the one-client-per-architecture setting alone.
+\numelse{k50/cifar10/margin}{\numelse{k50/cifar100/er_margin}{\emph{Result:} with 50 clients FedECS-LT is \R{k50/cifar10/margin} and
+\R{k50/cifar100/margin} points ahead of the strongest other method without the readout, and
+\R{k50/cifar10/er_margin} and \R{k50/cifar100/er_margin} with it.}{The runs are pending; the first attempt on
+CIFAR-10-LT ran out of host memory on Kaggle (run log) and was rebuilt to run one job per GPU.}}{The runs are pending; the first attempt on
+CIFAR-10-LT ran out of host memory on Kaggle (run log) and was rebuilt to run one job per GPU.}
+
+\paragraph{New client splits} Seeds 6--8 draw splits that the development never used, for FedECS-LT, GeFL-F, FedDF
+and Balanced Softmax. The question: are the CIFAR margins the product of choosing settings on the reported splits? The
+paper is supported if the margins on seeds 6--8 are like those on 3--5, and weakened if the same-readout margin
+vanishes there.
+\numelse{fresh/cifar10/margin}{\numelse{fresh/cifar100/er_margin}{\emph{Result:} on the new splits FedECS-LT is \R{fresh/cifar10/margin} and
+\R{fresh/cifar100/margin} points ahead without the readout, and \R{fresh/cifar10/er_margin} and
+\R{fresh/cifar100/er_margin} with it.}{The runs are pending.}}{The runs are pending.}
+
+\paragraph{Variants of GeFL-F} Seven variants isolate single changes, among them GeFL-F with decoupled weight decay
+alone (AdamW) and GeFL-F and FedDF with ten synthetic epochs. The AdamW arm is the direct test of the decay diagnosis
+of \cref{sec:s-decay}: if it raises GeFL-F's balanced accuracy or tail recall by more than the noise floor, the class
+row shrinkage is shown to cost accuracy; if not, the shrinkage is a property of the generator without a measured
+consequence. The ten-epoch arms test whether the heads' advantage is computation: if GeFL-F or FedDF with ten
+synthetic epochs reach FedECS-LT's heads, it is.
+\numelse{abl/cifar10/GeFL-F + AdamW/gain}{\numelse{abl/cifar100/GeFL-F + AdamW/gain}{\emph{Result:} decoupled decay alone changes GeFL-F by
+\R{abl/cifar10/GeFL-F + AdamW/gain} points on CIFAR-10-LT and \R{abl/cifar100/GeFL-F + AdamW/gain} on
+CIFAR-100-LT.}{The runs are pending.}}{The runs are pending.}
+
+\paragraph{Components of FedECS-LT} Each run removes one component: the mean anchor, CCWA, the moment correction,
+consensus soft labels, logit adjustment, or nine of the ten synthetic epochs. One more replaces the trained generator
+by Gaussians with the exact class means and covariances, which tests whether a trained generator is needed at all. The
+question is RQ5. Each component is shown to matter if removing it lowers balanced accuracy with the readout by more
+than \R{repeat/er/floor} points, significantly. If all removals stay within the floor, no component has a measured
+effect beyond the readout, and the paper must say so. If the Gaussian sampler matches the full method, Stage II is
+unnecessary.
+\numelse{comp/cifar10/largest}{\emph{Result:} with the readout, the largest loss on CIFAR-10-LT comes from
+``\R{comp/cifar10/largest}'' (\R{comp/cifar10/largest_drop} points), and \R{comp/cifar10/n_small} of the
+\R{comp/n_variants} changes stay within the noise floor.}{The runs are pending.}
+
+\paragraph{Other settings} Sweeps over the label skew ($\alpha=0.1$ and $1.0$), the number of clients (50 and 100)
+and the imbalance ratio (50 and 10) on CIFAR-10-LT test whether the result depends on the main setting's values. Their
+runs are pending, and the paper's text for them is not yet written.
+
+What, taken together, does this evidence support?

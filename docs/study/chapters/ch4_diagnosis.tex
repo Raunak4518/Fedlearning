@@ -1,0 +1,223 @@
+\section{Where GeFL-F loses the rare classes}\label{ch:diagnosis}
+
+The paper finds a candidate loss on each of the first three routes of \cref{sec:s-routes}: the optimiser in Stage II,
+the last layer in Stage III, and the synthetic data in Stage III. Each subsection below gives the intuition with the
+running example, the precise statement, and what the runs show. The strength of the evidence differs between the
+three, and the paper says so.
+
+\subsection{The generator: coupled weight decay under Adam}\label{sec:s-decay}
+
+\paragraph{The situation} In one round of Stage II, every client starts from the global generator, takes some local
+Adam steps on its own features, and returns its copy; the server averages the copies. Consider the class row $r_9$ of
+the running example on client 2, which holds no image of class 9. Client 2 never generates a class-9 feature during
+training, so its data loss does not depend on $r_9$ at all. The only force on $r_9$ is the weight decay. With coupled
+decay the penalty $\frac\lambda2\|\theta\|^2$ is part of the loss, so the gradient of client 2's loss with respect to
+$r_9$ is exactly
+\[
+g=\lambda r_9 .
+\]
+With plain SGD this would move $r_9$ by $\eta\lambda r_9$ per step, a tiny amount: with the generator's learning rate
+$\eta=10^{-3}$ and decay $\lambda=10^{-3}$, one part in a million of the row per step. Adam behaves very differently.
+
+\paragraph{Why Adam makes the decay large} Adam divides each gradient coordinate by a running estimate of its own
+magnitude. With the running means $m$ of the gradient and $v$ of its square (decay rates $\beta_1=0.9$,
+$\beta_2=0.999$) and their bias-corrected versions $\hat m,\hat v$, a step is
+\[
+\theta\leftarrow\theta-\eta\,\frac{\hat m}{\sqrt{\hat v}+\epsilon}.
+\]
+Take one coordinate of $r_9$ equal to $0.5$, so $g=\lambda\cdot0.5=5\times10^{-4}$. On the first step $m=0.1\,g$ and
+$v=0.001\,g^2$; the bias corrections divide them by $1-0.9$ and $1-0.999$, so $\hat m=g$ and $\hat v=g^2$. The step is
+$\eta\,g/(|g|+\epsilon)\approx\eta=10^{-3}$, in the direction of the sign of the coordinate. Now repeat with a decay
+100 times smaller, $\lambda=10^{-5}$: then $g=5\times10^{-6}$, still much larger than $\epsilon=10^{-8}$, and the step is
+again $\approx10^{-3}$. Adam's step does not depend on the size of the gradient, only on its sign and consistency. A
+client that lacks class 9 therefore moves every coordinate of $r_9$ toward zero by about one learning rate per step,
+whatever the decay, 2,000 times faster than SGD would in this example.
+
+\begin{lemma*}[coupled decay under Adam]
+On a client without class $c$, the gradient of the loss with coupled L2 regularisation $\lambda$ with respect to $r_c$
+is exactly $\lambda r_c$. Since Adam is invariant to a positive rescaling of the gradient sequence up to its $\epsilon$,
+each step of such a client moves every coordinate of $r_c$ toward zero by about the learning rate $\eta$, independently
+of $\lambda$, as long as $\lambda|r_{c,j}|\gg\epsilon$. With $\lambda=0$ this shrinkage vanishes; with decoupled weight
+decay (AdamW) it becomes a factor $1-\eta\lambda$ per step, which is negligible here.
+\end{lemma*}
+
+Two remarks complete the picture. A client keeps its Adam state between rounds while its parameters are reset to the
+global ones, so a single step can be somewhat larger than $\eta$. And the effect is specific to \emph{federated}
+training: on pooled data, every batch that contains class 9 gives $r_9$ a data gradient, Adam's estimate $v$ of the
+squared gradient is dominated by these, and the decay stays small. This holds as long as class-9 batches come within
+the memory of $v$, about $1/(1-\beta_2)=1000$ steps.
+
+\paragraph{The holders do not compensate} One might expect the clients that hold class 9 to push $r_9$ back. They
+push it toward a good value, not toward a larger norm: their data gradient fits the row and need not lengthen it. They
+also see class 9 rarely. Stage II trains the generator for 5 local epochs per round in batches of 64 (from the code).
+Client 1 of the running example holds 4 class-9 images among 913, so at most 4 of its 15 batches per epoch, and at most
+20 of its 75 steps per round, contain the class. On every other step its gradient on $r_9$ is again only the decay
+$\lambda r_9$, and Adam shrinks the row exactly as on a client without the class. So most holders shrink a rare class's
+row most of the time.
+
+\paragraph{Averaging turns this into contraction} After the round, the server averages the returned rows. Let
+$\Delta_k=\|r_{k,9}\|-\|r_9\|$ be the change of the row's length on client $k$, $\bar G$ the mean change over the
+holders, $\bar D$ the mean shrinkage over the non-holders, and $p=m/K$ the share of clients that hold the class.
+
+\begin{lemma*}[contraction under flat averaging]
+Under $r_c^+=\frac1K\sum_k r_{k,c}$, $\|r_c^+\|\le\|r_c\|+p_c\bar G_c-(1-p_c)\bar D_c$, with equality if and only if all
+$r_{k,c}$ are non-negative multiples of one another. The row contracts whenever $p_c<\bar D_c/(\bar G_c+\bar D_c)$.
+\end{lemma*}
+
+The proof is the triangle inequality: the length of an average is at most the average of the lengths. The
+inequality is often strict, because clients that fit class 9 to their own few images move the row in different
+directions, and averaging vectors that point in different directions shortens them further. For a feel of the
+numbers: if eight holders lengthen the row by $0.02$ each and two non-holders shorten it by $0.05$, the bound allows a
+gain of $0.8\cdot0.02-0.2\cdot0.05=0.006$. If the holders' average change is zero, which is plausible when they rarely
+see the class, the row shrinks by at least $0.2\cdot0.05=0.01$ every round, over 200 rounds.
+
+The paper also gives a predictor of the direction, counting Adam steps:
+\[
+\kappa_c=\frac{\sum_{k\in H_c}q_k f_{kc}}{\sum_{k\notin H_c}q_k},
+\]
+where $H_c$ is the set of holders, $q_k$ the number of local steps of client $k$, and $f_{kc}$ the probability that a
+batch of client $k$ contains class $c$. The numerator counts the steps on which a holder actually sees the class, the
+denominator the steps on which a non-holder decays it. When $\kappa_c<1$ the row drifts toward zero. The paper is
+explicit that this is a heuristic, not a bound: it ignores the momentum Adam carries between rounds, and it was
+\emph{not} checked against the measured rows.
+
+\paragraph{The remedies} Two changes remove the effect. Decoupled weight decay (AdamW) applies the decay outside
+Adam's normalisation, so the shrinkage becomes the negligible factor $1-\eta\lambda$. Or the rows can be averaged over
+their holders only, weighted by how much of the class each holds (class-count weighted averaging, CCWA, in
+\cref{sec:s-gen}): the non-holders' term $\bar D$ then drops out of the lemma.
+
+\paragraph{What was measured} The paper's figure of the class rows (\cref{fig:s-rows}) shows that after Stage II the
+rows of the rarest classes are several times shorter than those of the most frequent ones. That is the predicted
+effect. It is not yet evidence that the shrinkage \emph{causes} the rare classes' low accuracy, and the paper says
+so, for a reason that comes from a second measurement.
+
+After Stage I the server trains a classifier, the \emph{referee}, on the features of its validation images, and asks
+it to classify 300 generated features of each class. The share it assigns to the intended class is the generator's
+\emph{fidelity} for that class. If the decay were what makes rare classes fail, the rare classes' fidelity would be
+low and the frequent classes' high. Instead GeFL-F's generated CIFAR-10-LT features are recognised at
+\R{main/cifar10/GeFL-F/fidelity_all} on average (chance is 10\%), \R{main/cifar10/GeFL-F/fidelity_head} on the head
+classes and \R{main/cifar10/GeFL-F/fidelity_tail} on the tail classes. On CIFAR-100-LT the mean is
+\R{main/cifar100/GeFL-F/fidelity_all}, chance level (\cref{tab:s-fidelity}). GeFL-F's generator carries little class
+information for \emph{any} class. The row shrinkage is a measured property of the generator; whether it causes the
+rare-class loss is open. The direct test is GeFL-F with AdamW and nothing else changed, one of the runs not yet
+returned (\cref{ch:results}). The referee's accuracy on held-out real features was not logged, so the fidelity values
+compare generators with each other, not with real data.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.62\linewidth]{\genpath/figures/fig_rows.pdf}
+\caption{The paper's figure of the class rows: length of each class row of GeFL-F's generator after Stage II, classes
+from the most frequent (left) to the least frequent (right); CIFAR-10-LT, mean over seeds 3--5. Look at how the
+length falls toward the rare classes.}
+\label{fig:s-rows}
+\end{figure}
+
+\begin{table}[t]
+\centering\small
+\caption{The paper's fidelity table: the referee's per-class accuracy on generated features (\%), averaged over all
+classes and over the head (30\% most frequent), medium and tail (40\% least frequent) classes; mean $\pm$ standard
+deviation over seeds 3--5. FedDF uses GeFL-F's generator. FedECS-LT's rows belong to \cref{ch:method}.}
+\label{tab:s-fidelity}
+\slottab{fidelity}{}
+\end{table}
+
+\subsection{The last layer: logit corrections cannot add information}\label{sec:s-lastlayer}
+
+\paragraph{The situation} In Stage III, client 2's head is trained on client 2's features only, in the real phase.
+Its last layer therefore learns client 2's class proportions: classes it holds often get large biases, the classes
+it lacks (class 9 among them) get pushed down by every cross-entropy step, because cross-entropy lowers the logits of
+all wrong classes. The natural fix from long-tail learning is to correct the loss with the client's class
+frequencies. \emph{Logit adjustment} trains with $\ell(f+\tau\log\hat\pi_k,\,y)$, where $\hat\pi_k$ is client $k$'s
+class distribution (with add-one smoothing, so that absent classes get a small non-zero frequency) and $\tau=1$.
+Balanced Softmax and FedLC are of the same form: a constant vector $a_k$ added to the logits during training.
+
+\begin{lemma*}[logit corrections are reparametrisations]
+Let a head have a free last-layer bias $b$, trained by SGD without decay on $b$, and let $a_k\in\Rset^C$ be a constant
+of client $k$, as in logit adjustment ($a_k=\tau\log\pi_k$), FedLC or Balanced Softmax. Training with the loss
+$\ell(f+a_k,y)$ from $(\theta_0,b_0)$ produces exactly the trajectory of training with $\ell(f,y)$ from
+$(\theta_0,b_0+a_k)$: every parameter except $b$ is the same at every step. FedRS, which scales the logits of absent
+classes by $\alpha\in(0,1]$, is cross-entropy in the rescaled last-layer variables $\alpha w_c,\alpha b_c$ of those
+classes, trained with the smaller learning rate $\alpha^2\eta$.
+\end{lemma*}
+
+The proof: $f+a_k=We+(b+a_k)$, and moving from $b$ to $b+a_k$ is a translation, which does not change gradients. So
+training with the corrected loss is plain training that starts from the bias $b_0+a_k$; at test time the correction is
+not applied, which amounts to subtracting $a_k$ from the logits. This is exactly \emph{post-hoc logit adjustment} of a
+head trained from a shifted starting bias.
+
+\paragraph{A three-class example} A client holds 70 images of class A, 30 of class B and none of class C. With add-one
+smoothing its frequencies are $(71,31,1)/103$, so $a=\log\hat\pi\approx(-0.37,\,-1.20,\,-4.63)$. At test time the
+corrected head adds $+4.63$ to class C's logit relative to plain training, $+3.43$ more than to class B. That raises
+class C for \emph{every} input by the same amount. It cannot make class C high for images of class C and low for others,
+because the weight vector $w_C$ never received a single gradient that points toward class-C features: the client has
+no class-C features. The correction moves a threshold; it adds no information about the class. The body of the head
+can still learn a somewhat different representation, because the shifted logits change the gradients that reach it,
+but nothing tells it what class C looks like. A head trained on one client is an extreme case of what the literature
+calls minority collapse: for the classes the client lacks, the imbalance ratio is infinite.
+
+\paragraph{What follows} A last layer that knows the absent classes needs information from other clients. The
+partition-invariance lemma of \cref{ch:sums} says where to get it: a last layer that is a function of sums over all
+clients equals the one computed on pooled data. The paper's answer is the \emph{exact readout} of \cref{sec:s-readout},
+a classifier computed from summed embedding statistics.
+
+\paragraph{What was measured} Two measurements support this part of the diagnosis, and they are the strongest
+evidence in the paper's analysis. First, replacing GeFL-F's trained last layers by the exact readout, with nothing else
+changed, raises its balanced accuracy by \R{main/cifar10/GeFL-F/gain_er} points on CIFAR-10-LT and
+\R{main/cifar100/GeFL-F/gain_er} on CIFAR-100-LT. Most of what GeFL-F loses is in the last layer. Second, the lemma
+predicts that Balanced Softmax, FedLC and FedRS differ only in their last layers. Once these are replaced by the same
+readout, the three methods reach \R{main/cifar10/Balanced Softmax/er_bal}, \R{main/cifar10/FedLC/er_bal} and
+\R{main/cifar10/FedRS/er_bal} on CIFAR-10-LT, and \R{main/cifar100/Balanced Softmax/er_bal},
+\R{main/cifar100/FedLC/er_bal} and \R{main/cifar100/FedRS/er_bal} on CIFAR-100-LT: the same, as predicted.
+
+\subsection{The synthetic data: label-free features penalise the logit spread}\label{sec:s-spread}
+
+\paragraph{The situation} In the synthetic phase, labels are drawn uniformly over the $C$ classes and the generator
+makes a feature for each. If the generated feature carries its label, the head learns the class. If it does not, as
+the fidelity of \cref{tab:s-fidelity} suggests for GeFL-F, the label is effectively independent of the feature, and
+the training target is the uniform distribution.
+
+\begin{lemma*}[label-free synthetic data]
+If the synthetic label $y$ is uniform on $\{1,\dots,C\}$ and independent of the generated feature, then for every logit
+vector $f$,
+\[
+\E_y\,\ell(f,y)=\LSE(f)-\bar f=\log C+\KL(u\,\|\,\mathrm{softmax}f)=\log C+\frac1{2C}\sum_c(f_c-\bar f)^2+O(\|f-\bar f\|^3),
+\]
+where $\LSE(f)=\log\sum_c e^{f_c}$, $\bar f$ is the mean logit and $u$ the uniform distribution.
+\end{lemma*}
+
+In words: averaged over the random label, the cross-entropy is smallest when all logits are equal, and it grows
+roughly with the variance of the logits. Training on label-free features therefore pulls the logits together. The
+paper measures this as the \emph{logit spread}: the mean over images of the standard deviation of a head's logits
+across classes.
+
+A numerical check with $C=10$: equal logits give the loss $\log10=2.303$. The logits $(2,0,\dots,0)$ give
+$\LSE=\log(e^2+9)=2.797$ and $\bar f=0.2$, so the loss is $2.597$. The quadratic term alone predicts
+$2.303+\frac1{20}(1.8^2+9\cdot0.2^2)=2.483$; the rest is the higher-order term. The more confident the head, the larger
+the penalty, whatever the class.
+
+\paragraph{What survives the alternation} The synthetic phase is followed by the real phase, which pushes the logits
+apart again for the classes the client holds. The paper analyses the alternation in a simplified model with quadratic
+losses (an appendix lemma). The round converges to a point where, along every direction of the parameters that the
+real loss leaves free, the synthetic loss alone decides. For a head trained on one client, the directions that
+concern its absent classes are almost free in this sense, so on them the label-free synthetic phase decides: it
+flattens exactly the logits the client most needs. Not exactly free, because cross-entropy on the real data still
+pushes the absent classes' logits down on data the head separates. Logit adjustment shifts those targets.
+
+\paragraph{What was measured} The paper's figure of the logit spread (\cref{fig:s-spread}) shows, in every Stage-III
+round on CIFAR-10-LT, that the synthetic phase reduces the spread of the heads' logits on the clients' real features,
+and that it reduces it less for FedECS-LT than for GeFL-F. Two caveats keep this from being a clean test. FedECS-LT
+also differs from GeFL-F in its number of synthetic epochs, its soft targets and logit adjustment, so the comparison
+does not isolate the labels. And FedDF, which trains on GeFL-F's own label-free generator, loses \emph{less} spread
+than FedECS-LT. So the size of the spread change is not determined by whether the generated features carry their
+label. The lemma is exact; how much it matters in the real pipeline is not settled.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.62\linewidth]{\genpath/figures/fig_spread.pdf}
+\caption{The paper's logit-spread figure: change of the logit spread during the synthetic phase of each Stage-III
+round (after minus before; negative means the logits were pulled together), CIFAR-10-LT, mean over clients and seeds
+3--5. Look at the levels: GeFL-F lowest, FedECS-LT in between, FedDF highest.}
+\label{fig:s-spread}
+\end{figure}
+
+What would a method look like that uses exact statistics exactly where these losses occur?

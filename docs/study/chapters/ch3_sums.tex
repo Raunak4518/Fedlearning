@@ -1,0 +1,75 @@
+\section{What federation can and cannot bias}\label{ch:sums}
+
+Before locating the loss, one fact narrows the search. It is also the idea on which the whole method rests.
+
+\paragraph{A client split is a pure label shift} The Dirichlet split of \cref{ch:problem} decides \emph{how many}
+images of each class a client gets, but within a class it picks the images uniformly at random. So the class-9 images
+of client 7 are a random subset of all class-9 images, and the same is true of every client and class. In symbols, the
+distribution of an image given its class is the same on every client as on the pooled data,
+\[
+P_k(x\mid y)=P(x\mid y)\quad\text{for every client $k$ that holds class $y$.}
+\]
+Only the class proportions $P_k(y)$ differ. The extractor is shared, so the same holds for the features $h=\phi(x)$.
+
+The consequence: any quantity that describes one class, such as the mean feature of class 9, its spread, or the best
+weight vector for class 9 in a last layer, has the \emph{same target} on every client that holds the class and on the
+pooled data. Federation cannot move that target. It can only make the estimate noisier, because each client sees fewer
+samples, or slower to learn. So when a class-level quantity ends up \emph{biased} in a federated method, something in
+the method's estimation procedure must have caused it.
+
+\paragraph{Sums are exact} Many class-level quantities can be computed from sums. The mean feature of class $c$ is
+\[
+\mu_c=\frac{\sum_k S^{(1)}_{kc}}{\sum_k n_{kc}},\qquad S^{(1)}_{kc}=\sum_{i\in D_{kc}}h_i,
+\]
+where $D_{kc}$ is client $k$'s set of class-$c$ images and $n_{kc}$ its size. If every client sends its count $n_{kc}$
+and its sum $S^{(1)}_{kc}$, the server obtains $\mu_c$ exactly, whatever the split. For class 9 of the running
+example, client 7 sends 63 and the sum of its 63 features, client 9 sends 14 and the sum of its 14, and so on; the
+server divides the total sum by the total count, 100, and gets the same mean it would get from the 100 images in one
+place. The paper states this as a lemma.
+
+\begin{lemma*}[partition invariance]
+An estimator that is a function of a sum $S=\sum_k\sum_{i\in D_k}T(x_i,y_i)$, with $T$ fixed in advance, takes the same
+value for every partition of the pooled data, and equals the centralised estimator.
+\end{lemma*}
+
+The proof is that addition does not depend on the order or grouping of its terms. The lemma is simple, and the paper
+says that it is known for closed-form federated classifiers (Fed3R, AFL, FedCOF). Its use here is that it tells which
+quantities a federated method can compute \emph{without} the bias of \cref{sec:s-routes}: those that are functions of
+per-client sums. The class spread is one. With $S^{(2)}_{kc}=\sum_{i\in D_{kc}}\|h_i\|^2$,
+\[
+V_c=\frac{\sum_k S^{(2)}_{kc}}{n_c}-\|\mu_c\|^2=\E\big[\|h-\mu_c\|^2\,\big|\,y=c\big],
+\]
+the mean squared distance of a class-$c$ feature from the class mean, is also exact.
+
+\paragraph{Secure aggregation} Sending per-client sums to the server would reveal each client's class counts and
+feature sums. \emph{Secure aggregation} is a cryptographic protocol that lets the server learn the sum over clients of
+vectors and nothing else about any single vector. The basic idea: every pair of clients agrees on a random mask; one
+adds it to its vector, the other subtracts it; each masked vector looks random to the server, but in the sum the masks
+cancel. The paper uses Flower's SecAgg+, a variant that tolerates clients dropping out.
+
+The protocol works on integers, so each vector is divided by a public bound and quantised to 30 bits with unbiased
+stochastic rounding. The error is at most $1.5\times10^{-8}$ of the bound per client and coordinate. Values beyond
+eight times the bound would be clipped, and with fewer than three participants the protocol cannot run and the sum is
+computed in clear. The paper calls the statistics \emph{exact} in this sense: exact up to this quantisation. The
+bounds come from a small validation set that the server holds (200 images per class on CIFAR-10, held out from the
+training data), never from the clients' data.
+
+What secure aggregation does not hide is the sum itself. If a class is held by a single client, the federation-level
+sum of that class is that client's sum. \Cref{ch:method} returns to what the released sums reveal.
+
+\paragraph{How bias still enters}\label{sec:s-routes} If the targets cannot be biased by the split, a federated method can
+still bias its estimate of them in four ways, which the paper examines.
+\begin{enumerate}
+\item \emph{The optimiser.} An optimiser can treat clients that lack a class differently from clients that hold it,
+and averaging can then pull a class parameter away from its target.
+\item \emph{Parameters tied to one client's prior.} A last-layer bias trained on one client's data learns that
+client's class proportions, which are not the federation's.
+\item \emph{What the synthetic data teach.} Training on generated features teaches whatever those features carry. If
+they do not carry their label, the training teaches something else.
+\item \emph{Sample size.} Nonlinear estimates, such as a spread or an inverse covariance matrix, are biased in small
+samples. Class 9 has 100 images and features of dimension 2560: its covariance matrix cannot even be inverted.
+\end{enumerate}
+The paper does not claim that the list is complete. For example, drift of the shared extractor in Stage I, where the
+extractor is trained by FedAvg on skewed data, is not covered.
+
+Which of these routes actually hurt GeFL-F?

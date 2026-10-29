@@ -1,0 +1,69 @@
+\section{The base system: GeFL-F}\label{ch:gefl}
+
+Model-heterogeneous methods differ in what the clients exchange: predictions on shared inputs (FedDF, FedMD), class
+means of internal representations (FedProto, FedTGP), a shared part of the network (LG-FedAvg, FedGH, FedMRL), or a
+generator of synthetic data (FedGen, GeFL). The paper builds on GeFL-F, the feature-level variant of GeFL. It splits
+every client's network into two parts, a small \emph{extractor} that all clients share and a \emph{head} that is
+specific to the client's architecture, and lets the clients share a generator of extractor outputs. Training runs in
+three stages (\cref{fig:s-pipeline}).
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[font=\small,
+  box/.style={draw,rounded corners=2pt,align=center,minimum height=1.05cm,text width=3.9cm,fill=gray!6},
+  arr/.style={-{Stealth[length=2mm]},thick}]
+\node[box] (s1) {\textbf{Stage I} ($T_{\mathrm I}$ rounds)\\ extractor $\phi$ + heads, FedAvg;\\ then freeze $\phi$};
+\node[box,right=0.6cm of s1] (s2) {\textbf{Stage II} ($T_{\mathrm{II}}$ rounds)\\ generator $G(h\mid y)$, FedAvg\\ (Adam, coupled decay)};
+\node[box,right=0.6cm of s2] (s3) {\textbf{Stage III} ($T_{\mathrm{III}}$ rounds)\\ each head: $T_s$ epochs generated,\\ then $T_r$ epochs real};
+\draw[arr] (s1) -- node[above]{$h=\phi(x)$} (s2);
+\draw[arr] (s2) -- node[above]{$G$} (s3);
+\node[below=0.35cm of s2,align=center,text width=12.5cm,font=\footnotesize] {Every client sends parameters to the
+server in each round of every stage. Stage I averages the extractor over all clients (and each head over the clients of
+its architecture); Stage II averages the generator over all clients; Stage III averages each head over the clients of
+its architecture, which does nothing when every architecture has one client.};
+\end{tikzpicture}
+\caption{GeFL-F's three stages. The extractor and the generator are shared by all clients; the heads are not.}
+\label{fig:s-pipeline}
+\end{figure}
+
+\paragraph{Stage I: the shared extractor} All clients train a small convolutional extractor $\phi$ together with
+their heads by FedAvg, for $T_{\mathrm I}=50$ rounds on CIFAR. The extractor is the same network for everyone, so it
+can be averaged. On CIFAR it is two $3\times3$ convolutions with three and ten output channels, each followed by
+batch normalisation and ReLU, and a $2\times2$ max pooling. A $32\times32$ image becomes a $10\times16\times16$ array,
+the \emph{feature} $h=\phi(x)$, with $d=2560$ numbers. After Stage I the extractor is frozen, and every client computes
+the features of its images once, without augmentation. From then on, every client works on features, not images.
+
+\paragraph{The heads} Client $k$ trains a head of its own architecture, one of ten convolutional networks CNN-1 to
+CNN-10 with one to four convolutional blocks of different widths. Each head has two parts. Its \emph{body}, the
+convolutional blocks, maps a feature $h$ to an \emph{embedding} $e$; its \emph{last layer} is linear and maps $e$ to
+the $C$ logits $f=We+b$. In the main setting there are ten clients and client $k$ trains architecture $k$, so each
+architecture has exactly one client.
+
+\paragraph{Stage II: the shared generator} The clients train a conditional variational autoencoder $G(h\mid y)$ on
+their features, again by FedAvg, for $T_{\mathrm{II}}=200$ rounds, with the Adam optimiser and coupled weight decay
+(an L2 penalty $\lambda\|\theta\|^2/2$ added to the loss). The generator takes a class label $y$ and random noise $z$
+and outputs a feature $\tilde h$ that should look like a real feature of class $y$. The label enters through a linear
+projection of the one-hot vector $e_y$; the weights that multiply class $c$ form a vector $r_c$, the \emph{class row}.
+The class rows are the only parameters of the generator that belong to one class: everything the generator knows that
+distinguishes class $c$ from the others must pass through $r_c$.
+
+\paragraph{Stage III: training the heads} For $T_{\mathrm{III}}=100$ rounds, every client trains its head in two
+phases. In the \emph{synthetic phase} it draws labels uniformly over all $C$ classes, generates features for them, and
+trains for $T_s$ epochs on these pairs with cross-entropy ($T_s=1$ in GeFL-F). In the \emph{real phase} it trains for
+$T_r=5$ epochs on its own features. The server then averages the heads of each architecture. With one client per
+architecture this averaging does nothing, so in the main setting the only knowledge a head receives from other
+clients comes through the generator. This fact returns in \cref{ch:results,ch:defence}.
+
+\paragraph{Why a generator helps} Client 2 of the running example holds no image of class 9. Its real phase can only
+teach its head to separate the classes it holds. The synthetic phase can show the head features of class 9, made by a
+generator that was trained partly on client 7's 63 images of that class. If the generated class-9 features look like
+real ones, client 2's head learns class 9 without ever seeing a class-9 image. Whether they do look like real ones is
+the central question of \cref{ch:diagnosis}.
+
+\paragraph{What goes wrong} GeFL-F was designed and evaluated on balanced clients. Under the long tail of the running
+example it reaches \R{main/cifar10/GeFL-F/bal} balanced accuracy on CIFAR-10-LT, about the level of Local, in which
+every client trains alone (\R{main/cifar10/Local/bal}). On the tail classes, the 40\% least frequent (classes 6--9),
+its recall is \R{main/cifar10/GeFL-F/tail}. On CIFAR-100-LT it reaches \R{main/cifar100/GeFL-F/bal}, against
+\R{main/cifar100/Local/bal} for Local. Federation through the generator brings almost nothing.
+
+Where, inside these three stages, are the rare classes lost?
