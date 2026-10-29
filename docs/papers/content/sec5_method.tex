@@ -7,15 +7,14 @@ instead of a parameter that FedAvg estimates. \Cref{alg:fedecs} lists the pipeli
 \whenfig{fig_overview}{%
 \begin{widefigure}[t]
 \centering
-\slotfig{fig_overview}{wide}{Architecture diagram (draw it; GUIDE.md, section 6): clients with different head
-architectures; Stage I frozen extractor; the statistics release through secure aggregation; the server's gate F;
-the mean-anchored generator (or class rows with CCWA); moment correction; Stage III heads with logit adjustment and
-consensus soft labels; the exact readout. Arrows labelled with what is sent.}
-\caption{Overview of \ours. After the frozen extractor (Stage I), the clients release exact per-class statistics
-through secure aggregation. The server uses them to choose the generator (gate), to anchor it to the class means or
-to average its class rows over their holders, and to correct the moments of its samples (Stage II). Heads train on
-corrected synthetic features with consensus soft labels and on real features with logit adjustment (Stage III).
-Finally every architecture's last layer is replaced by a readout computed from aggregated sums.}
+\slotfig{fig_overview}{wide}{Overview of the pipeline (docs/papers/overview_figure.py).}
+\caption{Overview of \ours, stage by stage. C: computed by every client with its own head architecture; S: computed by
+the server; SA: summed over the clients by secure aggregation. After Stage I the clients release exact per-class
+statistics, from which the server computes the class means and spreads and the gate $F$. The gate chooses the
+generator: anchored to the class means, or class rows averaged by CCWA. The moment correction is computed once after
+Stage II. In every round of Stage III the heads train on corrected synthetic features with consensus soft labels and
+on real features with logit adjustment. For evaluation, every architecture's last layer can be replaced by the exact
+readout computed from aggregated embedding sums.}
 \label{fig:overview}
 \end{widefigure}}
 
