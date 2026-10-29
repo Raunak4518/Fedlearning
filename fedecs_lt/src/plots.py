@@ -1383,7 +1383,8 @@ def _pareto(E, S, out, num, key, xlabel, name, what, logx=False):
         logx = ps.log_axis(ax, [r[1] for r in rows])
     ax.set_xlabel(xlabel)
     ax.set_ylabel("Balanced accuracy (%)")
-    ax.legend(ncol=2)
+    # two columns only for short names: long ones (e.g. "FedECS-LT w/ Gaussian sampler") would run past the axes
+    ax.legend(ncol=2 if max(len(r[0]) for r in rows) <= 16 else 1)
     p = ps.save(f, out, f"fig_{num:02d}_{name}", rows, ["method", "x", "balanced_accuracy"])
     return [(p, cap.simple(num, E, S, f"Balanced accuracy against {what}" + (" (logarithmic axis)" if logx else "")
                                       + "; mean over seeds. Up and left is better."))]
