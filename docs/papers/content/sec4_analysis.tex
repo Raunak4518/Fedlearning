@@ -72,7 +72,8 @@ last-layer variables $\alpha w_c,\alpha b_c$ of those classes, trained with the 
 it changes the initialisation and the step size of the absent classes' rows, not what the client knows about them.
 \end{proposition}
 
-For a head trained on one client's real data, such a correction is therefore equivalent to a different
+For a head trained on one client's real data, a logit shift (logit adjustment, FedLC, Balanced Softmax) is therefore
+equivalent to a different
 initialisation of the last-layer bias. This does not mean the representation is the one plain training from the same
 bias would learn: the logits, and hence the gradients reaching the body, differ along the way. What the proposition
 does show is that the correction adds no information about the classes the client lacks; its effect on the body is

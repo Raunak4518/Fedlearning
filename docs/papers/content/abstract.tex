@@ -7,8 +7,9 @@ weight decay shrinks the generator's class-specific parameters on clients that l
 is fitted to one client's label prior; and synthetic features that do not carry their label penalise the spread of
 the logits. We propose FedECS-LT, which replaces each of these estimates by an exact class statistic computed
 under secure aggregation: a mean-anchored generator, class-count weighted averaging when classes are poorly
-separated, moment correction of generated features, logit-adjusted heads trained on consensus soft labels, and a
-class-balanced readout computed from aggregated sums. With ten client architectures, FedECS-LT reaches
+separated, moment correction of generated features, and logit-adjusted heads trained on consensus soft labels; a
+class-balanced readout computed from aggregated sums serves to compare the bodies. With ten client architectures,
+the heads of FedECS-LT as trained reach
 \R{main/cifar10/FedECS-LT/bal} balanced accuracy on CIFAR-10-LT and \R{main/cifar100/FedECS-LT/bal} on CIFAR-100-LT,
 \R{main/cifar10/margin} and \R{main/cifar100/margin} points above the strongest of \R{main/nbaselines_w} other methods
 (paired tests: significant on CIFAR-100-LT, not on CIFAR-10-LT); when every method of the GeFL-F pipeline is given the same exact readout,

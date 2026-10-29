@@ -50,17 +50,18 @@ $L$-Lipschitz in its second argument. Then $W_1(G_c,G_{c'})\le(1+L\|A\|_2)\|\mu_
 \end{proposition}
 \emph{Proof.} Couple both classes through the same $Z$; ReLU is 1-Lipschitz. \hfill$\square$
 
-In units of the within-class spread, the class means are on average $\sqrt{2F}$ apart; when $F$ is small the anchored
-generator cannot separate the classes, which is why the gate of \cref{sec:method-gen} falls back to class rows.
+In units of the root-mean-square within-class spread, two class means are on average $\sqrt{2FC/(C-1)}$ apart (over
+distinct pairs). When $F$ is small the anchor carries little class information, and the factor $1+L\|A\|_2$ is not
+controlled; this is why the gate of \cref{sec:method-gen} falls back to class rows.
 
 \begin{proposition}[least-displacement moment correction]\label{prop:mc}
-Among all maps $T$ with $\E\,T(X)=\mu_c$ and $\E\|T(X)-\mu_c\|^2=V_c$, where $X$ has mean $m_c$ and spread $\tilde V_c$,
-the map $T^\star(x)=\mu_c+\sqrt{V_c/\tilde V_c}\,(x-m_c)$ minimises $\E\|T(X)-X\|^2$. With exact covariances instead of
+Among all maps $T$ with $\E\,T(X)=\mu_c$ and $\E\|T(X)-\mu_c\|^2=V_c$, where $X$ has mean $\tilde\mu_c$ and spread $\tilde V_c$,
+the map $T^\star(x)=\mu_c+\sqrt{V_c/\tilde V_c}\,(x-\tilde\mu_c)$ minimises $\E\|T(X)-X\|^2$. With exact covariances instead of
 spreads the minimiser is the linear map attaining the Gelbrich bound~\cite{gelbrich1990}.
 \end{proposition}
-\emph{Proof.} With $Y=T(X)$, $\E\|Y-X\|^2=V_c+\tilde V_c+\|\mu_c-m_c\|^2-2\E\langle Y-\mu_c,X-m_c\rangle$, and the
+\emph{Proof.} With $Y=T(X)$, $\E\|Y-X\|^2=V_c+\tilde V_c+\|\mu_c-\tilde\mu_c\|^2-2\E\langle Y-\mu_c,X-\tilde\mu_c\rangle$, and the
 Cauchy--Schwarz inequality bounds the last expectation by $\sqrt{V_c\tilde V_c}$, with equality if and only if
-$Y-\mu_c=\sqrt{V_c/\tilde V_c}(X-m_c)$. The deployed map adds a final ReLU and clips the scale, so it matches the
+$Y-\mu_c=\sqrt{V_c/\tilde V_c}(X-\tilde\mu_c)$. The deployed map adds a final ReLU and clips the scale, so it matches the
 moments only approximately. \hfill$\square$
 
 \section{Experimental details}\label{app:protocol}
@@ -71,10 +72,22 @@ MNIST and Fashion-MNIST, 50/100/100 on SVHN and 50/200/100 on CIFAR-10 and CIFAR
 20/100/50 on OrganAMNIST and EMNIST and 50/100/100 on DermaMNIST, BloodMNIST, PathMNIST\whennum{nat/gtsrb/FedECS-LT/bal}{,
 GTSRB} and FER-2013.
 
-\paragraph{Reproduction check.} Before the comparison, the Flower implementation was checked against the original
-implementation on MNIST-LT and CIFAR-10-LT with seed 3: the client splits were identical (every client's class counts),
-every client training step matched weight for weight in unit tests, and the balanced accuracy of GeFL-F and \ours was
-within seed noise of the original runs (supplementary material).
+\paragraph{Reproduction check.} Before the comparison, the Flower implementation was checked against our earlier,
+single-process implementation (which follows GeFL's code) on MNIST-LT and CIFAR-10-LT with seed 3. The client splits
+were identical (every client's class counts), every client training step matched weight for weight in unit tests, and
+the balanced accuracy of GeFL-F and \ours was within the larger of two points and three seed standard deviations of
+the earlier runs. The earlier CIFAR-10 reference of \ours was an older configuration, so its tolerance was three
+points.
+
+\paragraph{Head architectures.} CNN-1 to CNN-10 have convolutional blocks of widths (16), (16, 32), (20, 40), (10, 20),
+(16, 32, 64), (20, 40, 80), (10, 20, 40), (16, 32, 64, 128), (20, 40, 80, 100) and (10, 20, 40, 80). Each block is a
+$3\times3$ convolution, batch normalisation (Fashion-MNIST, SVHN and the naturally imbalanced datasets only), ReLU and
+$2\times2$ max pooling, followed by a linear last layer.
+
+\paragraph{FedDF.} After each head round the server distils every architecture for 20 SGD steps (batch 128, learning
+rate 0.05, no momentum) on fresh generated features with uniformly drawn labels; the target is the mean softmax of
+the ten architectures, and batch-normalisation statistics are kept. FedDF's original method distils on unlabelled
+public data instead.
 
 \paragraph{GeFL's own setting.} In GeFL's setting (balanced training data divided evenly among 10 clients,
 \R{repro/cifar10/GeFL-F/seeds} seeds, our earlier implementation), GeFL-F reaches \R{repro/cifar10/GeFL-F/final}\% on

@@ -27,6 +27,8 @@ Cost and calibration are reported for every method as secondary outcomes.
 \caption{Research questions and the experiments that answer them. All experiments use the same client splits for
 every method.}
 \label{tab:rq}
+\def\rqablrow{}\whenanytab{abl_bal,abl_components}{\def\rqablrow{RQ4 components & variants of GeFL-F; \ours with one
+component changed & \cref{sec:res-ablation}\\}}
 \begin{adjustbox}{max width=\linewidth}
 \begin{tabular}{lll}
 \toprule
@@ -35,8 +37,8 @@ Question & Experiment & Reported in\\
 RQ1 diagnosis & class-row norms, readout gain and logit spread in GeFL-F's runs & \cref{sec:analysis}\\
 RQ2 effect & main comparison, 10 clients with ten architectures\whentab{k50_bal}{; 50 clients} & \cref{sec:res-main}\\
 RQ3 representation & every GeFL-F-pipeline method with the exact readout & \cref{sec:res-main}\\
-RQ4 components & variants of GeFL-F; \ours with one component changed & \cref{sec:res-ablation}\\
-RQ5 scope & natural imbalance; sweeps of $K$, $\alpha$, $\rho$; one shared model & \cref{sec:res-natural,sec:res-shared}\\
+\rqablrow
+RQ5 scope & natural imbalance\whentab{robust}{; sweeps of $K$, $\alpha$, $\rho$}; one shared model & \cref{sec:res-natural,sec:res-shared}\whentab{robust}{, \cref{tab:robust}}\\
 \bottomrule
 \end{tabular}
 \end{adjustbox}
@@ -72,8 +74,8 @@ CNN-1 to CNN-10.
 
 \begin{table}[t]
 \centering\small
-\caption{Settings of \ours (all datasets; with one shared model, 10 real epochs per round, the protocol's local
-epochs). GeFL-F uses $T_s=1$, cross-entropy and no consensus labels; the generator settings are GeFL-F's.}
+\caption{Settings of \ours (all datasets; with one shared model, 10 real epochs per round and SGD with momentum
+0.9 and the protocol's learning-rate decay). GeFL-F uses $T_s=1$, cross-entropy and no consensus labels; the generator settings are GeFL-F's.}
 \label{tab:hyper}
 \begin{adjustbox}{max width=\linewidth}
 \begin{tabular}{ll}
@@ -112,7 +114,8 @@ images. Their classes are relabelled by training frequency. On three of them the
 (\cref{tab:datasets}): their results speak to label skew more than to a long tail.
 
 \paragraph{Splits.} The training images are split among $K=10$ clients by a Dirichlet draw with $\alpha=0.5$ per
-class. The draw is repeated until every client holds at least ten images. Client $k$ trains head architecture $k$, so
+class. The draw is repeated, at most 100 times, until every client holds at least ten images; if it still fails, random
+images move from the largest to the smallest client. Client $k$ trains head architecture $k$, so
 in the main setting each architecture has one client.
 
 A held-out block of training images that no client holds forms a validation set: $\min(200,\lfloor 2000/C\rfloor)$
@@ -168,16 +171,17 @@ library draws its own, so participation is not paired between \ours and the base
 method of the main setting exchanges and computes. The methods fall into six groups, each chosen for one question.
 \begin{itemize}
 \item \textbf{GeFL-F}, the method \ours extends: the difference to it answers RQ2 directly.
-\item \textbf{FedDF}~\cite{lin2020feddf}, ensemble distillation on the server. As in GeFL, the distillation runs on
-generated features instead of public data. It is the strongest way to use the same generator without changing it.
+\item \textbf{FedDF}~\cite{lin2020feddf}, ensemble distillation on the server. The distillation runs on generated
+features instead of public data, so FedDF uses GeFL-F's generator without changing it.
 \item \textbf{Per-client long-tail losses}: Balanced Softmax~\cite{ren2020bsm}, FedLC~\cite{zhang2022fedlc} and
 FedRS~\cite{li2021fedrs}. They test whether a correction of the loss alone repairs the long tail. They are applied
 to GeFL-F without its generator. At $K=10$ each architecture has one client, so their heads train on that client's
 real features only and exchange nothing in Stage III.
-\item \textbf{GeFL's grouped baselines}\whentab{k50_bal}{}: FedAvg~\cite{mcmahan2017fedavg},
+\item \textbf{GeFL's grouped baselines}: FedAvg~\cite{mcmahan2017fedavg},
 FedProx~\cite{li2020fedprox}, FedALA~\cite{zhang2023fedala} and AvgKD~\cite{afonin2022avgkd} run within each
 architecture group, as GeFL compares them~\cite{kang2025gefl}. CCVR~\cite{luo2021ccvr} and FedETF~\cite{li2023fedetf},
-two long-tail methods, are applied the same way.
+two long-tail methods, are applied the same way. At $K=10$ each group has one client, so FedAvg, FedProx and FedALA
+exchange nothing in Stage III; AvgKD and CCVR still use the other clients' predictions or statistics.
 \item \textbf{Model-heterogeneous methods from HtFLlib}~\cite{zhang2025htfllib}: prototypes (FedProto, FedTGP), a
 generator of embeddings (FedGen), a shared global head (FedGH), shared last layers (LG-FedAvg) and shared
 sub-networks (FedMRL). They represent the other ways in which clients with different models exchange knowledge.
@@ -189,20 +193,21 @@ correction.}
 Methods designed for one shared model (\cref{tab:baselines}, lower part) are compared in the one-shared-model setting
 only.
 
-\paragraph{Settings and tuning.} No method was tuned on our data, but the settings come from different sources:
+\paragraph{Settings and tuning.} No baseline was tuned on our data; their settings come from different sources:
 \begin{itemize}
 \item the HtFLlib methods use the values of HtFLlib's run scripts (SGD, learning rate 0.01, batch 10, feature
 dimension 512), with 5 local epochs per round to match our head stage;
 \item the LongTailLib methods use the benchmark's common settings, which differ from some methods' own papers;
 \item the grouped baselines use the settings of GeFL's code (FedAvg, FedProx with $\mu=0.01$, AvgKD) and of the
 authors' code (FedALA) or LongTailLib (CCVR, FedETF);
-\item Balanced Softmax, FedLC ($\tau=1$) and FedRS ($\alpha=0.5$) are re-implemented losses with the client's
-add-one smoothed class counts;
+\item Balanced Softmax and FedLC ($\tau=1$) are re-implemented losses with the client's add-one smoothed class
+counts, and FedRS ($\alpha=0.5$) with the classes the client lacks;
 \item FedDF uses 20 server distillation steps per round (\cref{app:protocol}).
 \end{itemize}
 The settings of \ours (\cref{tab:hyper}) were fixed during its development, on earlier runs of the same benchmarks
-with other seeds (0--2), and were not changed for the runs reported here. This favours \ours over methods that were
-not tuned (\cref{sec:setup-threats}).
+with seeds 0 to 5. These included seeds 3 to 5 with the same client splits as the reported runs, and every earlier
+run was evaluated on the same test sets. The settings were not changed for the runs reported here. This can favour
+\ours over methods that were not tuned (\cref{sec:setup-threats}).
 
 \begin{table}[t]
 \centering\small
@@ -211,6 +216,10 @@ methods are ported to Flower with HtFLlib's settings and 5 local epochs per roun
 LongTailLib~\cite{lin2026fedltlib} methods run in the authors' code, downloaded at a fixed commit. FedAvg, FedProx and
 AvgKD of the main setting follow GeFL's code~\cite{kang2025gefl} (MIT).}
 \label{tab:baselines}
+\def\groupedrows{}\whennum{main/cifar10/FedAvg/bal}{\def\groupedrows{FedAvg, FedProx (grouped)~\cite{mcmahan2017fedavg,li2020fedprox} & & different models & GeFL's code, within each architecture\\
+AvgKD (grouped)~\cite{afonin2022avgkd} & ICLR 2022 & different models & GeFL's code\\
+FedALA (grouped)~\cite{zhang2023fedala} & AAAI 2023 & different models & authors' ALA module, within each architecture\\
+CCVR, FedETF (grouped)~\cite{luo2021ccvr,li2023fedetf} & & different models & LongTailLib's version, within each architecture\\}}
 \begin{adjustbox}{max width=\linewidth}
 \begin{tabular}{llll}
 \toprule
@@ -221,10 +230,7 @@ FedDF~\cite{lin2020feddf} & NeurIPS 2020 & different models & re-implementation:
 Balanced Softmax~\cite{ren2020bsm} & NeurIPS 2020 & different models & loss on each head, no generator\\
 FedLC~\cite{zhang2022fedlc} & ICML 2022 & both & loss on each head, no generator / LongTailLib\\
 FedRS~\cite{li2021fedrs} & KDD 2021 & different models & loss on each head, no generator\\
-\whentab{k50_bal}{FedAvg, FedProx (grouped)~\cite{mcmahan2017fedavg,li2020fedprox} & & different models & GeFL's code, within each architecture\\
-AvgKD (grouped)~\cite{afonin2022avgkd} & ICLR 2022 & different models & GeFL's code\\
-FedALA (grouped)~\cite{zhang2023fedala} & AAAI 2023 & different models & authors' ALA module, within each architecture\\
-CCVR, FedETF (grouped)~\cite{luo2021ccvr,li2023fedetf} & & different models & LongTailLib's version, within each architecture\\}
+\groupedrows
 FedProto~\cite{tan2022fedproto} & AAAI 2022 & different models & HtFLlib\\
 FedTGP~\cite{zhang2024fedtgp} & AAAI 2024 & different models & HtFLlib\\
 FedGen~\cite{zhu2021fedgen} & ICML 2021 & different models & HtFLlib\\
@@ -247,20 +253,22 @@ FedYoYo~\cite{yan2025fedyoyo}, RUCR~\cite{huang2024rucr} & & one shared model & 
 \begin{table}[t]
 \centering\small
 \caption{What each method of the main setting uses (CIFAR rounds; per-round epochs of Stage III). Stage I is shared
-by all federated methods. "Head exchange": whether heads of the same architecture are averaged, which happens only
-when an architecture has several clients (not at $K=10$).}
+by all federated methods. Heads of the same architecture are averaged, which exchanges something only when an
+architecture has several clients (not at $K=10$); the column gives what is exchanged beyond that.}
 \label{tab:fairness}
 \begin{adjustbox}{max width=\linewidth}
 \begin{tabular}{lccccc}
 \toprule
 Method & Generator (rounds) & Synthetic / real epochs & Exchange in Stage III & Exact readout & Loss (real phase)\\
 \midrule
-\ours & anchored or CCWA (200) & 10 / 5 & consensus labels; heads & yes & logit-adjusted\\
-GeFL-F & class rows, flat (200) & 1 / 5 & heads & yes & cross-entropy\\
-FedDF & GeFL-F's (200) & 1 / 5 & heads; server distillation & yes & cross-entropy\\
-Balanced Softmax, FedLC, FedRS & none & 0 / 5 & heads & yes & per-client correction\\
-HtFLlib methods & FedGen only & 0 / 5 & prototypes, heads or sub-networks & no & method's own\\
-Local & none & 0 / 5 & none & no & cross-entropy\\
+\ours & anchored or CCWA (200) & 10 / 5 & consensus labels & yes & logit-adjusted\\
+GeFL-F & class rows, flat (200) & 1 / 5 & none at $K=10$ & yes & cross-entropy\\
+FedDF & GeFL-F's (200) & 1 / 5 & server distillation & yes & cross-entropy\\
+Balanced Softmax, FedLC, FedRS & none & 0 / 5 & none at $K=10$ & yes & per-client correction\\
+HtFLlib methods & FedGen: in every batch & 0 / 5 & prototypes, heads or sub-networks & no & method's own\\
+Grouped FedAvg, FedProx, FedALA & none & 0 / 5 & heads (none at $K=10$) & no & method's own\\
+Grouped AvgKD, CCVR, FedETF & none & 0 / 5 & predictions or statistics & no & method's own\\
+Local & none & alone: $5T_{\mathrm{FE}}+5T_{\mathrm{TN}}$ epochs & none & no & cross-entropy\\
 \bottomrule
 \end{tabular}
 \end{adjustbox}
@@ -268,8 +276,9 @@ Local & none & 0 / 5 & none & no & cross-entropy\\
 
 \subsection{Metrics}\label{sec:setup-metrics}
 
-Let $r_{gc}$ be the recall of class $c$ by the model of architecture $g$ on the test set, which is balanced on every
-long-tailed benchmark. The primary metric is the balanced accuracy, $\frac1G\sum_g\frac1C\sum_c r_{gc}$: the mean
+Let $r_{gc}$ be the recall of class $c$ by the model of architecture $g$ on the official test set. The test set is
+balanced on Fashion-MNIST, CIFAR-10 and CIFAR-100 and imbalanced on MNIST, SVHN and the naturally imbalanced
+datasets; balanced accuracy weights every class equally in either case. The primary metric is the balanced accuracy, $\frac1G\sum_g\frac1C\sum_c r_{gc}$: the mean
 over the $G=10$ client models of each model's mean class recall. GeFL~\cite{kang2025gefl} reports the mean over the
 ten models in the same way. It is reported with the heads as trained and, for the methods of the GeFL-F pipeline,
 with the exact readout. The second number answers RQ3.
@@ -296,7 +305,8 @@ round, which involves no selection on the test set. GeFL's measure is given in \
 Cost is measured as follows:
 \begin{itemize}
 \item communication: the bytes of the model and statistics messages per client, with a secure sum counted as eight
-bytes per summed value and client, without the protocol's key and share messages, and without evaluation traffic;
+bytes per summed value and client, without the protocol's key and share messages and without the test evaluation;
+the readout's sums are included;
 \item time: the wall-clock time of a run on a T4 GPU, which in most notebooks ran a second run at the same time;
 \item computation: forward floating-point operations per image, with training counted as three forward passes.
 \end{itemize}
@@ -309,18 +319,20 @@ rounds on the test set, before and after aggregation. The reported model is the 
 
 \ours and every method of the main setting run in Flower 1.42~\cite{beutel2020flower}, a simulation with the Ray
 backend, one simulation per run. The one-shared-model baselines run in the authors' LongTailLib code on the same
-client splits and are evaluated on the same test set. All runs used Kaggle notebooks with two NVIDIA T4 GPUs and two
-runs per GPU at a time.
+client splits and are evaluated on the same test set. All runs used Kaggle notebooks with two NVIDIA T4 GPUs, in most
+notebooks with two runs per GPU at a time.
 
 All releases of \ours use Flower's SecAgg+~\cite{bell2020secaggplus}, with 30-bit stochastic quantisation of every
-vector after division by a public bound, four times the largest value on the validation features. A value beyond the
-bound would be clipped.
+vector after division by a public bound: a multiple of the federation size and of the largest value on the
+validation features for the class and readout sums, and fixed bounds for the counts, the CCWA rows and the consensus
+predictions. Values beyond eight times the bound would be clipped.
 
 The Flower implementation was checked against our earlier, single-process implementation, which follows GeFL's
 code. The client splits are identical, every client training step agrees weight for weight in unit tests, and the
 balanced accuracy agrees within the larger of two points and three seed standard deviations (\cref{app:protocol}).
 
-GPU computation is not bit-reproducible (cuDNN autotuning, CUDA graphs), so two runs with the same seed differ. A
+GPU computation is not bit-reproducible (cuDNN autotuning and non-deterministic GPU kernels), so two runs with the
+same seed differ. A
 notebook run twice with the same run list (\R{repeat/dataset}, \R{repeat/bal/n} runs) measures this. The
 standard deviation of the difference between the two runs of one configuration is \R{repeat/bal/sd} points of
 balanced accuracy as trained and \R{repeat/er/sd} with the exact readout.
@@ -349,27 +361,35 @@ Each variant is reported as trained and with the exact readout.
 
 We report the mean $\pm$ sample standard deviation over seeds. A difference to \ours is the mean paired difference
 over the seeds both methods have, with a 95\% $t$ interval and the paired $t$-test. The $p$-values are corrected by
-Holm's procedure~\cite{holm1979} over the methods compared in the same table and setting: twelve methods as trained,
-and the five methods of the GeFL-F pipeline with the exact readout. There is no correction across datasets or metrics.
+Holm's procedure~\cite{holm1979} over the other methods of the same table and setting: every method as trained, and
+the methods of the GeFL-F pipeline with the exact readout. Local is included; the pooled-data reference and the
+diagnostic runs are not. There is no correction across datasets or metrics.
 "Best" and "strongest other method" are decided on the seeds both methods have.
 
-With three seeds the tests have little power. The run-to-run variation above is of the same order as some of the
-differences. We therefore report every interval with its test and treat differences below about one point as
-unresolved.
+With three seeds the tests have little power, and they rest on the $t$ model: a sign-flip permutation test cannot
+give $p<0.25$ with three paired differences. A verdict near $p=0.05$ can also depend on which methods form the Holm
+family. GPU non-determinism alone gives the mean of three paired differences a standard deviation of about half the
+two-run value above; we treat differences smaller than twice that, \R{repeat/bal/floor} points as trained and
+\R{repeat/er/floor} with the exact readout, as unresolved, and report every interval with its test.
 
 \subsection{Threats to validity}\label{sec:setup-threats}
 
 \paragraph{Internal validity.}
 \begin{itemize}
-\item \textbf{Tuning.} The settings of \ours were chosen on earlier runs of the same benchmarks with other seeds and
-the same test sets; the baselines were not tuned. The test splits of the reported runs are new, but the choice could
-still favour \ours.
+\item \textbf{Tuning.} The settings of \ours were chosen on earlier runs of the same benchmarks, partly with the same
+seeds and client splits and always on the same test sets, while the baselines were not tuned. The reported numbers
+may therefore favour \ours; there is no held-out test set that the development never saw.
 \item \textbf{Compute.} \ours trains its heads for ten synthetic epochs per round, against one for GeFL-F and FedDF
-and none for the methods without a generator (\cref{tab:fairness}). The ablation with one synthetic epoch measures how
-much of the difference this explains.
+and none for the methods without a generator (\cref{tab:fairness}), and it communicates more (\cref{tab:cost}). The
+ablation with one synthetic epoch shows how much of the result of \ours depends on the longer phase; it does not show
+what GeFL-F or FedDF would reach with ten.
+\item \textbf{Missing runs.} With one shared model, runs of \ours failed on some seeds and imbalance ratios where the
+baselines finished, so the missing runs are not random; \cref{tab:shared} gives the seeds that came back.
+\item \textbf{Timing.} Wall-clock times were measured with a second run on the same GPU in most notebooks and are
+only indicative.
 \item \textbf{Ports.} The HtFLlib methods were designed for end-to-end training and run here on a frozen extractor
-with HtFLlib's settings. FedProto and FedTGP are best in their first round and then lose accuracy
-(\cref{sec:res-main}), which may mean that these settings do not suit frozen features.
+with HtFLlib's settings. \Cref{sec:res-main} shows that FedProto and FedTGP lose accuracy after their first evaluated rounds, which may
+mean that these settings do not suit frozen features.
 \item \textbf{Non-determinism.} Pairing by seed removes the variation of the split but not that of GPU computation.
 \end{itemize}
 
@@ -378,6 +398,8 @@ with HtFLlib's settings. FedProto and FedTGP are best in their first round and t
 \item Balanced accuracy is a mean over ten models of different sizes, so a large gain of the small heads and a small
 gain of the large heads give the same number. \Cref{tab:app-worstarch} gives the weakest architecture.
 \item The headline numbers are the heads as trained; the readout is a separate evaluation.
+\item The server holds a small validation set (held out from the training data) for the generator diagnostics and
+the secure-aggregation bounds; a deployment without such data would need another source for the bounds.
 \item The last-round model can be below a method's best round; \cref{tab:app-gefl} gives the best round.
 \end{itemize}
 

@@ -42,6 +42,7 @@ from settings import DATASETS  # noqa: E402
 from baselines import GROUPED  # noqa: E402
 
 OURS = "FedECS-LT"
+SIG = {}   # (group, setting) -> margin over the strongest other method significant after Holm (unrounded p)
 DIAG = "FedECS-LT (200 extractor rounds)"
 # references, not competitors: shown in the tables, never "best", "strongest" or counted among the baselines
 REFS = {"Centralised (pooled data)"}
@@ -148,6 +149,10 @@ def repeat_numbers(nums):
             nums[f"repeat/{short}/max"] = f"{abs(v[i]):.1f}"
             nums[f"repeat/{short}/max_method"] = tex(diff[i][1])
             nums[f"repeat/{short}/n"] = str(len(v))
+            # GPU non-determinism alone in a paired difference of two methods averaged over three seeds: each seed's
+            # difference varies by the SD of a two-run difference, the 3-seed mean by that / sqrt(3); twice that is the
+            # smallest difference the paper treats as resolved
+            nums[f"repeat/{short}/floor"] = f"{2 * v.std(ddof=1) / np.sqrt(3):.1f}"
         ds = a[common[0]]["dataset"] if common else None
         if ds:
             nums["repeat/dataset"] = tex(DATASETS[ds]["name"])
@@ -383,6 +388,7 @@ def fill_group(g, E, nums, made, status):
             pt_ = paired(E, S, "final_bal").get(st)   # paired over seeds, Holm-corrected over all methods
             if pt_:
                 nums[f"{g}/{s}/strongest_p"] = f"{pt_[4]:.2g}"
+                SIG[(g, s)] = pt_[4] < 0.05   # decided on the unrounded p-value
         ers = matched(E, S, "er_bal", exclude=("Local",))
         if ers:   # the same comparison with every last layer replaced by the exact readout
             st = min(ers, key=lambda m: ers[m][0])
@@ -438,7 +444,7 @@ def fill_group(g, E, nums, made, status):
     if g == "t2":
         ratios = sorted({int(round(1 / S[1])) for S in settings}, reverse=True)
         nums["t2/ratios"] = and_list([str(x) for x in ratios])
-    sig = [S for S in with_ours if f"{g}/{sid(S)}/strongest_p" in nums and float(nums[f"{g}/{sid(S)}/strongest_p"]) < 0.05]
+    sig = [S for S in with_ours if SIG.get((g, sid(S)))]
     nums[f"{g}/n_sig"] = word(len(sig))   # settings whose margin over the strongest other method is significant (Holm)
     nums[f"{g}/n_sig_of"] = word(sum(1 for S in with_ours if f"{g}/{sid(S)}/strongest_p" in nums))
     nums[f"{g}/nbest"] = str(sum(1 for S in with_ours if ours_best(E, S)))
@@ -563,7 +569,7 @@ def fill_extras(E_by, nums, made):
         if E is None:
             continue
         for S in ordered(E):
-            r = next(r for r in E.runs if plots.setting_key(r) == S)
+            r = next(r for r in E.runs if plots.setting_key(r) == S and r["label"] not in REFS)   # not the pooled split
             spec = DATASETS[S[0]]
             tot = np.array(r["client_counts"]).sum(0)
             name = spec["name"] + ("-LT" if spec["imbalance"] == "IF" else "")

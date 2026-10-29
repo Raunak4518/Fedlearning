@@ -20,12 +20,13 @@ federation-level sums are not differentially private: for classes with few sampl
 closely. \ours should not be called privacy-preserving beyond that protocol guarantee.
 \item \claim{Some settings were run with fewer than three seeds; their tables say so and carry no interval.}
 \item \ours costs more than GeFL-F (\cref{tab:cost}): its extra time is mostly in the longer synthetic phase of
-Stage III and its extra communication mostly in the training of the generator. We did not compare the methods at
-matched computation or communication; the ablation with one synthetic epoch separates the effect of the longer
-synthetic phase.
+Stage III, and its extra communication mostly in the training of the generator, which with its projection of the
+class means is larger than GeFL-F's. We did not compare the methods at
+matched computation or communication; the ablation with one synthetic epoch shows how much \ours depends on the
+longer phase, not what the other methods would reach with it.
 \item The gate threshold $F_0$ and the other settings of \cref{tab:hyper} were chosen on earlier runs of the same
-benchmarks with other seeds, fixed before these runs and not swept; the baselines were not tuned
-(\cref{sec:setup-threats}).
+benchmarks, partly with the same seeds and client splits and on the same test sets; they were fixed before these runs
+and not swept, and the baselines were not tuned (\cref{sec:setup-threats}).
 \item With one model shared by all clients, the strongest long-tail methods (\R{t2/cifar10-r100/above_list} on
 CIFAR-10-LT) are better (\cref{tab:shared}); \ours is designed for clients with different models and has no advantage
 when their models can be averaged.
@@ -34,11 +35,11 @@ because of the lower performance of its feature extractor and target networks th
 own setting (a balanced training set divided evenly among 10 clients) our earlier implementation of GeFL-F reaches
 \R{repro/cifar10/GeFL-F/final}\% on CIFAR-10 (\R{repro/cifar10/GeFL-F/best}\% with GeFL's best-round measure;
 GeFL reports \R{repro/cifar10/published}\%) but only \R{repro/cifar100/GeFL-F/final}\% on CIFAR-100, so on CIFAR-100
-the level is set by the design and the data budget, and on CIFAR-10 the long tail costs most of the
-difference\whennum{main/cifar100/Centralised (pooled data)/bal}{, and the same extractor and heads
-trained on all the training data pooled reach \R{main/cifar10/Centralised (pooled data)/bal} on CIFAR-10-LT and
+the level is set by the design and the data budget, and on CIFAR-10 the long tail, together with the smaller training set it leaves, costs most of the
+difference\whennum{main/cifar100/Centralised (pooled data)/bal}{, and the same architectures, trained with cross-entropy on all
+the training data pooled (extractor and heads, no generator, no long-tail correction), reach \R{main/cifar10/Centralised (pooled data)/bal} on CIFAR-10-LT and
 \R{main/cifar100/Centralised (pooled data)/bal} on CIFAR-100-LT (\R{main/cifar10/Centralised (pooled data)/er_bal} and
-\R{main/cifar100/Centralised (pooled data)/er_bal} with the exact readout), the ceiling of this design}. These numbers
+\R{main/cifar100/Centralised (pooled data)/er_bal} with the exact readout)}. These numbers
 are not comparable with centralised long-tail results for ResNet-32 and larger networks.
 \end{itemize}
 

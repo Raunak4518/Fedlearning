@@ -73,8 +73,9 @@ the strongest other method.}
 \begin{widetable}[t]
 \centering\small
 \caption{Balanced accuracy (\%) with every architecture's last layer replaced by the exact class-balanced readout
-(\cref{sec:method-readout}); mean $\pm$ standard deviation over seeds 3--5. Methods whose heads end in a linear
-layer; same setting as \cref{tab:main}.}
+(\cref{sec:method-readout}); mean $\pm$ standard deviation over seeds 3--5. Methods of the GeFL-F pipeline (same extractor, heads
+with a CNN body and a linear last layer); the HtFLlib methods and Local were not evaluated with the readout. Same
+setting as \cref{tab:main}.}
 \label{tab:readout}
 \slottab{main_er}{\begin{tabular}{lccccc}\toprule
 Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
@@ -144,7 +145,8 @@ ratio 100, 10 clients; each point is one class, mean over seeds 3--5).}
 (\R{nat/datasets}). \claim{\ours has the highest mean balanced accuracy as trained on \R{nat/nbest_of}, with margins of \R{nat/margin_lo} (\R{nat/margin_lo_ds}) to \R{nat/margin_hi}
 points (\R{nat/margin_hi_ds}) over the strongest other method; the margin is significant after Holm's correction
 on \R{nat/n_sig} of the \R{nat/n_sig_of} datasets with three seeds. With the exact readout for every method of the GeFL-F pipeline the margins are below one
-point, within the run-to-run variation of \cref{sec:setup-impl}, and on BloodMNIST FedDF is level with \ours.} \claim{The
+point, close to the noise floor of \R{repeat/er/floor} points of \cref{sec:setup-stats}, and on BloodMNIST FedDF is
+level with \ours.} \claim{The
 separation gate chose the class-row generator on \R{gate/rows}, where the class means are too close for an anchor.}
 
 \begin{widetable}[t]
@@ -311,7 +313,7 @@ communication.}
 \begin{table}[t]
 \centering\small
 \caption{Cost on CIFAR-10-LT (imbalance ratio 100, 10 clients): communication per client over the whole training,
-wall-clock time of one run on one T4 GPU, forward MFLOPs per image and training GFLOPs per round; mean over seeds
+wall-clock time of a run on a T4 GPU (in most notebooks shared with a second run), forward MFLOPs per image and training GFLOPs per round; mean over seeds
 3--5.}
 \label{tab:cost}
 \slottab{cost}{\begin{tabular}{lcccc}\toprule

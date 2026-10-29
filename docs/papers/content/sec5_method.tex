@@ -55,14 +55,14 @@ class-specific parameter, so \cref{prop:contraction} has nothing to shrink. It i
 GeFL-F's generator.
 
 \paragraph{Moment correction.} After Stage II the server draws $500$ samples per class from the generator, measures
-their mean $m_c$ and spread $\tilde V_c$, and corrects every later sample of class $c$ to the exact moments,
+their mean $\tilde\mu_c$ and spread $\tilde V_c$, and corrects every later sample of class $c$ to the exact moments,
 \begin{equation}\label{eq:mc}
-\tilde h\leftarrow\mathrm{ReLU}\big(\mu_c+s_c(\tilde h-m_c)\big),\qquad s_c=\mathrm{clip}\Big(\sqrt{V_c/\tilde V_c},\,0.1,\,10\Big).
+\tilde h\leftarrow\mathrm{ReLU}\big(\mu_c+s_c(\tilde h-\tilde\mu_c)\big),\qquad s_c=\mathrm{clip}\Big(\sqrt{V_c/\tilde V_c},\,0.1,\,10\Big).
 \end{equation}
 Without the final ReLU and the clipping this is the map of least displacement that attains the exact mean and spread
 (\cref{prop:mc} in \cref{app:proofs}); with them, the corrected samples match these moments only approximately:
 \claim{after the correction the generated within-class spread is \R{main/mc_spread_lo} to \R{main/mc_spread_hi}
-times the exact one (median \R{main/mc_spread_med}) over every class and run of the long-tailed benchmarks}. The server sends $(\mu_c,m_c,s_c)$ to the clients, which hold the generator and
+times the exact one (median \R{main/mc_spread_med}) over every class and run of the long-tailed benchmarks}. The server sends $(\mu_c,\tilde\mu_c,s_c)$ to the clients, which hold the generator and
 draw corrected samples themselves.
 
 \subsection{Heads}\label{sec:method-heads}
@@ -79,8 +79,8 @@ t(\tilde h)=(1-\omega)\,e_y+\omega\,\frac1G\sum_{g=1}^G\mathrm{softmax}\big(f_g(
 where $e_y$ is the one-hot generated label and $f_g$ the current head of architecture $g$: the federation's averaged
 prediction on that feature~\cite{menon2021distill}. Every client regenerates the same pool of synthetic features from a
 seed sent by the server and returns $w_k\,\mathrm{softmax}(f_{a(k)}(\tilde h))$ with $w_k=1/(G\,|\{j:a(j)=a(k)\}|)$; the
-secure sum over clients is the average in \cref{eq:csl}. Since the server holds every head, this hides nothing beyond
-what FedAvg already reveals, but the clients obtain the consensus without sending their heads to each other. Heads of
+secure sum over clients is the average in \cref{eq:csl}. Since the server holds every head and sends every architecture's current head
+to every client, this hides nothing beyond what FedAvg already reveals; it only makes the consensus one secure sum. Heads of
 the same architecture are averaged as in GeFL-F.
 
 \subsection{Exact readout}\label{sec:method-readout}
@@ -113,7 +113,7 @@ trained.
 (\cref{eq:gate})
 \State \textbf{Stage II:} \textbf{if} $F\ge F_0$ train the anchored generator (\cref{eq:anchor}) by FedAvg
 \textbf{else} train GeFL-F's generator, class rows by CCWA (\cref{eq:ccwa})
-\State server measures $m_c,\tilde V_c$ and sends the moment correction $(\mu_c,m_c,s_c)$ (\cref{eq:mc})
+\State server measures $\tilde\mu_c,\tilde V_c$ and sends the moment correction $(\mu_c,\tilde\mu_c,s_c)$ (\cref{eq:mc})
 \For{round $t=1,\dots,T_{\mathrm{TN}}$} \Comment{Stage III}
   \State server sends heads and a pool seed; clients return the secure sum of consensus predictions (\cref{eq:csl})
   \State each client: $T_s$ epochs on corrected synthetic features with soft targets $t(\tilde h)$, then $T_r$ epochs on
