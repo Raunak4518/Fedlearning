@@ -226,7 +226,7 @@ in this protocol, so this explanation is not tested.
 \R{t2/cifar10-r100/FedECS-LT/gain_er} points on CIFAR-10-LT and \R{t2/cifar100-r100/FedECS-LT/gain_er} on
 CIFAR-100-LT.} With one shared head trained by every client, the last layer is not fitted to one client's label prior, the
 failure the readout addresses; we did not test further why it is lower. \whennum{t2/cifar10-r100/fe200_diff}{\claim{Training the extractor of \ours for all 200 rounds changes
-the balanced accuracy of its heads on CIFAR-10-LT by \R{t2/cifar10-r100/fe200_diff} points.}}
+the balanced accuracy of its heads on CIFAR-10-LT by \R{t2/cifar10-r100/fe200_diff} points (seed 3 only).}}
 
 \paragraph{Comparison with published numbers} Our baselines run in the authors' code on our splits and report the
 model after the last round. Against FedYoYo's evaluation in the same protocol~\cite{yan2025fedyoyo}, most methods are within about three points of the published values (e.g.\ FedAvg 58.2, CCVR 68.1,
