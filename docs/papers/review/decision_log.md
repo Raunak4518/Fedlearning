@@ -37,3 +37,23 @@
   design), symbol renames (names follow the cited methods; each is defined where used).
 - The labels of the matched-epoch arms became "GeFL-F (10 synthetic epochs)" and "FedDF (10 synthetic epochs)":
   the underscore of "T_s" failed the report's caption check in the CPU test. No run had used the old labels.
+
+## Results of 17 notebooks (30 Oct 2026), v07
+- **Returned:** MNIST, Fashion-MNIST, SVHN (main comparison); fresh seeds 6-8; GeFL-F variants (27 of 36 runs);
+  matched synthetic epochs; components (24 of 36); pooled-data reference; GeFL's grouped baselines at 10 clients
+  (CIFAR-10-LT); the HtFLlib and grouped methods at 50 clients (CIFAR-10-LT complete, CIFAR-100-LT 29 of 57). Every
+  failure was host memory (Ray out of memory, or a secure sum failing when a client was killed): all these notebooks
+  ran code 342992a, before the one-run-per-GPU change for 50 clients (15e0366). FedECS-LT, GeFL-F, FedDF and
+  Balanced Softmax at 50 clients (NB40_sweep_cifar10_K50 and CIFAR-100 part 1) did not finish, so the paper shows no
+  50-client table yet (fill.py writes it only when FedECS-LT has runs in every setting).
+- **Gaussian sampler kept out of the paper (user):** "i am not in mood to make any changes so please don't keep it in
+  paper, you give me a different pdf about it". FedECS-LT with its trained generator replaced by class Gaussians from
+  exact statistics is +1.7 points with the readout on CIFAR-10-LT (Holm p = 0.041 over the seven changes) at 16 times
+  less communication. fill.py excludes it from the components table, figure and counts (NOT_IN_PAPER) and writes its
+  numbers under note/...; the finding is in docs/study/gaussian_sampler.pdf. Reviewer E asked for this arm (R1): a
+  reviewer may ask for it again.
+- **Text changed with the results:** the decay diagnosis now cites the AdamW arm (+1.4 points, a small part of the
+  loss); the components paragraph names the consensus soft labels as the only resolved component and the moment
+  correction as showing no benefit; MNIST is the one benchmark where the same-readout lead is significant
+  (contribution 3 corrected); AvgKD collapses to one class (reported with a plausible reason, untested); the pooled
+  reference and the grouped baselines enter tab:main.

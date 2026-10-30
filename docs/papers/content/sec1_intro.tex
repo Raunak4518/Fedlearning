@@ -25,8 +25,10 @@ sample size. We locate three such losses, one through each of the first three ro
 \begin{enumerate}
 \item \emph{The generator.} With Adam~\cite{kingma2015adam} and coupled weight decay, a client that lacks a class moves
 the generator's class row, its only class-specific parameter, toward zero by about one learning rate per step, and flat averaging includes these clients. In GeFL-F's runs the
-rare classes' rows end several times shorter than the frequent ones'; whether this causes their loss is not yet
-tested.
+rare classes' rows end several times shorter than the frequent ones'\numelse{abl/cifar10/GeFL-F + AdamW/paired}{, but
+decoupling the decay alone raises GeFL-F's balanced accuracy on CIFAR-10-LT by only
+\R{abl/cifar10/GeFL-F + AdamW/paired} points, so the shrinkage explains a small part of the loss.}{; whether this causes
+their loss is not yet tested.}
 \item \emph{The last layer.} Each head is trained on one client's real data, so its last layer fits that client's
 label prior. Per-client logit corrections (logit adjustment~\cite{menon2021la}, FedLC~\cite{zhang2022fedlc},
 Balanced Softmax~\cite{ren2020bsm} and, up to a step size, FedRS~\cite{li2021fedrs}) change only the initialisation
@@ -75,7 +77,8 @@ the readout of \ours added, which separates the readout's gain from that of the 
 different client models, \ours has the highest mean balanced accuracy on \R{main/nbest_of} long-tailed benchmarks and
 \R{nat/nbest_of} naturally imbalanced datasets, and most of its margin comes from the readout: with the same readout
 for every method of the GeFL-F pipeline, its lead of \R{main/er_margin_lo} to \R{main/er_margin_hi} points over the
-strongest other method on the long-tailed benchmarks is not significant with three seeds. With one shared model,
+strongest other method on the long-tailed benchmarks is significant after Holm's correction only on
+\R{main/er_sig_list}. With one shared model,
 \R{t2/cifar10-r100/n_above} other methods have a higher mean balanced accuracy on CIFAR-10-LT
 (\R{t2/cifar10-r100/above_list}).}
 \end{enumerate}

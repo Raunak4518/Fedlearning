@@ -1,0 +1,9 @@
+{"run_id": "LG-FedAvg|cifar10|IF0.01|a0.5|K50|s3", "gefl_best_acc": 0.2417, "gefl_last_acc": 0.2372, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 50, "source": "per-round logs"}
+{"run_id": "FedGH|cifar10|IF0.01|a0.5|K50|s4", "gefl_best_acc": 0.2482, "gefl_last_acc": 0.2425, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 50, "source": "per-round logs"}
+{"run_id": "FedGH|cifar10|IF0.01|a0.5|K50|s3", "gefl_best_acc": 0.2412, "gefl_last_acc": 0.2349, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 50, "source": "per-round logs"}
+{"run_id": "FedMRL|cifar10|IF0.01|a0.5|K50|s3", "gefl_best_acc": 0.243, "gefl_last_acc": 0.2412, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 50, "source": "per-round logs"}
+{"run_id": "LG-FedAvg|cifar10|IF0.01|a0.5|K50|s4", "gefl_best_acc": 0.2488, "gefl_last_acc": 0.2422, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 50, "source": "per-round logs"}
+{"run_id": "FedGH|cifar10|IF0.01|a0.5|K50|s5", "gefl_best_acc": 0.2466, "gefl_last_acc": 0.2417, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 50, "source": "per-round logs"}
+{"run_id": "FedMRL|cifar10|IF0.01|a0.5|K50|s4", "gefl_best_acc": 0.2495, "gefl_last_acc": 0.2472, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 50, "source": "per-round logs"}
+{"run_id": "LG-FedAvg|cifar10|IF0.01|a0.5|K50|s5", "gefl_best_acc": 0.247, "gefl_last_acc": 0.2417, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 50, "source": "per-round logs"}
+{"run_id": "FedMRL|cifar10|IF0.01|a0.5|K50|s5", "gefl_best_acc": 0.2462, "gefl_last_acc": 0.2439, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 50, "source": "per-round logs"}

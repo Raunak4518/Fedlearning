@@ -49,6 +49,9 @@ MATCHED = ("GeFL-F (10 synthetic epochs)", "FedDF (10 synthetic epochs)")   # as
 NOTEST = {DIAG, HEADS}   # shown in the tables, never in the test family, "best", "strongest" or the baseline counts
 # references, not competitors: shown in the tables, never "best", "strongest" or counted among the baselines
 REFS = {"Centralised (pooled data)"}
+# runs kept out of the paper by the user's decision (30 Oct 2026): the Gaussian-sampler component is reported in a
+# separate note (docs/study/gaussian_sampler.tex); its numbers are written under note/<ds>/ and comp/<ds>/
+NOT_IN_PAPER = {"FedECS-LT w/ Gaussian sampler"}
 # number slots per method: (short name in the key, runs.jsonl key)
 METRICS = [("bal", "final_bal"), ("er_bal", "er_bal"), ("f1", "final_f1"), ("tail", "final_tail"),
            ("worst", "final_worst"), ("mcc", "final_mcc"), ("gmean", "final_gmean"), ("ece", "final_ece"),
@@ -371,6 +374,9 @@ def fill_group(g, E, nums, made, status):
         if short:   # comparisons use each method's seeds in common with FedECS-LT (matched)
             status.append("  - methods with fewer seeds: " + "; ".join(f"{m} {x}" for m, x in sorted(short.items())))
     status.append("")
+    if g == "k50" and any(not E.of(OURS, S) for S in settings):   # the comparison needs FedECS-LT in every setting
+        status.append("  - not written to the paper yet: FedECS-LT has no run in every setting\n")
+        return
     for S in settings:
         s = sid(S)
         nums[f"{g}/{s}/seeds"] = str(len({r["seed"] for r in E.runs if plots.setting_key(r) == S}))
@@ -453,6 +459,10 @@ def fill_group(g, E, nums, made, status):
             nums[f"{g}/er_margin_{end}_who"] = tex(who[S])
         behind = [S for S in me if me[S] < 0]   # settings where a method with the readout has the higher mean
         nums[f"{g}/er_n_behind"] = word(len(behind))
+        # settings where the lead with the readout is significant after Holm (over the GeFL-F pipeline methods)
+        sig = [S for S in me if (lambda d: d and d[4] < 0.05)(paired(E, S, "er_bal").get(who[S]))]
+        nums[f"{g}/er_n_sig"] = word(len(sig)) if sig else "none"
+        nums[f"{g}/er_sig_list"] = and_list([tex(pt.column_name(S, settings)) for S in sig]) if sig else "none"
     if g == "t2":   # the strongest method at imbalance ratio 100 on both datasets, in one phrase
         pair = [S for S in settings if round(1 / S[1]) == 100]
         st = {S: min(((m, v) for m, v in matched(E, S, "final_bal").items() if m != "Local"),
@@ -583,6 +593,17 @@ def fill_extras(E_by, nums, made):
                     a, b = mean_of(E, m, key, S), mean_of(E, base, key, S)
                     if not (np.isnan(a) or np.isnan(b)):
                         nums[f"abl/{s}/{m}/{pre}gain"] = signed(100 * (a - b))
+                # paired over the seeds both have (uncorrected: one planned comparison per variant)
+                both = sorted({r["seed"] for r in E.of(m, S)} & {r["seed"] for r in E.of(base, S)})
+                if len(both) >= 2:
+                    from scipy import stats
+                    for key, pre in (("final_bal", ""), ("final_tail", "tail_"), ("er_bal", "er_")):
+                        v, w = ({r["seed"]: r.get(key) for r in E.of(x, S)} for x in (m, base))
+                        d = [100 * (v[x] - w[x]) for x in both if v[x] is not None and w[x] is not None]
+                        if len(d) >= 2 and np.std(d) > 0:
+                            nums[f"abl/{s}/{m}/{pre}paired"] = signed(float(np.mean(d)))
+                            nums[f"abl/{s}/{m}/{pre}p"] = f"{float(stats.ttest_1samp(d, 0.0).pvalue):.2g}"
+                    nums[f"abl/{s}/{m}/seeds"] = word(len(both))
             for m in MATCHED:   # FedECS-LT's heads against GeFL-F and FedDF with as many synthetic epochs
                 o = mean_of(E, m, "final_bal", S)
                 if not (np.isnan(o) or np.isnan(us)):
@@ -624,7 +645,7 @@ def fill_extras(E_by, nums, made):
         sets = ordered(E)
         header = ["Variant"] + [f"{pt.column_name(S, sets)} {w}" for S in sets for w in ("as trained", "ER")]
         rows = []
-        for m in [OURS] + [m for m in E.methods if m.startswith("FedECS-LT w")]:
+        for m in [OURS] + [m for m in E.methods if m.startswith("FedECS-LT w") and m not in NOT_IN_PAPER]:
             cells = []
             for S in sets:
                 for key in ("final_bal", "er_bal"):
@@ -635,18 +656,68 @@ def fill_extras(E_by, nums, made):
                 rows.append([("FedECS-LT (full)" if m == OURS else m.replace("FedECS-LT ", ""))] + cells)
         if rows:
             made.append(write_table("abl_components", header, rows, set()))
-        variants = [m for m in E.methods if m.startswith("FedECS-LT w")]
+        every = [m for m in E.methods if m.startswith("FedECS-LT w")]
+        variants = [m for m in every if m not in NOT_IN_PAPER]
         nums["comp/n_variants"] = word(len(variants))
         for S in sets:   # what each change costs the full method (with the readout) and its heads as trained
             s, drop = sid(S), {}
-            for m in variants:
+            for m in every:
                 for key, ref, pre in (("er_bal", "er_bal", "er_"), ("final_bal", "heads_final_bal", "")):
                     a, b = mean_of(E, m, key, S), mean_of(E, OURS, ref, S)
                     if not (np.isnan(a) or np.isnan(b)):
                         nums[f"comp/{s}/{m.replace('FedECS-LT ', '')}/{pre}drop"] = signed(100 * (b - a))
-                        if pre == "er_":
+                        if pre == "er_" and m in variants:
                             drop[m] = 100 * (b - a)
-            if drop:
+            if drop:   # paired drops with the readout, Holm over the paper's variants (the components' test family)
+                import representation as rp
+                from scipy import stats
+                full = {r["seed"]: r.get("er_bal") for r in E.of(OURS, S)}
+                tested = []
+                for m in variants:
+                    v = {r["seed"]: r.get("er_bal") for r in E.of(m, S)}
+                    d = [100 * (full[x] - v[x]) for x in sorted(set(full) & set(v)) if None not in (full[x], v[x])]
+                    nums[f"comp/{s}/{m.replace('FedECS-LT ', '')}/seeds"] = word(len(d))
+                    if len(d) >= 2 and np.std(d) > 0:
+                        tested.append((m, float(stats.ttest_1samp(d, 0.0).pvalue)))
+                for (m, p), a in zip(tested, rp.holm([p for _, p in tested]) if tested else []):
+                    nums[f"comp/{s}/{m.replace('FedECS-LT ', '')}/er_p"] = f"{a:.2g}"
+                fl = float(nums.get("repeat/er/floor", "nan"))   # resolved: above the noise floor and significant
+                nums[f"comp/{s}/n_resolved"] = word(sum(1 for (m, _), a in zip(tested, rp.holm([p for _, p in tested]))
+                                                       if a < 0.05 and abs(drop[m]) >= fl)) if tested else "none"
+                for m in NOT_IN_PAPER:   # for the separate note: paired tests against the full method, cost
+                    v = {r["seed"]: r for r in E.of(m, S)}
+                    both = sorted(set(full) & set(v))
+                    key = f"note/{s}/{m.replace('FedECS-LT ', '')}"
+                    nums[f"{key}/seeds"] = word(len(both))
+                    for k, ref, pre in (("er_bal", "er_bal", "er_"), ("final_bal", "heads_final_bal", ""),
+                                        ("er_tail", "er_tail", "er_tail_")):
+                        o = {r["seed"]: r.get(ref) for r in E.of(OURS, S)}
+                        d = [100 * (v[x].get(k) - o[x]) for x in both if None not in (v[x].get(k), o[x])]
+                        if d:
+                            nums[f"{key}/{pre}diff"] = signed(float(np.mean(d)))
+                        if len(d) >= 2 and np.std(d) > 0:
+                            nums[f"{key}/{pre}p"] = f"{float(stats.ttest_1samp(d, 0.0).pvalue):.2g}"
+                    for k in ("comm_mb_per_client", "time_s"):
+                        a, b = mean_of(E, m, k, S), mean_of(E, OURS, k, S)
+                        if not (np.isnan(a) or np.isnan(b)) and a > 0:
+                            nums[f"{key}/{k}"] = f"{a:,.0f}"
+                            nums[f"{key}/{k}_ours"] = f"{b:,.0f}"
+                            nums[f"{key}/{k}_ratio"] = f"{b / a:.1f}"
+                    for k in ("final_bal", "er_bal"):
+                        mu, sd, n = plots.metric(E, m, k, S)
+                        nums[f"{key}/{k}"] = report.fmt(mu, sd, k, n).replace("±", "$\\pm$")
+                    # Holm over all seven changes, the note's family (the six of the paper and this one)
+                    allp = []
+                    for x in every:
+                        w = {r["seed"]: r.get("er_bal") for r in E.of(x, S)}
+                        d = [100 * (full[y] - w[y]) for y in sorted(set(full) & set(w)) if None not in (full[y], w[y])]
+                        if len(d) >= 2 and np.std(d) > 0:
+                            allp.append((x, float(stats.ttest_1samp(d, 0.0).pvalue)))
+                    for (x, _), a in zip(allp, rp.holm([p for _, p in allp]) if allp else []):
+                        if x == m:
+                            nums[f"{key}/er_p_holm"] = f"{a:.2g}"
+                nums[f"comp/{s}/n_one_seed"] = word(sum(1 for m in variants if len(
+                    {r["seed"] for r in E.of(m, S)} & set(full)) == 1))
                 big = max(drop, key=drop.get)
                 nums[f"comp/{s}/largest"] = tex(big.replace("FedECS-LT ", ""))
                 nums[f"comp/{s}/largest_drop"] = signed(drop[big])
@@ -819,7 +890,7 @@ def fill_run_figures(E_by, made, status):
         panels = []
         for S in ordered(E):
             full = {r["seed"]: r for r in E.of(OURS, S)}
-            var = [m for m in E.methods if m.startswith("FedECS-LT w")]
+            var = [m for m in E.methods if m.startswith("FedECS-LT w") and m not in NOT_IN_PAPER]
             vals = {TRAINED[0]: [], READOUT[0]: []}
             keep = []
             for m in var:
@@ -852,7 +923,8 @@ def fill_run_figures(E_by, made, status):
         if panels:
             bar_panels("fig_variants", panels, [TRAINED, READOUT], "Balanced accuracy (%)", status, made)
     E10, E50 = E_by.get("main"), E_by.get("k50")
-    if E10 is not None and E50 is not None:   # every method at 10 and at 50 clients (FedECS-LT with its readout)
+    # every method at 10 and at 50 clients (FedECS-LT with its readout), once FedECS-LT has 50-client runs
+    if E10 is not None and E50 is not None and all(E50.of(OURS, S) for S in ordered(E50)):
         panels = []
         for S50 in ordered(E50):
             S10 = next((S for S in E10.settings if S[0] == S50[0]), None)
@@ -874,11 +946,18 @@ def content_files():
 
 
 def missing_notebooks():
-    done = {os.path.basename(d) for d in glob.glob(os.path.join(RESULTS, "NB*"))}
+    """Notebooks with runs that are in no results folder (by run id, as build_notebooks.rerun_notebooks counts them:
+    a notebook can be complete through another notebook's or a rerun's folder), with their missing run counts."""
+    from runner import run_id
+    done = set()
+    for f in glob.glob(os.path.join(RESULTS, "*", "runs.jsonl")):
+        if not os.path.basename(os.path.dirname(f)).startswith(("NB00", "_")):
+            done |= {json.loads(line)["run_id"] for line in open(f) if line.strip()}
     out = {}
-    for n in bn.all_notebooks():
-        if n not in done and not n.startswith("NB00"):
-            out.setdefault(bn.FOLDERS[bn.priority(n)], []).append(n)
+    for n, nb in bn.all_notebooks().items():
+        miss = sum(run_id(r) not in done for r in nb["runs"])
+        if miss and not n.startswith("NB00"):
+            out.setdefault(bn.FOLDERS[bn.priority(n)], []).append(f"{n} ({miss} of {len(nb['runs'])} runs missing)")
     return out
 
 

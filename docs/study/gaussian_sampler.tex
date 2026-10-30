@@ -1,0 +1,119 @@
+% A finding kept out of the paper (user's decision, 30 Oct 2026): FedECS-LT with its trained generator replaced by class
+% Gaussians from exact statistics. Every number is a slot of docs/papers/generated/numbers.tex (note/... and abl/...),
+% written by docs/papers/fill.py. Build: pdflatex gaussian_sampler.tex (two passes).
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=2.7cm]{geometry}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage[export]{adjustbox}
+\usepackage{booktabs}
+\usepackage{xcolor,etoolbox,xspace}
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf}
+\usepackage[colorlinks,linkcolor=black,citecolor=black,urlcolor=black]{hyperref}
+\newcommand{\genpath}{../papers/generated}
+\input{../papers/content/macros.tex}
+\finalslotstrue
+\setlength{\parskip}{0.35em}
+\linespread{1.08}
+\renewcommand{\paragraph}[1]{\par\medskip\noindent\textbf{#1.}\enspace}
+\newcommand{\G}[1]{\R{note/cifar10/w/ Gaussian sampler/#1}}
+\newcommand{\Gc}[1]{\R{note/cifar100/w/ Gaussian sampler/#1}}
+
+\begin{document}
+\begin{center}
+{\Large\bfseries FedECS-LT without a trained generator}\\[4pt]
+{\small A finding from the component ablation, kept out of the paper}
+\end{center}
+\medskip
+
+\paragraph{The question} The component ablation of FedECS-LT includes one run that the paper does not report: the
+trained generator of Stage II replaced by class Gaussians built from exact statistics. Everything else is as in
+FedECS-LT (consensus soft labels, logit adjustment, ten synthetic epochs, the exact readout). Reviewer E asked for this
+arm: if it matches FedECS-LT, Stage II is unnecessary. It does better than matching.
+
+\paragraph{What the sampler is} After Stage I the clients send, besides the class counts and feature sums, the sum of
+$hh^\top$ over their features. From these the server forms the class means $\mu_c$ and one within-class covariance
+$\Sigma$ shared by all classes, shrunk toward a multiple of the identity with $\gamma=0.1$, the same estimator as the
+readout's (\texttt{fedecs.gaussian\_from\_sums}). A class-$c$ feature is then $\mathrm{ReLU}(\mu_c+L\varepsilon)$ with
+$\varepsilon\sim\mathcal N(0,I)$ and $LL^\top=\Sigma$ (\texttt{models.GaussFeatureGen}). There is no Stage II, no class
+row, no gate and no moment correction: the sampler has the exact mean and, before the ReLU, the exact pooled
+covariance by construction. It is the sampler of CCVR, applied to the generator-based pipeline.
+
+\paragraph{The results} Table~\ref{tab:g} compares it with the full FedECS-LT on the same splits and seeds (CIFAR-10-LT
+and CIFAR-100-LT, imbalance ratio 100, ten clients, one per architecture).
+
+\begin{table}[h]
+\centering\small
+\caption{FedECS-LT with its trained generator and with the Gaussian sampler: balanced accuracy (\%) of the heads as
+trained and with the exact readout, mean $\pm$ standard deviation over the seeds that finished; the differences are
+the sampler minus the full method, paired over common seeds, with uncorrected $p$; Holm: corrected over the seven
+component changes of the ablation.}
+\label{tab:g}
+\begin{tabular}{lcc}\toprule
+& CIFAR-10-LT & CIFAR-100-LT\\\midrule
+Seeds & \G{seeds} & \Gc{seeds}\\
+FedECS-LT, heads as trained & \R{main/cifar10/FedECS-LT (heads only)/bal} & \R{main/cifar100/FedECS-LT (heads only)/bal}\\
+Gaussian sampler, heads as trained & \G{final_bal} & \Gc{final_bal}\\
+\quad difference ($p$) & \G{diff} (\G{p}) & \Gc{diff} (\Gc{p})\\
+FedECS-LT with the readout & \R{main/cifar10/FedECS-LT/bal} & \R{main/cifar100/FedECS-LT/bal}\\
+Gaussian sampler with the readout & \G{er_bal} & \Gc{er_bal}\\
+\quad difference ($p$; Holm) & \G{er_diff} (\G{er_p}; \G{er_p_holm}) & \Gc{er_diff} (\Gc{er_p}; \Gc{er_p_holm})\\
+\quad tail recall difference ($p$) & \G{er_tail_diff} (\G{er_tail_p}) & \Gc{er_tail_diff} (\Gc{er_tail_p})\\\midrule
+Communication per client (MB) & \G{comm_mb_per_client} vs \G{comm_mb_per_client_ours} &
+\Gc{comm_mb_per_client} vs \Gc{comm_mb_per_client_ours}\\
+Wall-clock time of a run (s) & \G{time_s} vs \G{time_s_ours} & \Gc{time_s} vs \Gc{time_s_ours}\\\bottomrule
+\end{tabular}
+\end{table}
+
+On CIFAR-10-LT the sampler is \G{er_diff} points ahead with the readout, significant after Holm's correction over the
+seven component changes ($p=\G{er_p_holm}$) and above the noise floor of \R{repeat/er/floor} points, and \G{diff}
+points ahead with heads as trained. Its tail recall with the readout is \G{er_tail_diff} points higher. On
+CIFAR-100-LT it is \Gc{er_diff} points ahead, from \Gc{seeds} seeds, which is unresolved. It needs
+\G{comm_mb_per_client_ratio} times less communication and \G{time_s_ratio} times less time on CIFAR-10-LT
+(\Gc{comm_mb_per_client_ratio} and \Gc{time_s_ratio} on CIFAR-100-LT), because Stage II, two hundred rounds of FedAvg
+on the generator, is the largest part of FedECS-LT's cost.
+
+The same holds for GeFL-F. The paper's variants table already contains GeFL-F with its generator replaced by the
+same Gaussians, with logit adjustment. That change raises GeFL-F by
+\R{abl/cifar10/GeFL-F w/ Gaussian generator + LA/paired} points as trained on CIFAR-10-LT
+($p=\R{abl/cifar10/GeFL-F w/ Gaussian generator + LA/p}$), its tail recall by
+\R{abl/cifar10/GeFL-F w/ Gaussian generator + LA/tail_paired}, and its accuracy with the readout by
+\R{abl/cifar10/GeFL-F w/ Gaussian generator + LA/er_paired} ($p=\R{abl/cifar10/GeFL-F w/ Gaussian generator + LA/er_p}$).
+
+\paragraph{Why it may work} The paper's third diagnosis is that GeFL-F's generated features do not carry their
+label: the referee recognises them near chance (\R{main/cifar10/GeFL-F/fidelity_all}\,\% on CIFAR-10-LT, where chance is 10\%). A Gaussian
+centred on the exact class mean carries its label by construction, as far as the means differ, and its spread is the
+real one. The heads then learn the classes a client lacks from features that look like them on average, which is what
+the generator was meant to provide. That a two-moment sampler beats a trained conditional VAE suggests that, on this
+shallow frozen feature space, the generator adds nothing that the first two moments do not already carry, and that
+its training loses part of what they carry. This is an interpretation; the runs do not test it.
+
+\paragraph{What it would mean for the paper} If the sampler became the method, FedECS-LT would be simpler and
+cheaper: exact class statistics, a Gaussian sampler, consensus soft labels, logit adjustment and the exact readout.
+The diagnosis would stay as it is; the repair of the generator (anchor, gate, CCWA, moment correction) would be
+replaced by not training a generator at all, which fits the method's name better. The anchored generator would
+become an ablation.
+
+\paragraph{What it would cost to adopt} New FedECS-LT runs with the sampler on every dataset where the method is
+reported: MNIST, Fashion-MNIST and SVHN; the six naturally imbalanced datasets; CIFAR-100-LT seed 5; the new splits
+(seeds 6--8); and the 50-client setting. Without Stage II a CIFAR run took \G{time_s} s (CIFAR-10-LT) and \Gc{time_s} s (CIFAR-100-LT) on a shared Kaggle GPU. The baselines need no new
+runs. The method section, the overview figure, Algorithm 1, the cost table and the abstract would change.
+
+\paragraph{Caveats}
+\begin{itemize}
+\item CIFAR-100-LT has two seeds, and the difference there is not resolved.
+\item Only the two CIFAR benchmarks were run; the gate chose class rows on FER-2013, where the class means are close,
+and there a two-moment sampler may do worse.
+\item The sampler releases one more statistic: the $d\times d$ sum of $hh^\top$, $2560^2\approx6.6$ million numbers
+per client on CIFAR. It is shared by all classes, so it reveals less per class than per-class covariances would, but
+it is second-order information about every client's features. In these runs that sum was computed without secure
+aggregation (\texttt{server.py}, \texttt{ssum(..., secure=False)}); a deployment would need it under secure
+aggregation, at that size.
+\item The ReLU after sampling makes the generated spread smaller than the exact one, as for the moment correction.
+\end{itemize}
+
+\end{document}

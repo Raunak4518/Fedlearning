@@ -729,3 +729,15 @@ Decisions:
   4. `cifar10_cifar100_matched_synthetic_epochs`: GeFL-F and FedDF with T_s = 10.
 - The paper's text for these results is written with conditional slots (GUIDE.md E5, E6, E6b) and appears when the
   results return.
+
+## 27. Results of 17 notebooks; what to run next (30 Oct 2026)
+
+- Results filed in `fedecs_lt/results/` (17 folders) and in the paper (fill.py; decision log v07). Findings: fresh
+  seeds reproduce the CIFAR margins; decoupled decay alone gives GeFL-F +1.4 points (CIFAR-10-LT); ten synthetic
+  epochs do not help GeFL-F or FedDF; consensus soft labels are the one component with a resolved effect beyond the
+  readout; the moment correction shows none; the Gaussian sampler beats the trained generator (kept out of the paper
+  by the user, `docs/study/gaussian_sampler.pdf`); AvgKD collapses at 10 clients.
+- Every failure was host memory. `build_notebooks.rerun_notebooks` now also makes reruns for notebooks returned under
+  another name (the CIFAR-100 50-client runs came back from the earlier two-part build).
+- What to run next is in the reply of 30 Oct 2026 and in `fedecs_lt/notebooks/5_reruns_of_failed_runs`,
+  `7_gefl_protocol_grouped_baselines_10_and_50_clients` and `8_reviewer_requested_runs` (the `_rerun_` notebooks).

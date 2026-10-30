@@ -1,2 +1,2 @@
 Method,CIFAR-10,CIFAR-100
-FedECS-LT,39.6 ± 1.9,13.6
+FedECS-LT,39.6 ± 1.9,13.8 ± 0.4

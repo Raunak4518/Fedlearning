@@ -37,7 +37,7 @@ def test_new_arms_change_one_setting():
 
 def test_reviewer_notebooks_hold_the_planned_runs():
     nbs = bn.all_notebooks()
-    mine = {n: nb for n, nb in nbs.items() if n.startswith(bn.REVIEWER_NOTEBOOKS)}
+    mine = {n: nb for n, nb in nbs.items() if n.startswith(bn.REVIEWER_NOTEBOOKS) and "_rerun_" not in n}
     assert all(bn.folder(n) == "8_reviewer_requested_runs" for n in mine)
     runs = {}
     for n, nb in mine.items():
@@ -54,11 +54,14 @@ def test_reviewer_notebooks_hold_the_planned_runs():
         assert {r["seed"] for r in v} == set(seeds) and {r["ds"] for r in v} == {"cifar10", "cifar100"}
         assert all(r["IF"] == 0.01 and r["alpha"] == 0.5 and r["K"] == 10 for r in v)
     assert not any(n.startswith(("NB30", "NB31")) for n in nbs)                        # replaced
-    # nothing planned here has come back already (never run twice)
+    # their reruns hold exactly the planned runs that have not come back (never run twice)
     done = set()
     for f in glob.glob(os.path.join(HERE, "..", "results", "*", "runs.jsonl")):
         done |= {json.loads(x)["run_id"] for x in open(f) if x.strip()}
-    assert not done & {run_id(r) for v in runs.values() for r in v}
+    rerun = [run_id(r) for n, nb in nbs.items() if n.startswith(bn.REVIEWER_NOTEBOOKS) and "_rerun_" in n
+             for r in nb["runs"]]
+    assert len(rerun) == len(set(rerun)) and not done & set(rerun)
+    assert set(rerun) == {run_id(r) for v in runs.values() for r in v} - done
 
 
 def test_fresh_seeds_give_new_splits():

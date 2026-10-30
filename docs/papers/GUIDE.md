@@ -279,7 +279,10 @@ Always keep:
   `abl/<ds>/rest`. The sentences are written and appear when the slots fill; Section 4.1 and the threats switch
   their wording through `\numelse`.
 - **What to write after they return:** check the blue sentences. If GeFL-F + AdamW does not raise the tail recall,
-  say that the decay diagnosis is not supported causally and soften highlight 1.
+say that the decay diagnosis is not supported causally and soften highlight 1.
+- **Status (30 Oct 2026):** returned except 9 CIFAR-100 runs (out of memory; rerun notebook
+  `cifar10_cifar100_gefl_f_variants_rerun_*`). The text cites the paired slots `abl/<ds>/<arm>/paired`, `/p`,
+  `/tail_paired`, `/tail_p`.
 
 ### E6. Components of FedECS-LT (folder 8: `cifar10_cifar100_components_of_fedecs_lt`, two parts)
 
@@ -290,7 +293,11 @@ Always keep:
   FedECS-LT"; numbers `comp/<ds>/<variant>/er_drop` and `/drop`, `comp/<ds>/largest`, `comp/<ds>/n_small` (changes
   within the readout noise floor). The conclusion's sentence "not yet measured" disappears by itself.
 - **What to write:** check the blue sentence; name the components whose removal stays within the noise floor as
-  "not needed on this dataset".
+"not needed on this dataset".
+- **Status (30 Oct 2026):** 24 of 36 runs returned (rest out of memory; rerun notebooks `..._rerun_*`). The Gaussian
+  sampler is excluded from the paper by the user (fill.py `NOT_IN_PAPER`; numbers under `note/<ds>/...`, note
+  `docs/study/gaussian_sampler.tex`). Slots: `comp/<ds>/<variant>/er_p` (Holm over the paper's variants),
+  `comp/<ds>/n_resolved`, `comp/<ds>/n_one_seed`.
 
 ### E6b. Fresh seeds 6-8 (folder 8: `cifar10_cifar100_fresh_seeds_6_to_8`)
 

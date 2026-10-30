@@ -1,0 +1,8 @@
+Variant,CIFAR-10 as trained,CIFAR-10 ER,CIFAR-100 as trained,CIFAR-100 ER
+FedECS-LT (full),42.8 ± 2.0,52.6 ± 1.3,14.3 ± 0.6,18.7 ± 0.2
+w/ class rows (CCWA),42.8 ± 1.9,52.4 ± 1.0,12.1,17.4
+w/ class rows (flat averaging),41.2 ± 1.8,51.7 ± 0.8,12.4,17.4
+w/ one synthetic epoch,43.9 ± 2.5,52.8 ± 1.5,15.0,18.0
+w/o consensus soft labels,38.0 ± 1.1,48.7 ± 0.8,11.5 ± 0.3,16.7 ± 0.1
+w/o logit adjustment,33.7,51.2,12.6,19.0
+w/o moment correction,43.5 ± 1.1,53.7 ± 0.7,15.0 ± 0.3,19.2 ± 0.0

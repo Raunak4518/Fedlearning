@@ -64,7 +64,8 @@ def test_fill_sorts_and_writes(tmp_path, monkeypatch):
     tables = tmp_path / "generated" / "tables"
     assert (tables / "main_bal.tex").exists() and (tables / "robust.tex").exists()
     comp = (tables / "abl_components.tex").read_text()
-    assert "FedECS-LT (full)" in comp and "w/o moment correction" in comp and "w/ Gaussian sampler" in comp
+    assert "FedECS-LT (full)" in comp and "w/o moment correction" in comp
+    assert "w/ Gaussian sampler" not in comp                                    # kept out of the paper (user)
     assert "44.0" in comp and "54.0" in comp                                    # full: as trained and with readout
     abl = (tables / "abl_bal.tex").read_text()
     assert "GeFL-F + AdamW" in abl and "GeFL-F (10 synthetic epochs)" in abl and "FedECS-LT (heads only)" in abl
@@ -72,7 +73,8 @@ def test_fill_sorts_and_writes(tmp_path, monkeypatch):
     assert r"\defnum{abl/cifar10/heads_vs/GeFL-F (10 synthetic epochs)}{+11.0}" in nums
     assert r"\defnum{comp/cifar10/w/ Gaussian sampler/er_drop}{+6.0}" in nums       # full 54.0 with the readout
     assert r"\defnum{comp/cifar10/w/ Gaussian sampler/drop}{+6.0}" in nums          # heads 44.0 as trained
-    assert r"\defnum{comp/n_variants}{two}" in nums
+    assert r"\defnum{comp/n_variants}{one}" in nums                          # the Gaussian sampler is not counted
+    assert r"\defnum{note/cifar10/w/ Gaussian sampler/er_diff}{-6.0}" in nums     # its note: sampler minus full
     assert r"\defnum{k50/cifar10/margin}{+15.0}" in nums                     # 50 clients: 40.0 vs GeFL-F 25.0
     figs = tmp_path / "generated" / "figures"
     for f in ("fig_components", "fig_variants", "fig_clients"):              # drawn from the runs on every fill

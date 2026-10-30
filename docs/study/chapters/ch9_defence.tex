@@ -17,10 +17,14 @@ FedECS-LT a lead of only \R{main/cifar10/er_diff/Balanced Softmax} points on CIF
 shows that no per-client correction of the loss can give a last layer information about absent classes, and the
 readout is the repair that does. The paper therefore defines FedECS-LT as ending with it, credits the family it
 belongs to (Fed3R, FedNCM, FedCOF), and reports every method of the pipeline with it added, so the reader can see
-exactly how much is the readout's. What the paper must not claim is that the components before the readout have a
-demonstrated effect beyond it.
+exactly how much is the readout's. What the paper can now add is that one component before the readout does have a
+resolved effect beyond it.
 
-\paragraph{Settled by} The component ablation (RQ5) and the variants of GeFL-F, both pending (\cref{sec:s-pending}).
+\paragraph{Settled by} The component ablation (\cref{sec:s-ablations}): removing the consensus soft labels costs
+\R{comp/cifar10/w/o consensus soft labels/er_drop} and \R{comp/cifar100/w/o consensus soft labels/er_drop} points with
+the readout (Holm-corrected $p=\R{comp/cifar10/w/o consensus soft labels/er_p}$ and
+$\R{comp/cifar100/w/o consensus soft labels/er_p}$), the only resolved component effect. The anchor and the moment
+correction show none. So the honest answer is: mostly the readout, plus the consensus soft labels.
 
 \subsection*{2. ``The name says exact class statistics, but half the components do not use them''}
 
@@ -42,9 +46,11 @@ are long, would be recognised; they are not. The row lengths also do not fall mo
 step-count heuristic $\kappa_c$ was not checked against the rows. The paper calls the shrinkage a measured property
 of the generator, not a demonstrated cause.
 
-\paragraph{Settled by} GeFL-F with decoupled weight decay alone (AdamW), pending. If it raises GeFL-F's tail recall
-above the noise floor and significantly, and its rare rows stop shrinking, the diagnosis passes a direct test; if not,
-the paper should say the shrinkage has no measured consequence for accuracy.
+\paragraph{Settled by} GeFL-F with decoupled weight decay alone (AdamW), now run on CIFAR-10-LT: it raises GeFL-F's
+balanced accuracy by \R{abl/cifar10/GeFL-F + AdamW/paired} points and its tail recall by
+\R{abl/cifar10/GeFL-F + AdamW/tail_paired} (uncorrected $p=\R{abl/cifar10/GeFL-F + AdamW/p}$ and
+$\R{abl/cifar10/GeFL-F + AdamW/tail_p}$). The answer is therefore: the shrinkage has a small measured cost, a small part
+of GeFL-F's loss. The CIFAR-100-LT runs ran out of memory and need a re-run.
 
 \subsection*{4. ``Do the other diagnoses matter: label-free generated features, and the moment correction?''}
 
@@ -54,7 +60,10 @@ spreads to \R{main/mc_spread_lo} to \R{main/mc_spread_hi} times the exact ones, 
 classes and on average are within one standard deviation over the seeds (\cref{sec:s-mc}). Its value for accuracy is
 unmeasured.
 
-\paragraph{Settled by} The component ablation (``w/o moment correction'', ``w/o consensus soft labels''), pending.
+\paragraph{Settled by} The component ablation: without the moment correction, the full method minus the variant is
+\R{comp/cifar10/w/o moment correction/er_drop} points ($p=\R{comp/cifar10/w/o moment correction/er_p}$), so the
+correction has no measured benefit; the consensus soft labels, which change the synthetic targets, are the one
+resolved component (question 1).
 
 \subsection*{5. ``Were the settings tuned on the test sets?''}
 
@@ -65,7 +74,10 @@ naturally imbalanced datasets were never used in development, and there the patt
 as trained for the others, small ones with the readout (\cref{sec:s-natural}). And every setting is the same on every
 dataset; nothing was set per dataset.
 
-\paragraph{Settled by} The run on new splits, seeds 6--8, pending.
+\paragraph{Settled by} The run on new splits, seeds 6--8: FedECS-LT reaches \R{fresh/cifar10/FedECS-LT/bal} on
+CIFAR-10-LT there, against \R{main/cifar10/FedECS-LT/bal} on seeds 3--5, with margins of \R{fresh/cifar10/margin} and
+\R{fresh/cifar100/margin} points as published and \R{fresh/cifar10/er_margin} and \R{fresh/cifar100/er_margin} with
+the readout for all, like those on the development splits (\cref{sec:s-main}).
 
 \subsection*{6. ``Is the heads' advantage just more computation and ensemble distillation?''}
 
@@ -75,7 +87,11 @@ GFLOPs per round of GeFL-F (\cref{tab:s-cost}). The margin of FedECS-LT's heads 
 \R{main/cifar10/heads_margin} on CIFAR-10-LT, is not significant ($p=\R{main/cifar10/heads_strongest_p}$) and has not
 been separated from this extra computation.
 
-\paragraph{Settled by} GeFL-F and FedDF with ten synthetic epochs, and FedDF with logit adjustment, pending.
+\paragraph{Settled by} GeFL-F and FedDF with ten synthetic epochs: they lose \R{abl/cifar10/GeFL-F (10 synthetic epochs)/paired}
+and \R{abl/cifar10/FedDF (10 synthetic epochs)/paired} points on CIFAR-10-LT, and FedECS-LT's heads stay
+\R{abl/cifar10/heads_vs/GeFL-F (10 synthetic epochs)} and \R{abl/cifar10/heads_vs/FedDF (10 synthetic epochs)} points
+ahead (\cref{sec:s-ablations}). The extra computation is not the explanation; the consensus soft labels, a form of
+ensemble distillation, are part of it.
 
 \subsection*{7. ``With one client per architecture nothing is averaged; does the result hold with several?''}
 
@@ -84,7 +100,8 @@ and the per-client losses become purely local training. That is the case in whic
 because each last layer then fits one client's prior. With several clients per architecture, heads are averaged and
 the readout may matter less.
 
-\paragraph{Settled by} The 50-client runs (five per architecture), pending.
+\paragraph{Settled by} The 50-client runs (five per architecture): the other methods returned, but FedECS-LT and the
+GeFL-F pipeline ran out of host memory and need a re-run (\cref{sec:s-pending}).
 
 \subsection*{8. ``If every client runs every head, why have different models at all?''}
 
@@ -116,8 +133,8 @@ extractor part of the second reason\numelse{t2/cifar10-r100/fe200_diff}{; such a
 \R{main/cifar10/er_diff/Balanced Softmax} points, not significant, for \R{cost/cifar10/comm_ratio_bsm} times the
 communication and \R{cost/cifar10/time_ratio_bsm} times the time. On this evidence, a practitioner who only needs
 balanced accuracy in this setting would choose per-client Balanced Softmax plus the exact readout, which needs no
-generator. FedECS-LT's extra cost is justified only if the pending ablations show that its components before the
-readout add accuracy, or in settings, such as several clients per architecture, where they may add more. Against
+generator. Of its components before the readout, only the consensus soft labels add resolved accuracy, so FedECS-LT's
+extra cost buys little beyond them, unless settings such as several clients per architecture show more. Against
 GeFL-F, the base it extends, the overhead is \R{cost/cifar10/comm_ratio} times the communication and
 \R{cost/cifar10/time_ratio} times the time.
 
@@ -139,8 +156,10 @@ this extractor and these heads. In GeFL's own balanced setting the paper's earli
 Flower implementation of the reported runs was checked against that earlier one (\cref{ch:limits}). A stronger or
 pre-trained extractor was not studied.
 
-\paragraph{Settled by} The reference trained on all data pooled, a notebook of its own and pending, gives the ceiling
-of this extractor and these heads.
+\paragraph{Settled by} The reference trained on all data pooled gives the ceiling of this extractor and these heads:
+\R{main/cifar10/Centralised (pooled data)/bal} on CIFAR-10-LT and \R{main/cifar100/Centralised (pooled data)/bal} on
+CIFAR-100-LT (\R{main/cifar10/Centralised (pooled data)/er_bal} and \R{main/cifar100/Centralised (pooled data)/er_bal}
+with the readout). Even without federation the accuracy is low, so the low numbers are those of the setting.
 
 \subsection*{13. ``How is this different from FedCOF, Fed3R or CCVR?''}
 
@@ -152,8 +171,8 @@ is applied, per architecture, on bodies trained in the federation rather than pr
 client, including clients of other architectures. CCVR samples features from Gaussians with the pooled class moments
 to retrain a shared classifier; the moment correction instead maps a learned generator's samples onto those moments.
 
-\paragraph{Settled by} The pending ``w/ Gaussian sampler'' component run compares FedECS-LT's generator with a
-CCVR-style sampler directly.
+\paragraph{Settled by} The paper's variant of GeFL-F with class Gaussians from the exact statistics
+(\cref{sec:s-ablations}) is the closest CCVR-style comparison it reports.
 
 \subsection*{14. ``Are the model-heterogeneous baselines weakened by the port?''}
 
@@ -171,4 +190,4 @@ hours on a shared Kaggle GPU (\cref{tab:s-cost}). Three seeds give little power.
 below $p=0.25$ with three pairs, so every significant result rests on the $t$-test's normality assumption. Margins of
 one to two points with the readout exceed the noise floor of \R{repeat/er/floor} but fail Holm's correction
 (\cref{sec:s-stats-design}). The paper therefore reports intervals, applies Holm's correction, calls such differences
-unresolved rather than absent, and adds three new seeds for the main comparison (pending).
+unresolved rather than absent, and adds three new seeds for the main comparison, on new splits.

@@ -135,8 +135,9 @@ classes from \R{main/cifar10/FedECS-LT/fidelity_head} to \R{main/cifar10/FedECS-
 tail classes' from \R{main/cifar10/FedECS-LT/fidelity_tail} to \R{main/cifar10/FedECS-LT/fidelity_mc_tail} and the
 mean from \R{main/cifar10/FedECS-LT/fidelity_all} to \R{main/cifar10/FedECS-LT/fidelity_mc_all}. The tail and mean
 changes are within one standard deviation over the seeds. On CIFAR-100-LT the mean is unchanged
-(\R{main/cifar100/FedECS-LT/fidelity_all} and \R{main/cifar100/FedECS-LT/fidelity_mc_all}). Whether the correction
-improves accuracy is a question for the component ablation, which has not returned yet.
+(\R{main/cifar100/FedECS-LT/fidelity_all} and \R{main/cifar100/FedECS-LT/fidelity_mc_all}). The component ablation
+(\cref{sec:s-ablations}) finds no benefit for accuracy: the full method minus its variant without the correction is
+\R{comp/cifar10/w/o moment correction/er_drop} points with the readout on CIFAR-10-LT.
 
 \subsection{The heads}\label{sec:s-heads}
 
@@ -151,7 +152,8 @@ information about absent classes (\cref{sec:s-lastlayer}), but here it is applie
 synthetic phases without it, so the reparametrisation lemma does not cover it. The paper gives two reasons for it:
 without it, cross-entropy keeps pushing the absent classes' logits down during the real phase (\cref{sec:s-spread}),
 and it can change what the body learns. $\hat\pi_k$ is the client's own frequencies, not an exact class statistic. How
-much logit adjustment contributes is one of the pending component ablations.
+much logit adjustment contributes is not resolved: its ablation finished one seed per benchmark
+(\cref{sec:s-ablations}).
 
 \paragraph{Consensus soft labels in the synthetic phase} The synthetic phase still draws labels uniformly, but the
 target is no longer the one-hot label alone. For a generated feature $\tilde h$ with label $y$,
@@ -166,8 +168,10 @@ target puts $0.5+0.5\cdot0.05=0.525$ on class 9 and $0.2$ on class 3. The weight
 This answers the third loss of \cref{ch:diagnosis}: the target now depends on the feature, so the premise of the
 label-free lemma, a label independent of the feature, no longer holds, and the synthetic phase need not pull the logits
 together. The intent is that the target follows what the feature carries instead of forcing a label it may not
-support, and that every head learns from the ensemble of all ten architectures; whether consensus soft labels improve
-accuracy is a pending ablation.
+support, and that every head learns from the ensemble of all ten architectures; the ablation confirms that consensus soft labels
+improve accuracy: removing them costs \R{comp/cifar10/w/o consensus soft labels/er_drop} points with the readout on
+CIFAR-10-LT and \R{comp/cifar100/w/o consensus soft labels/er_drop} on CIFAR-100-LT, the one component effect the
+ablation resolves (\cref{sec:s-ablations}).
 
 \paragraph{How the consensus is computed} The average is computed by one secure sum per round. Every client
 regenerates the same pool of generated features from a seed the server sends. Writing $\mathrm{arch}(k)$ for the architecture

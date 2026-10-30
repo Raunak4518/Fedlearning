@@ -3,13 +3,15 @@
 \paragraph{What is established} In generator-based learning with different client models and a long tail, the runs
 show three properties of GeFL-F: its generator's rare class rows are shorter, its generated features carry little class
 information, and its last layers lose most of what an exact readout recovers (\cref{ch:diagnosis}). The runs show that
-FedECS-LT, ending with that readout, has a higher mean than every published method of the setting on both CIFAR
-benchmarks and on all six naturally imbalanced datasets, by margins that are large and significant on both CIFAR
-benchmarks and on three of the five natural datasets with three seeds; on CIFAR-10-LT the gain is mostly in the recall
+FedECS-LT, ending with that readout, has a higher mean than every published method of the setting on all five
+long-tailed benchmarks and all six naturally imbalanced datasets, by margins that are large and, on the CIFAR
+benchmarks, significant, and on new client splits as on the development splits; on CIFAR-10-LT the gain is mostly in the recall
 of the rare classes (\cref{sec:s-main,sec:s-natural}). They also show that most of this margin is the readout's:
 added to the other methods of the GeFL-F pipeline, it leaves FedECS-LT a lead of \R{main/cifar10/er_margin} and
 \R{main/cifar100/er_margin} points on the CIFAR benchmarks and at most \R{nat/er_margin_hi} on the natural datasets,
-which three seeds do not resolve (\cref{sec:s-same-readout}). The scope of all of this is one client per architecture, a small frozen extractor shared
+which three seeds resolve only on MNIST (\cref{sec:s-same-readout}). Of the components before the readout, only the
+consensus soft labels have a resolved effect beyond it; the moment correction shows none, and decoupling the
+generator's decay alone recovers little of GeFL-F's loss (\cref{sec:s-ablations}). The scope of all of this is one client per architecture, a small frozen extractor shared
 by all clients, a label shift between clients, and three seeds.
 
 \paragraph{The limits of the study} The paper's limitations section lists what the study does not cover. Each item
@@ -36,7 +38,8 @@ extractor and heads. In GeFL's balanced setting the paper's earlier implementati
 \R{repro/cifar10/GeFL-F/final}\% on CIFAR-10, close to GeFL's published value of about \R{repro/cifar10/published}\%,
 and the Flower implementation used for every reported run was checked against that earlier one (the same splits, and
 the same client training steps in unit tests). So the low numbers are those of the setting, not of a faulty
-re-implementation. A reference trained on all data pooled, which would give the ceiling of this design, is pending. The low numbers are not comparable with
+re-implementation, and the same design trained on all data pooled reaches only
+\R{main/cifar10/Centralised (pooled data)/bal} on CIFAR-10-LT (\cref{sec:s-main}). The low numbers are not comparable with
 centralised long-tail results for ResNet-32 and larger networks.
 \end{itemize}
 
@@ -55,9 +58,9 @@ must be able to evaluate all of them, and the architectures are not secret.
 \item \textbf{Released class means}, which reveal the most about singly held and small classes (\cref{sec:s-privacy}).
 \end{itemize}
 
-\paragraph{What does not follow} The readout's gain is measured on the CIFAR benchmarks for every method of the
-pipeline, and FedECS-LT's margin over every method as published is measured on all eight datasets. It does not follow that exact class statistics in the generator are what makes FedECS-LT work: that is
-the question of the pending ablations. It does not follow that the decay diagnosis is a cause: that is the question
-of the AdamW run. And it does not follow that the result holds with several clients per architecture.
+\paragraph{What does not follow} It does not follow that exact class statistics in the generator are what makes
+FedECS-LT work: the ablations find no resolved effect for the anchor or the moment correction beyond the readout. It
+does not follow that the decay is the main cause of GeFL-F's loss: removing it alone recovers little. And it does not
+follow that the result holds with several clients per architecture.
 
 Which questions will a reviewer ask, and what are the honest answers?

@@ -1,0 +1,25 @@
+dataset,row,series,mean,sd
+CIFAR-10,w/ class rows (CCWA),heads as trained,-0.006999999999995898,0.6883138818881921
+CIFAR-10,w/ class rows (flat averaging),heads as trained,1.5453333333333357,1.2486057557665327
+CIFAR-10,w/ one synthetic epoch,heads as trained,-1.9049999999999958,0.5515432893255093
+CIFAR-10,w/o consensus soft labels,heads as trained,4.762666666666667,1.2632111198581815
+CIFAR-10,w/o logit adjustment,heads as trained,6.832000000000004,0
+CIFAR-10,w/o moment correction,heads as trained,-0.7669999999999974,1.2072245027334436
+CIFAR-10,w/ class rows (CCWA),with the exact readout,0.17866666666666772,0.31082202839138073
+CIFAR-10,w/ class rows (flat averaging),with the exact readout,0.8506666666666699,0.8176211429099233
+CIFAR-10,w/ one synthetic epoch,with the exact readout,-0.6585000000000119,0.0007071067811833295
+CIFAR-10,w/o consensus soft labels,with the exact readout,3.920666666666665,0.5821214077263643
+CIFAR-10,w/o logit adjustment,with the exact readout,-0.13599999999999168,0
+CIFAR-10,w/o moment correction,with the exact readout,-1.121999999999997,0.7837531499139292
+CIFAR-100,w/ class rows (CCWA),heads as trained,2.280000000000003,0
+CIFAR-100,w/ class rows (flat averaging),heads as trained,2.4200000000000013,0
+CIFAR-100,w/ one synthetic epoch,heads as trained,-0.21999999999999797,0
+CIFAR-100,w/o consensus soft labels,heads as trained,2.8206666666666664,0.6255752019808134
+CIFAR-100,w/o logit adjustment,heads as trained,2.1920000000000024,0
+CIFAR-100,w/o moment correction,heads as trained,-0.7904999999999981,0.5084097756731277
+CIFAR-100,w/ class rows (CCWA),with the exact readout,1.4289999999999998,0
+CIFAR-100,w/ class rows (flat averaging),with the exact readout,1.4180000000000055,0
+CIFAR-100,w/ one synthetic epoch,with the exact readout,0.8670000000000039,0
+CIFAR-100,w/o consensus soft labels,with the exact readout,1.9510000000000016,0.30231275196392093
+CIFAR-100,w/o logit adjustment,with the exact readout,-0.16899999999999415,0
+CIFAR-100,w/o moment correction,with the exact readout,-0.574000000000001,0.3323401871576859

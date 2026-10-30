@@ -5377,35 +5377,6 @@
    }
   ]
  },
- "NB20_track2_rerun_2a90fa": {
-  "folder": "5_reruns_of_failed_runs",
-  "title": "One shared model (FedLTLib protocol): runs that did not finish",
-  "what": "Runs that did not finish in NB20_track2_cifar100_IF100_s3_part1of2, NB20_track2_cifar10_IF100_s3_part1of2: FedECS-LT, CIFAR-100-LT ratio 100, seed 3; FedECS-LT (extractor 200 rounds), CIFAR-10-LT ratio 100, seed 3. One run per GPU. Merge each with its notebook's results.",
-  "kaggle_hours": 3.0,
-  "runs": [
-   {
-    "label": "FedECS-LT",
-    "ds": "cifar100_t2",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 20,
-    "pfrac": 0.4
-   },
-   {
-    "label": "FedECS-LT (extractor 200 rounds)",
-    "ds": "cifar10_t2",
-    "seed": 3,
-    "IF": 0.01,
-    "alpha": 0.5,
-    "K": 20,
-    "pfrac": 0.4,
-    "rounds": {
-     "T_FE": 200
-    }
-   }
-  ]
- },
  "NB20_track2_rerun_f2bb89": {
   "folder": "5_reruns_of_failed_runs",
   "title": "One shared model (FedLTLib protocol): runs that did not finish",
@@ -6563,6 +6534,230 @@
    }
   ]
  },
+ "cifar100_50clients_all_methods_part1of3_rerun_9c26b1": {
+  "folder": "7_gefl_protocol_grouped_baselines_10_and_50_clients",
+  "title": "CIFAR-100-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5 (part 1 of 3): runs that did not finish",
+  "what": "27 runs of cifar100_50clients_all_methods_part1of3 that did not finish there, one run per GPU. Merge with that notebook's results.",
+  "kaggle_hours": 4.0,
+  "runs": [
+   {
+    "label": "FedDF",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedDF",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedECS-LT",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "AvgKD",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "AvgKD",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedALA",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "CCVR",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "CCVR",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "CCVR",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedLC",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedRS",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedProx",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "Balanced Softmax",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedLC",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedRS",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedProx",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedETF",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedAvg",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedETF",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedAvg",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "FedETF",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   },
+   {
+    "label": "GeFL-F",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   }
+  ]
+ },
  "cifar100_50clients_all_methods_part2of3": {
   "folder": "7_gefl_protocol_grouped_baselines_10_and_50_clients",
   "title": "CIFAR-100-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5 (part 2 of 3)",
@@ -6713,6 +6908,22 @@
     "alpha": 0.5,
     "K": 50
    },
+   {
+    "label": "FedMRL",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 50
+   }
+  ]
+ },
+ "cifar100_50clients_all_methods_part3of3_rerun_ae3320": {
+  "folder": "7_gefl_protocol_grouped_baselines_10_and_50_clients",
+  "title": "CIFAR-100-LT (imbalance ratio 100), 50 clients (5 per architecture, ten architectures), Dirichlet 0.5 (part 3 of 3): runs that did not finish",
+  "what": "The run of cifar100_50clients_all_methods_part3of3 that did not finish there, one run per GPU. Merge with that notebook's results.",
+  "kaggle_hours": 1.9,
+  "runs": [
    {
     "label": "FedMRL",
     "ds": "cifar100",
@@ -7411,6 +7622,54 @@
    }
   ]
  },
+ "cifar10_cifar100_components_of_fedecs_lt_part1of2_rerun_68f809": {
+  "folder": "8_reviewer_requested_runs",
+  "title": "Components of FedECS-LT: one component changed at a time; CIFAR-10-LT and CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5 (part 1 of 2): runs that did not finish",
+  "what": "5 runs of cifar10_cifar100_components_of_fedecs_lt_part1of2 that did not finish there, one run per GPU. Merge with that notebook's results.",
+  "kaggle_hours": 3.6,
+  "runs": [
+   {
+    "label": "FedECS-LT w/ class rows (flat averaging)",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (CCWA)",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (flat averaging)",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ class rows (CCWA)",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o moment correction",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
  "cifar10_cifar100_components_of_fedecs_lt_part2of2": {
   "folder": "8_reviewer_requested_runs",
   "title": "Components of FedECS-LT: one component changed at a time; CIFAR-10-LT and CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5 (part 2 of 2)",
@@ -7557,6 +7816,70 @@
     "label": "FedECS-LT w/ one synthetic epoch",
     "ds": "cifar100",
     "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "cifar10_cifar100_components_of_fedecs_lt_part2of2_rerun_a3aaa2": {
+  "folder": "8_reviewer_requested_runs",
+  "title": "Components of FedECS-LT: one component changed at a time; CIFAR-10-LT and CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5 (part 2 of 2): runs that did not finish",
+  "what": "7 runs of cifar10_cifar100_components_of_fedecs_lt_part2of2 that did not finish there, one run per GPU. Merge with that notebook's results.",
+  "kaggle_hours": 3.8,
+  "runs": [
+   {
+    "label": "FedECS-LT w/o logit adjustment",
+    "ds": "cifar10",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o logit adjustment",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o logit adjustment",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/o logit adjustment",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ one synthetic epoch",
+    "ds": "cifar10",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ one synthetic epoch",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ one synthetic epoch",
+    "ds": "cifar100",
+    "seed": 4,
     "IF": 0.01,
     "alpha": 0.5,
     "K": 10
@@ -8045,6 +8368,86 @@
     "label": "GeFL-F + AdamW",
     "ds": "cifar100",
     "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F + AdamW",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   }
+  ]
+ },
+ "cifar10_cifar100_gefl_f_variants_rerun_f2ba51": {
+  "folder": "8_reviewer_requested_runs",
+  "title": "Variants of GeFL-F and a Gaussian sampler for FedECS-LT; CIFAR-10-LT and CIFAR-100-LT (imbalance ratio 100), 10 clients, Dirichlet 0.5: runs that did not finish",
+  "what": "9 runs of cifar10_cifar100_gefl_f_variants that did not finish there, one run per GPU. Merge with that notebook's results.",
+  "kaggle_hours": 3.4,
+  "runs": [
+   {
+    "label": "FedDF + LA",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedDF + LA",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F + AdamW",
+    "ds": "cifar100",
+    "seed": 3,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F + AdamW",
+    "ds": "cifar100",
+    "seed": 4,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F + LA",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "FedECS-LT w/ Gaussian sampler",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/ Gaussian generator + LA",
+    "ds": "cifar100",
+    "seed": 5,
+    "IF": 0.01,
+    "alpha": 0.5,
+    "K": 10
+   },
+   {
+    "label": "GeFL-F w/o generator",
+    "ds": "cifar100",
+    "seed": 5,
     "IF": 0.01,
     "alpha": 0.5,
     "K": 10

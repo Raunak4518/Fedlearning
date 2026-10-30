@@ -55,6 +55,28 @@ $p=\R{main/cifar100/heads_strongest_p}$, significant. The readout itself adds \R
 \R{main/cifar100/FedECS-LT/gain_er} points to the heads. Of the \R{main/cifar10/margin}-point margin on CIFAR-10-LT,
 therefore, about a third comes from the heads and two thirds from the readout.
 
+\paragraph{The other benchmarks} On MNIST, Fashion-MNIST and SVHN the pattern is the same: FedECS-LT reaches
+\R{main/mnist/FedECS-LT/bal}, \R{main/fmnist/FedECS-LT/bal} and \R{main/svhn/FedECS-LT/bal}, ahead of the strongest
+other method by \R{main/mnist/margin}, \R{main/fmnist/margin} and \R{main/svhn/margin} points (Holm-corrected
+$p=\R{main/mnist/strongest_p}$, $\R{main/fmnist/strongest_p}$ and $\R{main/svhn/strongest_p}$; Fashion-MNIST's is not
+significant). FedECS-LT has the highest mean on \R{main/nbest_of} long-tailed benchmarks.
+
+\paragraph{New client splits} Seeds 6--8 draw splits that the development never used
+(\cref{sec:s-development}). On them FedECS-LT reaches \R{fresh/cifar10/FedECS-LT/bal} on CIFAR-10-LT, against
+\R{main/cifar10/FedECS-LT/bal} on seeds 3--5, and its margins over the strongest of GeFL-F, FedDF and Balanced
+Softmax are \R{fresh/cifar10/margin} and \R{fresh/cifar100/margin} points with heads as trained for the others, and
+\R{fresh/cifar10/er_margin} and \R{fresh/cifar100/er_margin} with the readout for all (Holm-corrected
+$p=\R{fresh/cifar10/er_strongest_p}$ and $\R{fresh/cifar100/er_strongest_p}$). The margins on new splits are like
+those on the development splits, so they show no sign that choosing the settings on seeds 3--5 inflated them.
+
+\paragraph{The pooled-data ceiling} The same extractor and heads trained on all training images in one place reach
+\R{main/cifar10/Centralised (pooled data)/bal} on CIFAR-10-LT and \R{main/cifar100/Centralised (pooled data)/bal} on
+CIFAR-100-LT, and \R{main/cifar10/Centralised (pooled data)/er_bal} and
+\R{main/cifar100/Centralised (pooled data)/er_bal} with the readout. This is not a federated method but the ceiling of
+the design: FedECS-LT, at \R{main/cifar10/FedECS-LT/bal} and \R{main/cifar100/FedECS-LT/bal}, is several points below
+it, so federation still costs accuracy; and even the ceiling is low, which suggests that the low absolute numbers come
+mostly from the small extractor and the long tail.
+
 \paragraph{What it shows} The measured statement is narrow: the full method, with its readout, is above every
 published method of this setting as that method was published, by a large and significant margin on both benchmarks.
 The heads as trained are also ahead, by less, and the CIFAR-10-LT part of that is not resolved by three seeds.
@@ -77,6 +99,15 @@ training. They are best in the first rounds and lose \R{main/cifar10/FedProto/ge
 heads of FedECS-LT decline too, by \R{main/cifar10/FedECS-LT (heads only)/gefl_drop} points on CIFAR-10-LT. The paper's
 appendix gives every method's best round, the measure GeFL reports; the readout is computed once, after the last round,
 so it has no best round.
+
+\paragraph{GeFL's grouped baselines} On CIFAR-10-LT the baselines of GeFL's own comparison were also run. With one
+client per architecture, FedAvg, FedProx and FedALA within an architecture have nothing to average and reach
+\R{main/cifar10/FedAvg/bal}, \R{main/cifar10/FedProx/bal} and \R{main/cifar10/FedALA/bal}, the level of local
+training on the shared extractor; CCVR and FedETF reach \R{main/cifar10/CCVR/bal} and \R{main/cifar10/FedETF/bal}.
+AvgKD falls to \R{main/cifar10/AvgKD/bal}, chance level, with a worst-class recall of \R{main/cifar10/AvgKD/worst}:
+its models predict one class. Its targets are a softmax of the label plus the other nine architectures' predicted
+probabilities, exactly as in GeFL's code; a plausible reading, not tested, is that under label skew the nine biased
+predictions outweigh the label and every model drifts to the same class.
 
 \paragraph{What it does not show} These methods run as ports onto the frozen extractor with settings from their
 library, meant for end-to-end training (\cref{ch:design}, threats). Their low numbers may partly be the port. The paper
@@ -158,7 +189,7 @@ Softmax trains every head on its own client's data with no generator and no exch
 \paragraph{What it does not show} It does not show that the other components do nothing. Margins of
 \R{main/cifar10/er_margin} and \R{main/cifar100/er_margin} points exceed the noise floor of \R{repeat/er/floor}, but
 their Holm-corrected tests are not significant, so with three seeds they are neither shown nor ruled out. It also does
-not show the components' effect one by one, which is the subject of the pending ablations (\cref{sec:s-pending}). And
+not show the components' effect one by one, which is the subject of the ablations (\cref{sec:s-ablations}). And
 because the readout is one fixed linear classifier, a body that is better for another last layer would not show it
 here.
 
@@ -377,62 +408,76 @@ because of its projection of the class means. Against Balanced Softmax, which tr
 communicates \R{cost/cifar10/comm_ratio_bsm} times as much and takes \R{cost/cifar10/time_ratio_bsm} times as long,
 for \R{main/cifar10/er_diff/Balanced Softmax} points when both have the readout; \cref{ch:defence} returns to this.
 
-\subsection{The experiments still pending}\label{sec:s-pending}
+\subsection{The ablations}\label{sec:s-ablations}
 
-Five experiments asked for by the reviews were built as Flower notebooks and had not returned when this text was
-written. For four of them the paper's text is already written and appears by itself once the results are filled in;
-for the fifth it is not yet written. For each, here is the question, what result would support or weaken the paper,
-and what changes. ``Supports'' always means a difference above the noise floor \emph{and} significant after Holm's
-correction.
+Two groups of runs ask which changes carry the effect: variants of GeFL-F and FedDF that add one change at a time,
+and FedECS-LT with one component removed. Both use the splits and seeds of the main comparison, so every difference is
+paired.
+
+\paragraph{The decay diagnosis} GeFL-F with decoupled weight decay (AdamW) and nothing else changed is the direct test
+of \cref{sec:s-decay}. On CIFAR-10-LT it raises GeFL-F by \R{abl/cifar10/GeFL-F + AdamW/paired} points
+($p=\R{abl/cifar10/GeFL-F + AdamW/p}$, uncorrected, at the noise floor of \R{repeat/bal/floor}), its tail recall by
+\R{abl/cifar10/GeFL-F + AdamW/tail_paired} ($p=\R{abl/cifar10/GeFL-F + AdamW/tail_p}$), and its accuracy with the
+readout by \R{abl/cifar10/GeFL-F + AdamW/er_paired} ($p=\R{abl/cifar10/GeFL-F + AdamW/er_p}$). Its three CIFAR-100-LT
+runs ran out of host memory. So the shrinkage of the class rows has a measured cost, but a small one: decoupling the
+decay recovers little of GeFL-F's \R{main/cifar10/diff/GeFL-F}-point gap to FedECS-LT. AdamW changes the decay of every
+parameter, not only the rows, so even this small gain is consistent with the diagnosis rather than a proof of it.
+
+\paragraph{The longer synthetic phase} GeFL-F and FedDF with ten synthetic epochs per round, as FedECS-LT, change by
+\R{abl/cifar10/GeFL-F (10 synthetic epochs)/paired} and \R{abl/cifar10/FedDF (10 synthetic epochs)/paired} points on
+CIFAR-10-LT ($p=\R{abl/cifar10/GeFL-F (10 synthetic epochs)/p}$ and $\R{abl/cifar10/FedDF (10 synthetic epochs)/p}$):
+more epochs on label-free features make them worse, which is consistent with the label-free lemma of
+\cref{sec:s-spread}. FedECS-LT's
+heads as trained stay \R{abl/cifar10/heads_vs/GeFL-F (10 synthetic epochs)} and
+\R{abl/cifar10/heads_vs/FedDF (10 synthetic epochs)} points ahead of them (CIFAR-100-LT:
+\R{abl/cifar100/heads_vs/GeFL-F (10 synthetic epochs)} and \R{abl/cifar100/heads_vs/FedDF (10 synthetic epochs)}). The
+lead of the heads is therefore not the extra computation.
+
+\paragraph{Logit adjustment} GeFL-F with decoupled decay and logit adjustment recovers
+\R{abl/cifar10/GeFL-F + LA/gain} points on CIFAR-10-LT, and FedECS-LT's heads add \R{abl/cifar10/rest} points on top,
+before the readout. Replacing GeFL-F's generator by class Gaussians from the exact class statistics, with logit
+adjustment, raises it by \R{abl/cifar10/GeFL-F w/ Gaussian generator + LA/gain} points as trained and by
+\R{abl/cifar10/GeFL-F w/ Gaussian generator + LA/er_gain} with the readout: features that carry their label, even from
+a simple sampler, teach the heads far more than GeFL-F's trained generator does. A reviewer reading this row will ask why
+FedECS-LT keeps a trained generator; the separate note on the Gaussian sampler (\texttt{docs/study/gaussian\_sampler.pdf})
+has the numbers for that discussion.
+
+\paragraph{The components of FedECS-LT} Removing one component at a time and comparing with the full method, with the
+readout, on the same seeds: the largest loss on both benchmarks comes from ``\R{comp/cifar10/largest}'',
+\R{comp/cifar10/largest_drop} points on CIFAR-10-LT (Holm-corrected $p=\R{comp/cifar10/w/o consensus soft labels/er_p}$)
+and \R{comp/cifar100/largest_drop} on CIFAR-100-LT ($p=\R{comp/cifar100/w/o consensus soft labels/er_p}$). It is the
+only change that is both above the noise floor and significant after Holm's correction over the \R{comp/n_variants}
+changes. The other components show no resolved effect beyond the readout:
+\begin{itemize}
+\item the full method minus its variant without the moment correction is \R{comp/cifar10/w/o moment correction/er_drop}
+points on CIFAR-10-LT ($p=\R{comp/cifar10/w/o moment correction/er_p}$): no benefit;
+\item class rows with CCWA instead of the mean anchor cost \R{comp/cifar10/w/ class rows (CCWA)/er_drop} points
+($p=\R{comp/cifar10/w/ class rows (CCWA)/er_p}$), and with flat averaging
+\R{comp/cifar10/w/ class rows (flat averaging)/er_drop} ($p=\R{comp/cifar10/w/ class rows (flat averaging)/er_p}$);
+\item one synthetic epoch instead of ten changes it by \R{comp/cifar10/w/ one synthetic epoch/er_drop}, below the floor;
+\item without logit adjustment the heads as trained lose \R{comp/cifar10/w/o logit adjustment/drop} points, but
+the change with the readout is \R{comp/cifar10/w/o logit adjustment/er_drop}, from one seed.
+\end{itemize}
+On CIFAR-100-LT \R{comp/cifar100/n_one_seed} of the \R{comp/n_variants} changes have one seed only, because their runs
+ran out of host memory. The answer to RQ5 is therefore: of everything FedECS-LT adds before the readout, the consensus
+soft labels are the one part with a measured effect beyond it.
+
+\subsection{The experiments still pending}\label{sec:s-pending}
 
 \paragraph{Several clients per architecture} The paper's 50-client setting has five clients per architecture, so heads
 of one architecture are averaged in Stage III. The question is whether the readout's dominance is an artefact of one
-client per architecture. With averaging, Balanced Softmax's heads would no longer be purely local, and their last layers would no
-longer fit one client's prior, so the readout should matter less. The paper is supported if FedECS-LT stays ahead of
-every method with the readout; it is weakened if the margins fall to zero, because then FedECS-LT's case would rest on
-the one-client-per-architecture setting alone. When the runs return, the paper gains a table and a figure with both
-client counts side by side, and its limitation ``one client per architecture'' is narrowed.
+client per architecture. With averaging, Balanced Softmax's heads would no longer be purely local, and their last
+layers would no longer fit one client's prior, so the readout should matter less. The paper is supported if FedECS-LT
+stays ahead of every method with the readout; it is weakened if the margins fall to zero. The other methods' 50-client
+runs have returned, but FedECS-LT, GeFL-F, FedDF and Balanced Softmax ran out of host memory on both benchmarks, so the
+paper shows no 50-client table yet.
 \numelse{k50/cifar10/margin}{\numelse{k50/cifar100/er_margin}{\emph{Result:} with 50 clients FedECS-LT is
 \R{k50/cifar10/margin} and \R{k50/cifar100/margin} points ahead of the strongest other method with heads as trained,
-and \R{k50/cifar10/er_margin} and \R{k50/cifar100/er_margin} with the readout.}{The runs are pending; the first attempt
-on CIFAR-10-LT ran out of host memory on Kaggle (run log) and was rebuilt to run one job per GPU.}}{The runs are
-pending; the first attempt on CIFAR-10-LT ran out of host memory on Kaggle (run log) and was rebuilt to run one job
-per GPU.}
-
-\paragraph{New client splits} Seeds 6--8 draw splits that the development never used, for FedECS-LT, GeFL-F, FedDF
-and Balanced Softmax. The question is whether the CIFAR margins are the product of choosing settings on the reported splits. The
-paper is supported if the margins on seeds 6--8 are like those on 3--5, and weakened if the same-readout margin
-vanishes there. When they return, the paper reports the margins on the new splits next to those on seeds 3--5, and the
-development threat can point to them.
-\numelse{fresh/cifar10/margin}{\numelse{fresh/cifar100/er_margin}{\emph{Result:} on the new splits FedECS-LT is
-\R{fresh/cifar10/margin} and \R{fresh/cifar100/margin} points ahead with heads as trained for the others, and
-\R{fresh/cifar10/er_margin} and \R{fresh/cifar100/er_margin} with the readout.}{The runs are pending.}}{The runs are
-pending.}
-
-\paragraph{Variants of GeFL-F} Seven variants isolate single changes, among them GeFL-F with decoupled weight decay
-alone (AdamW) and GeFL-F and FedDF with ten synthetic epochs. The AdamW arm is the direct test of the decay diagnosis
-of \cref{sec:s-decay}. AdamW changes the decay of every parameter, not only the class rows, so a gain would be
-consistent with the diagnosis rather than prove it; the row lengths of that run show whether the rare rows stop
-shrinking. If it does not raise GeFL-F's balanced accuracy or tail recall, the shrinkage is a property of the
-generator without a measured consequence. The ten-epoch arms test whether the heads' advantage is computation: if
-GeFL-F or FedDF with ten synthetic epochs reach FedECS-LT's heads as trained, it is.
-\numelse{abl/cifar10/GeFL-F + AdamW/gain}{\numelse{abl/cifar100/GeFL-F + AdamW/gain}{\emph{Result:} decoupled decay
-alone changes GeFL-F by \R{abl/cifar10/GeFL-F + AdamW/gain} points on CIFAR-10-LT and
-\R{abl/cifar100/GeFL-F + AdamW/gain} on CIFAR-100-LT.}{The runs are pending.}}{The runs are pending.}
-
-\paragraph{Components of FedECS-LT} Each run removes one component: the mean anchor, CCWA, the moment correction,
-consensus soft labels, logit adjustment, or nine of the ten synthetic epochs. One more replaces the trained generator
-by Gaussians with the exact class means and covariances, which tests whether a trained generator is needed at all. The
-question is RQ5. A component is shown to matter if removing it lowers balanced accuracy with the readout by more than
-\R{repeat/er/floor} points, significantly. If all removals stay within the floor, no component has a measured effect
-beyond the readout, and the paper must say so. If the Gaussian sampler matches the full method, Stage II is
-unnecessary.
-\numelse{comp/cifar10/largest}{\emph{Result:} with the readout, the largest loss on CIFAR-10-LT comes from
-``\R{comp/cifar10/largest}'' (\R{comp/cifar10/largest_drop} points), and \R{comp/cifar10/n_small} of the
-\R{comp/n_variants} changes stay within the noise floor.}{The runs are pending.}
+and \R{k50/cifar10/er_margin} and \R{k50/cifar100/er_margin} with the readout.}{}}{}
 
 \paragraph{Other settings} Sweeps over the label skew ($\alpha=0.1$ and $1.0$), the number of clients (50 and 100)
 and the imbalance ratio (50 and 10) on CIFAR-10-LT test whether the result depends on the main setting's values. Their
-runs are pending, and the paper's text for them is not yet written.
+runs are pending, and the paper's text for them is not yet written. GTSRB, CIFAR-100-LT with one shared model on seed 5,
+and the shared-model ratios 50 and 10 are also pending.
 
 What, taken together, does this evidence support?

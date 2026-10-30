@@ -1,20 +1,27 @@
-\begin{tabular}{lcc}
+\begin{tabular}{lccccc}
 \toprule
-Method & CIFAR-10 & CIFAR-100\\
+Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\
 \midrule
-FedECS-LT & \textbf{48.5 $\pm$ 1.5} & \textbf{14.9 $\pm$ 1.9}\\
-FedECS-LT (heads only) & 38.8 $\pm$ 1.9 & 11.7 $\pm$ 0.9\\
-GeFL-F & 27.5 $\pm$ 2.4 & 6.0 $\pm$ 0.8\\
-Balanced Softmax & 30.4 $\pm$ 0.9 & 7.1 $\pm$ 1.1\\
-FedLC & 28.1 $\pm$ 1.1 & 6.8 $\pm$ 0.9\\
-FedRS & 27.8 $\pm$ 1.1 & 6.8 $\pm$ 0.8\\
-FedDF & 32.2 $\pm$ 2.8 & 8.4 $\pm$ 1.5\\
-Local & 25.5 $\pm$ 2.6 & 5.1 $\pm$ 1.5\\
-FedProto & 18.7 $\pm$ 3.3 & 3.5 $\pm$ 0.2\\
-FedTGP & 16.8 $\pm$ 1.9 & 1.7 $\pm$ 0.7\\
-FedGen & 20.5 $\pm$ 1.6 & 3.1 $\pm$ 1.8\\
-FedGH & 25.6 $\pm$ 2.2 & 5.2 $\pm$ 0.5\\
-LG-FedAvg & 25.3 $\pm$ 1.1 & 4.9 $\pm$ 0.5\\
-FedMRL & 27.4 $\pm$ 0.9 & 7.1 $\pm$ 0.3\\
+FedECS-LT & \textbf{93.4 $\pm$ 0.3} & \textbf{79.9 $\pm$ 1.3} & \textbf{59.7 $\pm$ 2.7} & \textbf{48.5 $\pm$ 1.5} & \textbf{14.9 $\pm$ 1.9}\\
+FedECS-LT (heads only) & 93.7 $\pm$ 0.6 & 78.1 $\pm$ 1.3 & 59.0 $\pm$ 1.8 & 38.8 $\pm$ 1.9 & 11.7 $\pm$ 0.9\\
+GeFL-F & 63.5 $\pm$ 6.5 & 58.0 $\pm$ 7.1 & 42.5 $\pm$ 1.4 & 27.5 $\pm$ 2.4 & 6.0 $\pm$ 0.8\\
+Balanced Softmax & 51.6 $\pm$ 8.0 & 45.7 $\pm$ 3.0 & 25.0 $\pm$ 3.6 & 30.4 $\pm$ 0.9 & 7.1 $\pm$ 1.1\\
+FedLC & 48.9 $\pm$ 8.9 & 42.0 $\pm$ 1.9 & 22.1 $\pm$ 2.8 & 28.1 $\pm$ 1.1 & 6.8 $\pm$ 0.9\\
+FedRS & 48.6 $\pm$ 8.8 & 41.0 $\pm$ 1.4 & 21.8 $\pm$ 2.7 & 27.8 $\pm$ 1.1 & 6.8 $\pm$ 0.8\\
+FedDF & 70.3 $\pm$ 5.3 & 59.0 $\pm$ 4.6 & 32.9 $\pm$ 3.4 & 32.2 $\pm$ 2.8 & 8.4 $\pm$ 1.5\\
+Local & 48.0 $\pm$ 7.3 & 43.4 $\pm$ 2.0 & 20.7 $\pm$ 2.4 & 25.5 $\pm$ 2.6 & 5.1 $\pm$ 1.5\\
+FedProto & 41.6 $\pm$ 11.9 & 26.3 $\pm$ 4.2 & 10.4 $\pm$ 0.5 & 18.7 $\pm$ 3.3 & 3.5 $\pm$ 0.2\\
+FedTGP & 15.9 $\pm$ 6.8 & 29.0 $\pm$ 9.8 & 10.6 $\pm$ 0.9 & 16.8 $\pm$ 1.9 & 1.7 $\pm$ 0.7\\
+FedGen & 40.0 $\pm$ 1.1 & 38.0 $\pm$ 3.0 & 20.5 $\pm$ 1.5 & 20.5 $\pm$ 1.6 & 3.1 $\pm$ 1.8\\
+FedGH & 46.5 $\pm$ 7.5 & 40.9 $\pm$ 1.4 & 19.8 $\pm$ 2.4 & 25.6 $\pm$ 2.2 & 5.2 $\pm$ 0.5\\
+LG-FedAvg & 45.6 $\pm$ 5.5 & 40.4 $\pm$ 1.8 & 20.3 $\pm$ 2.2 & 25.3 $\pm$ 1.1 & 4.9 $\pm$ 0.5\\
+FedMRL & 49.2 $\pm$ 9.2 & 42.0 $\pm$ 3.5 & 21.6 $\pm$ 2.4 & 27.4 $\pm$ 0.9 & 7.1 $\pm$ 0.3\\
+FedAvg & - & - & - & 28.0 $\pm$ 1.0 & -\\
+FedProx & - & - & - & 27.7 $\pm$ 0.8 & -\\
+FedALA & - & - & - & 27.9 $\pm$ 0.8 & -\\
+AvgKD & - & - & - & 10.0 $\pm$ 0.1 & -\\
+CCVR & - & - & - & 28.0 $\pm$ 0.8 & -\\
+FedETF & - & - & - & 25.3 $\pm$ 1.2 & -\\
+Centralised (pooled data) & - & - & - & 47.9 $\pm$ 0.6 & 15.3 $\pm$ 0.7\\
 \bottomrule
 \end{tabular}

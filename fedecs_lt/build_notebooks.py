@@ -463,7 +463,9 @@ def rerun_notebooks(nbs):
             done |= {json.loads(line)["run_id"] for line in open(f) if line.strip()}
     missing = {}
     for name, nb in nbs.items():
-        if name.startswith("NB00") or not os.path.exists(os.path.join(HERE, "results", name, "runs.jsonl")):
+        # returned in part, under its own name or another (the CIFAR-100 50-client runs came back from an earlier
+        # two-part build, cifar100_50clients_all_methods_part1of2 / part2of2, 30 Oct 2026)
+        if name.startswith("NB00") or not any(run_id(r) in done for r in nb["runs"]):
             continue
         miss = [r for r in nb["runs"] if run_id(r) not in done]
         if miss and len(miss) < len(nb["runs"]):

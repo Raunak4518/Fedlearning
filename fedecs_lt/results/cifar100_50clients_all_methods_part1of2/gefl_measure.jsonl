@@ -1,0 +1,12 @@
+{"run_id": "FedLC|cifar100|IF0.01|a0.5|K50|s3", "gefl_best_acc": 0.0733, "gefl_last_acc": 0.0701, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Balanced Softmax|cifar100|IF0.01|a0.5|K50|s3", "gefl_best_acc": 0.0766, "gefl_last_acc": 0.0733, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Local|cifar100|IF0.01|a0.5|K50|s3", "gefl_best_acc": 0.04494999999999999, "gefl_last_acc": 0.04494999999999999, "rounds": [], "models": 50, "source": "final (no rounds)"}
+{"run_id": "FedRS|cifar100|IF0.01|a0.5|K50|s3", "gefl_best_acc": 0.0734, "gefl_last_acc": 0.0717, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "GeFL-F|cifar100|IF0.01|a0.5|K50|s3", "gefl_best_acc": 0.0739, "gefl_last_acc": 0.068, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedAvg|cifar100|IF0.01|a0.5|K50|s3", "gefl_best_acc": 0.0727, "gefl_last_acc": 0.0697, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedProx|cifar100|IF0.01|a0.5|K50|s3", "gefl_best_acc": 0.0725, "gefl_last_acc": 0.0704, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "FedALA|cifar100|IF0.01|a0.5|K50|s3", "gefl_best_acc": 0.069, "gefl_last_acc": 0.0687, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 50, "source": "per-round logs"}
+{"run_id": "AvgKD|cifar100|IF0.01|a0.5|K50|s3", "gefl_best_acc": 0.0666, "gefl_last_acc": 0.0202, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 10, "source": "per-round logs"}
+{"run_id": "Local|cifar100|IF0.01|a0.5|K50|s4", "gefl_best_acc": 0.044573999999999996, "gefl_last_acc": 0.044573999999999996, "rounds": [], "models": 50, "source": "final (no rounds)"}
+{"run_id": "FedALA|cifar100|IF0.01|a0.5|K50|s4", "gefl_best_acc": 0.0726, "gefl_last_acc": 0.0719, "rounds": [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "models": 50, "source": "per-round logs"}
+{"run_id": "Local|cifar100|IF0.01|a0.5|K50|s5", "gefl_best_acc": 0.046718, "gefl_last_acc": 0.046718, "rounds": [], "models": 50, "source": "final (no rounds)"}

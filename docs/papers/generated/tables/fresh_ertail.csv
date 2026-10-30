@@ -1,0 +1,5 @@
+Method,CIFAR-10,CIFAR-100
+FedECS-LT,48.8 ± 1.6,8.2 ± 0.9
+GeFL-F,46.3 ± 2.2,6.7 ± 0.5
+Balanced Softmax,50.0 ± 1.8,8.6 ± 0.4
+FedDF,46.0 ± 2.1,7.1 ± 0.4

@@ -1,0 +1,1 @@
+{"run_id": "FedECS-LT|cifar10|IF0.01|a0.5|K10|s7", "attempt": 1, "error": "RuntimeError('secure sum of consensus failed (a client raised an error: see the log above)')", "time_s": 8121.141308784485}

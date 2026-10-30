@@ -2,12 +2,12 @@
 \toprule
 Method & Comm./client (MB) & Time (s) & MFLOPs/img & Train. GFLOPs/round\\
 \midrule
-FedECS-LT & 11,278 $\pm$ 113 & 7,910 $\pm$ 2,253 & \textbf{2.45} & 1,424 $\pm$ 112\\
-GeFL-F & 8,659 & 7,025 $\pm$ 446 & \textbf{2.45} & 579 $\pm$ 42\\
-Balanced Softmax & 60.8 & 542 $\pm$ 99 & \textbf{2.45} & \textbf{485 $\pm$ 34}\\
-FedLC & 60.8 & 501 $\pm$ 118 & \textbf{2.45} & \textbf{485 $\pm$ 34}\\
-FedRS & 60.8 & \textbf{417 $\pm$ 131} & \textbf{2.45} & \textbf{485 $\pm$ 34}\\
-FedDF & 8,659 & 5,050 $\pm$ 2,736 & \textbf{2.45} & 579 $\pm$ 42\\
+FedECS-LT & 11,278 $\pm$ 113 & 7,910 $\pm$ 2,253 & 2.45 & 1,424 $\pm$ 112\\
+GeFL-F & 8,659 & 7,025 $\pm$ 446 & 2.45 & 579 $\pm$ 42\\
+Balanced Softmax & 60.8 & 542 $\pm$ 99 & 2.45 & \textbf{485 $\pm$ 34}\\
+FedLC & 60.8 & 501 $\pm$ 118 & 2.45 & \textbf{485 $\pm$ 34}\\
+FedRS & 60.8 & \textbf{417 $\pm$ 131} & 2.45 & \textbf{485 $\pm$ 34}\\
+FedDF & 8,659 & 5,050 $\pm$ 2,736 & 2.45 & 579 $\pm$ 42\\
 Local & - & 536 $\pm$ 98 & - & -\\
 FedProto & 18.8 & 4,025 $\pm$ 109 & 2.45 & 485 $\pm$ 34\\
 FedTGP & 18.8 & 4,121 $\pm$ 218 & 2.45 & 485 $\pm$ 34\\
@@ -15,5 +15,12 @@ FedGen & 128 & 4,443 $\pm$ 1,033 & 2.45 & 485 $\pm$ 34\\
 FedGH & 18.8 & 3,149 $\pm$ 103 & 2.45 & 485 $\pm$ 34\\
 LG-FedAvg & 18.8 & 2,890 $\pm$ 212 & 2.45 & 485 $\pm$ 34\\
 FedMRL & \textbf{17.1} & 4,545 $\pm$ 804 & 3.84 & 871 $\pm$ 34\\
+FedAvg & 43.5 & 762 $\pm$ 32 & \textbf{1.73 $\pm$ 2.7e-16} & \textbf{485 $\pm$ 34}\\
+FedProx & 43.5 & 913 $\pm$ 47 & \textbf{1.73 $\pm$ 2.7e-16} & \textbf{485 $\pm$ 34}\\
+FedALA & 43.5 & 528 $\pm$ 131 & \textbf{1.73 $\pm$ 2.7e-16} & \textbf{485 $\pm$ 34}\\
+AvgKD & 172 & 669 $\pm$ 138 & \textbf{1.73 $\pm$ 2.7e-16} & \textbf{485 $\pm$ 34}\\
+CCVR & 51.5 & 540 $\pm$ 41 & \textbf{1.73 $\pm$ 2.7e-16} & \textbf{485 $\pm$ 34}\\
+FedETF & 43.6 & 536 $\pm$ 51 & \textbf{1.73 $\pm$ 2.7e-16} & \textbf{485 $\pm$ 34}\\
+Centralised (pooled data) & 60.8 & 3,844 $\pm$ 226 & 2.45 & 4,789\\
 \bottomrule
 \end{tabular}

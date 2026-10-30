@@ -29,6 +29,15 @@ round at the last one, by \R{main/cifar10/FedECS-LT (heads only)/gefl_drop} poin
 \R{main/cifar100/FedECS-LT (heads only)/gefl_drop} on CIFAR-100-LT; \cref{tab:app-gefl} gives every method's best
 round, as GeFL reports it (the readout is computed once, after the last round).}
 
+\whennum{main/cifar10/AvgKD/bal}{\paragraph{GeFL's grouped baselines} On CIFAR-10-LT we also ran the baselines of
+GeFL's own comparison (\cref{sec:setup-methods}). \claim{With one client per architecture, FedAvg, FedProx and FedALA
+within an architecture have nothing to average and reach \R{main/cifar10/FedAvg/bal}, \R{main/cifar10/FedProx/bal} and
+\R{main/cifar10/FedALA/bal}; CCVR and FedETF reach \R{main/cifar10/CCVR/bal} and \R{main/cifar10/FedETF/bal}. AvgKD,
+whose targets add the other architectures' predictions to the label (as in GeFL's code), falls to
+\R{main/cifar10/AvgKD/bal}, the chance level, with a worst-class recall of \R{main/cifar10/AvgKD/worst}: its models
+predict a single class. A plausible reason is that under label skew the other architectures' predictions, summed over
+nine models, outweigh the label; we did not test it.}}
+
 \paragraph{Accuracy on the clients' own class mixes} \claim{On the clients' own class mixes, \ours is below most
 other federated methods, and lower with its readout than with its heads only. There \ours reaches \R{main/cifar10/FedECS-LT/local} on CIFAR-10-LT and \R{main/cifar100/FedECS-LT/local} on CIFAR-100-LT
 (heads only: \R{main/cifar10/FedECS-LT (heads only)/local} and \R{main/cifar100/FedECS-LT (heads only)/local}), below
@@ -42,7 +51,10 @@ on both (\cref{tab:app-local}).}
 exact readout; \ours (heads only): its heads before the readout; every other method without the readout (heads as
 trained).
 Long-tailed benchmarks (imbalance ratio 100), 10 clients with ten different head architectures, Dirichlet label
-split ($\alpha=0.5$). Best in each column in bold.}
+split ($\alpha=0.5$). Best in each column in bold.\whennum{main/cifar10/AvgKD/bal}{ GeFL's grouped baselines (FedAvg to
+FedETF) were run on CIFAR-10-LT only.}\whennum{main/cifar10/Centralised (pooled data)/bal}{ Centralised (pooled data):
+the same extractor and heads trained on all training images in one place, a reference rather than a federated
+method, never in bold.}}
 \label{tab:main}
 \slottab{main_bal}{\begin{tabular}{lccccc}\toprule
 Method & MNIST & Fashion-MNIST & SVHN & CIFAR-10 & CIFAR-100\\\midrule
@@ -80,7 +92,10 @@ $\R{main/cifar100/er_strongest_p}$), although on CIFAR-100-LT the uncorrected 95
 differences to GeFL-F and FedDF remain significant with the readout ($p=\R{main/cifar100/er_p/GeFL-F}$ and
 $\R{main/cifar100/er_p/FedDF}$). Most of the margin over the published methods is therefore the readout's, and
 three seeds do not show whether the other components of \ours also train a better body than the strongest other
-method.}
+method.} \whennum{main/mnist/er_margin}{\claim{On MNIST, Fashion-MNIST and SVHN the lead with the readout for every
+method is \R{main/mnist/er_margin}, \R{main/fmnist/er_margin} and \R{main/svhn/er_margin} points
+($p=\R{main/mnist/er_strongest_p}$, $\R{main/fmnist/er_strongest_p}$ and $\R{main/svhn/er_strongest_p}$), significant
+only on MNIST.}}
 
 \whentab{k50_bal}{\paragraph{Several clients per architecture} With $K=10$ each architecture has one client, so heads
 are never averaged within an architecture. \Cref{tab:k50} repeats the comparison with 50 clients, five per
@@ -122,7 +137,8 @@ readout (\R{fresh/cifar10/er_strongest} and \R{fresh/cifar100/er_strongest}).}}}
 \centering\small
 \caption{Balanced accuracy (\%) with every architecture's last layer set by the exact readout
 (\cref{sec:method-readout}), the last step of \ours, added to every method; mean $\pm$ standard deviation over seeds 3--5. Methods of the GeFL-F pipeline (same extractor, heads
-with a CNN body and a linear last layer); the HtFLlib methods and Local were not evaluated with the readout. Same
+with a CNN body and a linear last layer); the HtFLlib methods, GeFL's grouped baselines and Local were not evaluated with the readout\whennum{main/cifar10/Centralised (pooled data)/er_bal}{; Centralised (pooled data) is the
+reference of \cref{tab:main}}. Same
 setting as \cref{tab:main}.}
 \label{tab:readout}
 \slottab{main_er}{\begin{tabular}{lccccc}\toprule
@@ -241,12 +257,15 @@ Method & 100 & 50 & 10 & 100 & 50 & 10\\\midrule
 CIFAR-100-LT with the same splits and seeds: GeFL-F without its generator (heads on real features only), with
 decoupled weight decay alone, with decoupled weight decay and logit adjustment, with its generator replaced by class
 Gaussians from the exact class statistics, FedDF with logit adjustment, and GeFL-F and FedDF with ten synthetic epochs
-per round, as \ours. \whennum{abl/cifar10/GeFL-F + AdamW/gain}{\claim{Decoupled weight decay alone changes GeFL-F's
-balanced accuracy by \R{abl/cifar10/GeFL-F + AdamW/gain} points on CIFAR-10-LT and
-\R{abl/cifar100/GeFL-F + AdamW/gain} on CIFAR-100-LT, a direct test of the decay diagnosis of
-\cref{sec:analysis-gen}.}} \whennum{abl/cifar10/heads_vs/GeFL-F (10 synthetic epochs)}{\claim{With ten synthetic epochs per round,
+per round, as \ours. \whennum{abl/cifar10/GeFL-F + AdamW/p}{\claim{Decoupled weight decay alone, the direct test of the decay diagnosis
+of \cref{sec:analysis-gen}, changes GeFL-F's balanced accuracy by \R{abl/cifar10/GeFL-F + AdamW/paired} points on
+CIFAR-10-LT ($p=\R{abl/cifar10/GeFL-F + AdamW/p}$, at the noise floor of \R{repeat/bal/floor}) and by
+\R{abl/cifar10/GeFL-F + AdamW/er_paired} with the readout ($p=\R{abl/cifar10/GeFL-F + AdamW/er_p}$)\numelse{abl/cifar100/GeFL-F + AdamW/gain}{,
+and by \R{abl/cifar100/GeFL-F + AdamW/gain} on CIFAR-100-LT}{; its CIFAR-100-LT runs did not finish}.}} \whennum{abl/cifar10/heads_vs/GeFL-F (10 synthetic epochs)}{\claim{With ten synthetic epochs per round,
 GeFL-F changes by \R{abl/cifar10/GeFL-F (10 synthetic epochs)/gain} points on CIFAR-10-LT and FedDF by
-\R{abl/cifar10/FedDF (10 synthetic epochs)/gain}; the heads of \ours remain \R{abl/cifar10/heads_vs/GeFL-F (10 synthetic epochs)} and
+\R{abl/cifar10/FedDF (10 synthetic epochs)/gain} ($p=\R{abl/cifar10/GeFL-F (10 synthetic epochs)/p}$ and
+$\R{abl/cifar10/FedDF (10 synthetic epochs)/p}$): the longer synthetic phase does not help them, so it does not
+explain the lead of \ours's heads; the heads of \ours remain \R{abl/cifar10/heads_vs/GeFL-F (10 synthetic epochs)} and
 \R{abl/cifar10/heads_vs/FedDF (10 synthetic epochs)} points ahead of them (CIFAR-100-LT: \R{abl/cifar100/heads_vs/GeFL-F (10 synthetic epochs)} and
 \R{abl/cifar100/heads_vs/FedDF (10 synthetic epochs)}), against a noise floor of \R{repeat/bal/floor} points.}} \claim{Removing the coupled decay and adding logit adjustment recovers
 \R{abl/cifar10/GeFL-F + LA/gain} points of GeFL-F's deficit on CIFAR-10-LT; the heads of \ours add
@@ -278,11 +297,16 @@ heads as trained (for \ours its heads before the readout); blue: with the exact 
 
 \whentab{abl_components}{\paragraph{Components of \ours} \Cref{tab:components} removes one component of \ours at a time.
 \claim{With the readout, the largest loss on CIFAR-10-LT comes from the change
-``\R{comp/cifar10/largest}'' (\R{comp/cifar10/largest_drop} points) and on CIFAR-100-LT from
-``\R{comp/cifar100/largest}'' (\R{comp/cifar100/largest_drop}); \R{comp/cifar10/n_small} and \R{comp/cifar100/n_small}
-of the \R{comp/n_variants} changes stay within the noise floor of \R{repeat/er/floor} points.} Replacing the trained
-generator by class Gaussians with the exact class means and covariances (``w/ Gaussian sampler'') tests whether a
-trained generator is needed at all.}
+``\R{comp/cifar10/largest}'' (\R{comp/cifar10/largest_drop} points, Holm-corrected
+$p=\R{comp/cifar10/w/o consensus soft labels/er_p}$) and on CIFAR-100-LT from ``\R{comp/cifar100/largest}''
+(\R{comp/cifar100/largest_drop}, $p=\R{comp/cifar100/w/o consensus soft labels/er_p}$). It is the only change whose
+effect exceeds the noise floor of \R{repeat/er/floor} points and is significant after Holm's correction over the
+\R{comp/n_variants} changes (\R{comp/cifar10/n_resolved} on CIFAR-10-LT, \R{comp/cifar100/n_resolved} on
+CIFAR-100-LT). The full method minus its variant without the moment correction is
+\R{comp/cifar10/w/o moment correction/er_drop} points with the readout on CIFAR-10-LT
+($p=\R{comp/cifar10/w/o moment correction/er_p}$), so the correction shows no benefit. Several CIFAR-100-LT changes have one seed
+(\R{comp/cifar100/n_one_seed} of \R{comp/n_variants}; their runs ran out of host memory), and so does
+``w/o logit adjustment'' on CIFAR-10-LT.}}
 
 \whentab{abl_components}{%
 \begin{table}[t]
@@ -295,7 +319,7 @@ method) when one component is removed; mean $\pm$ standard deviation over seeds 
 Variant & as trained & \ER & as trained & \ER\\\midrule
 \phrow{FedECS-LT (full)}{4}\phrow{w/o mean anchor (class rows, CCWA)}{4}\phrow{w/o CCWA (flat averaging)}{4}
 \phrow{w/o moment correction}{4}\phrow{w/o consensus soft labels}{4}\phrow{w/o logit adjustment}{4}
-\phrow{w/ one synthetic epoch}{4}\phrow{w/ Gaussian sampler}{4}\bottomrule\end{tabular}}
+\phrow{w/ one synthetic epoch}{4}\bottomrule\end{tabular}}
 \end{table}}
 
 \whenfig{fig_components}{%

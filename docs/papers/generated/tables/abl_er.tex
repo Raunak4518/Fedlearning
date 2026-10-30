@@ -1,0 +1,16 @@
+\begin{tabular}{lcc}
+\toprule
+Method & CIFAR-10 & CIFAR-100\\
+\midrule
+FedECS-LT & 52.6 $\pm$ 1.3 & \textbf{18.7 $\pm$ 0.2}\\
+GeFL-F & 50.3 $\pm$ 1.2 & 14.9 $\pm$ 0.2\\
+FedDF & 51.0 $\pm$ 1.2 & 15.8 $\pm$ 0.3\\
+GeFL-F w/o generator & 51.4 $\pm$ 0.4 & 17.0 $\pm$ 0.5\\
+GeFL-F + AdamW & 51.4 $\pm$ 1.1 & -\\
+GeFL-F + LA & 51.9 $\pm$ 1.0 & 15.8 $\pm$ 0.2\\
+GeFL-F w/ Gaussian generator + LA & \textbf{52.8 $\pm$ 0.8} & 17.7 $\pm$ 0.5\\
+FedDF + LA & 51.8 $\pm$ 1.2 & 14.9\\
+GeFL-F (10 synthetic epochs) & 49.7 $\pm$ 1.5 & 15.0 $\pm$ 0.2\\
+FedDF (10 synthetic epochs) & 49.0 $\pm$ 1.5 & 15.8 $\pm$ 0.4\\
+\bottomrule
+\end{tabular}

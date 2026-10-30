@@ -44,9 +44,12 @@ referee, \cref{app:fidelity}) recognises GeFL-F's generated CIFAR-10-LT features
 on average, with \R{main/cifar10/GeFL-F/fidelity_head} on the head classes and \R{main/cifar10/GeFL-F/fidelity_tail}
 on the tail classes, and at \R{main/cifar100/GeFL-F/fidelity_all} on CIFAR-100-LT, about chance: the generator carries
 little class information for any class, not only for the rare ones.} The row shrinkage is therefore one measured
-property of GeFL-F's generator, not a demonstrated cause of its rare-class loss; \numelse{abl/cifar10/GeFL-F + AdamW/gain}{the
-arm with decoupled decay alone (\cref{sec:res-ablation}) tests it directly.}{an arm with decoupled decay alone would
-test it directly.} Two remedies follow. Decoupling the decay removes the
+property of GeFL-F's generator, not a demonstrated cause of its rare-class loss. \numelse{abl/cifar10/GeFL-F + AdamW/p}{\claim{Decoupling
+the decay and changing nothing else raises GeFL-F's balanced accuracy on CIFAR-10-LT by
+\R{abl/cifar10/GeFL-F + AdamW/paired} points and its tail recall by \R{abl/cifar10/GeFL-F + AdamW/tail_paired}
+(paired over \R{abl/cifar10/GeFL-F + AdamW/seeds} seeds, uncorrected $p=\R{abl/cifar10/GeFL-F + AdamW/p}$ and
+$\R{abl/cifar10/GeFL-F + AdamW/tail_p}$; \cref{sec:res-ablation}): the shrinkage costs some rare-class accuracy, but
+it accounts for a small part of what GeFL-F loses.}}{An arm with decoupled decay alone would test it directly.} Two remedies follow. Decoupling the decay removes the
 shrinkage. Averaging each row over its holders only, with weights that grow with the holder's count (class-count
 weighted averaging, CCWA), removes the non-holders' term $\bar D_c$ from \cref{prop:contraction} and keeps coupled
 decay:

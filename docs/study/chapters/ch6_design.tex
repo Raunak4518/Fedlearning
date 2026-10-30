@@ -16,8 +16,8 @@ gets the same readout, so that only the heads' bodies differ? Answered by the re
 (\cref{sec:s-same-readout}).
 \item \textbf{RQ4, scope.} Does the effect hold with natural class imbalance and in the protocol with one shared
 model? Answered in \cref{sec:s-natural,sec:s-shared}.
-\item \textbf{RQ5, components.} Which changes carry the effect? Answered by the ablations, whose runs are pending
-(\cref{sec:s-pending}).
+\item \textbf{RQ5, components.} Which changes carry the effect? Answered by the ablations
+(\cref{sec:s-ablations}).
 \end{itemize}
 RQ3 is the question that decides how the paper's claim must be worded, as \cref{ch:results} shows.
 
@@ -27,8 +27,8 @@ RQ3 is the question that decides how the paper's claim must be worded, as \cref{
 uses half of CIFAR-10's training set, so the profile is applied to that half (and to 22\% of CIFAR-100, which gives the
 usual CIFAR-100-LT shape). As \cref{ch:problem} showed, the largest classes are capped, so the realised ratios are 48
 and 96 (\cref{tab:s-datasets}). The class index orders classes from the most to the least frequent, so the tail
-classes are the same in every run. MNIST, Fashion-MNIST and SVHN belong to the same benchmark set; their runs had not
-returned when this text was written.
+classes are the same in every run. MNIST, Fashion-MNIST and SVHN, made long-tailed the same way, complete the set of five
+long-tailed benchmarks.
 
 \paragraph{The naturally imbalanced datasets} Six datasets keep their own class sizes, with training sets capped at
 20,000 images: DermaMNIST, OrganAMNIST, BloodMNIST and PathMNIST (medical images), EMNIST ByClass (handwritten
@@ -90,10 +90,10 @@ global long tail and are ported to the frozen extractor with HtFLlib's settings.
 \item \textbf{One-shared-model methods}: FedAvg, FedProx, MOON, FedLC, CCVR, CReFF, FedETF, Fed-GraB, FedLoGe, FedYoYo
 and RUCR, in the second protocol only.
 \end{itemize}
-Two further groups had not returned when this text was written: GeFL's own grouped baselines (FedAvg, FedProx,
-FedALA, AvgKD, CCVR and FedETF, each within one architecture), planned at 10 and at 50 clients, and a reference that
-trains the same extractor and ten heads on all the training data pooled, a notebook of its own that gives the ceiling
-of this design.
+Two further groups complete the comparison on CIFAR. GeFL's own grouped baselines (FedAvg, FedProx, FedALA and AvgKD,
+and the long-tail methods CCVR and FedETF, each within one architecture) ran on CIFAR-10-LT. A reference trains the
+same extractor and ten heads on all the training data pooled, without a generator; it is not a federated method but
+the ceiling of this design.
 
 \paragraph{Fairness of the comparison} The paper's fairness table records what each method spends and exchanges.
 FedECS-LT trains 10 synthetic epochs per round against 1 for GeFL-F and FedDF and none for the methods without a
@@ -167,14 +167,15 @@ The settings of FedECS-LT were fixed during its development, before the reported
 official test sets. It compared about 36 configurations of the method and its variants on CIFAR-10-LT and 17 on
 CIFAR-100-LT, plus runs on MNIST, Fashion-MNIST and SVHN. It never used the six naturally imbalanced datasets. The
 baselines were not tuned. So on the CIFAR benchmarks the reported numbers may favour FedECS-LT through this selection,
-which is why the natural datasets matter, and why a run on new seeds 6--8 was added (pending).
+which is why the natural datasets matter, and why a run on new seeds 6--8 was added (\cref{sec:s-main}).
 
 \subsection{Threats to validity}
 
 The paper lists these threats in its design section. Each one changes how a result may be read.
 \begin{itemize}
-\item \textbf{Compute.} FedECS-LT trains longer and communicates more. Its gain is therefore not shown to come from the
-statistics rather than from the extra computation until the matched-epoch runs return.
+\item \textbf{Compute.} FedECS-LT trains longer and communicates more. The matched-epoch runs, GeFL-F and FedDF with
+ten synthetic epochs, test whether the longer synthetic phase explains the lead of its heads
+(\cref{sec:s-ablations}); the methods were not compared at matched communication or time.
 \item \textbf{Missing runs.} Some settings have fewer than three seeds, and those values carry no interval or a very
 wide one: EMNIST (one seed), CIFAR-100-LT with one shared model (seeds 3 and 4 for every method, but only seed 4 for FedECS-LT and FedLoGe), and
 CIFAR-10-LT with one shared model (seeds 3 and 4 only for FedECS-LT, CCVR, Fed-GraB, FedLC, FedYoYo and RUCR). With one shared model some runs of FedECS-LT failed where the baselines finished,

@@ -135,7 +135,11 @@ logged, so the fidelity values compare generators with each other, not with real
 \paragraph{How strong the evidence is} The shrinkage is measured and predicted by the lemmas. That it causes the rare
 classes' low accuracy is not shown: GeFL-F's generator carries little class information for \emph{any} class, and the
 long head-class rows do not make the head classes recognisable. The direct test is GeFL-F with AdamW and nothing else
-changed, one of the runs not yet returned (\cref{sec:s-pending}).
+changed. On CIFAR-10-LT it raises GeFL-F's balanced accuracy by \R{abl/cifar10/GeFL-F + AdamW/paired} points and its
+tail recall by \R{abl/cifar10/GeFL-F + AdamW/tail_paired} (paired over \R{abl/cifar10/GeFL-F + AdamW/seeds} seeds,
+uncorrected $p=\R{abl/cifar10/GeFL-F + AdamW/p}$ and $\R{abl/cifar10/GeFL-F + AdamW/tail_p}$); its CIFAR-100-LT runs
+did not finish (\cref{sec:s-ablations}). The shrinkage therefore costs some rare-class accuracy, but only a small part
+of what GeFL-F loses: the gap to FedECS-LT is \R{main/cifar10/diff/GeFL-F} points.
 
 \begin{figure}[t]
 \centering
